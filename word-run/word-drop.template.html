@@ -33,7 +33,7 @@
   #holdwrap:active{ transform:scale(.93); }
   .holdempty{ display:inline-block; width:44px; height:46px; line-height:46px; font-size:20px; color:rgba(255,255,255,.25); }
   .killcell{ position:absolute; border:2.5px solid rgba(255,213,79,.7); border-radius:11px; pointer-events:none; z-index:4;
-    animation:killcell 1.3s infinite; box-shadow:inset 0 0 10px rgba(255,213,79,.2); }
+    animation:killcell 1.1s 2; opacity:0; box-shadow:inset 0 0 10px rgba(255,213,79,.2); transition:opacity .5s; }
   @keyframes killcell{ 0%,100%{ opacity:.3; transform:scale(.93) } 50%{ opacity:.95; transform:scale(1.02) } }
   .shimmer{ animation:shimmerp 1.4s infinite; }
   @keyframes shimmerp{ 50%{ box-shadow:0 3px 0 #b8ad93, 0 0 16px rgba(255,213,79,.75); } }
@@ -310,6 +310,31 @@ let S = null;
 let P = load();
 function load(){ try{ return Object.assign({best:0,bestWord:"",sound:true}, JSON.parse(localStorage.getItem("worddrop_v1"))||{}); }catch(e){ return {best:0,bestWord:"",sound:true}; } }
 function save(){ try{ localStorage.setItem("worddrop_v1",JSON.stringify(P)); }catch(e){} }
+function saveRun(){ // the run survives closed tabs — essential for bus-ride sessions
+  if(!S || S.over){ P.run=null; save(); return; }
+  P.run={ board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind}:null)),
+    cur:S.cur, next:S.next, held:S.held, score:S.score, levelScore:S.levelScore, level:S.level,
+    drops:S.drops, pow:S.pow, wordsMade:S.wordsMade, lettersCleared:S.lettersCleared, nextGift:S.nextGift,
+    quest:S.quest, questProgress:S.questProgress, questDone:S.questDone, maxChain:S.maxChain,
+    bestWord:S.bestWord, bestWordPts:S.bestWordPts };
+  save();
+}
+function loadRun(){
+  const r=P.run;
+  if(!r || !r.cur) return false;
+  try{
+    boardEl.innerHTML="";
+    S=newState();
+    Object.assign(S,{ score:r.score, levelScore:r.levelScore, level:r.level, drops:r.drops, pow:r.pow,
+      wordsMade:r.wordsMade, lettersCleared:r.lettersCleared, nextGift:r.nextGift,
+      quest:r.quest, questProgress:r.questProgress, questDone:r.questDone, maxChain:r.maxChain,
+      bestWord:r.bestWord, bestWordPts:r.bestWordPts, cur:r.cur, next:r.next, held:r.held });
+    r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{ if(cell) newTile(cell.l,cell.k,ri,ci); }));
+    $("over").classList.remove("active");
+    UI.all();
+    return true;
+  }catch(e){ P.run=null; save(); return false; }
+}
 
 function TARGET(L){ return 60; } // Levels are celebrations, not difficulty spikes.
 function dailyQuest(){
@@ -326,7 +351,7 @@ function newState(){
   return { board: Array.from({length:ROWS},()=>Array(COLS).fill(null)),
     tiles:{}, seq:0, score:0, levelScore:0, target:TARGET(1), level:1, riseEvery:RISE_EVERY,
     drops:0, chain:1, maxChain:1, cascadeMax:1,
-    deadDrops:0, hintsOn:false, lastAction:Date.now(), clearedThisDrop:false,
+    deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     pow:{wild:0,bomb:0,laser:0}, usingPower:null,
     bestWord:"", bestWordPts:0, cur:null, next:null, held:null, over:false, busy:false, hoverCol:3,
     killers:{}, wordsMade:0, lettersCleared:0, nextGift:5,
@@ -418,37 +443,73 @@ function scanLine(cellsLine){ // array of tiles/null → [{cells, word}]
   flush();
   return found;
 }
+function scanBoth(line){
+  // players build words in any direction (C-O-D stacked bottom-up reads D-O-C top-down) — be generous, scan both ways.
+  // reversed hits keep cells in WORD order, so reveals sweep in reading direction.
+  return [...scanLine(line), ...scanLine([...line].reverse())];
+}
 function findWords(){
-  const found=[];
-  for(let r=0;r<ROWS;r++) found.push(...scanLine(S.board[r]));
-  for(let c=0;c<COLS;c++) found.push(...scanLine(S.board.map(row=>row[c])));
+  const found=[], seen=new Set();
+  const push=h=>{
+    const key=h.cells.map(t=>t.id).sort().join(",");
+    if(seen.has(key)) return;
+    seen.add(key); found.push(h);
+  };
+  for(let r=0;r<ROWS;r++) scanBoth(S.board[r]).forEach(push);
+  for(let c=0;c<COLS;c++) scanBoth(S.board.map(row=>row[c])).forEach(push);
   return found;
 }
 function wouldClear(piece, c){ // would dropping this piece in column c complete a word?
   if(piece.kind==="bomb") return null;
   if(S.board[0][c]) return null;
   let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
-  const fake={ letter:piece.kind==="wild"?"?":piece.letter, kind:piece.kind==="wild"?"wild":"normal", r:land, c };
+  const fake={ id:"fake", letter:piece.kind==="wild"?"?":piece.letter, kind:piece.kind==="wild"?"wild":"normal", r:land, c };
   S.board[land][c]=fake;
-  const words=[...scanLine(S.board[land]), ...scanLine(S.board.map(row=>row[c]))];
+  const words=[...scanBoth(S.board[land]), ...scanBoth(S.board.map(row=>row[c]))];
   S.board[land][c]=null;
-  const hit=words.find(w=>w.cells.includes(fake));
-  return hit ? hit.word : null;
+  let best=null;
+  for(const w of words) if(w.cells.includes(fake) && (!best || w.word.length>best.length)) best=w.word;
+  return best;
 }
-function helpfulLetters(){ // letters that could complete a word somewhere right now
-  const set=new Set();
+function helpfulByLength(){ // letter → length of the longest word it would complete right now
+  const best={};
   for(let c=0;c<COLS;c++){
     if(S.board[0][c]) continue;
-    for(const l of "abcdefghijklmnopqrstuvwxyz")
-      if(wouldClear({letter:l,kind:"normal"},c)) set.add(l);
+    for(const l of "abcdefghijklmnopqrstuvwxyz"){
+      const w=wouldClear({letter:l,kind:"normal"},c);
+      if(w && w.length>(best[l]||0)) best[l]=w.length;
+    }
   }
-  return [...set];
+  return best;
 }
-function riggedLetter(){ // A gentle deck keeps the game breezy, not punishing.
-  if(S && Math.random()<0.55){
-    const h=helpfulLetters();
-    if(h.length) return rand(h);
+// every 2..n-1 length prefix of a 4+ letter common word — used to grow fragments on purpose
+const PRE=(()=>{ const s=new Set();
+  COMMON.forEach(w=>{ if(w.length>=4) for(let i=2;i<w.length;i++) s.add(w.slice(0,i)); });
+  return s; })();
+function builderLetters(){ // letters that extend an existing fragment toward a 4+ letter word
+  const out=new Set();
+  for(let c=0;c<COLS;c++){
+    if(S.board[0][c]) continue;
+    let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+    let below=""; // vertical: new letter tops the stack, word reads downward
+    for(let r=land+1;r<Math.min(ROWS,land+4);r++){ const t=S.board[r][c]; if(!t||t.kind!=="normal"&&t.kind!=="gold") break; below+=t.letter; }
+    let left=""; // horizontal: letter lands to the right of a run at the same height
+    for(let cc=c-1;cc>=0&&c-cc<=3;cc--){ const t=S.board[land][cc]; if(!t||t.kind!=="normal"&&t.kind!=="gold") break; left=t.letter+left; }
+    for(const l of "abcdefghijklmnopqrstuvwxyz"){
+      if(below && PRE.has((l+below).slice(0,4))) out.add(l);
+      if(left && PRE.has(left+l)) out.add(l);
+    }
   }
+  return [...out];
+}
+function riggedLetter(){ // A gentle deck keeps the game breezy — and steers it toward LONG words.
+  if(!S) return drawLetter();
+  const best=helpfulByLength();
+  const longs=Object.keys(best).filter(l=>best[l]>=4);
+  if(longs.length && Math.random()<0.5) return rand(longs);          // finish a 4-5 letter word
+  if(Object.keys(best).length && Math.random()<0.35) return rand(Object.keys(best)); // finish any word
+  const b=builderLetters();
+  if(b.length && Math.random()<0.55) return rand(b);                 // grow a fragment toward a long word
   return drawLetter();
 }
 
@@ -468,6 +529,7 @@ const Game = {
     S.cur = makePiece(); S.next = makePiece();
     $("over").classList.remove("active");
     UI.all();
+    saveRun();
   },
   restart(){ Snd.init(); Game.start(); },
 
@@ -482,6 +544,7 @@ const Game = {
     Snd.tone(660,{dur:.07,type:"triangle",gain:.08}); Snd.tone(880,{dur:.07,type:"triangle",gain:.06,when:.06});
     buzz(10);
     UI.piece(); UI.holdSwap(); UI.toast("Saved a letter for later"); UI.hints(); UI.ghost(S.hoverCol);
+    saveRun();
   },
 
   async drop(col){
@@ -527,9 +590,9 @@ const Game = {
     if(S.cascadeMax>=3) Game.earn("laser");
 
     if(!power){ // powerup drops don't advance the rise clock
-      // adaptive hints: stay invisible until the player struggles
-      if(S.clearedThisDrop){ S.deadDrops=0; S.hintsOn=false; }
-      else { S.deadDrops++; if(S.deadDrops>=2) S.hintsOn=true; }
+      // a struggling player gets one passing nudge after 2 dead drops, then we back off again
+      if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
+      else { S.deadDrops++; if(S.deadDrops>=2){ S.deadDrops=0; setTimeout(()=>UI.nudge(), 350); } }
       S.drops++;
       if(S.drops % S.riseEvery === 0){ await Game.riseRow(); }
     }
@@ -537,6 +600,7 @@ const Game = {
     S.busy=false;
     UI.all();
     Game.checkDanger();
+    saveRun();
   },
 
   async laser(t){
@@ -653,9 +717,10 @@ const Game = {
       const len=w.cells.length;
       let pts=0;
       w.cells.forEach(t=>{ let v = t.kind==="wild"?0:VAL[t.letter]; if(t.kind==="gold") v*=3; pts+=v; });
-      pts = Math.round(pts * (1+0.35*(len-3)) * S.chain);
+      pts = Math.round(pts * (1+0.5*(len-3)) * S.chain); // long words pay disproportionately
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
+      banner.style.fontSize = Math.min(18+len*2.5, 34)+"px";
       $("boardwrap").appendChild(banner);
       const base = Math.min(4+(S.chain-1)*2, Snd.PENTA.length-len);
       for(let i=0;i<len;i++){
@@ -671,7 +736,8 @@ const Game = {
       banner.classList.add("done");
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
-      if(len>=5) Game.earn("bomb"); else if(len>=4) Game.earn("wild");
+      if(len>=5){ Game.earn("bomb"); UI.confetti(); }
+      else if(len>=4) Game.earn("wild");
       Game.recordWord(w, pts);
       await wait(700); // hold — let the word be READ
       banner.classList.add("fade"); setTimeout(()=>banner.remove(),450);
@@ -767,6 +833,7 @@ const Game = {
     Snd.over(); buzz([80,60,150]);
     if(S.score>P.best){ P.best=S.score; }
     if(S.bestWordPts>0 && S.bestWord) P.bestWord=S.bestWord;
+    P.run=null;
     save();
     $("o-score").textContent=S.score;
     $("o-word").textContent=S.bestWord||"—";
@@ -858,13 +925,25 @@ const UI = {
     const left=Math.max(0,S.nextGift-S.wordsMade);
     $("giftmeter").textContent = left ? "🎁 "+left+" word"+(left===1?"":"s")+" to a surprise" : "🎁 Surprise ready";
   },
+  nudge(){
+    // a small, self-erasing hint: the rings pulse twice, then fade away on their own
+    if(!S || S.busy || S.over || S.nudging) return;
+    S.nudging=true;
+    UI.hints();
+    setTimeout(()=>{
+      S.nudging=false;
+      document.querySelectorAll(".killcell").forEach(e=>{ e.style.opacity=0; setTimeout(()=>e.remove(),520); });
+      const ct=document.querySelector("#currentwrap .tile"); if(ct) ct.classList.remove("shimmer");
+      S.killers={};
+    }, 2400);
+  },
   hadKillers:false,
   hints(){
     S.killers={};
     document.querySelectorAll(".killcell").forEach(e=>e.remove());
     const piece = S.usingPower==="wild" ? {letter:"★",kind:"wild"} : S.cur;
-    // Candy Crush rule: never show hints until the player is stuck (2 dead drops or ~7s idle) — or a wild is armed
-    const reveal = true;
+    // hints are a passing nudge, never a permanent overlay: they appear only during a nudge window (or with a wild armed)
+    const reveal = S.nudging || S.usingPower==="wild";
     const scanning = reveal && !S.over && !S.busy && (!S.usingPower || S.usingPower==="wild");
     if(scanning){
       for(let c=0;c<COLS;c++){
@@ -941,7 +1020,18 @@ boardEl.addEventListener("pointerup", e=>{
 });
 document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
 
+/* stuck detection: after ~8s of inaction, give a passing nudge (max 2 per thinking pause) */
+setInterval(()=>{
+  if(!S || S.over || S.busy || S.nudging || S.idleNudges>=2) return;
+  if(Date.now()-S.lastAction > 8000){
+    S.idleNudges++;
+    S.lastAction = Date.now();
+    UI.nudge();
+    if(S.idleNudges===1) UI.toast("Psst… have a look around 👀");
+  }
+}, 1000);
+
 /* boot */
-Game.start();
+if(!loadRun()) Game.start();
 window.S = ()=>S; window.Game=Game; window.UI=UI; window.Snd=Snd;
 </script>

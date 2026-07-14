@@ -17,11 +17,17 @@ fs.writeFileSync(path.join(__dirname, "word-run.html"), out);
 fs.writeFileSync(path.join(__dirname, "index.html"), out); // so http://localhost:8123/ opens the game directly
 console.log(`Built word-run.html + index.html — ${words.length} words, ${(out.length / 1024 / 1024).toFixed(2)} MB`);
 
-// Word Drop: curated common words (google-10k ∩ ENABLE, 3-8 letters) so auto-clears feel like real words
+// Word Drop: curated common words so auto-clears feel like real words.
+// google-10k (web frequency) has gaps (hut, owl, hen...) so we union it with
+// OpenSubtitles top-30k (spoken frequency) — both intersected with ENABLE for validity.
 const enableSet = new Set(words);
-const common = fs.readFileSync(path.join(__dirname, "common10k.txt"), "utf8")
+const g10k = fs.readFileSync(path.join(__dirname, "common10k.txt"), "utf8")
   .split(/\r?\n/)
   .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
+const subs = fs.readFileSync(path.join(__dirname, "freq50k.txt"), "utf8")
+  .split(/\r?\n/).slice(0, 30000).map(l => l.split(" ")[0])
+  .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
+const common = [...new Set([...g10k, ...subs])];
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
