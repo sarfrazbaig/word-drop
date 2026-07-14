@@ -20,18 +20,30 @@
           background:var(--card); font-size:15px; padding:10px 16px; font-weight:600; }
   button:active{ transform:scale(.95); }
 
-  #hud{ width:100%; display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--dim); }
-  #hud b{ color:var(--ink); font-size:16px; }
-  #score-big{ font-size:26px; font-weight:900; color:var(--gold); text-shadow:0 2px 8px rgba(0,0,0,.5); min-width:70px; text-align:center; }
-  #chainlabel{ height:26px; font-weight:900; font-size:18px; color:var(--gold); text-shadow:0 2px 6px rgba(0,0,0,.6); }
+  #hud{ width:100%; display:flex; justify-content:space-between; align-items:center; }
+  .hudchip{ display:flex; align-items:center; gap:5px; font-size:13px; color:var(--dim);
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.06); border-radius:11px; padding:4px 10px; }
+  .hudchip b{ color:var(--ink); font-size:15px; }
+  #score-big{ font-size:27px; font-weight:900; color:var(--gold); text-shadow:0 2px 8px rgba(0,0,0,.5); min-width:70px; text-align:center; }
+  #chainlabel{ position:absolute; left:50%; top:-4px; transform:translateX(-50%); z-index:45; pointer-events:none;
+    font-weight:900; font-size:19px; color:var(--gold); text-shadow:0 2px 8px rgba(0,0,0,.8); }
 
-  #piecebar{ display:flex; align-items:center; gap:14px; margin:6px 0; height:64px; }
-  #nextwrap{ text-align:center; color:var(--dim); font-size:11px; }
-  #nextwrap .tile{ transform:scale(.72); opacity:.8; }
-  #holdwrap{ text-align:center; color:var(--dim); font-size:11px; cursor:pointer;
-    border:1.5px dashed rgba(255,255,255,.18); border-radius:12px; padding:2px 8px 6px; }
+  #piecebar{ display:flex; align-items:flex-end; gap:9px; margin:8px 0 4px; }
+  .slotlabel{ display:block; text-align:center; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); margin-bottom:2px; }
+  #nextwrap{ text-align:center; }
+  #nextwrap .tile{ opacity:.75; }
+  #holdwrap{ text-align:center; cursor:pointer; }
   #holdwrap:active{ transform:scale(.93); }
-  .holdempty{ display:inline-block; width:44px; height:46px; line-height:46px; font-size:20px; color:rgba(255,255,255,.25); }
+  .holdempty{ display:flex; align-items:center; justify-content:center; width:40px; height:42px; font-size:18px;
+    color:rgba(255,255,255,.3); border:1.5px dashed rgba(255,255,255,.18); border-radius:10px; }
+  .traydiv{ width:1px; height:40px; background:rgba(255,255,255,.1); margin:0 3px; }
+  .pslot.deny{ animation:denyshake .32s; }
+  @keyframes denyshake{ 25%{transform:translateX(-4px)} 50%{transform:translateX(4px)} 75%{transform:translateX(-2px)} }
+  .droplabel{ position:absolute; z-index:42; pointer-events:none; font-weight:900; font-size:15px; color:var(--gold);
+    text-shadow:0 2px 6px rgba(0,0,0,.9); transform:translate(-50%,-120%); white-space:nowrap; animation:bannerin .2s; }
+  .coach{ position:absolute; left:50%; top:30%; transform:translateX(-50%); font-size:42px; z-index:85; pointer-events:none;
+    animation:coachbob 1.1s ease-in-out infinite; filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)); }
+  @keyframes coachbob{ 0%,100%{ transform:translateX(-50%) translateY(0) } 50%{ transform:translateX(-50%) translateY(22px) } }
   .killcell{ position:absolute; border:2.5px solid rgba(255,213,79,.7); border-radius:11px; pointer-events:none; z-index:4;
     animation:killcell 1.1s 2; opacity:0; box-shadow:inset 0 0 10px rgba(255,213,79,.2); transition:opacity .5s; }
   @keyframes killcell{ 0%,100%{ opacity:.3; transform:scale(.93) } 50%{ opacity:.95; transform:scale(1.02) } }
@@ -42,11 +54,12 @@
   #lvlfill{ height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--gold)); border-radius:7px;
     transition:width .6s cubic-bezier(.2,.8,.3,1.2); background-size:200% 100%; animation:flowlv 3s linear infinite; }
   @keyframes flowlv{ to{ background-position:-200% 0 } }
-  #lvltext{ position:absolute; inset:0; font-size:9px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; text-shadow:0 1px 2px #000; }
-  #tray{ display:flex; gap:10px; align-items:center; margin:2px 0 6px; height:48px; }
-  .pslot{ width:44px; height:44px; border-radius:12px; background:rgba(0,0,0,.3); border:1.5px dashed rgba(255,255,255,.15);
-    display:flex; align-items:center; justify-content:center; font-size:22px; position:relative; cursor:pointer; opacity:.4;
+  .pslot{ width:42px; height:42px; border-radius:12px; background:rgba(0,0,0,.3); border:1.5px dashed rgba(255,255,255,.15);
+    display:flex; align-items:center; justify-content:center; font-size:20px; position:relative; cursor:pointer; opacity:.45;
     transition:transform .15s, box-shadow .15s; }
+  .pslot .req{ position:absolute; bottom:1px; left:0; right:0; text-align:center; font-size:8px; font-weight:800;
+    color:var(--dim); letter-spacing:.5px; }
+  .pslot.has .req{ display:none; }
   .pslot.has{ opacity:1; border-style:solid; border-color:rgba(255,213,79,.5); }
   .pslot.armed{ border-color:var(--gold); box-shadow:0 0 14px rgba(255,213,79,.65); transform:scale(1.1); }
   .pslot .cnt{ position:absolute; bottom:-5px; right:-5px; background:var(--gold); color:#3a2a00; font-size:11px; font-weight:800;
@@ -124,18 +137,17 @@
   @keyframes fall{ to{ transform:translateY(105vh) rotate(720deg); opacity:.5 } }
 
   #meta{ width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:var(--dim); }
-  #cozybar{ width:100%; min-height:32px; margin:2px 0 4px; padding:6px 10px; border-radius:11px;
-    display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px;
-    color:var(--dim); background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.06); }
-  #cozybar b{ color:var(--gold); font-size:12px; }
-  #quest{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  #giftmeter{ white-space:nowrap; color:var(--accent); font-weight:700; }
+  #cozybar{ width:100%; margin:2px 0 4px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .pill{ font-size:12px; color:var(--dim); background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.06);
+    border-radius:20px; padding:4px 12px; white-space:nowrap; letter-spacing:1px; }
+  .pill b{ color:var(--ink); }
+  .pill.pop{ animation:slotpop .45s; border-color:rgba(255,213,79,.6); }
+  .pill.done{ color:var(--accent); }
   #holdwrap.swap{ animation:holdswap .42s ease-out; border-color:var(--gold); box-shadow:0 0 16px rgba(255,213,79,.55); }
   @keyframes holdswap{ 35%{ transform:scale(1.12) rotate(-3deg) } 70%{ transform:scale(.96) rotate(2deg) } }
   #risepips{ display:flex; gap:4px; }
   .pip{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.15); }
   .pip.on{ background:var(--gold); }
-  #hint{ margin-top:6px; font-size:12px; color:var(--dim); text-align:center; min-height:16px; }
 
   #over{ position:absolute; inset:0; background:rgba(5,8,16,.88); display:none; flex-direction:column;
     align-items:center; justify-content:center; z-index:100; text-align:center; padding:24px; }
@@ -151,31 +163,27 @@
 
 <div id="app">
   <div id="hud">
-    <div>LEVEL <b id="h-level">1</b></div>
+    <div class="hudchip">⭐<b id="h-level">1</b></div>
     <div id="score-big">0</div>
-    <div>BEST <b id="h-best">0</b></div>
+    <div class="hudchip">🏆<b id="h-best">0</b></div>
   </div>
-  <div id="lvlbarwrap"><div id="lvlbar"><div id="lvlfill"></div><div id="lvltext"></div></div></div>
-  <div id="chainlabel"></div>
+  <div id="lvlbarwrap"><div id="lvlbar"><div id="lvlfill"></div></div></div>
   <div id="piecebar">
     <div id="currentwrap"></div>
-    <div id="nextwrap">NEXT<br><span id="nextslot"></span></div>
-    <div id="holdwrap" onclick="Game.hold()">HOLD<br><span id="holdslot"><span class="holdempty">－</span></span></div>
+    <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
+    <div id="holdwrap" onclick="Game.hold()"><span class="slotlabel">hold</span><span id="holdslot"><span class="holdempty">⇅</span></span></div>
+    <div class="traydiv"></div>
+    <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')">★<span class="req">4+</span><span class="cnt">0</span></div>
+    <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')">💣<span class="req">5+</span><span class="cnt">0</span></div>
+    <div class="pslot" id="ps-laser" onclick="Game.usePower('laser')">⚡<span class="req">×3</span><span class="cnt">0</span></div>
   </div>
-  <div id="tray">
-    <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')">★<span class="cnt">0</span></div>
-    <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')">💣<span class="cnt">0</span></div>
-    <div class="pslot" id="ps-laser" onclick="Game.usePower('laser')">⚡<span class="cnt">0</span></div>
-    <span style="font-size:10px;color:var(--dim);line-height:1.5">earn them:<br>4-letter word → ★ · 5+ → 💣 · chain ×3 → ⚡</span>
-  </div>
-  <div id="cozybar"><span id="quest"></span><span id="giftmeter"></span></div>
-  <div id="boardwrap"><div id="board"></div></div>
+  <div id="cozybar"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
+  <div id="boardwrap"><div id="chainlabel"></div><div id="board"></div></div>
   <div id="meta">
-    <span id="soundbtn" onclick="Snd.toggle()" style="cursor:pointer">🔊 sound</span>
+    <span id="soundbtn" onclick="Snd.toggle()" style="cursor:pointer">🔊</span>
     <div id="risepips"></div>
-    <a href="word-run.html" style="color:var(--dim)">← classic mode</a>
+    <a href="word-run.html" style="color:var(--dim);text-decoration:none" title="classic mode">🧩</a>
   </div>
-  <div id="hint">Tap a column to drop the letter. Words of 3+ clear & cascade!</div>
 
   <div id="over">
     <h2>Board Full!</h2>
@@ -329,6 +337,7 @@ function loadRun(){
       wordsMade:r.wordsMade, lettersCleared:r.lettersCleared, nextGift:r.nextGift,
       quest:r.quest, questProgress:r.questProgress, questDone:r.questDone, maxChain:r.maxChain,
       bestWord:r.bestWord, bestWordPts:r.bestWordPts, cur:r.cur, next:r.next, held:r.held });
+    if(!S.quest || !S.quest.emoji){ S.quest=dailyQuest(); S.questProgress=0; S.questDone=false; } // saves from older versions
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{ if(cell) newTile(cell.l,cell.k,ri,ci); }));
     $("over").classList.remove("active");
     UI.all();
@@ -341,10 +350,10 @@ function dailyQuest(){
   // A tiny, always-achievable reason to return. It never blocks the run or punishes a miss.
   const day = Math.floor(Date.now()/86400000);
   return [
-    {name:"Warm-up", type:"words", target:3, reward:"wild", text:"clear 3 words"},
-    {name:"Word Picnic", type:"letters", target:8, reward:"bomb", text:"clear 8 letters"},
-    {name:"Little Treasure", type:"points", target:24, reward:"wild", text:"earn 24 points"},
-    {name:"Long Way Home", type:"long", target:1, reward:"bomb", text:"make a 4-letter word"},
+    {name:"Warm-up", emoji:"🌤️", type:"words", target:3, reward:"wild", text:"clear 3 words"},
+    {name:"Word Picnic", emoji:"🧺", type:"letters", target:8, reward:"bomb", text:"clear 8 letters"},
+    {name:"Little Treasure", emoji:"💎", type:"points", target:24, reward:"wild", text:"earn 24 points"},
+    {name:"Long Way Home", emoji:"🏡", type:"long", target:1, reward:"bomb", text:"make a 4-letter word"},
   ][day % 4];
 }
 function newState(){
@@ -543,16 +552,20 @@ const Game = {
     else { S.cur = S.next; S.next = makePiece(); }
     Snd.tone(660,{dur:.07,type:"triangle",gain:.08}); Snd.tone(880,{dur:.07,type:"triangle",gain:.06,when:.06});
     buzz(10);
-    UI.piece(); UI.holdSwap(); UI.toast("Saved a letter for later"); UI.hints(); UI.ghost(S.hoverCol);
+    UI.piece(); UI.holdSwap(); UI.hints(); UI.ghost(S.hoverCol);
     saveRun();
   },
 
   async drop(col){
     if(S.over||S.busy) return;
     Snd.init();
-    if(S.board[0][col]){ Snd.reject(); buzz(60); UI.toast("Column full!"); return; }
+    if(S.board[0][col]){ Snd.reject(); buzz(60);
+      boardEl.classList.remove("shake"); void boardEl.offsetWidth; boardEl.classList.add("shake");
+      setTimeout(()=>boardEl.classList.remove("shake"),420);
+      return; }
     S.busy = true;
     UI.ghost(-1);
+    if(!P.coach){ P.coach=1; save(); const h=document.querySelector(".coach"); if(h) h.remove(); }
     // landing row
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
     const power = S.usingPower;
@@ -657,13 +670,13 @@ const Game = {
       if(S.questProgress>=q.target){
         S.questProgress=q.target; S.questDone=true;
         Game.earn(q.reward);
-        UI.toast("Little goal complete — a surprise power is yours!");
+        UI.pillPop("quest");
       }
     }
     if(S.wordsMade>=S.nextGift){
       S.nextGift+=5;
       Game.earn(rand(["wild","bomb","laser"]));
-      UI.toast("Pocket surprise unlocked — keep the words coming!");
+      UI.pillPop("giftmeter");
     }
     UI.cozy();
   },
@@ -674,12 +687,13 @@ const Game = {
     S.lastAction=Date.now();
     if(S.usingPower===kind){ S.usingPower=null; }
     else{
-      if(S.pow[kind]<=0){
-        UI.toast("Earn it: "+(kind==="wild"?"play a 4-letter word":kind==="bomb"?"play a 5-letter word":"hit a chain ×3"));
-        Snd.reject(); return;
+      if(S.pow[kind]<=0){ // the slot itself explains: it shakes and flashes its requirement glyph
+        const el=$("ps-"+kind);
+        el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+        setTimeout(()=>el.classList.remove("deny"),350);
+        Snd.reject(); buzz(30); return;
       }
       S.usingPower=kind;
-      UI.toast(kind==="laser"?"⚡ Laser armed — clears its whole row!":kind==="bomb"?"💣 Bomb armed — pick a spot!":"★ Wild armed — completes anything!");
     }
     UI.tray(); UI.hints(); UI.ghost(S.hoverCol);
   },
@@ -857,7 +871,7 @@ const UI = {
   },
   ghostEl:null,
   ghost(col){
-    if(this.ghostEl){ this.ghostEl.remove(); this.ghostEl=null; }
+    if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
     if(col<0 || S.over || S.busy) return;
     if(S.board[0][col]) return;
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
@@ -868,8 +882,12 @@ const UI = {
       : (S.cur.kind==="bomb"?"💣":S.cur.kind==="wild"?"★":S.cur.letter.toUpperCase());
     g.style.transform=xy(land,col);
     boardEl.appendChild(g); this.ghostEl=g;
-    if(S.killers[col]) $("hint").innerHTML = "💥 drops here spell <b style='color:var(--gold)'>"+S.killers[col].toUpperCase()+"</b>!";
-    else if(Object.keys(S.killers).length===0) $("hint").innerHTML = "Set up fragments — or 📦 HOLD this letter for later";
+    if(S.killers[col]){ // during a nudge, the word floats right above the landing spot — no prose
+      const dl=document.createElement("div"); dl.className="droplabel";
+      dl.textContent = S.killers[col].toUpperCase();
+      dl.style.left=(col*STEP+CELL/2)+"px"; dl.style.top=(land*STEP)+"px";
+      boardEl.appendChild(dl); g._label=dl;
+    }
   },
   tick(el, val){
     const from=parseInt(el.dataset.v||"0",10);
@@ -890,7 +908,6 @@ const UI = {
     pips.innerHTML = Array.from({length:S.riseEvery},(_,i)=>'<div class="pip'+(i < S.drops%S.riseEvery ? " on":"")+'"></div>').join("");
     const pct=Math.min(100, 100*S.levelScore/S.target);
     $("lvlfill").style.width=pct+"%";
-    $("lvltext").textContent=S.levelScore+" / "+S.target+" → level "+(S.level+1);
   },
   chain(){ $("chainlabel").textContent = S.chain>=2 ? "🔥 CHAIN ×"+S.chain : ""; if(S.chain<2) setTimeout(()=>{ if(S&&S.chain<2) $("chainlabel").textContent=""; },800); },
   miniTile(t, size, font){
@@ -919,11 +936,19 @@ const UI = {
   },
   cozy(){
     const q=S.quest;
-    $("quest").innerHTML = S.questDone
-      ? "<b>✓ Little goal complete</b> · keep playing for surprises"
-      : "<b>This run: "+q.name+"</b> · "+q.text+" ("+Math.min(q.target,S.questProgress)+"/"+q.target+")";
-    const left=Math.max(0,S.nextGift-S.wordsMade);
-    $("giftmeter").textContent = left ? "🎁 "+left+" word"+(left===1?"":"s")+" to a surprise" : "🎁 Surprise ready";
+    const qe=$("quest");
+    qe.classList.toggle("done", S.questDone);
+    qe.innerHTML = S.questDone
+      ? q.emoji+" ✓"
+      : q.emoji+" <b>"+Math.min(q.target,S.questProgress)+"</b>/"+q.target;
+    qe.title = q.text; // long-press/hover reveals the words, the pill itself stays wordless
+    const into=((S.wordsMade % 5)+5)%5;
+    $("giftmeter").innerHTML = "🎁 "+"●".repeat(into)+"○".repeat(5-into);
+  },
+  pillPop(id){
+    const el=$(id);
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+    setTimeout(()=>el.classList.remove("pop"),500);
   },
   nudge(){
     // a small, self-erasing hint: the rings pulse twice, then fade away on their own
@@ -967,9 +992,6 @@ const UI = {
       Snd.tone(1760,{dur:.2,type:"sine",gain:.04,when:.09,verb:true});
     }
     UI.hadKillers = n>0;
-    $("hint").innerHTML = n
-      ? "💥 <b style='color:var(--gold)'>"+(n===1?"1 spot makes a word!":n+" spots make words!")+"</b>"
-      : "Build words across or down — 3+ letters clear!";
   },
   tray(){
     ["wild","bomb","laser"].forEach(k=>{
@@ -1027,11 +1049,15 @@ setInterval(()=>{
     S.idleNudges++;
     S.lastAction = Date.now();
     UI.nudge();
-    if(S.idleNudges===1) UI.toast("Psst… have a look around 👀");
   }
 }, 1000);
 
 /* boot */
 if(!loadRun()) Game.start();
+/* first-ever visit: a wordless pointing hand teaches the one gesture the game has */
+if(!P.coach){
+  const hand=document.createElement("div"); hand.className="coach"; hand.textContent="👇";
+  document.getElementById("boardwrap").appendChild(hand);
+}
 window.S = ()=>S; window.Game=Game; window.UI=UI; window.Snd=Snd;
 </script>
