@@ -252,6 +252,20 @@
     box-shadow:0 4px 0 #101013, 0 5px 8px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.15), inset 0 -3px 4px rgba(0,0,0,.5); }
   .tile.shift{ background:linear-gradient(148deg,#d9f4ff,#a8dcf5 55%,#74b4dd); color:#173a52;
     box-shadow:0 4px 0 #3e6f91, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(40,90,130,.35); }
+  .tile.stone{ background:linear-gradient(148deg,#8a8f99,#5f6570 55%,#3f444d); font-size:22px!important;
+    box-shadow:0 4px 0 #23262c, 0 5px 8px rgba(0,0,0,.4), inset 0 1.5px 0 rgba(255,255,255,.25), inset 0 -3px 4px rgba(0,0,0,.45); }
+  .tile.stone.cracked{ filter:brightness(.7) saturate(.7);
+    background-image:linear-gradient(148deg,#8a8f99,#5f6570 55%,#3f444d),
+      repeating-linear-gradient(37deg, transparent 0 7px, rgba(0,0,0,.5) 7px 8.5px); background-blend-mode:multiply; }
+  .tile.ice{ background:linear-gradient(148deg,rgba(226,244,255,.92),rgba(168,214,240,.88) 55%,rgba(120,175,214,.85));
+    color:rgba(23,58,82,.55); text-shadow:none;
+    box-shadow:0 4px 0 #4a7fa3, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.95), inset 0 -3px 6px rgba(60,120,170,.4); }
+  .tile.ice::before{ content:"❄"; position:absolute; top:1px; left:4px; font-size:10px; color:rgba(30,90,140,.8); }
+  .tile.crate{ background:linear-gradient(148deg,#e8c58a,#c99a55 55%,#9c6f33); font-size:22px!important;
+    box-shadow:0 4px 0 #6b4a1e, 0 5px 8px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -3px 4px rgba(110,75,30,.5); }
+  .tile.thawpop{ animation:thawpop .55s; }
+  @keyframes thawpop{ 40%{ transform:scale(1.18); filter:brightness(1.8) } }
+  #iv-obstacles{ font-size:14px; color:var(--dim); letter-spacing:3px; }
   .tile.ghost{ position:absolute; opacity:.38; transition:none; box-shadow:none; background:rgba(246,241,227,.18);
     border:2px dashed rgba(255,255,255,.55); color:#fff; text-shadow:none; }
   .tile::after{ content:""; position:absolute; inset:0; border-radius:9px; pointer-events:none;
@@ -420,6 +434,7 @@
         <div>🎯 target<b id="iv-target">60</b></div>
         <div>🔻 moves<b id="iv-moves">15</b></div>
       </div>
+      <div id="iv-obstacles" style="display:none"></div>
       <div id="iv-visitor" style="display:none"></div>
       <div id="iv-tap">TAP TO PLAY</div>
     </div>
@@ -482,6 +497,13 @@ const VOWELS = new Set(["a","e","i","o","u"]);
 const MIN_LEN = 3;
 function TARGET(L){ return Math.round(40*Math.pow(1.12,L-1)/5)*5; }
 function MOVES(L){ return 15; }
+function recipe(L){ // each level opens with a different board problem
+  return {
+    stone: L>=3 ? Math.min(3, 1+Math.floor((L-3)/3)) : 0,
+    ice:   L>=5 ? Math.min(3, 1+Math.floor((L-5)/4)) : 0,
+    crate: (L>=4 && L%3===1) ? 1 : 0,
+  };
+}
 
 /* =================== SOUND =================== */
 const Snd = {
@@ -545,6 +567,9 @@ const Snd = {
     this.noise({dur:.5,gain:.06,lp:1200,verb:true}); },
   bomb(){ this.noise({dur:.09,gain:.09,hp:3000}); this.tone(55,{dur:.5,type:"sine",gain:.3,when:.05}); this.noise({dur:.4,gain:.16,lp:300,when:.05}); },
   gold(){ [1568,2093,2637].forEach((f,i)=>this.tone(f,{dur:.12,type:"square",gain:.04,when:i*0.06,verb:true})); },
+  crack(shatter){ this.noise({dur:.08,gain:.12,hp:600});
+    if(shatter){ this.noise({dur:.25,gain:.1,lp:900,when:.05}); this.tone(160,{dur:.2,type:"triangle",gain:.1,when:.03}); } },
+  thaw(){ this.tone(1200,{dur:.18,type:"sine",gain:.07,slideTo:1800,verb:true}); this.noise({dur:.12,gain:.05,hp:3000}); },
   levelUp(){ [262,330,392,523,659,784].forEach((f,i)=>this.tone(f,{dur:.28,type:"triangle",gain:.13,when:i*0.09,verb:true})); this.noise({dur:.6,gain:.05,lp:1500,verb:true,when:.3}); },
   fail(){ [392,330,262,196].forEach((f,i)=>this.tone(f,{dur:.34,type:"triangle",gain:.12,when:i*0.17,verb:true})); },
   earn(){ this.tone(1047,{dur:.1,type:"square",gain:.05,verb:true}); this.tone(1319,{dur:.16,type:"square",gain:.05,when:.08,verb:true}); },
@@ -629,7 +654,7 @@ let P = load();
 function save(){ try{ localStorage.setItem("worddrop_v2",JSON.stringify(P)); }catch(e){} }
 function saveRun(){
   if(!S || S.over){ P.run=null; save(); return; }
-  P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind}:null)),
+  P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
     maxChain:S.maxChain, newGrove:S.newGrove, visitor:S.visitor };
@@ -644,7 +669,11 @@ function loadRun(){
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
       maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next, visitor:r.visitor||null });
-    r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{ if(cell) newTile(cell.l,cell.k,ri,ci); }));
+    r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
+      if(!cell) return;
+      const t=newTile(cell.l,cell.k,ri,ci);
+      if(cell.x){ t.cracks=cell.x; t.inner.classList.add("cracked"); }
+    }));
     S.busy=false; // resumed runs skip the intro card, so unfreeze directly
     S.lastAction=Date.now();
     UI.all(); UI.visitor();
@@ -682,6 +711,14 @@ const boardEl = $("board");
 boardEl.style.width = (COLS*STEP-GAP)+"px";
 boardEl.style.height = (ROWS*STEP-GAP)+"px";
 function xy(r,c){ return "translate("+(c*STEP)+"px,"+(r*STEP)+"px)"; }
+function tileFace(t){
+  if(t.kind==="bomb") return "💣";
+  if(t.kind==="wild") return "★";
+  if(t.kind==="stone") return "🪨";
+  if(t.kind==="crate") return "🎁";
+  const val = (t.kind==="ice") ? "" : "<small>"+VAL[t.letter]+"</small>";
+  return t.letter.toUpperCase()+val;
+}
 function makeTileEl(t){
   const outer=document.createElement("div");
   outer.className="tw";
@@ -690,12 +727,12 @@ function makeTileEl(t){
   el.className="tile "+(t.kind!=="normal"?t.kind:"");
   el.style.fontSize="20px";
   el.style.transform="rotate("+(Math.random()*2.6-1.3).toFixed(2)+"deg)";
-  el.innerHTML = (t.kind==="bomb"?"💣":t.kind==="wild"?"★":t.letter.toUpperCase())
-    + (t.kind==="normal"||t.kind==="gold"||t.kind==="shift" ? "<small>"+VAL[t.letter]+"</small>" : "");
+  el.innerHTML = tileFace(t);
   outer.appendChild(el);
   boardEl.appendChild(outer);
   return {outer, inner:el};
 }
+const NONWORD = new Set(["bomb","stone","crate","ice"]); // these break words apart
 function placeTile(t,r,c,instant){
   t.r=r; t.c=c;
   if(instant){ t.el.style.transition="none"; t.el.style.transform=xy(r,c); void t.el.offsetWidth; t.el.style.transition=""; }
@@ -743,7 +780,7 @@ function scanLine(cellsLine){
     }
     seg=[];
   };
-  cellsLine.forEach(t=>{ if(t && t.kind!=="bomb") seg.push(t); else flush(); });
+  cellsLine.forEach(t=>{ if(t && !NONWORD.has(t.kind)) seg.push(t); else flush(); });
   flush();
   return found;
 }
@@ -838,6 +875,18 @@ const Game = {
       const w=findWords()[0]; const t=rand(w.cells);
       t.letter = drawLetter(); t.inner.innerHTML = t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
     }
+    // level recipe: convert some prefill tiles into this level's obstacles
+    const rec=recipe(level);
+    const pool=Object.values(S.tiles).filter(t=>t.kind==="normal");
+    const convert=(kind,n)=>{
+      for(let i=0;i<n;i++){
+        if(!pool.length) return;
+        const t=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+        t.kind=kind; t.cracks=0;
+        t.inner.className="tile "+kind; t.inner.innerHTML=tileFace(t);
+      }
+    };
+    convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
     S.cur = makePiece(); S.next = makePiece();
     // a discovered grove friend visits each level — make a 4+ letter word and it blesses you
     const disc = GROVE.filter(g=>P.grove[g.w]);
@@ -850,6 +899,13 @@ const Game = {
     $("iv-level").textContent = "LEVEL "+level;
     $("iv-target").textContent = S.target;
     $("iv-moves").textContent = S.movesLeft;
+    const ob=$("iv-obstacles");
+    const parts=[];
+    if(rec.stone) parts.push("🪨×"+rec.stone);
+    if(rec.ice) parts.push("🧊×"+rec.ice);
+    if(rec.crate) parts.push("🎁×"+rec.crate);
+    if(parts.length){ ob.style.display="block"; ob.textContent=parts.join("  "); }
+    else ob.style.display="none";
     const iv=$("iv-visitor");
     if(S.visitor){ iv.style.display="block"; iv.innerHTML="<b>"+S.visitor.e+"</b> is visiting · 4+ letter word = gift"; }
     else iv.style.display="none";
@@ -958,7 +1014,7 @@ const Game = {
 
   async swapAt(row,col){ // pick two tiles; they trade places — words that form, clear
     const t = S.board[row] && S.board[row][col];
-    if(!t){ Snd.reject(); return; }
+    if(!t || NONWORD.has(t.kind)){ Snd.reject(); return; } // stone won't budge; ice is frozen solid
     if(!S.swapSel){
       S.swapSel=t; t.inner.classList.add("selswap");
       Snd.tone(760,{dur:.09,type:"triangle",gain:.07}); buzz(8);
@@ -989,7 +1045,7 @@ const Game = {
 
   async transmuteAt(row,col){
     const t = S.board[row] && S.board[row][col];
-    if(!t || t.kind==="wild") { Snd.reject(); return; }
+    if(!t || t.kind==="wild" || NONWORD.has(t.kind)) { Snd.reject(); return; }
     S.busy=true;
     P.pow.transmute--; save(); Game.cancelMode();
     t.inner.classList.add("morph");
@@ -1265,9 +1321,11 @@ const Game = {
     S.levelScore += gained;
     UI.hud();
     await wait(150);
+    const clearedPos=[...allCells].map(t=>({r:t.r,c:t.c}));
     allCells.forEach(t=>removeTile(t));
     Snd.collapse(allCells.size);
     await wait(220);
+    await Game.hitNeighbors(clearedPos);
     await Game.gravity();
     // one honest rain tile: cascade potential, never a gift
     await Game.rain(1);
@@ -1275,6 +1333,43 @@ const Game = {
     Snd.riser(S.chain);
     await wait(430);
     await Game.resolve();
+  },
+
+  async hitNeighbors(cells){ // clearing beside stone cracks it, beside ice thaws it, beside a crate pops it
+    const seen=new Set(); let acted=false;
+    for(const p of cells){
+      for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const r=p.r+d[0], c=p.c+d[1];
+        if(r<0||r>=ROWS||c<0||c>=COLS) continue;
+        const t=S.board[r][c];
+        if(!t || seen.has(t.id)) continue;
+        seen.add(t.id);
+        if(t.kind==="stone"){
+          acted=true;
+          t.cracks=(t.cracks||0)+1;
+          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); }
+          else {
+            t.inner.classList.add("cracked");
+            t.inner.classList.add("jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
+            Snd.crack(false);
+          }
+          buzz(15);
+        } else if(t.kind==="ice"){
+          acted=true;
+          t.kind="normal";
+          t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
+          setTimeout(()=>t.inner.classList.remove("thawpop"),560);
+          UI.shards(t.r,t.c,"#a8dcf5");
+          Snd.thaw(); buzz(10);
+        } else if(t.kind==="crate"){
+          acted=true;
+          removeTile(t);
+          Game.earn(rand(["swap","wild","bomb","oracle","transmute"]));
+          Snd.gold(); buzz([15,25]);
+        }
+      }
+    }
+    if(acted){ UI.hud(); await wait(340); }
   },
 
   async rain(count){
