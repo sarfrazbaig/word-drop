@@ -31,4 +31,7 @@ const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.ht
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
 fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game — it owns the root
-console.log(`Built word-drop.html + index.html (main) — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
+const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on main
+if (!fs.existsSync(docs)) fs.mkdirSync(docs);
+fs.writeFileSync(path.join(docs, "index.html"), dropOut);
+console.log(`Built word-drop.html + index.html + docs/index.html — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
