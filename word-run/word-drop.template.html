@@ -195,8 +195,8 @@
     box-shadow:0 4px 0 #4527a0, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -3px 4px rgba(60,20,140,.4); }
   #ps-bomb.has{ background:linear-gradient(148deg,#5a5a64,#33333b 55%,#1d1d23); color:#ff8a5c; text-shadow:0 1px 2px #000;
     box-shadow:0 4px 0 #101013, 0 5px 7px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.15), inset 0 -3px 4px rgba(0,0,0,.5); }
-  #ps-laser.has{ background:linear-gradient(148deg,#ffefb0,#ffd54f 55%,#f5a800); color:#5a3d00;
-    box-shadow:0 4px 0 #a97a00, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(160,110,0,.35); }
+  #ps-oracle.has{ background:linear-gradient(148deg,#e6d9ff,#b9a3f0 55%,#7c5fd0); color:#2a1b52; text-shadow:0 1px 0 rgba(255,255,255,.4);
+    box-shadow:0 4px 0 #4a3690, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.8), inset 0 -3px 4px rgba(70,50,140,.35); }
   #ps-swap.has{ background:linear-gradient(148deg,#d9f4ff,#a8dcf5 55%,#74b4dd); color:#173a52;
     box-shadow:0 4px 0 #3e6f91, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(40,90,130,.35); }
   .pslot.armed{ box-shadow:0 0 16px rgba(255,213,79,.75), 0 4px 0 #b3a685!important; transform:scale(1.12) translateY(-3px); }
@@ -206,6 +206,31 @@
   .pslot.pop{ animation:slotpop .45s; }
   .pslot.deny{ animation:denyshake .32s; }
   .tile.selswap{ transform:scale(1.08)!important; box-shadow:0 0 18px #74b4dd, 0 4px 0 #b3a685; filter:brightness(1.2); z-index:5; }
+
+  /* -------- targeting mode: armed powers announce themselves -------- */
+  #modeaura{ position:absolute; inset:0; pointer-events:none; z-index:3; opacity:0; transition:opacity .25s; border-radius:var(--r-md); }
+  #modeaura.on{ opacity:1; }
+  #modechip{ position:absolute; left:50%; top:8px; transform:translateX(-50%); z-index:60; display:none;
+    align-items:center; gap:8px; background:rgba(0,0,0,.85); border:1.5px solid var(--gold);
+    border-radius:999px; padding:7px 8px 7px 16px; font-size:14px; font-weight:800; letter-spacing:1px;
+    color:var(--ink); white-space:nowrap; animation:bannerin .25s; box-shadow:0 8px 20px rgba(0,0,0,.5); }
+  #modechip.on{ display:flex; }
+  #modechip .mx{ width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.14);
+    display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; }
+
+  /* -------- grove visitor: your collection plays with you -------- */
+  #visitor{ position:absolute; top:-8px; right:6px; z-index:50; font-size:30px; cursor:pointer; display:none;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,.6)); animation:visitorbob 3s ease-in-out infinite; }
+  #visitor.here{ display:block; }
+  @keyframes visitorbob{ 0%,100%{ transform:translateY(0) rotate(-3deg) } 50%{ transform:translateY(-6px) rotate(3deg) } }
+  #visitor.bless{ animation:visitorjump .9s; }
+  @keyframes visitorjump{ 0%{ transform:translateY(0) } 25%{ transform:translateY(-26px) scale(1.3) rotate(-8deg) }
+    50%{ transform:translateY(0) scale(1) } 70%{ transform:translateY(-12px) rotate(6deg) } 100%{ transform:translateY(0) } }
+  #iv-visitor{ font-size:13px; color:var(--dim); }
+  #iv-visitor b{ font-size:20px; }
+  .movesfloat{ position:absolute; z-index:90; font-size:22px; font-weight:900; color:var(--accent); pointer-events:none;
+    text-shadow:0 2px 8px rgba(0,0,0,.7); animation:floatup 1s forwards; }
+  @keyframes floatup{ to{ transform:translateY(-34px); opacity:0 } }
   @keyframes slotpop{ 40%{ transform:scale(1.4) rotate(8deg) } }
   @keyframes denyshake{ 25%{transform:translateX(-4px)} 50%{transform:translateX(4px)} 75%{transform:translateX(-2px)} }
 
@@ -362,7 +387,11 @@
     </div>
     <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
     <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
-    <div id="boardwrap"><div id="board"></div></div>
+    <div id="boardwrap">
+      <div id="board"><div id="modeaura"></div></div>
+      <div id="modechip"></div>
+      <div id="visitor" onclick="UI.visitorPeek()"></div>
+    </div>
     <div id="dock">
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
@@ -371,7 +400,7 @@
       <div class="pslot" id="ps-swap" onclick="Game.usePower('swap')">⇄<span class="req">3</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')">★<span class="req">4+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')">💣<span class="req">5+</span><span class="cnt">0</span></div>
-      <div class="pslot" id="ps-laser" onclick="Game.usePower('laser')">⚡<span class="req">×3</span><span class="cnt">0</span></div>
+      <div class="pslot" id="ps-oracle" onclick="Game.usePower('oracle')">🔮<span class="req">×3</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-transmute" onclick="Game.usePower('transmute')">🔄<span class="req">⭐+</span><span class="cnt">0</span></div>
     </div>
   </div>
@@ -391,6 +420,7 @@
         <div>🎯 target<b id="iv-target">60</b></div>
         <div>🔻 moves<b id="iv-moves">15</b></div>
       </div>
+      <div id="iv-visitor" style="display:none"></div>
       <div id="iv-tap">TAP TO PLAY</div>
     </div>
   </div>
@@ -517,7 +547,6 @@ const Snd = {
   gold(){ [1568,2093,2637].forEach((f,i)=>this.tone(f,{dur:.12,type:"square",gain:.04,when:i*0.06,verb:true})); },
   levelUp(){ [262,330,392,523,659,784].forEach((f,i)=>this.tone(f,{dur:.28,type:"triangle",gain:.13,when:i*0.09,verb:true})); this.noise({dur:.6,gain:.05,lp:1500,verb:true,when:.3}); },
   fail(){ [392,330,262,196].forEach((f,i)=>this.tone(f,{dur:.34,type:"triangle",gain:.12,when:i*0.17,verb:true})); },
-  laserSnd(){ this.tone(1400,{dur:.3,type:"sawtooth",gain:.1,slideTo:120}); this.noise({dur:.25,gain:.08,hp:2500}); },
   earn(){ this.tone(1047,{dur:.1,type:"square",gain:.05,verb:true}); this.tone(1319,{dur:.16,type:"square",gain:.05,when:.08,verb:true}); },
   discover(){ [523,659,784,1047,1319,1568].forEach((f,i)=>this.tone(f,{dur:.4,type:"sine",gain:.09,when:i*0.09,verb:true}));
     this.tone(2093,{dur:.8,type:"sine",gain:.04,when:.55,verb:true}); },
@@ -555,6 +584,14 @@ function dailyWord(){
   const list=GROVE.filter(g=>g.w.length>=4);
   return list[day % list.length].w;
 }
+/* five powers, five distinct verbs — and each announces how it wants to be used */
+const POWERS={
+  swap:     {icon:"⇄", hint:"tap two tiles",  type:"target", tint:"rgba(116,180,221,.16)"},
+  wild:     {icon:"★", hint:"pick a column",  type:"drop",   tint:"rgba(154,103,255,.16)"},
+  bomb:     {icon:"💣", hint:"pick a column",  type:"drop",   tint:"rgba(255,138,92,.13)"},
+  oracle:   {icon:"🔮", hint:"",               type:"instant",tint:null},
+  transmute:{icon:"🔄", hint:"tap a tile",     type:"target", tint:"rgba(255,213,79,.14)"},
+};
 function dailyQuest(){
   const day = Math.floor(Date.now()/86400000);
   return [
@@ -569,7 +606,7 @@ function dailyQuest(){
 let S = null;
 function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
-    pow:{wild:1,bomb:1,laser:0,transmute:2,swap:1},
+    pow:{wild:1,bomb:1,oracle:1,transmute:2,swap:1},
     stats:{wins:0, words:0, bestChain:1},
     questDay:-1, questProgress:0, questDone:false, giftWords:0, coach:false, run:null };
   try{
@@ -583,6 +620,7 @@ function load(){
     const out = Object.assign({}, defaults, p||{});
     out.stats = Object.assign({}, defaults.stats, out.stats||{});
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
+    if(out.pow.laser){ out.pow.oracle=(out.pow.oracle||0)+out.pow.laser; delete out.pow.laser; } // laser retired → oracle
     out.grove = out.grove||{};
     return out;
   }catch(e){ return defaults; }
@@ -594,7 +632,7 @@ function saveRun(){
   P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
-    maxChain:S.maxChain, newGrove:S.newGrove };
+    maxChain:S.maxChain, newGrove:S.newGrove, visitor:S.visitor };
   save();
 }
 function loadRun(){
@@ -605,11 +643,11 @@ function loadRun(){
     S=newState(r.level);
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
-      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next });
+      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next, visitor:r.visitor||null });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{ if(cell) newTile(cell.l,cell.k,ri,ci); }));
     S.busy=false; // resumed runs skip the intro card, so unfreeze directly
     S.lastAction=Date.now();
-    UI.all();
+    UI.all(); UI.visitor();
     return true;
   }catch(e){ P.run=null; save(); return false; }
 }
@@ -620,7 +658,7 @@ function newState(level){
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[],
+    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[], visitor:null,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
 }
@@ -801,11 +839,20 @@ const Game = {
       t.letter = drawLetter(); t.inner.innerHTML = t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
     }
     S.cur = makePiece(); S.next = makePiece();
-    fitBoard(); UI.all();
+    // a discovered grove friend visits each level — make a 4+ letter word and it blesses you
+    const disc = GROVE.filter(g=>P.grove[g.w]);
+    if(disc.length){
+      const v = disc[level % disc.length];
+      S.visitor = { w:v.w, e:v.e, z:v.z, used:false };
+    }
+    fitBoard(); UI.all(); UI.visitor();
     $("ov-end").classList.remove("active");
     $("iv-level").textContent = "LEVEL "+level;
     $("iv-target").textContent = S.target;
     $("iv-moves").textContent = S.movesLeft;
+    const iv=$("iv-visitor");
+    if(S.visitor){ iv.style.display="block"; iv.innerHTML="<b>"+S.visitor.e+"</b> is visiting · 4+ letter word = gift"; }
+    else iv.style.display="none";
     $("ov-intro").classList.add("active");
   },
   beginLevel(){
@@ -841,21 +888,72 @@ const Game = {
   },
 
   usePower(kind){
-    if(!S || S.busy || S.over) return;
+    if(!S || S.busy || S.over || S.won) return;
     Snd.init(); S.lastAction=Date.now();
-    if(S.swapSel){ S.swapSel.inner.classList.remove("selswap"); S.swapSel=null; }
-    if(S.usingPower===kind){ S.usingPower=null; }
-    else{
-      if(P.pow[kind]<=0){
-        const el=$("ps-"+kind);
-        el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-        setTimeout(()=>el.classList.remove("deny"),350);
-        Snd.reject(); buzz(30); return;
-      }
-      S.usingPower=kind;
-      if(kind==="transmute") Snd.tone(880,{dur:.12,type:"sine",gain:.07,verb:true});
+    if(S.usingPower===kind){ Game.cancelMode(); return; }
+    if(P.pow[kind]<=0){
+      const el=$("ps-"+kind);
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); buzz(30); return;
     }
-    UI.tray(); UI.hints(); UI.ghost(S.hoverCol);
+    if(kind==="oracle"){ Game.cancelMode(); Game.oracle(); return; }
+    Game.cancelMode();
+    S.usingPower=kind;
+    Game.enterMode(kind);
+  },
+
+  enterMode(kind){ // the board announces the power's grammar: what to tap, in its color
+    const m=POWERS[kind];
+    const chip=$("modechip");
+    chip.innerHTML = m.icon+" "+m.hint+' <span class="mx" onclick="event.stopPropagation();Game.cancelMode()">✕</span>';
+    chip.classList.add("on");
+    let aura=$("modeaura"); // board innerHTML gets wiped each level — recreate if gone
+    if(!aura){ aura=document.createElement("div"); aura.id="modeaura"; boardEl.appendChild(aura); }
+    aura.style.background = m.tint||"transparent";
+    aura.classList.add("on");
+    Snd.tone(880,{dur:.12,type:"sine",gain:.07,verb:true}); buzz(8);
+    UI.tray(); UI.piece(); UI.hints(); UI.ghost(S.hoverCol);
+  },
+  cancelMode(){
+    if(S.swapSel){ S.swapSel.inner.classList.remove("selswap"); S.swapSel=null; }
+    S.usingPower=null;
+    $("modechip").classList.remove("on");
+    const aura=$("modeaura"); if(aura) aura.classList.remove("on");
+    UI.tray(); UI.piece(); UI.hints(); UI.ghost(-1);
+  },
+
+  oracle(){ // knowledge as a resource: reveals every winning placement — never charges for an empty answer
+    if(S.busy) return;
+    document.querySelectorAll(".killcell,.droplabel").forEach(e=>e.remove());
+    let found=0;
+    for(let c=0;c<COLS;c++){
+      const w=wouldClear(S.cur,c);
+      if(!w) continue;
+      found++;
+      let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
+      const m=document.createElement("div"); m.className="killcell";
+      m.style.width=CELL+"px"; m.style.height=CELL+"px";
+      m.style.left=(c*STEP)+"px"; m.style.top=(land*STEP)+"px";
+      m.style.animation="killcell 1.1s 4";
+      boardEl.appendChild(m);
+      const dl=document.createElement("div"); dl.className="droplabel";
+      dl.textContent=w.toUpperCase();
+      dl.style.left=(c*STEP+CELL/2)+"px"; dl.style.top=(land*STEP)+"px";
+      boardEl.appendChild(dl);
+    }
+    if(!found){
+      const el=$("ps-oracle");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); buzz(30); return;
+    }
+    P.pow.oracle--; save(); UI.tray();
+    [784,1047,1319].forEach((f,i)=>Snd.tone(f,{dur:.3,type:"sine",gain:.07,when:i*0.1,verb:true}));
+    buzz([15,25,15]);
+    setTimeout(()=>{
+      document.querySelectorAll(".killcell,.droplabel").forEach(e=>{ e.style.opacity=0; setTimeout(()=>e.remove(),520); });
+    }, 4400);
   },
 
   async swapAt(row,col){ // pick two tiles; they trade places — words that form, clear
@@ -874,7 +972,7 @@ const Game = {
     const a=S.swapSel, b=t;
     a.inner.classList.remove("selswap"); S.swapSel=null;
     S.busy=true;
-    P.pow.swap--; S.usingPower=null; UI.tray(); UI.ghost(-1);
+    P.pow.swap--; save(); Game.cancelMode();
     const ar=a.r, ac=a.c, br=b.r, bc=b.c;
     S.board[ar][ac]=b; S.board[br][bc]=a;
     placeTile(a,br,bc,false); placeTile(b,ar,ac,false);
@@ -893,7 +991,7 @@ const Game = {
     const t = S.board[row] && S.board[row][col];
     if(!t || t.kind==="wild") { Snd.reject(); return; }
     S.busy=true;
-    P.pow.transmute--; S.usingPower=null; UI.tray(); UI.ghost(-1);
+    P.pow.transmute--; save(); Game.cancelMode();
     t.inner.classList.add("morph");
     Snd.tone(700,{dur:.25,type:"sine",gain:.1,slideTo:1400,verb:true});
     await wait(260);
@@ -927,8 +1025,9 @@ const Game = {
     const power = S.usingPower;
     let piece;
     if(power){ // powerups are free actions — they don't spend a move
-      piece = { letter: power==="wild"?"★":power==="laser"?"⚡":"💣", kind:power };
-      P.pow[power]--; S.usingPower=null; UI.tray();
+      piece = { letter: power==="wild"?"★":"💣", kind:power };
+      P.pow[power]--; save();
+      Game.cancelMode(); UI.tray();
     } else {
       piece=S.cur; S.cur=S.next; S.next=makePiece();
       S.movesLeft--; // ← the stake. every drop costs one.
@@ -952,10 +1051,9 @@ const Game = {
 
     S.cascadeMax=1; S.clearedThisDrop=false; S.lastAction=Date.now();
     if(piece.kind==="bomb"){ await Game.explode(t); }
-    else if(piece.kind==="laser"){ await Game.laser(t); }
     S.chain=1;
     await Game.resolve();
-    if(S.cascadeMax>=3) Game.earn("laser");
+    if(S.cascadeMax>=3) Game.earn("oracle");
 
     if(!power){
       // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
@@ -1029,12 +1127,28 @@ const Game = {
     const slot=$("ps-"+kind);
     const app=$("app");
     const fly=document.createElement("div");
-    fly.textContent = kind==="wild"?"★":kind==="bomb"?"💣":kind==="laser"?"⚡":kind==="swap"?"⇄":"🔄";
+    fly.textContent = POWERS[kind] ? POWERS[kind].icon : "★";
     fly.style.cssText="position:absolute;z-index:95;font-size:32px;left:48%;top:38%;transition:all .55s cubic-bezier(.45,0,.7,1);pointer-events:none;text-shadow:0 0 14px var(--gold)";
     app.appendChild(fly);
     const ar=app.getBoundingClientRect(), sr=slot.getBoundingClientRect();
     requestAnimationFrame(()=>{ fly.style.left=(sr.left-ar.left+8)+"px"; fly.style.top=(sr.top-ar.top+4)+"px"; fly.style.fontSize="18px"; });
     setTimeout(()=>{ fly.remove(); slot.classList.add("pop"); setTimeout(()=>slot.classList.remove("pop"),480); UI.tray(); Snd.earn(); buzz(15); }, 560);
+  },
+
+  visitorBless(){ // the grove pays you back: sky friends give moves, ground friends give powers
+    const v=S.visitor;
+    const el=$("visitor");
+    el.classList.remove("bless"); void el.offsetWidth; el.classList.add("bless");
+    Snd.discover(); buzz([25,40,25,60]);
+    if(v.z==="sky"){
+      S.movesLeft+=2; UI.hud();
+      const f=document.createElement("div"); f.className="movesfloat"; f.textContent="+2";
+      const mb=$("movesbox").getBoundingClientRect(), ar=$("app").getBoundingClientRect();
+      f.style.left=(mb.left-ar.left+mb.width/2-10)+"px"; f.style.top=(mb.top-ar.top)+"px";
+      $("app").appendChild(f); setTimeout(()=>f.remove(),1000);
+    } else {
+      Game.earn(rand(["swap","wild","bomb","oracle","transmute"]));
+    }
   },
 
   recordWord(word, points){
@@ -1052,7 +1166,7 @@ const Game = {
       Snd.levelUp(); UI.confetti(); buzz([40,60,40,90]);
       const b=document.createElement("div"); b.className="lvlbanner"; b.textContent="📅 ✨ "+word.word.toUpperCase()+" ✨";
       $("app").appendChild(b); setTimeout(()=>b.remove(),1650);
-      ["wild","bomb","laser"].forEach(k=>Game.earn(k));
+      ["wild","bomb","oracle"].forEach(k=>Game.earn(k));
     }
     if(!P.questDone){
       const q=dailyQuest();
@@ -1062,7 +1176,7 @@ const Game = {
       else if(q.type==="long") P.questProgress += word.cells.length>=4 ? 1 : 0;
       if(P.questProgress>=q.target){ P.questProgress=q.target; P.questDone=true; Game.earn(q.reward); UI.pillPop("quest"); }
     }
-    if(P.giftWords>=5){ P.giftWords=0; Game.earn(rand(["wild","bomb","laser"])); UI.pillPop("giftmeter"); }
+    if(P.giftWords>=5){ P.giftWords=0; Game.earn(rand(["wild","bomb","oracle"])); UI.pillPop("giftmeter"); }
     save();
     UI.cozy();
   },
@@ -1078,17 +1192,6 @@ const Game = {
     }
     S.levelScore += 10; UI.hud();
     await wait(340);
-    await Game.gravity();
-  },
-
-  async laser(t){
-    await wait(120);
-    Snd.laserSnd(); buzz([30,60]);
-    boardEl.classList.add("flash"); setTimeout(()=>boardEl.classList.remove("flash"),400);
-    const row=[...S.board[t.r]].filter(Boolean);
-    row.forEach((x,i)=>setTimeout(()=>removeTile(x), i*45));
-    S.levelScore += row.length*2;
-    await wait(row.length*45+220);
     await Game.gravity();
   },
 
@@ -1151,6 +1254,7 @@ const Game = {
       if(len>=5){ Game.earn("bomb"); UI.confetti(); }
       else if(len>=4) Game.earn("wild");
       else Game.earn("swap"); // 3-letter words are fuel: they buy you board rearrangement
+      if(len>=4 && S.visitor && !S.visitor.used){ S.visitor.used=true; Game.visitorBless(); }
       Game.recordWord(w, pts);
       await wait(700);
       banner.classList.add("fade"); setTimeout(()=>banner.remove(),450);
@@ -1252,9 +1356,11 @@ const UI = {
   },
   piece(){
     const w=$("currentwrap"); w.innerHTML="";
-    const t=S.cur;
+    // an armed drop-power rides the next drop — show it AS the current block
+    const armedDrop = S.usingPower && POWERS[S.usingPower] && POWERS[S.usingPower].type==="drop";
+    const t = armedDrop ? {letter:POWERS[S.usingPower].icon, kind:S.usingPower} : S.cur;
     const el=UI.miniTile(t,62,29);
-    if(t.kind!=="bomb"&&t.kind!=="wild") el.innerHTML += "<small>"+VAL[t.letter]+"</small>";
+    if(!armedDrop && t.kind!=="bomb"&&t.kind!=="wild") el.innerHTML += "<small>"+VAL[t.letter]+"</small>";
     w.appendChild(el);
     const n=$("nextslot"); n.innerHTML="";
     n.appendChild(UI.miniTile(S.next,44,19));
@@ -1282,6 +1388,17 @@ const UI = {
     $("btn-retry").style.display = won ? "none":"flex";
     $("btn-moves").style.display = (!won && !S.revived && S.levelScore>0 && !boardFull()) ? "flex":"none";
     $("ov-end").classList.add("active");
+  },
+  visitor(){
+    const el=$("visitor");
+    if(S && S.visitor){ el.textContent=S.visitor.e; el.title=S.visitor.w.toUpperCase(); el.classList.add("here"); }
+    else el.classList.remove("here");
+  },
+  visitorPeek(){ // tap the visitor: it hops and reminds you what it wants
+    if(!S || !S.visitor) return;
+    const el=$("visitor");
+    el.classList.remove("bless"); void el.offsetWidth; el.classList.add("bless");
+    Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true});
   },
   discover(g){
     Snd.discover(); buzz([30,50,30,50,90]);
@@ -1366,7 +1483,7 @@ const UI = {
     UI.hadKillers = n>0;
   },
   tray(){
-    ["swap","wild","bomb","laser","transmute"].forEach(k=>{
+    ["swap","wild","bomb","oracle","transmute"].forEach(k=>{
       const el=$("ps-"+k);
       el.querySelector(".cnt").textContent=P.pow[k];
       el.classList.toggle("has", P.pow[k]>0);
@@ -1403,7 +1520,7 @@ const UI = {
     const g=document.createElement("div");
     g.className="tile ghost"; g.style.width=CELL+"px"; g.style.height=CELL+"px"; g.style.fontSize="20px";
     const pk=S.usingPower;
-    g.textContent = pk==="bomb"?"💣" : pk==="laser"?"⚡" : pk==="wild"?"★"
+    g.textContent = pk==="bomb"?"💣" : pk==="wild"?"★"
       : (S.cur.kind==="bomb"?"💣":S.cur.kind==="wild"?"★":S.cur.letter.toUpperCase());
     g.style.transform=xy(land,col);
     boardEl.appendChild(g); this.ghostEl=g;
