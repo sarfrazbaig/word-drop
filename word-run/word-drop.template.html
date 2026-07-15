@@ -195,6 +195,60 @@
   .stat{ background:rgba(255,255,255,.05); border-radius:12px; padding:12px 6px; font-size:20px; }
   .stat b{ display:block; font-size:19px; color:var(--gold); margin-top:2px; }
   #btn-revive{ background:linear-gradient(135deg,#ffd54f,#ffb300); color:#3a2a00; }
+
+  /* ---------- ENVIRONMENT: the game lives in a place, not a fill color ---------- */
+  body::before{ content:""; position:fixed; inset:0; pointer-events:none;
+    background:
+      radial-gradient(640px 420px at 12% 6%, rgba(125,216,125,.075), transparent 62%),
+      radial-gradient(760px 540px at 88% 92%, rgba(255,213,79,.06), transparent 62%),
+      radial-gradient(520px 420px at 84% 12%, rgba(179,136,255,.055), transparent 62%); }
+  body::after{ content:""; position:fixed; inset:0; pointer-events:none;
+    background: radial-gradient(125% 95% at 50% 42%, transparent 58%, rgba(0,0,0,.42)); }
+  .bgdrift.dim{ font-size:38px; color:rgba(255,255,255,.03); z-index:0; }
+
+  /* ---------- TOP BAR: one calm row, stepped sizes ---------- */
+  #topbar{ width:100%; display:flex; align-items:center; gap:10px; z-index:1; }
+  #score-big{ flex:1; }
+  .iconbtn.sm{ width:40px; height:40px; font-size:16px; flex:none; }
+  #lvlring{ position:relative; width:44px; height:44px; flex:none; }
+  #lvlring svg{ width:44px; height:44px; transform:rotate(-90deg); }
+  #lvlring .ringbg{ fill:none; stroke:rgba(255,255,255,.1); stroke-width:4; }
+  #lvlring .ringfg{ fill:none; stroke:var(--gold); stroke-width:4; stroke-linecap:round;
+    stroke-dasharray:119.4; stroke-dashoffset:119.4; transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.3,1.1);
+    filter:drop-shadow(0 0 4px rgba(255,213,79,.5)); }
+  #lvlring b{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:var(--ink); }
+
+  /* ---------- BOARD: framed centerpiece with visible slots ---------- */
+  #boardwrap{ z-index:1; }
+  #board{
+    background-color:rgba(6,10,20,.5);
+    background-image:radial-gradient(circle, rgba(255,255,255,.055) 2px, transparent 2.7px);
+    background-size:48px 48px; background-position:-2px -2px;
+    border-radius:16px;
+    box-shadow:
+      0 0 0 6px rgba(255,255,255,.035), 0 0 0 7.5px rgba(255,255,255,.06),
+      0 34px 80px -24px rgba(0,0,0,.8), inset 0 2px 14px rgba(0,0,0,.5); }
+  #risepips{ position:absolute; left:50%; bottom:-2px; transform:translate(-50%,100%); padding-top:9px; }
+
+  /* ---------- DOCK: the hand lives at the bottom, in the thumb zone ---------- */
+  #dock{ width:100%; max-width:400px; display:flex; align-items:flex-end; justify-content:center; gap:11px;
+    background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);
+    border-radius:22px; padding:10px 16px 12px; margin-top:8px; z-index:1;
+    box-shadow:0 14px 34px -14px rgba(0,0,0,.6); }
+  #currentwrap{ animation:curbob 2.4s ease-in-out infinite; }
+  @keyframes curbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
+  #currentwrap .tile{ box-shadow:0 6px 0 #b3a685, 0 14px 22px -6px rgba(0,0,0,.55),
+    inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(150,128,86,.28); }
+
+  /* ---------- TILE LIFE ---------- */
+  .tile.breathe{ animation:breathe .7s; }
+  @keyframes breathe{ 50%{ transform:scale(1.05); filter:brightness(1.14); } }
+  .tile::after{ content:""; position:absolute; inset:0; border-radius:9px; pointer-events:none;
+    background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.65) 50%,transparent 68%);
+    background-size:250% 100%; background-position:200% 0; }
+  .tile.glint::after{ animation:glint .75s; }
+  @keyframes glint{ from{ background-position:200% 0 } to{ background-position:-60% 0 } }
 </style>
 
 <div id="app">
@@ -228,27 +282,33 @@
 
   <!-- ============ GAME SCENE ============ -->
   <div class="scene" id="scene-game">
-    <div id="hud">
-      <div class="hudchip">⭐<b id="h-level">1</b></div>
+    <div class="bgdrift dim" style="left:6%;top:22%;animation-delay:1s">A</div>
+    <div class="bgdrift dim" style="left:88%;top:34%;animation-delay:3s">R</div>
+    <div class="bgdrift dim" style="left:10%;top:76%;animation-delay:5s">N</div>
+    <div id="topbar">
+      <button class="iconbtn sm" onclick="Game.goHome()">🏠</button>
+      <div id="lvlring">
+        <svg viewBox="0 0 44 44"><circle class="ringbg" cx="22" cy="22" r="19"/><circle class="ringfg" id="ringfg" cx="22" cy="22" r="19"/></svg>
+        <b id="h-level">1</b>
+      </div>
       <div id="score-big">0</div>
       <div class="hudchip">🏆<b id="h-best">0</b></div>
+      <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
-    <div id="lvlbarwrap"><div id="lvlbar"><div id="lvlfill"></div></div></div>
-    <div id="piecebar">
+    <div id="cozybar"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
+    <div id="boardwrap">
+      <div id="chainlabel"></div>
+      <div id="board"></div>
+      <div id="risepips"></div>
+    </div>
+    <div id="dock">
+      <div id="holdwrap" onclick="Game.hold()"><span class="slotlabel">hold</span><span id="holdslot"><span class="holdempty">⇅</span></span></div>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
-      <div id="holdwrap" onclick="Game.hold()"><span class="slotlabel">hold</span><span id="holdslot"><span class="holdempty">⇅</span></span></div>
       <div class="traydiv"></div>
       <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')">★<span class="req">4+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')">💣<span class="req">5+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-laser" onclick="Game.usePower('laser')">⚡<span class="req">×3</span><span class="cnt">0</span></div>
-    </div>
-    <div id="cozybar"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
-    <div id="boardwrap"><div id="chainlabel"></div><div id="board"></div></div>
-    <div id="meta">
-      <button class="iconbtn" onclick="Game.goHome()">🏠</button>
-      <div id="risepips"></div>
-      <button class="iconbtn soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
   </div>
 
@@ -1044,8 +1104,8 @@ const UI = {
     $("h-best").textContent=Math.max(P.best,S.score);
     const pips = $("risepips");
     pips.innerHTML = Array.from({length:S.riseEvery},(_,i)=>'<div class="pip'+(i < S.drops%S.riseEvery ? " on":"")+'"></div>').join("");
-    const pct=Math.min(100, 100*S.levelScore/S.target);
-    $("lvlfill").style.width=pct+"%";
+    const pct=Math.min(1, S.levelScore/S.target);
+    $("ringfg").style.strokeDashoffset = (119.4*(1-pct)).toFixed(1);
   },
   chain(){ $("chainlabel").textContent = S.chain>=2 ? "🔥 CHAIN ×"+S.chain : ""; if(S.chain<2) setTimeout(()=>{ if(S&&S.chain<2) $("chainlabel").textContent=""; },800); },
   miniTile(t, size, font){
@@ -1058,7 +1118,7 @@ const UI = {
   piece(){
     const w=$("currentwrap"); w.innerHTML="";
     const t=S.cur;
-    const el=UI.miniTile(t,56,26);
+    const el=UI.miniTile(t,62,29);
     if(t.kind==="normal"||t.kind==="gold") el.innerHTML += "<small>"+VAL[t.letter]+"</small>";
     w.appendChild(el);
     const n=$("nextslot"); n.innerHTML="";
@@ -1191,7 +1251,7 @@ function fitBoard(){ // scale the board to whatever space the device gives us
   const wrap=$("boardwrap");
   if(!wrap.clientWidth) return;
   const bw=COLS*STEP-GAP, bh=ROWS*STEP-GAP;
-  const k=Math.min(1.15, (wrap.clientWidth-4)/bw, (wrap.clientHeight-10)/bh);
+  const k=Math.min(1.35, (wrap.clientWidth-4)/bw, (wrap.clientHeight-26)/bh);
   boardEl.style.transform="scale("+k+")";
   boardEl.style.transformOrigin="center center";
 }
@@ -1215,6 +1275,18 @@ boardEl.addEventListener("pointerup", e=>{
   if(c>=0) Game.drop(c);
 });
 document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
+
+/* idle life: the board breathes — a random tile glints or stirs every couple of seconds */
+setInterval(()=>{
+  if(!S || S.over || S.busy) return;
+  if(!document.getElementById("scene-game").classList.contains("active")) return;
+  const tiles = Object.values(S.tiles);
+  if(!tiles.length) return;
+  const t = tiles[Math.floor(Math.random()*tiles.length)];
+  const fx = Math.random()<0.5 ? "glint" : "breathe";
+  t.inner.classList.add(fx);
+  setTimeout(()=>t.inner.classList.remove(fx), 780);
+}, 2400);
 
 /* stuck detection: after ~8s of inaction, give a passing nudge (max 2 per thinking pause) */
 setInterval(()=>{
