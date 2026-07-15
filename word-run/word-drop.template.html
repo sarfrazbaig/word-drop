@@ -241,6 +241,37 @@
   #currentwrap .tile{ box-shadow:0 6px 0 #b3a685, 0 14px 22px -6px rgba(0,0,0,.55),
     inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(150,128,86,.28); }
 
+  /* ---------- GROVE & DISCOVERY ---------- */
+  .discovery{ position:absolute; left:50%; top:34%; transform:translate(-50%,-50%); z-index:120; pointer-events:none;
+    text-align:center; animation:discoin 2.1s forwards; }
+  .dEmoji{ display:block; font-size:74px; filter:drop-shadow(0 0 24px rgba(255,213,79,.7)); }
+  .dSub{ display:block; margin-top:4px; font-size:13px; letter-spacing:2px; color:var(--gold); font-weight:700; text-transform:uppercase; }
+  @keyframes discoin{ 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 15%{ transform:translate(-50%,-50%) scale(1.25); opacity:1 }
+    30%{ transform:translate(-50%,-50%) scale(1) } 80%{ opacity:1 } 100%{ transform:translate(-50%,-80%) scale(.9); opacity:0 } }
+  #scene-grove{ justify-content:flex-start; padding-top:calc(20px + env(safe-area-inset-top)); }
+  #grovetitle{ font-size:16px; color:var(--dim); margin-bottom:10px; }
+  #grovetitle b{ color:var(--gold); }
+  #grovefield{ position:relative; width:100%; max-width:400px; flex:1; border-radius:22px; overflow:hidden;
+    background:linear-gradient(180deg,#16213b 0%,#1c2b4a 38%, #21402e 62%, #2c4a33 100%);
+    box-shadow:inset 0 0 60px rgba(0,0,0,.45), 0 20px 50px -20px rgba(0,0,0,.7); }
+  .grovemoji{ position:absolute; animation:gfloat 4.5s ease-in-out infinite; cursor:default;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
+  @keyframes gfloat{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
+  #grovemissing{ position:absolute; left:0; right:0; bottom:6px; text-align:center; font-size:11px;
+    letter-spacing:2px; opacity:.35; }
+  .iconbtn .cnt{ position:absolute; bottom:-4px; right:-4px; background:var(--accent); color:#0e2210;
+    font-size:10px; font-weight:800; min-width:17px; height:17px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; padding:0 3px; }
+  #btn-grove{ position:relative; }
+
+  /* ---------- SHIFTER TILE & TRANSMUTE ---------- */
+  .tile.shift{ background:linear-gradient(148deg,#d9f4ff,#a8dcf5 55%,#74b4dd); color:#173a52;
+    box-shadow:0 4px 0 #3e6f91, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(40,90,130,.35); }
+  .tile.shiftspin{ animation:shiftspin .55s; }
+  @keyframes shiftspin{ 0%{ transform:rotateY(0) } 50%{ transform:rotateY(90deg) scale(.92) } 100%{ transform:rotateY(0) } }
+  .tile.morph{ animation:morphflip .55s; }
+  @keyframes morphflip{ 0%{ transform:scaleX(1) } 45%{ transform:scaleX(.06) rotate(4deg); filter:brightness(2) } 100%{ transform:scaleX(1) } }
+
   /* ---------- TILE LIFE ---------- */
   .tile.breathe{ animation:breathe .7s; }
   @keyframes breathe{ 50%{ transform:scale(1.05); filter:brightness(1.14); } }
@@ -274,6 +305,7 @@
       <span class="pill" id="hm-quest">🌤️</span>
     </div>
     <div class="home-links">
+      <button class="iconbtn" id="btn-grove" onclick="UI.groveShow()">🌳<span class="cnt" id="grove-badge">0</span></button>
       <button class="iconbtn" onclick="UI.statsShow()">📊</button>
       <button class="iconbtn soundbtn" onclick="Snd.toggle()">🔊</button>
       <a class="iconbtn" href="word-run.html" title="classic mode">🧩</a>
@@ -309,7 +341,15 @@
       <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')">★<span class="req">4+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')">💣<span class="req">5+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-laser" onclick="Game.usePower('laser')">⚡<span class="req">×3</span><span class="cnt">0</span></div>
+      <div class="pslot" id="ps-transmute" onclick="Game.usePower('transmute')">🔄<span class="req">⭐+</span><span class="cnt">0</span></div>
     </div>
+  </div>
+
+  <!-- ============ GROVE ============ -->
+  <div class="scene" id="scene-grove">
+    <div id="grovetitle">🌳 <b id="gr-count">0/40</b> &nbsp;·&nbsp; 📅 <b id="gr-daily">?</b></div>
+    <div id="grovefield"></div>
+    <button class="iconbtn" style="margin-top:12px" onclick="UI.scene('scene-home')">←</button>
   </div>
 
   <!-- ============ STATS ============ -->
@@ -332,6 +372,7 @@
     <div class="over-card">Score<b id="o-score">0</b></div>
     <div class="over-card">Best Word<b id="o-word" style="font-size:18px">—</b></div>
     <div class="over-card">Longest Chain<b id="o-chain">×1</b></div>
+    <div class="over-card" id="o-grove" style="display:none">New in the grove<b id="o-grovelist"></b></div>
     <button class="btn-big" id="btn-revive" onclick="Game.revive()">🪶 Second Chance</button>
     <button class="btn-big" id="btn-again" onclick="Game.restart()">↻ Drop Again</button>
     <div style="display:flex;gap:10px;margin-top:12px">
@@ -445,6 +486,10 @@ const Snd = {
   levelUp(){ [262,330,392,523,659,784].forEach((f,i)=>this.tone(f,{dur:.28,type:"triangle",gain:.13,when:i*0.09,verb:true})); this.noise({dur:.6,gain:.05,lp:1500,verb:true,when:.3}); },
   laserSnd(){ this.tone(1400,{dur:.3,type:"sawtooth",gain:.1,slideTo:120}); this.noise({dur:.25,gain:.08,hp:2500}); },
   earn(){ this.tone(1047,{dur:.1,type:"square",gain:.05,verb:true}); this.tone(1319,{dur:.16,type:"square",gain:.05,when:.08,verb:true}); },
+  discover(){ // a new friend: soft magical cascade
+    [523,659,784,1047,1319,1568].forEach((f,i)=>this.tone(f,{dur:.4,type:"sine",gain:.09,when:i*0.09,verb:true}));
+    this.tone(2093,{dur:.8,type:"sine",gain:.04,when:.55,verb:true});
+  },
   danger(){ this.tone(70,{dur:.18,type:"sine",gain:.14}); this.tone(70,{dur:.14,type:"sine",gain:.1,when:.25}); },
   reject(){ this.tone(140,{dur:.18,type:"sawtooth",gain:.09}); },
   over(){ [392,330,262,196].forEach((f,i)=>this.tone(f,{dur:.34,type:"triangle",gain:.12,when:i*0.17,verb:true})); },
@@ -465,10 +510,11 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 let S = null;
 let P = load();
 function load(){
-  const defaults = {best:0,bestWord:"",sound:true,streak:0,lastDay:0,stats:{runs:0,words:0,bestChain:1}};
+  const defaults = {best:0,bestWord:"",sound:true,streak:0,lastDay:0,dailyWordDay:-1,grove:{},stats:{runs:0,words:0,bestChain:1}};
   try{
     const p=Object.assign({},defaults, JSON.parse(localStorage.getItem("worddrop_v1"))||{});
     p.stats=Object.assign({},defaults.stats,p.stats||{});
+    p.grove=p.grove||{};
     return p;
   }catch(e){ return defaults; }
 }
@@ -479,7 +525,7 @@ function saveRun(){ // the run survives closed tabs — essential for bus-ride s
     cur:S.cur, next:S.next, held:S.held, score:S.score, levelScore:S.levelScore, level:S.level,
     drops:S.drops, pow:S.pow, wordsMade:S.wordsMade, lettersCleared:S.lettersCleared, nextGift:S.nextGift,
     quest:S.quest, questProgress:S.questProgress, questDone:S.questDone, maxChain:S.maxChain,
-    bestWord:S.bestWord, bestWordPts:S.bestWordPts, revived:S.revived };
+    bestWord:S.bestWord, bestWordPts:S.bestWordPts, revived:S.revived, newGrove:S.newGrove };
   save();
 }
 function loadRun(){
@@ -492,7 +538,8 @@ function loadRun(){
       wordsMade:r.wordsMade, lettersCleared:r.lettersCleared, nextGift:r.nextGift,
       quest:r.quest, questProgress:r.questProgress, questDone:r.questDone, maxChain:r.maxChain,
       bestWord:r.bestWord, bestWordPts:r.bestWordPts, cur:r.cur, next:r.next, held:r.held,
-      revived:!!r.revived });
+      revived:!!r.revived, newGrove:r.newGrove||[] });
+    S.pow=Object.assign({wild:0,bomb:0,laser:0,transmute:0}, S.pow); // saves from before transmute existed
     if(!S.quest || !S.quest.emoji){ S.quest=dailyQuest(); S.questProgress=0; S.questDone=false; } // saves from older versions
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{ if(cell) newTile(cell.l,cell.k,ri,ci); }));
     $("over").classList.remove("active");
@@ -512,14 +559,36 @@ function dailyQuest(){
     {name:"Long Way Home", emoji:"🏡", type:"long", target:1, reward:"bomb", text:"make a 4-letter word"},
   ][day % 4];
 }
+/* ===== THE GROVE: the dictionary is a collection — clear a word, gain a friend ===== */
+const GROVE = [
+  // sky
+  {w:"star",e:"⭐",z:"sky"},{w:"moon",e:"🌙",z:"sky"},{w:"sun",e:"☀️",z:"sky"},{w:"rain",e:"🌧️",z:"sky"},
+  {w:"snow",e:"❄️",z:"sky"},{w:"cloud",e:"☁️",z:"sky"},{w:"wind",e:"🍃",z:"sky"},{w:"bird",e:"🐦",z:"sky"},
+  {w:"crow",e:"🐦‍⬛",z:"sky"},{w:"moth",e:"🦋",z:"sky"},{w:"kite",e:"🪁",z:"sky"},{w:"bee",e:"🐝",z:"sky"},
+  // ground
+  {w:"cat",e:"🐱",z:"ground"},{w:"owl",e:"🦉",z:"ground"},{w:"fox",e:"🦊",z:"ground"},{w:"hen",e:"🐔",z:"ground"},
+  {w:"frog",e:"🐸",z:"ground"},{w:"deer",e:"🦌",z:"ground"},{w:"wolf",e:"🐺",z:"ground"},{w:"bear",e:"🐻",z:"ground"},
+  {w:"hare",e:"🐇",z:"ground"},{w:"swan",e:"🦢",z:"ground"},{w:"duck",e:"🦆",z:"ground"},{w:"fish",e:"🐟",z:"ground"},
+  {w:"crab",e:"🦀",z:"ground"},{w:"snail",e:"🐌",z:"ground"},{w:"mouse",e:"🐭",z:"ground"},{w:"horse",e:"🐴",z:"ground"},
+  {w:"rose",e:"🌹",z:"ground"},{w:"tree",e:"🌳",z:"ground"},{w:"pine",e:"🌲",z:"ground"},{w:"fern",e:"🌿",z:"ground"},
+  {w:"stone",e:"🪨",z:"ground"},{w:"shell",e:"🐚",z:"ground"},{w:"berry",e:"🫐",z:"ground"},{w:"peach",e:"🍑",z:"ground"},
+  {w:"lamp",e:"🏮",z:"ground"},{w:"boat",e:"⛵",z:"ground"},{w:"hut",e:"🛖",z:"ground"},{w:"gem",e:"💎",z:"ground"},
+];
+const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
+function dailyWord(){ // the secret word of the day — a reason to come back
+  const day=Math.floor(Date.now()/864e5);
+  const list=GROVE.filter(g=>g.w.length>=4);
+  return list[day % list.length].w;
+}
+
 function newState(){
   return { board: Array.from({length:ROWS},()=>Array(COLS).fill(null)),
     tiles:{}, seq:0, score:0, levelScore:0, target:TARGET(1), level:1, riseEvery:RISE_EVERY,
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    pow:{wild:0,bomb:0,laser:0}, usingPower:null,
+    pow:{wild:0,bomb:0,laser:0,transmute:1}, usingPower:null,
     bestWord:"", bestWordPts:0, cur:null, next:null, held:null, over:false, busy:false, hoverCol:3,
-    revived:false, counted:false,
+    revived:false, counted:false, newGrove:[],
     killers:{}, wordsMade:0, lettersCleared:0, nextGift:5,
     quest:dailyQuest(), questProgress:0, questDone:false };
 }
@@ -532,8 +601,10 @@ function drawLetter(){
   return FREQ[Math.floor(Math.random()*FREQ.length)];
 }
 function makePiece(){
-  // bombs & wilds are EARNED now (powerup tray), not dealt; gold stays as scoring spice
-  if(Math.random()<0.12) return {letter:riggedLetter(), kind:"gold"};
+  // bombs & wilds are EARNED (powerup tray), not dealt; gold = scoring spice, shifter = the board changes itself
+  const roll=Math.random();
+  if(roll<0.05)  return {letter:riggedLetter(), kind:"shift"};
+  if(roll<0.17)  return {letter:riggedLetter(), kind:"gold"};
   return {letter:riggedLetter(), kind:"normal"};
 }
 
@@ -553,7 +624,7 @@ function makeTileEl(t){
   el.style.fontSize="20px";
   el.style.transform="rotate("+(Math.random()*2.6-1.3).toFixed(2)+"deg)"; // each tile sits slightly askew, like a real one
   el.innerHTML = (t.kind==="bomb"?"💣":t.kind==="wild"?"★":t.letter.toUpperCase())
-    + (t.kind==="normal"||t.kind==="gold" ? "<small>"+VAL[t.letter]+"</small>" : "");
+    + (t.kind==="normal"||t.kind==="gold"||t.kind==="shift" ? "<small>"+VAL[t.letter]+"</small>" : "");
   outer.appendChild(el);
   boardEl.appendChild(outer);
   return {outer, inner:el};
@@ -672,7 +743,7 @@ function riggedLetter(){ // A gentle deck keeps the game breezy — and steers i
   if(!S) return drawLetter();
   const best=helpfulByLength();
   const longs=Object.keys(best).filter(l=>best[l]>=4);
-  if(longs.length && Math.random()<0.5) return rand(longs);          // finish a 4-5 letter word
+  if(longs.length && Math.random()<0.6) return rand(longs);          // finish a 4-5 letter word
   if(Object.keys(best).length && Math.random()<0.35) return rand(Object.keys(best)); // finish any word
   const b=builderLetters();
   if(b.length && Math.random()<0.55) return rand(b);                 // grow a fragment toward a long word
@@ -802,6 +873,7 @@ const Game = {
       if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
       else { S.deadDrops++; if(S.deadDrops>=2){ S.deadDrops=0; setTimeout(()=>UI.nudge(), 350); } }
       S.drops++;
+      if(S.drops % 3 === 0){ await Game.stirShifters(); }
       if(S.drops % S.riseEvery === 0){ await Game.riseRow(); }
     }
     if(!S.over && S.levelScore>=S.target){ await Game.levelUp(); }
@@ -809,6 +881,45 @@ const Game = {
     UI.all();
     Game.checkDanger();
     saveRun();
+  },
+
+  async transmuteAt(row,col){ // rewrite the board itself: tap a tile, it becomes a helpful letter
+    const t = S.board[row] && S.board[row][col];
+    if(!t || t.kind==="wild") { Snd.reject(); return; }
+    S.busy=true;
+    S.pow.transmute--; S.usingPower=null; UI.tray(); UI.ghost(-1);
+    t.inner.classList.add("morph");
+    Snd.tone(700,{dur:.25,type:"sine",gain:.1,slideTo:1400,verb:true});
+    await wait(260);
+    t.letter = riggedLetter();
+    t.kind = t.kind==="shift" ? "shift" : "normal";
+    t.inner.innerHTML = t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
+    buzz([20,30,40]);
+    await wait(320);
+    t.inner.classList.remove("morph");
+    S.chain=1; S.lastAction=Date.now();
+    await Game.resolve();
+    S.busy=false;
+    UI.all(); saveRun();
+  },
+
+  async stirShifters(){ // 🌀 tiles reroll themselves — the board is alive
+    const shifts=Object.values(S.tiles).filter(t=>t.kind==="shift");
+    if(!shifts.length) return;
+    shifts.forEach((t,i)=>{
+      setTimeout(()=>{
+        t.inner.classList.add("shiftspin");
+        Snd.tone(600+i*120,{dur:.14,type:"triangle",gain:.06,verb:true});
+        setTimeout(()=>{
+          t.letter=riggedLetter();
+          t.inner.innerHTML = t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
+        },270);
+        setTimeout(()=>t.inner.classList.remove("shiftspin"),560);
+      }, i*110);
+    });
+    await wait(shifts.length*110+620);
+    S.chain=1;
+    await Game.resolve(); // a stir can complete words on its own
   },
 
   async laser(t){
@@ -828,6 +939,7 @@ const Game = {
     // This is a cozy game: levels add celebration, never tighten the timer-like rise rhythm.
     S.riseEvery=RISE_EVERY;
     Snd.levelUp(); buzz([50,50,120]); UI.confetti();
+    Game.earn("transmute"); // levels pay: every level-up stocks a board-rewriting power
     const b=document.createElement("div"); b.className="lvlbanner"; b.textContent="LEVEL "+S.level+"!";
     document.getElementById("app").appendChild(b); setTimeout(()=>b.remove(),1650);
     await wait(600);
@@ -857,6 +969,23 @@ const Game = {
     S.wordsMade++;
     P.stats.words++;
     S.lettersCleared += word.cells.length;
+    // grove discovery: first-ever clear of a collectible word
+    const g = GROVE_BY_WORD[word.word];
+    if(g && !P.grove[g.w]){
+      P.grove[g.w]=Date.now(); save();
+      S.newGrove.push(g.w);
+      UI.discover(g);
+      Game.earn("transmute");
+    }
+    // secret word of the day
+    const day=Math.floor(Date.now()/864e5);
+    if(word.word===dailyWord() && P.dailyWordDay!==day){
+      P.dailyWordDay=day; save();
+      Snd.levelUp(); UI.confetti(); buzz([40,60,40,90]);
+      const b=document.createElement("div"); b.className="lvlbanner"; b.textContent="📅 ✨ "+word.word.toUpperCase()+" ✨";
+      document.getElementById("app").appendChild(b); setTimeout(()=>b.remove(),1650);
+      ["wild","bomb","laser"].forEach(k=>Game.earn(k));
+    }
     const q=S.quest;
     if(!S.questDone){
       if(q.type==="words") S.questProgress=S.wordsMade;
@@ -890,6 +1019,7 @@ const Game = {
         Snd.reject(); buzz(30); return;
       }
       S.usingPower=kind;
+      if(kind==="transmute") Snd.tone(880,{dur:.12,type:"sine",gain:.07,verb:true});
     }
     UI.tray(); UI.hints(); UI.ghost(S.hoverCol);
   },
@@ -1049,6 +1179,10 @@ const Game = {
     $("o-score").textContent=S.score;
     $("o-word").textContent=S.bestWord||"—";
     $("o-chain").textContent="×"+S.maxChain;
+    if(S.newGrove.length){
+      $("o-grove").style.display="block";
+      $("o-grovelist").textContent = S.newGrove.map(w=>GROVE_BY_WORD[w].e).join(" ");
+    } else $("o-grove").style.display="none";
     $("btn-revive").style.display = S.revived ? "none" : "block";
     $("over").classList.add("active");
   },
@@ -1071,6 +1205,7 @@ const UI = {
   ghost(col){
     if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
     if(!S || col<0 || S.over || S.busy) return;
+    if(S.usingPower==="transmute") return; // transmute targets tiles, not columns
     if(S.board[0][col]) return;
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
     const g=document.createElement("div");
@@ -1148,6 +1283,37 @@ const UI = {
     el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
     setTimeout(()=>el.classList.remove("pop"),500);
   },
+  discover(g){ // a new friend joins the grove
+    Snd.discover(); buzz([30,50,30,50,90]);
+    UI.confetti();
+    const b=document.createElement("div"); b.className="discovery";
+    b.innerHTML = '<span class="dEmoji">'+g.e+'</span><span class="dSub">joins your grove</span>';
+    document.getElementById("app").appendChild(b);
+    setTimeout(()=>b.remove(), 2100);
+  },
+  groveShow(){
+    $("gr-count").textContent = Object.keys(P.grove).length+"/"+GROVE.length;
+    $("gr-daily").textContent = P.dailyWordDay===Math.floor(Date.now()/864e5) ? "✓" : "?";
+    const f=$("grovefield"); f.innerHTML="";
+    const hash=w=>{ let h=0; for(const c of w) h=(h*31+c.charCodeAt(0))>>>0; return h; };
+    let missing=0;
+    GROVE.forEach(g=>{
+      if(P.grove[g.w]){
+        const el=document.createElement("div"); el.className="grovemoji";
+        el.textContent=g.e; el.title=g.w.toUpperCase();
+        const h=hash(g.w);
+        el.style.left = (6 + h%84)+"%";
+        el.style.top = g.z==="sky" ? (4 + (h>>3)%26)+"%" : (48 + (h>>5)%40)+"%";
+        el.style.animationDelay = ((h>>7)%40)/10+"s";
+        el.style.fontSize = (22 + (h>>9)%10)+"px";
+        f.appendChild(el);
+      } else missing++;
+    });
+    const strip=document.createElement("div"); strip.id="grovemissing";
+    strip.textContent = "❔".repeat(Math.min(missing, GROVE.length));
+    f.appendChild(strip);
+    UI.scene("scene-grove");
+  },
   scene(id){
     document.querySelectorAll(".scene").forEach(s=>s.classList.remove("active"));
     $(id).classList.add("active");
@@ -1159,6 +1325,7 @@ const UI = {
     const q=dailyQuest();
     $("hm-quest").textContent=q.emoji;
     $("hm-quest").title=q.text;
+    $("grove-badge").textContent=Object.keys(P.grove).length;
     $("btn-play").textContent = P.run ? "▶︎" : "▶";
   },
   statsShow(){
@@ -1218,7 +1385,7 @@ const UI = {
     UI.hadKillers = n>0;
   },
   tray(){
-    ["wild","bomb","laser"].forEach(k=>{
+    ["wild","bomb","laser","transmute"].forEach(k=>{
       const el=$("ps-"+k);
       el.querySelector(".cnt").textContent=S.pow[k];
       el.classList.toggle("has", S.pow[k]>0);
@@ -1271,6 +1438,14 @@ boardEl.addEventListener("pointermove", e=>{
 boardEl.addEventListener("pointerleave", ()=>UI.ghost(-1));
 boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c); });
 boardEl.addEventListener("pointerup", e=>{
+  if(!S) return;
+  if(S.usingPower==="transmute"){
+    const r=boardEl.getBoundingClientRect();
+    const col=Math.max(0,Math.min(COLS-1,Math.floor((e.clientX-r.left)/(r.width/COLS))));
+    const row=Math.max(0,Math.min(ROWS-1,Math.floor((e.clientY-r.top)/(r.height/ROWS))));
+    if(!S.busy && !S.over) Game.transmuteAt(row,col);
+    return;
+  }
   const c=colFromEvent(e);
   if(c>=0) Game.drop(c);
 });
