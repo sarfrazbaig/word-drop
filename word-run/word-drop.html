@@ -163,8 +163,6 @@
   #board.danger{ animation:dangerpulse 1s infinite; }
   @keyframes dangerpulse{ 50%{ box-shadow:0 0 0 5px rgba(255,107,107,.35), 0 0 0 6px rgba(255,107,107,.5),
     0 30px 70px -24px rgba(0,0,0,.85), inset 0 2px 12px rgba(0,0,0,.55); } }
-  #chainlabel{ position:absolute; left:50%; top:-6px; transform:translateX(-50%); z-index:45; pointer-events:none;
-    font-weight:900; font-size:18px; color:var(--gold); text-shadow:0 2px 8px rgba(0,0,0,.8); }
 
   /* -------- dock: the hand -------- */
   #dock{ width:100%; display:flex; align-items:flex-end; justify-content:center; gap:10px;
@@ -249,9 +247,10 @@
   @keyframes killcell{ 0%,100%{ opacity:.3; transform:scale(.93) } 50%{ opacity:.95; transform:scale(1.02) } }
   .droplabel{ position:absolute; z-index:42; pointer-events:none; font-weight:900; font-size:15px; color:var(--gold);
     text-shadow:0 2px 6px rgba(0,0,0,.9); transform:translate(-50%,-120%); white-space:nowrap; animation:bannerin .2s; }
-  .wordbanner{ position:absolute; left:50%; top:-36px; transform:translateX(-50%); z-index:40; pointer-events:none;
-    background:rgba(0,0,0,.78); border:2px solid var(--gold); border-radius:var(--r-md); padding:6px 18px;
-    font-size:24px; font-weight:900; letter-spacing:3px; color:var(--gold); white-space:nowrap;
+  .wordbanner{ position:absolute; left:50%; top:10px; transform:translateX(-50%); z-index:40; pointer-events:none;
+    background:rgba(0,0,0,.82); border:2px solid var(--gold); border-radius:var(--r-md); padding:6px 16px;
+    font-size:22px; font-weight:900; letter-spacing:3px; color:var(--gold); white-space:nowrap;
+    max-width:94%; overflow:hidden; text-overflow:ellipsis;
     text-shadow:0 2px 8px rgba(0,0,0,.8); animation:bannerin .2s; }
   .wordbanner.done{ color:#fff; border-color:var(--accent); }
   .wordbanner.fade{ transition:opacity .4s, transform .4s; opacity:0; transform:translateX(-50%) translateY(-16px); }
@@ -353,7 +352,7 @@
     </div>
     <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
     <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
-    <div id="boardwrap"><div id="chainlabel"></div><div id="board"></div></div>
+    <div id="boardwrap"><div id="board"></div></div>
     <div id="dock">
       <div id="holdwrap" onclick="Game.hold()"><span class="slotlabel">hold</span><span id="holdslot"><span class="holdempty">⇅</span></span></div>
       <div id="currentwrap"></div>
@@ -1102,8 +1101,8 @@ const Game = {
       pts = Math.round(pts * (1+0.5*(len-3)) * S.chain);
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
-      banner.style.fontSize = Math.min(18+len*2.5, 34)+"px";
-      $("boardwrap").appendChild(banner);
+      banner.style.fontSize = Math.min(16+len*2, 28)+"px";
+      boardEl.appendChild(banner); // lives INSIDE the board frame — cannot collide with HUD or pills
       const base = Math.min(4+(S.chain-1)*2, Snd.PENTA.length-len);
       for(let i=0;i<len;i++){
         const t=w.cells[i];
@@ -1114,7 +1113,7 @@ const Game = {
         buzz(8);
         await wait(165);
       }
-      banner.textContent = w.word.toUpperCase()+"  +"+pts;
+      banner.textContent = w.word.toUpperCase()+"  +"+pts+(S.chain>=2 ? "  ×"+S.chain : "");
       banner.classList.add("done");
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
@@ -1128,7 +1127,7 @@ const Game = {
     S.cascadeMax=Math.max(S.cascadeMax,S.chain);
     if(S.chain>=2){ boardEl.classList.add("flash"); setTimeout(()=>boardEl.classList.remove("flash"),400); }
     S.levelScore += gained;
-    UI.hud(); UI.chain();
+    UI.hud();
     await wait(150);
     allCells.forEach(t=>removeTile(t));
     Snd.collapse(allCells.size);
@@ -1212,7 +1211,6 @@ const UI = {
     $("goaltext").textContent=S.levelScore+" / "+S.target;
     $("goalbar").classList.toggle("done", S.levelScore>=S.target);
   },
-  chain(){ $("chainlabel").textContent = S.chain>=2 ? "🔥 CHAIN ×"+S.chain : ""; if(S.chain<2) setTimeout(()=>{ if(S&&S.chain<2) $("chainlabel").textContent=""; },800); },
   miniTile(t, size, font){
     const el=document.createElement("div");
     el.className="tile "+(t.kind!=="normal"?t.kind:"");
@@ -1400,7 +1398,7 @@ const UI = {
       c.style.animationDelay=(Math.random()*0.3)+"s";
       $("app").appendChild(c); setTimeout(()=>c.remove(),1900); }
   },
-  all(){ UI.hud(); UI.piece(); UI.chain(); UI.hints(); UI.tray(); UI.cozy(); },
+  all(){ UI.hud(); UI.piece(); UI.hints(); UI.tray(); UI.cozy(); },
 };
 
 /* =================== LAYOUT & INPUT =================== */
