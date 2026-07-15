@@ -210,6 +210,8 @@
   #topbar{ width:100%; display:flex; align-items:center; gap:10px; z-index:1; }
   #score-big{ flex:1; }
   .iconbtn.sm{ width:40px; height:40px; font-size:16px; flex:none; }
+  .iconbtn.armed-danger{ background:rgba(255,107,107,.28); border-color:var(--danger); animation:dangerarm 1.2s infinite; }
+  @keyframes dangerarm{ 50%{ box-shadow:0 0 12px rgba(255,107,107,.6); transform:scale(1.08); } }
   #lvlring{ position:relative; width:44px; height:44px; flex:none; }
   #lvlring svg{ width:44px; height:44px; transform:rotate(-90deg); }
   #lvlring .ringbg{ fill:none; stroke:rgba(255,255,255,.1); stroke-width:4; }
@@ -319,6 +321,7 @@
     <div class="bgdrift dim" style="left:10%;top:76%;animation-delay:5s">N</div>
     <div id="topbar">
       <button class="iconbtn sm" onclick="Game.goHome()">🏠</button>
+      <button class="iconbtn sm" id="btn-restart" onclick="Game.restartBtn()">↻</button>
       <div id="lvlring">
         <svg viewBox="0 0 44 44"><circle class="ringbg" cx="22" cy="22" r="19"/><circle class="ringfg" id="ringfg" cx="22" cy="22" r="19"/></svg>
         <b id="h-level">1</b>
@@ -769,6 +772,23 @@ const Game = {
     saveRun();
   },
   restart(){ Snd.init(); Game.start(); },
+
+  restartAsk:0,
+  restartBtn(){ // two taps within 2.5s — the button arms red first, no dialog needed
+    if(!S || S.busy) return;
+    const b=$("btn-restart");
+    if(Date.now()-Game.restartAsk < 2500){
+      Game.restartAsk=0;
+      b.classList.remove("armed-danger");
+      Snd.init(); buzz(20);
+      Game.start();
+    } else {
+      Game.restartAsk=Date.now();
+      b.classList.add("armed-danger");
+      Snd.tone(300,{dur:.12,type:"triangle",gain:.07});
+      setTimeout(()=>{ if(Date.now()-Game.restartAsk>=2400){ Game.restartAsk=0; b.classList.remove("armed-danger"); } }, 2500);
+    }
+  },
 
   play(){
     Snd.init();
