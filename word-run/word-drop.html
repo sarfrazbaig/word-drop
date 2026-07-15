@@ -29,19 +29,17 @@
     overflow:hidden; user-select:none; -webkit-user-select:none; touch-action:manipulation;
   }
 
-  /* ============ THE PHONE STAGE: this is a mobile game, presented as one ============ */
+  /* ============ THE PHONE STAGE: a fixed 396×800 logical screen, scaled to fit ============
+     The layout is designed exactly once at this size. Any viewport — phone, pane, desktop —
+     sees the whole stage uniformly scaled. Rows can never crush, clip, or rearrange. */
   #app{
-    position:relative; overflow:hidden;
-    width:100vw; height:100dvh;
+    position:relative; overflow:hidden; flex:none;
+    width:396px; height:800px;
     background:linear-gradient(172deg,var(--bg1),var(--bg2));
     display:flex; flex-direction:column;
-  }
-  @media (min-width:500px){
-    #app{
-      width:396px; height:min(94dvh,846px);
-      border-radius:34px; border:1px solid rgba(255,255,255,.09);
-      box-shadow:0 40px 90px -30px rgba(0,0,0,.9), 0 0 0 8px #0a0d16;
-    }
+    border-radius:34px; border:1px solid rgba(255,255,255,.09);
+    box-shadow:0 40px 90px -30px rgba(0,0,0,.9), 0 0 0 8px #0a0d16;
+    transform-origin:center center;
   }
   #app::before{ content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
@@ -1646,7 +1644,11 @@ function fitBoard(){
   boardEl.style.transform="scale("+k+")";
   boardEl.style.transformOrigin="center center";
 }
-window.addEventListener("resize", fitBoard);
+function fitApp(){ // scale the fixed 396×800 stage to whatever screen we're on
+  const k=Math.min(1, innerWidth/396, innerHeight/800);
+  $("app").style.transform = k<1 ? "scale("+k+")" : "";
+}
+window.addEventListener("resize", ()=>{ fitApp(); fitBoard(); });
 function colFromEvent(e){
   const r=boardEl.getBoundingClientRect();
   const x=e.clientX-r.left;
@@ -1702,6 +1704,7 @@ setInterval(()=>{
 }, 1000);
 
 /* boot */
+fitApp();
 UI.home();
 document.querySelectorAll(".soundbtn").forEach(el=>el.textContent = P.sound?"🔊":"🔇");
 Snd.on = P.sound;
