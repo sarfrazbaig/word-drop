@@ -747,9 +747,9 @@ function scanLine(cellsLine){
   flush();
   return found;
 }
-function scanBoth(line){
-  return [...scanLine(line), ...scanLine([...line].reverse())];
-}
+/* words read like English: left→right and top→bottom. never backwards —
+   with swap/transmute/oracle for deliberate construction, backward clears
+   are illegible surprises that steal agency, not forgiveness. */
 function findWords(){
   const found=[], seen=new Set();
   const push=h=>{
@@ -757,8 +757,8 @@ function findWords(){
     if(seen.has(key)) return;
     seen.add(key); found.push(h);
   };
-  for(let r=0;r<ROWS;r++) scanBoth(S.board[r]).forEach(push);
-  for(let c=0;c<COLS;c++) scanBoth(S.board.map(row=>row[c])).forEach(push);
+  for(let r=0;r<ROWS;r++) scanLine(S.board[r]).forEach(push);
+  for(let c=0;c<COLS;c++) scanLine(S.board.map(row=>row[c])).forEach(push);
   return found;
 }
 function wouldClear(piece, c){
@@ -767,7 +767,7 @@ function wouldClear(piece, c){
   let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
   const fake={ id:"fake", letter:piece.kind==="wild"?"?":piece.letter, kind:piece.kind==="wild"?"wild":"normal", r:land, c };
   S.board[land][c]=fake;
-  const words=[...scanBoth(S.board[land]), ...scanBoth(S.board.map(row=>row[c]))];
+  const words=[...scanLine(S.board[land]), ...scanLine(S.board.map(row=>row[c]))];
   S.board[land][c]=null;
   let best=null;
   for(const w of words) if(w.cells.includes(fake) && (!best || w.word.length>best.length)) best=w.word;
