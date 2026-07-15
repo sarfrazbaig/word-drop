@@ -929,8 +929,9 @@ const Game = {
     if(S.cascadeMax>=3) Game.earn("laser");
 
     if(!power){
+      // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
       if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
-      else { S.deadDrops++; if(S.deadDrops>=2){ S.deadDrops=0; setTimeout(()=>UI.nudge(), 350); } }
+      else { S.deadDrops++; if(S.deadDrops>=2){ S.deadDrops=0; if(S.level<=2) setTimeout(()=>UI.nudge(), 350); } }
       S.drops++;
       if(S.drops % 3 === 0){ await Game.stirShifters(); }
     }
@@ -1452,9 +1453,9 @@ setInterval(()=>{
   setTimeout(()=>t.inner.classList.remove(fx), 780);
 }, 2400);
 
-/* stuck nudge */
+/* stuck nudge — onboarding only: after level 2 the player is on their own */
 setInterval(()=>{
-  if(!S || S.over || S.won || S.busy || S.nudging || S.idleNudges>=2) return;
+  if(!S || S.level>2 || S.over || S.won || S.busy || S.nudging || S.idleNudges>=2) return;
   if(!$("scene-game").classList.contains("active")) return;
   if(Date.now()-S.lastAction > 8000){
     S.idleNudges++;
