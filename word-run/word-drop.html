@@ -897,6 +897,7 @@ const Game = {
       Game.restart1Ask=0; b.classList.remove("armed-danger");
       P.level=1; P.run=null; save();
       UI.statsHide(); UI.home();
+      UI.toast("Back to level 1 ✓");
       Snd.tone(392,{dur:.2,type:"triangle",gain:.1}); buzz(25);
     } else {
       Game.restart1Ask=Date.now(); b.classList.add("armed-danger");
@@ -1594,7 +1595,8 @@ const UI = {
     $("m-stats").classList.add("active");
   },
   statsHide(e){
-    if(e && e.target.closest(".card") && e.target.tagName!=="BUTTON") return;
+    // close only from the backdrop or the ✓ button — clicks INSIDE the card must not bubble into a close
+    if(e && e.target.closest(".card")) return;
     $("m-stats").classList.remove("active");
   },
   nudge(){
