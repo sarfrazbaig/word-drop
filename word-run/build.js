@@ -14,8 +14,7 @@ const words = fs.readFileSync(wordsPath, "utf8")
 const template = fs.readFileSync(path.join(__dirname, "word-run.template.html"), "utf8");
 const out = template.split("__DICT__").join(words.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-run.html"), out);
-fs.writeFileSync(path.join(__dirname, "index.html"), out); // so http://localhost:8123/ opens the game directly
-console.log(`Built word-run.html + index.html — ${words.length} words, ${(out.length / 1024 / 1024).toFixed(2)} MB`);
+console.log(`Built word-run.html (classic) — ${words.length} words, ${(out.length / 1024 / 1024).toFixed(2)} MB`);
 
 // Word Drop: curated common words so auto-clears feel like real words.
 // google-10k (web frequency) has gaps (hut, owl, hen...) so we union it with
@@ -31,4 +30,5 @@ const common = [...new Set([...g10k, ...subs])];
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
-console.log(`Built word-drop.html — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
+fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game — it owns the root
+console.log(`Built word-drop.html + index.html (main) — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
