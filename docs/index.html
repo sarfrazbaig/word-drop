@@ -158,7 +158,7 @@
 
   #cozyrow{ display:flex; gap:var(--sp2); z-index:2; }
   .pill{ font-size:var(--fs-sm); color:var(--dim); background:var(--surface); border:1px solid var(--surface-border);
-    border-radius:999px; padding:4px 12px; white-space:nowrap; letter-spacing:1px; }
+    border-radius:999px; padding:6px 13px; white-space:nowrap; letter-spacing:1px; display:inline-flex; align-items:center; gap:5px; }
   .pill b{ color:var(--ink); }
   .pill.pop{ animation:slotpop .45s; border-color:rgba(255,213,79,.6); }
   .pill.done{ color:var(--accent); }
@@ -361,10 +361,13 @@
 
   /* ================= GROVE / STATS ================= */
   #scene-grove{ justify-content:flex-start; gap:var(--sp3); }
-  #grovetitle{ font-size:15px; color:var(--dim); }
-  #grovetitle b{ color:var(--gold-deep); }
+  #grovenav{ width:100%; display:flex; align-items:center; gap:10px; z-index:1; }
+  #grovenav .chip b{ color:var(--gold-deep); }
+  .iconbtn.sm{ width:40px; height:40px; font-size:16px; }
   #grovefield{ position:relative; width:100%; flex:1; border-radius:var(--r-xl); overflow:hidden;
-    background:linear-gradient(180deg,#bfe4f7 0%,#dcf0fb 34%,#a8d6a0 58%,#7cbd7d 100%);
+    background:
+      radial-gradient(circle at 82% 10%, rgba(255,238,170,.95) 0 20px, rgba(255,238,170,.35) 38px, transparent 58px),
+      linear-gradient(180deg,#bfe4f7 0%,#dcf0fb 34%,#a8d6a0 58%,#7cbd7d 100%);
     box-shadow:inset 0 0 50px rgba(90,60,30,.15), var(--shadow-panel),
       0 0 0 5px rgba(255,253,246,.9), 0 0 0 6px rgba(121,92,55,.22); }
   .grovemoji{ position:absolute; animation:gfloat 4.5s ease-in-out infinite; cursor:default;
@@ -407,11 +410,11 @@
   <!-- ============ GAME ============ -->
   <div class="scene" id="scene-game">
     <div id="topbar">
-      <button class="iconbtn" style="width:40px;height:40px;font-size:15px" onclick="Game.goHome()">🏠</button>
-      <button class="iconbtn" style="width:40px;height:40px;font-size:15px" id="btn-restart" onclick="Game.restartBtn()">↻</button>
+      <button class="iconbtn sm" onclick="Game.goHome()">🏠</button>
+      <button class="iconbtn sm" id="btn-restart" onclick="Game.restartBtn()">↻</button>
       <div id="movesbox"><div id="movesbig">15</div><div id="moveslabel">moves</div></div>
       <span id="lvlchip" class="chip">LV <b id="h-level">1</b></span>
-      <button class="iconbtn soundbtn" style="width:40px;height:40px;font-size:15px" onclick="Snd.toggle()">🔊</button>
+      <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
     <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
     <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
@@ -435,9 +438,13 @@
 
   <!-- ============ GROVE ============ -->
   <div class="scene" id="scene-grove">
-    <div id="grovetitle">🌳 <b id="gr-count">0/40</b> &nbsp;·&nbsp; 📅 <b id="gr-daily">?</b></div>
+    <div id="grovenav">
+      <button class="iconbtn sm" onclick="UI.scene('scene-home')">←</button>
+      <span class="chip">🌳 <b id="gr-count">0/40</b></span>
+      <span style="flex:1"></span>
+      <span class="chip">📅 <b id="gr-daily">?</b></span>
+    </div>
     <div id="grovefield"></div>
-    <button class="iconbtn" onclick="UI.scene('scene-home')">←</button>
   </div>
 
   <!-- ============ OVERLAYS ============ -->
@@ -1569,20 +1576,23 @@ const UI = {
     $("gr-count").textContent = Object.keys(P.grove).length+"/"+GROVE.length;
     $("gr-daily").textContent = P.dailyWordDay===Math.floor(Date.now()/864e5) ? "✓" : "?";
     const f=$("grovefield"); f.innerHTML="";
-    const hash=w=>{ let h=0; for(const c of w) h=(h*31+c.charCodeAt(0))>>>0; return h; };
-    GROVE.forEach(g=>{
+    // a tidy collection: sky friends in two neat rows up top, ground friends in ranks on the grass.
+    // every friend owns a fixed spot — silhouette today, colour the day you spell it.
+    const place=(g, col, row, startTop, rowGap)=>{
       const found=!!P.grove[g.w];
       const el=document.createElement("div");
       el.className="grovemoji"+(found?"":" locked");
       el.innerHTML='<span class="gm">'+g.e+"</span>"+(found?"":'<span class="qm">?</span>');
       el.title = found ? g.w.toUpperCase() : "???"; // never leak the word — the hunt IS the game
-      const h=hash(g.w);
-      el.style.left = (6 + h%84)+"%";
-      el.style.top = g.z==="sky" ? (4 + (h>>3)%26)+"%" : (48 + (h>>5)%40)+"%";
-      el.style.animationDelay = ((h>>7)%40)/10+"s";
-      el.style.fontSize = (22 + (h>>9)%10)+"px";
+      el.style.left = (7 + col*15.4)+"%";
+      el.style.top = (startTop + row*rowGap)+"%";
+      el.style.fontSize = "25px";
+      el.style.animationDelay = (col*0.3 + row*0.5)+"s";
       f.appendChild(el);
-    });
+    };
+    const sky=GROVE.filter(g=>g.z==="sky"), ground=GROVE.filter(g=>g.z!=="sky");
+    sky.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 6, 12));
+    ground.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 44, 11));
     UI.scene("scene-grove");
   },
   statsShow(){
