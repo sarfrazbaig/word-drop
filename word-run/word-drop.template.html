@@ -176,26 +176,36 @@
     inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(150,128,86,.28); }
   #nextwrap{ text-align:center; }
   #nextwrap .tile{ opacity:.72; }
-  #holdwrap{ text-align:center; cursor:pointer; }
-  #holdwrap:active{ transform:scale(.93); }
-  #holdwrap.swap{ animation:holdswap .42s ease-out; }
-  @keyframes holdswap{ 35%{ transform:scale(1.12) rotate(-3deg) } 70%{ transform:scale(.96) rotate(2deg) } }
-  .holdempty{ display:flex; align-items:center; justify-content:center; width:40px; height:42px; font-size:17px;
-    color:rgba(255,255,255,.3); border:1.5px dashed rgba(255,255,255,.2); border-radius:var(--r-sm); }
-  .traydiv{ width:1px; height:44px; background:var(--surface-border); margin:0 2px; }
-  .pslot{ width:42px; height:42px; border-radius:var(--r-sm); background:rgba(0,0,0,.32);
+
+  /* -------- power bar: powerups are blocks, so they look and size like blocks -------- */
+  #powerbar{ width:100%; display:flex; align-items:center; justify-content:center; gap:12px;
+    padding:2px 0 4px; z-index:2; }
+  .pslot{ width:44px; height:46px; border-radius:9px; background:rgba(0,0,0,.32);
     border:1.5px dashed rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center;
-    font-size:19px; position:relative; cursor:pointer; opacity:.45; transition:transform .15s, box-shadow .15s; }
-  .pslot .req{ position:absolute; bottom:1px; left:0; right:0; text-align:center; font-size:8px;
+    font-size:20px; font-weight:800; position:relative; cursor:pointer; opacity:.45;
+    transition:transform .15s, box-shadow .15s; }
+  .pslot .req{ position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:8px;
     font-weight:800; color:var(--dim); letter-spacing:.5px; }
   .pslot.has .req{ display:none; }
-  .pslot.has{ opacity:1; border-style:solid; border-color:rgba(255,213,79,.5); }
-  .pslot.armed{ border-color:var(--gold); box-shadow:0 0 14px rgba(255,213,79,.65); transform:scale(1.1); }
-  .pslot .cnt{ position:absolute; bottom:-5px; right:-5px; background:var(--gold); color:#3a2a00;
+  .pslot.has{ opacity:1; border:none;
+    background:var(--tile-face); color:var(--tile-ink); text-shadow:0 1px 0 rgba(255,255,255,.55);
+    box-shadow:0 4px 0 #b3a685, 0 5px 7px rgba(0,0,0,.3),
+      inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(150,128,86,.28); }
+  #ps-wild.has{ background:linear-gradient(148deg,#cfb3ff,#9a67ff 55%,#6a3de0); color:#fff; text-shadow:0 1px 2px rgba(40,0,90,.6);
+    box-shadow:0 4px 0 #4527a0, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -3px 4px rgba(60,20,140,.4); }
+  #ps-bomb.has{ background:linear-gradient(148deg,#5a5a64,#33333b 55%,#1d1d23); color:#ff8a5c; text-shadow:0 1px 2px #000;
+    box-shadow:0 4px 0 #101013, 0 5px 7px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.15), inset 0 -3px 4px rgba(0,0,0,.5); }
+  #ps-laser.has{ background:linear-gradient(148deg,#ffefb0,#ffd54f 55%,#f5a800); color:#5a3d00;
+    box-shadow:0 4px 0 #a97a00, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(160,110,0,.35); }
+  #ps-swap.has{ background:linear-gradient(148deg,#d9f4ff,#a8dcf5 55%,#74b4dd); color:#173a52;
+    box-shadow:0 4px 0 #3e6f91, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(40,90,130,.35); }
+  .pslot.armed{ box-shadow:0 0 16px rgba(255,213,79,.75), 0 4px 0 #b3a685!important; transform:scale(1.12) translateY(-3px); }
+  .pslot .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold); color:#3a2a00;
     font-size:10px; font-weight:800; min-width:17px; height:17px; border-radius:9px;
-    display:flex; align-items:center; justify-content:center; }
+    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.4); }
   .pslot.pop{ animation:slotpop .45s; }
   .pslot.deny{ animation:denyshake .32s; }
+  .tile.selswap{ transform:scale(1.08)!important; box-shadow:0 0 18px #74b4dd, 0 4px 0 #b3a685; filter:brightness(1.2); z-index:5; }
   @keyframes slotpop{ 40%{ transform:scale(1.4) rotate(8deg) } }
   @keyframes denyshake{ 25%{transform:translateX(-4px)} 50%{transform:translateX(4px)} 75%{transform:translateX(-2px)} }
 
@@ -354,10 +364,11 @@
     <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="giftmeter"></span></div>
     <div id="boardwrap"><div id="board"></div></div>
     <div id="dock">
-      <div id="holdwrap" onclick="Game.hold()"><span class="slotlabel">hold</span><span id="holdslot"><span class="holdempty">⇅</span></span></div>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
-      <div class="traydiv"></div>
+    </div>
+    <div id="powerbar">
+      <div class="pslot" id="ps-swap" onclick="Game.usePower('swap')">⇄<span class="req">3</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')">★<span class="req">4+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')">💣<span class="req">5+</span><span class="cnt">0</span></div>
       <div class="pslot" id="ps-laser" onclick="Game.usePower('laser')">⚡<span class="req">×3</span><span class="cnt">0</span></div>
@@ -558,7 +569,7 @@ function dailyQuest(){
 let S = null;
 function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
-    pow:{wild:1,bomb:1,laser:0,transmute:2},
+    pow:{wild:1,bomb:1,laser:0,transmute:2,swap:1},
     stats:{wins:0, words:0, bestChain:1},
     questDay:-1, questProgress:0, questDone:false, giftWords:0, coach:false, run:null };
   try{
@@ -581,7 +592,7 @@ function save(){ try{ localStorage.setItem("worddrop_v2",JSON.stringify(P)); }ca
 function saveRun(){
   if(!S || S.over){ P.run=null; save(); return; }
   P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind}:null)),
-    cur:S.cur, next:S.next, held:S.held, movesLeft:S.movesLeft, levelScore:S.levelScore,
+    cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
     maxChain:S.maxChain, newGrove:S.newGrove };
   save();
@@ -594,7 +605,7 @@ function loadRun(){
     S=newState(r.level);
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
-      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next, held:r.held });
+      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{ if(cell) newTile(cell.l,cell.k,ri,ci); }));
     S.busy=false; // resumed runs skip the intro card, so unfreeze directly
     S.lastAction=Date.now();
@@ -609,8 +620,8 @@ function newState(level){
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    usingPower:null, revived:false, won:false, newGrove:[],
-    bestWord:"", bestWordPts:0, cur:null, next:null, held:null,
+    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[],
+    bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
 }
 function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
@@ -829,22 +840,10 @@ const Game = {
     }
   },
 
-  hold(){
-    if(!S || S.busy || S.over) return;
-    Snd.init(); S.lastAction=Date.now();
-    const h = S.held;
-    S.held = S.cur;
-    if(h){ S.cur = h; }
-    else { S.cur = S.next; S.next = makePiece(); }
-    Snd.tone(660,{dur:.07,type:"triangle",gain:.08}); Snd.tone(880,{dur:.07,type:"triangle",gain:.06,when:.06});
-    buzz(10);
-    UI.piece(); UI.holdSwap(); UI.hints(); UI.ghost(S.hoverCol);
-    saveRun();
-  },
-
   usePower(kind){
     if(!S || S.busy || S.over) return;
     Snd.init(); S.lastAction=Date.now();
+    if(S.swapSel){ S.swapSel.inner.classList.remove("selswap"); S.swapSel=null; }
     if(S.usingPower===kind){ S.usingPower=null; }
     else{
       if(P.pow[kind]<=0){
@@ -857,6 +856,37 @@ const Game = {
       if(kind==="transmute") Snd.tone(880,{dur:.12,type:"sine",gain:.07,verb:true});
     }
     UI.tray(); UI.hints(); UI.ghost(S.hoverCol);
+  },
+
+  async swapAt(row,col){ // pick two tiles; they trade places — words that form, clear
+    const t = S.board[row] && S.board[row][col];
+    if(!t){ Snd.reject(); return; }
+    if(!S.swapSel){
+      S.swapSel=t; t.inner.classList.add("selswap");
+      Snd.tone(760,{dur:.09,type:"triangle",gain:.07}); buzz(8);
+      return;
+    }
+    if(S.swapSel===t){
+      t.inner.classList.remove("selswap"); S.swapSel=null;
+      Snd.tone(420,{dur:.08,type:"triangle",gain:.06});
+      return;
+    }
+    const a=S.swapSel, b=t;
+    a.inner.classList.remove("selswap"); S.swapSel=null;
+    S.busy=true;
+    P.pow.swap--; S.usingPower=null; UI.tray(); UI.ghost(-1);
+    const ar=a.r, ac=a.c, br=b.r, bc=b.c;
+    S.board[ar][ac]=b; S.board[br][bc]=a;
+    placeTile(a,br,bc,false); placeTile(b,ar,ac,false);
+    Snd.whoosh(); Snd.tone(620,{dur:.14,type:"triangle",gain:.08,when:.05,verb:true});
+    buzz([15,25,15]);
+    await wait(280);
+    [a,b].forEach(x=>{ x.inner.classList.add("landsquash"); setTimeout(()=>x.inner.classList.remove("landsquash"),400); });
+    S.chain=1; S.lastAction=Date.now();
+    await Game.resolve();
+    S.busy=false;
+    UI.all(); saveRun();
+    Game.checkEnd();
   },
 
   async transmuteAt(row,col){
@@ -993,12 +1023,13 @@ const Game = {
   },
 
   earn(kind){
-    if(P.pow[kind]>=5) return;
+    const cap = kind==="swap" ? 2 : 5; // swaps are strong: hoarding them would dissolve the stakes
+    if(P.pow[kind]>=cap) return;
     P.pow[kind]++; save();
     const slot=$("ps-"+kind);
     const app=$("app");
     const fly=document.createElement("div");
-    fly.textContent = kind==="wild"?"★":kind==="bomb"?"💣":kind==="laser"?"⚡":"🔄";
+    fly.textContent = kind==="wild"?"★":kind==="bomb"?"💣":kind==="laser"?"⚡":kind==="swap"?"⇄":"🔄";
     fly.style.cssText="position:absolute;z-index:95;font-size:32px;left:48%;top:38%;transition:all .55s cubic-bezier(.45,0,.7,1);pointer-events:none;text-shadow:0 0 14px var(--gold)";
     app.appendChild(fly);
     const ar=app.getBoundingClientRect(), sr=slot.getBoundingClientRect();
@@ -1119,6 +1150,7 @@ const Game = {
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
       if(len>=5){ Game.earn("bomb"); UI.confetti(); }
       else if(len>=4) Game.earn("wild");
+      else Game.earn("swap"); // 3-letter words are fuel: they buy you board rearrangement
       Game.recordWord(w, pts);
       await wait(700);
       banner.classList.add("fade"); setTimeout(()=>banner.remove(),450);
@@ -1226,14 +1258,6 @@ const UI = {
     w.appendChild(el);
     const n=$("nextslot"); n.innerHTML="";
     n.appendChild(UI.miniTile(S.next,44,19));
-    const h=$("holdslot"); h.innerHTML="";
-    if(S.held) h.appendChild(UI.miniTile(S.held,44,19));
-    else h.innerHTML='<span class="holdempty">⇅</span>';
-  },
-  holdSwap(){
-    const h=$("holdwrap");
-    h.classList.remove("swap"); void h.offsetWidth; h.classList.add("swap");
-    setTimeout(()=>h.classList.remove("swap"),450);
   },
   cozy(){
     const q=dailyQuest();
@@ -1342,7 +1366,7 @@ const UI = {
     UI.hadKillers = n>0;
   },
   tray(){
-    ["wild","bomb","laser","transmute"].forEach(k=>{
+    ["swap","wild","bomb","laser","transmute"].forEach(k=>{
       const el=$("ps-"+k);
       el.querySelector(".cnt").textContent=P.pow[k];
       el.classList.toggle("has", P.pow[k]>0);
@@ -1373,7 +1397,7 @@ const UI = {
   ghost(col){
     if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
     if(!S || col<0 || S.over || S.won || S.busy) return;
-    if(S.usingPower==="transmute") return;
+    if(S.usingPower==="transmute" || S.usingPower==="swap") return; // these target tiles, not columns
     if(S.board[0][col]) return;
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
     const g=document.createElement("div");
@@ -1427,11 +1451,14 @@ boardEl.addEventListener("pointerleave", ()=>UI.ghost(-1));
 boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c); });
 boardEl.addEventListener("pointerup", e=>{
   if(!S) return;
-  if(S.usingPower==="transmute"){
+  if(S.usingPower==="transmute" || S.usingPower==="swap"){
     const r=boardEl.getBoundingClientRect();
     const col=Math.max(0,Math.min(COLS-1,Math.floor((e.clientX-r.left)/(r.width/COLS))));
     const row=Math.max(0,Math.min(ROWS-1,Math.floor((e.clientY-r.top)/(r.height/ROWS))));
-    if(!S.busy && !S.over && !S.won) Game.transmuteAt(row,col);
+    if(!S.busy && !S.over && !S.won){
+      if(S.usingPower==="transmute") Game.transmuteAt(row,col);
+      else Game.swapAt(row,col);
+    }
     return;
   }
   const c=colFromEvent(e);
