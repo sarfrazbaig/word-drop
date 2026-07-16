@@ -34,30 +34,83 @@
   }
   /* ===== BIOMES: the world changes every 5 levels — the whole plot takes on the place.
      letter tiles keep readable; special tiles keep their identity. ===== */
-  #app.bio1{ /* 🌊 lily pond */
-    --tile-face:linear-gradient(148deg,#f4fcf8 0%, #ddf0e6 55%, #c2ddcd 100%);
-    --tile-edge:#84ab97; --tile-ink:#2e4b3c;
-    --board-bg:#dbeee6; --board-dot:rgba(70,120,100,.26); --grass:#6fbf9e;
-    --board-tint:linear-gradient(180deg, rgba(150,215,235,.22), rgba(90,175,150,.14));
+  #app.bio1{ /* 🌊 lily pond — lily-pad green tiles floating on water */
+    --tile-face:linear-gradient(148deg,#eefaf0 0%, #cfe9d3 52%, #a9d4b2 100%);
+    --tile-edge:#6da283; --tile-ink:#26513a;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(50,115,80,.08) 0 2px, transparent 2px 7px);
+    --board-bg:#bfe2dd; --board-dot:rgba(255,255,255,.0); --grass:#6fbf9e;
+    --board-tint:linear-gradient(180deg, rgba(150,220,235,.3), rgba(90,180,160,.18));
     --frame1:#8fc3ae; --frame2:#5e9e86; }
   #app.bio2{ /* 🍂 autumn wood */
-    --tile-face:linear-gradient(148deg,#fff6e6 0%, #fbe3bd 55%, #eec584 100%);
-    --tile-edge:#bd8a48; --tile-ink:#5c3d17;
-    --board-bg:#f3e0c2; --board-dot:rgba(160,100,40,.24); --grass:#d09a4a;
-    --board-tint:linear-gradient(180deg, rgba(245,190,110,.24), rgba(200,130,60,.14));
+    --tile-face:linear-gradient(148deg,#fff3de 0%, #f9dca8 52%, #ecbe74 100%);
+    --tile-edge:#b58240; --tile-ink:#5c3d17;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(150,85,25,.1) 0 2px, transparent 2px 7px);
+    --board-bg:#f0dcba; --board-dot:rgba(160,100,40,.24); --grass:#d09a4a;
+    --board-tint:linear-gradient(180deg, rgba(245,185,100,.28), rgba(195,125,55,.16));
     --frame1:#c99a55; --frame2:#9c6f33; }
   #app.bio3{ /* 🌙 moonlit glade */
-    --tile-face:linear-gradient(148deg,#f9f5fd 0%, #e9def4 55%, #d2c2e4 100%);
-    --tile-edge:#9c86b8; --tile-ink:#463359;
-    --board-bg:#e4dcf0; --board-dot:rgba(110,85,150,.24); --grass:#9f88c0;
-    --board-tint:linear-gradient(180deg, rgba(180,150,220,.22), rgba(110,85,150,.16));
+    --tile-face:linear-gradient(148deg,#faf6ff 0%, #e5d8f4 52%, #cbb8e2 100%);
+    --tile-edge:#947cb4; --tile-ink:#42305a;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(95,70,140,.08) 0 2px, transparent 2px 7px);
+    --board-bg:#ded4ee; --board-dot:rgba(255,255,255,.35); --grass:#9f88c0;
+    --board-tint:linear-gradient(180deg, rgba(120,95,175,.26), rgba(70,50,110,.2));
     --frame1:#a893c8; --frame2:#7d63b8; }
   #app.bio4{ /* ❄ winter grove */
-    --tile-face:linear-gradient(148deg,#fbfdff 0%, #e8f2fa 55%, #d2e2ef 100%);
-    --tile-edge:#8fa9c0; --tile-ink:#2f4459;
-    --board-bg:#e2edf5; --board-dot:rgba(90,130,170,.24); --grass:#a9c4d8;
-    --board-tint:linear-gradient(180deg, rgba(200,225,240,.26), rgba(120,160,195,.14));
+    --tile-face:linear-gradient(148deg,#fdfeff 0%, #e4f0fa 52%, #cbdff0 100%);
+    --tile-edge:#87a4be; --tile-ink:#2f4459;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(90,130,170,.08) 0 2px, transparent 2px 7px);
+    --board-bg:#e6f0f8; --board-dot:rgba(255,255,255,.5); --grass:#a9c4d8;
+    --board-tint:linear-gradient(180deg, rgba(215,235,248,.4), rgba(140,175,205,.18));
     --frame1:#a9c0d4; --frame2:#7d9bb4; }
+  /* ---- each place gets its own WORLD on the plot, not just a colour ---- */
+  #app.bio1 #board{ /* water: soft ripple rings + shimmer instead of soil */
+    background-image:
+      radial-gradient(6px 16px at 6px -3px, color-mix(in srgb,var(--grass) 78%,#1f5a24) 0 6px, transparent 7px),
+      radial-gradient(7px 13px at 10px -1px, var(--grass) 0 7px, transparent 8px),
+      radial-gradient(circle at 24% 30%, transparent 20px, rgba(255,255,255,.3) 21px 22.5px, transparent 24px),
+      radial-gradient(circle at 24% 30%, transparent 32px, rgba(255,255,255,.16) 33px 34px, transparent 36px),
+      radial-gradient(circle at 76% 60%, transparent 26px, rgba(255,255,255,.24) 27px 28.5px, transparent 30px),
+      radial-gradient(circle at 46% 82%, transparent 15px, rgba(255,255,255,.22) 16px 17.5px, transparent 19px),
+      repeating-linear-gradient(2deg, rgba(255,255,255,.06) 0 2px, transparent 2px 12px),
+      var(--board-tint);
+    background-repeat:repeat-x, repeat-x, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+    background-position:4px 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, center;
+    background-size:14px 16px, 14px 14px, auto, auto, auto, auto, auto, cover; }
+  #app.bio3 #board{ /* dusk: tiny stars instead of planting holes */
+    background-image:
+      radial-gradient(6px 16px at 6px -3px, color-mix(in srgb,var(--grass) 78%,#2a1f4a) 0 6px, transparent 7px),
+      radial-gradient(7px 13px at 10px -1px, var(--grass) 0 7px, transparent 8px),
+      radial-gradient(circle, var(--board-dot) 1.4px, transparent 2px),
+      radial-gradient(circle at 80% 12%, rgba(255,245,200,.35) 0 14px, transparent 40px),
+      var(--board-tint);
+    background-repeat:repeat-x, repeat-x, repeat, no-repeat, no-repeat;
+    background-position:4px 0, 0 0, -2px 16px, 0 0, center;
+    background-size:14px 16px, 14px 14px, 56px 56px, auto, cover; }
+  #app.bio4 #board{ /* snow: sparkle flecks + a soft drift along the bottom */
+    background-image:
+      radial-gradient(6px 16px at 6px -3px, #cfe0ec 0 6px, transparent 7px),
+      radial-gradient(7px 13px at 10px -1px, #e8f2fa 0 7px, transparent 8px),
+      radial-gradient(circle, var(--board-dot) 1.4px, transparent 2px),
+      linear-gradient(0deg, rgba(255,255,255,.55) 0, transparent 34px),
+      var(--board-tint);
+    background-repeat:repeat-x, repeat-x, repeat, no-repeat, no-repeat;
+    background-position:4px 0, 0 0, -2px 16px, 0 100%, center;
+    background-size:14px 16px, 14px 14px, 52px 52px, 100% 100%, cover; }
+  /* the living touches: lily pads bob, leaves fall, stars twinkle, snow drifts */
+  #biodecor{ position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; border-radius:inherit; }
+  #biodecor span{ position:absolute; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.12)); }
+  @keyframes decobob{ 0%,100%{ transform:translateY(0) rotate(-3deg) } 50%{ transform:translateY(5px) rotate(4deg) } }
+  @keyframes decosway{ 0%,100%{ transform:rotate(-7deg) } 50%{ transform:rotate(7deg) } }
+  @keyframes decotwinkle{ 0%,100%{ opacity:.25; transform:scale(.85) } 50%{ opacity:1; transform:scale(1.1) } }
+  @keyframes decofall{ 0%{ transform:translateY(-24px) rotate(0); opacity:0 } 8%{ opacity:.9 }
+    96%{ opacity:.7 } 100%{ transform:translateY(470px) rotate(210deg); opacity:0 } }
+  .deco-bob{ animation:decobob 5.5s ease-in-out infinite; }
+  .deco-bob2{ animation:decobob 6.5s ease-in-out infinite 1.4s; }
+  .deco-sway{ animation:decosway 5s ease-in-out infinite; transform-origin:top center; }
+  .deco-twinkle{ animation:decotwinkle 2.8s ease-in-out infinite; }
+  .deco-twinkle2{ animation:decotwinkle 3.6s ease-in-out infinite 1.2s; }
+  .deco-fall{ animation:decofall 13s linear infinite; }
+  .deco-fall2{ animation:decofall 17s linear infinite 5s; }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{ height:100%; margin:0; }
   body{
@@ -410,13 +463,21 @@
   .petcompanion.excited{ animation:petexcited .55s ease-in-out infinite !important; }
   @keyframes petexcited{ 0%,100%{ transform:translateY(0) rotate(0) } 25%{ transform:translateY(-4px) rotate(-6deg) }
     50%{ transform:translateY(0) rotate(5deg) } 75%{ transform:translateY(-3px) rotate(-4deg) } }
-  .pbdeco{ font-size:17px; align-self:flex-end; padding-bottom:4px; filter:drop-shadow(0 1px 2px rgba(90,110,60,.3)); }
-  .pbdeco:nth-child(2), .pbdeco:nth-last-child(1){ font-size:13px; opacity:.9; }
-  .petcompanion{ display:none; background:none; border:none; line-height:1; padding:0 0 3px; position:relative;
-    filter:drop-shadow(0 3px 4px rgba(40,60,25,.45)); animation:petidle 3.4s ease-in-out infinite; }
-  .petcompanion.has{ display:block; }
-  .petcompanion::before{ content:""; position:absolute; inset:auto -5px -2px -5px; height:55%; border-radius:50%;
-    background:radial-gradient(50% 70% at 50% 92%, var(--pet-glow,transparent), transparent 72%); }
+  /* decorations are TUCKED at the shelf's corners — small, quiet, clearly not pets */
+  .pbdeco{ position:absolute; font-size:12px; opacity:.85; pointer-events:none; bottom:5px;
+    filter:drop-shadow(0 1px 1px rgba(90,110,60,.25)); }
+  .pbdeco:nth-child(1){ left:9px; }
+  .pbdeco:nth-child(2){ left:26px; bottom:4px; font-size:10px; }
+  .pbdeco:nth-last-child(2){ right:26px; bottom:4px; font-size:10px; }
+  .pbdeco:nth-last-child(1){ right:9px; }
+  /* every pet sits in the SAME round portrait badge — one consistent token, face or full-body */
+  .petcompanion{ display:none; width:40px; height:40px; margin-bottom:5px; border-radius:50%;
+    align-items:center; justify-content:center; padding:0; border:1.5px solid rgba(121,92,55,.16); position:relative;
+    background:radial-gradient(120% 120% at 40% 30%, #fffdf6, #f6ecd4 68%, #ecdcba);
+    box-shadow:0 2px 5px rgba(90,60,30,.2), inset 0 1.5px 0 rgba(255,255,255,.9),
+      0 0 0 2.5px var(--pet-glow, transparent);
+    animation:petidle 3.4s ease-in-out infinite; }
+  .petcompanion.has{ display:flex; }
   .petcompanion:nth-of-type(2){ animation-delay:.9s; } .petcompanion:nth-of-type(3){ animation-delay:1.7s; }
   .petcompanion:nth-of-type(4){ animation-delay:2.4s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
@@ -876,11 +937,33 @@ const RHYTHM=[1.0, 0.88, 1.02, 0.92, 1.16];
 const BIOMES=["🌼","🌊","🍂","🌙","❄️"]; // the world changes every 5 levels
 const BIOME_NAMES=["Sunny Meadow","Lily Pond","Autumn Wood","Moonlit Glade","Winter Grove"];
 function biomeOf(L){ return Math.floor((L-1)/5)%5; }
+// each place gets living scenery on the plot — quiet, behind the tiles, never in the way
+const BIOME_DECOR=[
+  [ {e:"🌼",x:"5%",y:"93%",s:13},{e:"🌾",x:"92%",y:"92%",s:14},{e:"🦋",x:"80%",y:"10%",s:12,a:"deco-sway"} ],
+  [ {e:"🪷",x:"12%",y:"12%",s:24,a:"deco-bob"},{e:"🪷",x:"79%",y:"7%",s:17,a:"deco-bob2"},
+    {e:"🌿",x:"52%",y:"22%",s:13,a:"deco-bob2"},{e:"🐸",x:"88%",y:"90%",s:13} ],
+  [ {e:"🍁",x:"12%",y:"9%",s:16,a:"deco-sway"},{e:"🍂",x:"72%",y:"4%",s:14,a:"deco-fall"},
+    {e:"🍂",x:"30%",y:"2%",s:12,a:"deco-fall2"},{e:"🍄",x:"90%",y:"91%",s:13} ],
+  [ {e:"✨",x:"16%",y:"10%",s:13,a:"deco-twinkle"},{e:"⭐",x:"72%",y:"18%",s:11,a:"deco-twinkle2"},
+    {e:"✨",x:"46%",y:"6%",s:10,a:"deco-twinkle2"},{e:"🍄",x:"6%",y:"92%",s:13} ],
+  [ {e:"❄️",x:"22%",y:"2%",s:13,a:"deco-fall"},{e:"❄️",x:"64%",y:"2%",s:11,a:"deco-fall2"},
+    {e:"⛄",x:"87%",y:"88%",s:16},{e:"❄️",x:"8%",y:"14%",s:10,a:"deco-twinkle"} ],
+];
 function applyBiome(L){
   const app=document.getElementById("app");
   app.className = app.className.replace(/\bbio\d\b/g,"").trim();
   const b=biomeOf(L);
   if(b>0) app.classList.add("bio"+b);
+  // scenery lives UNDER the tiles: first child of the board, rebuilt with each place
+  const old=document.getElementById("biodecor"); if(old) old.remove();
+  const d=document.createElement("div"); d.id="biodecor";
+  BIOME_DECOR[b].forEach(o=>{
+    const s=document.createElement("span");
+    s.textContent=o.e; s.style.left=o.x; s.style.top=o.y; s.style.fontSize=o.s+"px";
+    if(o.a) s.className=o.a;
+    d.appendChild(s);
+  });
+  boardEl.insertBefore(d, boardEl.firstChild);
 }
 function isSpike(L){ return L%5===0; }
 function isMilestone(L){ return L%10===0; }
@@ -2247,8 +2330,8 @@ const UI = {
     $("petbar").classList.toggle("on", eq.length>0);
     for(let s=0;s<4;s++){
       const el=$("pet-"+s), g=eq[s];
-      if(g){ el.dataset.w=g.w; el.style.fontSize="34px";
-        el.style.setProperty("--pet-glow", PET_ABIL[g.a].c+"88");
+      if(g){ el.dataset.w=g.w; el.style.fontSize="22px";
+        el.style.setProperty("--pet-glow", PET_ABIL[g.a].c+"aa");
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+PET_ABIL[g.a].n; el.classList.add("has"); }
       else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); el.style.removeProperty("--pet-glow"); }
