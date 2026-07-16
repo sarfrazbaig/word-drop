@@ -34,4 +34,8 @@ fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS t
 const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on main
 if (!fs.existsSync(docs)) fs.mkdirSync(docs);
 fs.writeFileSync(path.join(docs, "index.html"), dropOut);
-console.log(`Built word-drop.html + index.html + docs/index.html — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
+// PWA layer: ship manifest, service worker, and icon alongside the game
+["manifest.webmanifest", "sw.js", "icon.svg"].forEach(f => {
+  fs.copyFileSync(path.join(__dirname, f), path.join(docs, f));
+});
+console.log(`Built word-drop.html + index.html + docs/ (game + PWA) — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);

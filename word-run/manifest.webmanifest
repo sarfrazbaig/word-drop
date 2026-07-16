@@ -1,0 +1,16 @@
+{
+  "name": "Wordgrove — a cozy word garden",
+  "short_name": "Wordgrove",
+  "description": "Drop letters, spell words, and grow a grove of little friends. A cozy word-drop puzzle.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf8ee",
+  "theme_color": "#fdf8ee",
+  "categories": ["games", "puzzle", "word"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
