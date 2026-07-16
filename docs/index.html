@@ -121,12 +121,33 @@
     padding:9px 16px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .3s;
     z-index:300; pointer-events:none; white-space:nowrap; }
 
-  /* ================= HOME ================= */
-  #scene-home{ justify-content:center; gap:26px; overflow:hidden; }
-  .bgdrift{ position:absolute; font-size:44px; font-weight:900; color:rgba(121,92,55,.1);
-    pointer-events:none; animation:bgfloat 7s ease-in-out infinite; z-index:0; }
-  @keyframes bgfloat{ 0%,100%{ transform:translateY(0) rotate(-6deg) } 50%{ transform:translateY(-26px) rotate(5deg) } }
-  #homelogo{ text-align:center; z-index:1; }
+  /* ================= HOME — a garden gate ================= */
+  #scene-home{ justify-content:flex-start; gap:0; overflow:hidden; padding:0; }
+  #sky{ position:absolute; inset:0 0 38% 0; z-index:0;
+    background:linear-gradient(180deg,#bfe6f5 0%, #d9f0f7 45%, #eaf6ee 100%); }
+  #sun{ position:absolute; top:12%; right:18%; width:76px; height:76px; border-radius:50%;
+    background:radial-gradient(circle,#fff3c4 0%,#ffe58a 55%,#ffd35e 100%);
+    box-shadow:0 0 44px 14px rgba(255,221,120,.6); animation:sunpulse 5s ease-in-out infinite; }
+  @keyframes sunpulse{ 50%{ box-shadow:0 0 60px 22px rgba(255,221,120,.75); } }
+  .cloud{ position:absolute; width:120px; height:34px; border-radius:30px; background:rgba(255,255,255,.85);
+    filter:blur(1px); animation:drift 26s linear infinite; }
+  .cloud::before{ content:""; position:absolute; top:-16px; left:26px; width:56px; height:56px; border-radius:50%; background:inherit; }
+  .cloud::after{ content:""; position:absolute; top:-10px; right:22px; width:40px; height:40px; border-radius:50%; background:inherit; }
+  @keyframes drift{ to{ transform:translateX(560px); } }
+  #hill-far{ position:absolute; left:-5%; right:-5%; bottom:30%; height:26%; z-index:0;
+    background:radial-gradient(120% 100% at 50% 100%, #9fd08a 0%, #8cc47a 70%, transparent 71%); opacity:.85; }
+  #hill-near{ position:absolute; left:0; right:0; bottom:0; height:40%; z-index:1;
+    background:linear-gradient(180deg,#7fbf6e 0%, #6aad5c 55%, #5c9c50 100%);
+    border-radius:60% 60% 0 0 / 22% 22% 0 0; box-shadow:0 -6px 20px rgba(60,110,45,.25); }
+  #hill-near .sprout{ position:absolute; top:8px; font-size:26px; animation:sway 4s ease-in-out infinite; transform-origin:bottom center; }
+  #hill-near .sprout:nth-child(even){ animation-delay:-2s; }
+  @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(6deg) } }
+  #hill-near .peek{ position:absolute; top:-18px; font-size:30px; animation:peekbob 3.5s ease-in-out infinite;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+  @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
+  #home-content{ position:relative; z-index:2; width:100%; flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:24px; padding:0 14px; }
+  #homelogo{ text-align:center; }
   .logo-tiles{ display:flex; gap:8px; justify-content:center; }
   .logo-tiles .tile{ width:54px; height:58px; font-size:27px; position:relative; animation:logobob 2.6s ease-in-out infinite; }
   .logo-tiles .tile:nth-child(2){ animation-delay:.18s } .logo-tiles .tile:nth-child(3){ animation-delay:.36s }
@@ -193,14 +214,20 @@
     display:flex; align-items:center; justify-content:center; z-index:1; }
   #board{ position:relative;
     background-color:var(--board-bg);
-    background-image:radial-gradient(circle, var(--board-dot) 2px, transparent 2.7px);
-    background-size:48px 48px; background-position:-2px -2px;
-    border-radius:var(--r-md); overflow:hidden;
-    box-shadow:0 0 0 5px rgba(255,253,246,.9), 0 0 0 6px rgba(121,92,55,.22),
-      0 22px 44px -18px rgba(90,60,30,.5), inset 0 2px 10px rgba(121,92,55,.28); }
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='14'%3E%3Cpath d='M0 14 Q6 1 12 14 Q18 2 24 14 Q30 1 36 14 Q42 2 48 14 Z' fill='%237fbf6e'/%3E%3C/svg%3E"),
+      radial-gradient(circle, var(--board-dot) 2px, transparent 2.7px);
+    background-repeat:repeat-x, repeat;
+    background-position:left top, -2px 12px;
+    background-size:48px 14px, 48px 48px;
+    border-radius:6px var(--r-md) var(--r-md) var(--r-md); overflow:hidden;
+    box-shadow:
+      0 0 0 6px #c9a06a, 0 0 0 8px #a97e4a,  /* wooden planter frame */
+      0 22px 44px -18px rgba(90,60,30,.55), inset 0 -30px 40px -20px rgba(120,85,45,.4),
+      inset 0 14px 10px -8px rgba(127,191,110,.35); }  /* grass light + soil depth */
   #board.danger{ animation:dangerpulse 1s infinite; }
-  @keyframes dangerpulse{ 50%{ box-shadow:0 0 0 5px rgba(255,107,107,.35), 0 0 0 6px rgba(255,107,107,.5),
-    0 30px 70px -24px rgba(0,0,0,.85), inset 0 2px 12px rgba(0,0,0,.55); } }
+  @keyframes dangerpulse{ 50%{ box-shadow:0 0 0 6px #e2654f, 0 0 0 8px #b84a38,
+    0 22px 44px -18px rgba(90,60,30,.55); } }
 
   /* -------- dock: the hand -------- */
   #dock{ width:100%; display:flex; align-items:flex-end; justify-content:center; gap:10px;
@@ -393,7 +420,16 @@
   @keyframes unpop{ 0%{ transform:scale(0) rotate(-20deg); opacity:0 } 55%{ transform:scale(1.3) rotate(8deg) } 100%{ transform:scale(1) } }
   #un-title{ font-size:21px; font-weight:900; color:var(--accent-deep); }
   #un-body{ font-size:14px; color:var(--ink); line-height:1.55; }
-  #iv-level{ font-size:15px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+  #iv-place{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  #iv-placeicon{ font-size:44px; animation:peekbob 3s ease-in-out infinite; }
+  #iv-placename{ font-size:20px; font-weight:900; color:var(--accent-deep); }
+  #iv-path{ display:flex; align-items:center; justify-content:center; gap:0; margin:2px 0 4px; }
+  #iv-path .stone{ width:16px; height:16px; border-radius:50%; background:rgba(121,92,55,.16);
+    display:flex; align-items:center; justify-content:center; font-size:13px; flex:none; }
+  #iv-path .stone.done{ background:var(--accent); }
+  #iv-path .stone.here{ background:none; font-size:20px; width:22px; height:22px; }
+  #iv-path .dash{ width:12px; height:3px; border-radius:2px; background:rgba(121,92,55,.16); }
+  #iv-level{ font-size:14px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
   #iv-goals{ display:flex; justify-content:center; gap:26px; }
   #iv-goals div{ font-size:13px; color:var(--dim); }
   #iv-goals b{ display:block; font-size:30px; color:var(--ink); font-variant-numeric:tabular-nums; }
@@ -426,29 +462,40 @@
 </style>
 
 <div id="app">
-  <!-- ============ HOME ============ -->
+  <!-- ============ HOME — the garden gate ============ -->
   <div class="scene active" id="scene-home">
-    <div class="bgdrift" style="left:12%;top:16%;animation-delay:0s">E</div>
-    <div class="bgdrift" style="left:78%;top:24%;animation-delay:2.2s">S</div>
-    <div class="bgdrift" style="left:22%;top:66%;animation-delay:1.1s">O</div>
-    <div class="bgdrift" style="left:70%;top:74%;animation-delay:3.4s">T</div>
-    <div id="homelogo">
-      <div class="logo-tiles">
-        <div class="tile">W<small>4</small></div><div class="tile">O<small>1</small></div>
-        <div class="tile">R<small>1</small></div><div class="tile">D<small>2</small></div>
+    <div id="sky"><div id="sun"></div>
+      <div class="cloud" style="top:9%;left:-20%;animation-delay:0s"></div>
+      <div class="cloud" style="top:20%;left:-40%;animation-delay:-9s;transform:scale(.7)"></div>
+    </div>
+    <div id="hill-far"></div>
+    <div id="hill-near">
+      <span class="sprout" style="left:8%">🌷</span>
+      <span class="sprout" style="left:20%">🌿</span>
+      <span class="sprout" style="right:24%">🌼</span>
+      <span class="sprout" style="right:8%">🌱</span>
+      <span class="peek" style="left:14%">🦊</span>
+      <span class="peek" style="right:16%">🦉</span>
+    </div>
+    <div id="home-content">
+      <div id="homelogo">
+        <div class="logo-tiles">
+          <div class="tile">W<small>4</small></div><div class="tile">O<small>1</small></div>
+          <div class="tile">R<small>1</small></div><div class="tile">D<small>2</small></div>
+        </div>
+        <div class="logo-word">🌳 grove</div>
+        <div class="logo-sub">a cozy word garden</div>
       </div>
-      <div class="logo-word">🌳 grove</div>
-      <div class="logo-sub">a cozy word garden</div>
-    </div>
-    <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
-    <div class="home-pills">
-      <span class="chip">🔥 <b id="hm-streak">0</b></span>
-      <span class="chip" id="hm-quest">🌤️</span>
-    </div>
-    <div class="home-links">
-      <button class="iconbtn" id="btn-grove" onclick="UI.groveShow()">🌳<span class="cnt" id="grove-badge">0</span></button>
-      <button class="iconbtn" onclick="UI.statsShow()">📊</button>
-      <button class="iconbtn soundbtn" onclick="Snd.toggle()">🔊</button>
+      <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
+      <div class="home-pills">
+        <span class="chip">🔥 <b id="hm-streak">0</b></span>
+        <span class="chip" id="hm-quest">🌤️</span>
+      </div>
+      <div class="home-links">
+        <button class="iconbtn" id="btn-grove" onclick="UI.groveShow()">🌳<span class="cnt" id="grove-badge">0</span></button>
+        <button class="iconbtn" onclick="UI.statsShow()">📊</button>
+        <button class="iconbtn soundbtn" onclick="Snd.toggle()">🔊</button>
+      </div>
     </div>
   </div>
 
@@ -512,6 +559,8 @@
 
   <div class="overlay" id="ov-intro" onclick="Game.beginLevel()">
     <div class="card">
+      <div id="iv-place"><span id="iv-placeicon">🌼</span><span id="iv-placename">Sunny Meadow</span></div>
+      <div id="iv-path"></div>
       <div id="iv-level">LEVEL 1</div>
       <div id="iv-goals">
         <div>🎯 target<b id="iv-target">60</b></div>
@@ -583,6 +632,7 @@ const MIN_LEN = 3;
    Every 10th level is a 👑 golden milestone. Targets grow sub-linearly so the wall never comes. */
 const RHYTHM=[1.0, 0.88, 1.02, 0.92, 1.16];
 const BIOMES=["🌼","🌊","🍂","🌙","❄️"]; // the world changes every 5 levels
+const BIOME_NAMES=["Sunny Meadow","Lily Pond","Autumn Wood","Moonlit Glade","Winter Grove"];
 function biomeOf(L){ return Math.floor((L-1)/5)%5; }
 function applyBiome(L){
   const app=document.getElementById("app");
@@ -592,11 +642,27 @@ function applyBiome(L){
 }
 function isSpike(L){ return L%5===0; }
 function isMilestone(L){ return L%10===0; }
+// The first eight levels are hand-tuned — this is the funnel that decides if anyone
+// stays. L1 is nearly unloseable; each new power gets an easy level to play with.
+const EARLY=[ null,
+  [15,18],  // L1 · no powers · gentle
+  [20,18],  // L2 · 🔀 shuffle unlocks
+  [26,17],  // L3 · ★ wild unlocks
+  [30,17],  // L4 · breather
+  [36,16],  // L5 · 💣 blossom unlocks
+  [38,17],  // L6 · breather
+  [44,16],  // L7 · 🔮 vision unlocks
+  [50,16],  // L8
+];
 function TARGET(L){
-  const base = 42 + 20*Math.pow(L-1, 0.92);
+  if(EARLY[L]) return EARLY[L][0];
+  const base = 46 + 16*Math.pow(L-8, 0.86);
   return Math.round(base*RHYTHM[(L-1)%5]/5)*5;
 }
-function MOVES(L){ return Math.min(20, 15+Math.floor(L/6)) - (isSpike(L)?1:0); }
+function MOVES(L){
+  if(EARLY[L]) return EARLY[L][1];
+  return Math.min(20, 16+Math.floor((L-8)/6)) - (isSpike(L)?1:0);
+}
 function recipe(L){ // each level opens with a different board problem
   return {
     stone: L>=3 ? Math.min(3, 1+Math.floor((L-3)/3)) : 0,
@@ -962,15 +1028,16 @@ function builderLetters(){
   return [...out];
 }
 function riggedLetter(){
-  /* HONEST DECK. Mercy exists but is rare — your placement has to do the work.
-     Builders only make long words POSSIBLE; they never complete anything for you. */
+  /* A KIND but not trivial deck. Words should form often — this is cozy, not a crossword.
+     Generosity is highest in the early levels and eases as the player finds their feet. */
   if(!S) return drawLetter();
+  const gen = S.level<=3 ? 1 : S.level<=6 ? 0.65 : S.level<=12 ? 0.4 : 0.25;
   const best=helpfulByLength();
   const longs=Object.keys(best).filter(l=>best[l]>=4);
-  if(longs.length && Math.random()<0.30) return rand(longs);
-  if(Object.keys(best).length && Math.random()<0.15) return rand(Object.keys(best));
+  if(longs.length && Math.random()<0.34+0.30*gen) return rand(longs);              // finish a long word
+  if(Object.keys(best).length && Math.random()<0.20+0.32*gen) return rand(Object.keys(best)); // finish any word
   const b=builderLetters();
-  if(b.length && Math.random()<0.35) return rand(b);
+  if(b.length && Math.random()<0.38+0.30*gen) return rand(b);                      // extend a fragment
   return drawLetter();
 }
 
@@ -1045,7 +1112,14 @@ const Game = {
     fitBoard(); UI.all(); UI.visitor();
     applyBiome(level);
     $("ov-end").classList.remove("active");
-    $("iv-level").textContent = BIOMES[biomeOf(level)]+" LEVEL "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
+    const bi=biomeOf(level);
+    $("iv-placeicon").textContent = BIOMES[bi];
+    $("iv-placename").textContent = BIOME_NAMES[bi];
+    // the garden path: 5 stepping stones through this stretch, you standing on today's
+    const step=(level-1)%5;
+    $("iv-path").innerHTML = Array.from({length:5},(_,i)=>
+      '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
+    $("iv-level").textContent = "Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
     $("iv-target").textContent = S.target;
     $("iv-moves").textContent = S.movesLeft;
     const ob=$("iv-obstacles");
