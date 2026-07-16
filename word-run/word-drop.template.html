@@ -365,7 +365,8 @@
     align-items:flex-end; justify-content:center; align-self:flex-end;
     filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
   .petcompanion.active{ display:flex; }
-  #pet-right{ animation-delay:1.1s; }
+  #pet-left{ margin-right:auto; }   /* pets hug the dock's edges; letters stay centered between */
+  #pet-right{ margin-left:auto; animation-delay:1.1s; }
   .petcompanion.grew{ animation:petgrew .7s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
   #pet-right .petbody{ transform:scaleX(-1); }
@@ -1339,6 +1340,7 @@ const Game = {
     if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
     S.cur = makePiece(); S.next = makePiece();
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
+    boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     fitBoard(); UI.all(); UI.visitor();
     applyBiome(level);
     $("ov-end").classList.remove("active");
@@ -1749,7 +1751,9 @@ const Game = {
         S.newGrove.push(g.w);
         if(S.tutorWord===g.w) S.tutorWord=null; // guided word found — clear the prompt
         Snd.discover(); UI.confetti(); buzz([30,50,40]);
-        UI.toast("🌱 You found "+g.w.toUpperCase()+"! Meet them next round");
+        // say "meet them next round" only the very first time — after that the ritual speaks for itself
+        UI.toast(Object.keys(P.metGrove).length ? "🌱 You found "+g.w.toUpperCase()+"!"
+          : "🌱 You found "+g.w.toUpperCase()+"! Meet them next round");
         Game.earn("transmute", true);
       }
       const day=Math.floor(Date.now()/864e5);
@@ -2035,9 +2039,7 @@ const UI = {
     $("ev-score").textContent = S.levelScore + " / " + S.target;
     $("ev-word").textContent = S.bestWord||"—";
     const found = S.newGrove.map(w=>GROVE_BY_WORD[w].e);
-    $("ev-grove").innerHTML = found.length
-      ? found.map(e=>"<span>"+e+"</span>").join(" ")+'<div style="font-size:11px;color:var(--dim);margin-top:2px">you\'ll meet them next round!</div>'
-      : "";
+    $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ");
     $("btn-next").style.display = won ? "flex":"none";
     $("btn-retry").style.display = won ? "none":"flex";
     $("btn-moves").style.display = (!won && !S.revived && S.levelScore>0 && !boardFull()) ? "flex":"none";
