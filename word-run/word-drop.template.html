@@ -363,6 +363,19 @@
   .gracebubble .gbar{ position:absolute; left:0; bottom:0; height:3px; background:var(--gold);
     animation:gracebar 2.6s linear forwards; }
   @keyframes gracebar{ from{ width:100% } to{ width:0 } }
+  /* 🎆 the jackpot: a 5-6+ letter word erupts */
+  .jackpotburst{ position:absolute; left:50%; top:34%; transform:translate(-50%,-50%); z-index:95;
+    font-size:34px; font-weight:900; letter-spacing:3px; color:var(--gold-deep); white-space:nowrap;
+    text-shadow:0 2px 0 #fff, 0 4px 0 rgba(255,255,255,.7), 0 10px 30px rgba(255,190,40,.8);
+    pointer-events:none; animation:jackpotin 1.7s cubic-bezier(.3,1.4,.5,1) forwards; }
+  @keyframes jackpotin{ 0%{ transform:translate(-50%,-50%) scale(.2) rotate(-6deg); opacity:0 }
+    18%{ transform:translate(-50%,-50%) scale(1.25) rotate(2deg); opacity:1 }
+    32%{ transform:translate(-50%,-50%) scale(1) rotate(0) } 80%{ opacity:1 }
+    100%{ transform:translate(-50%,-64%) scale(1.05); opacity:0 } }
+  .goldflash{ position:absolute; inset:0; z-index:90; pointer-events:none; border-radius:inherit;
+    background:radial-gradient(80% 60% at 50% 40%, rgba(255,215,110,.5), rgba(255,215,110,0) 75%);
+    animation:goldflash .9s ease-out forwards; }
+  @keyframes goldflash{ 0%{ opacity:0 } 25%{ opacity:1 } 100%{ opacity:0 } }
 
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1; }
@@ -1089,6 +1102,12 @@ const Snd = {
   thaw(){ this.tone(1200,{dur:.18,type:"sine",gain:.07,slideTo:1800,verb:true}); this.noise({dur:.12,gain:.05,hp:3000}); },
   levelUp(){ [262,330,392,523,659,784].forEach((f,i)=>this.tone(f,{dur:.28,type:"triangle",gain:.13,when:i*0.09,verb:true})); this.noise({dur:.6,gain:.05,lp:1500,verb:true,when:.3}); },
   fail(){ [392,330,262,196].forEach((f,i)=>this.tone(f,{dur:.34,type:"triangle",gain:.12,when:i*0.17,verb:true})); },
+  fanfare(){ // the jackpot: a bright rising fanfare with a shimmering crown chord
+    [523,659,784,1047].forEach((f,i)=>this.tone(f,{dur:.22,type:"triangle",gain:.13,when:i*0.11,verb:true}));
+    [1047,1319,1568].forEach((f,i)=>this.tone(f,{dur:.9,type:"sine",gain:.07,when:.5+i*0.04,verb:true}));
+    this.tone(2093,{dur:1.1,type:"sine",gain:.04,when:.66,verb:true});
+    this.noise({dur:.7,gain:.05,lp:2000,verb:true,when:.45});
+  },
   earn(){ this.tone(1047,{dur:.1,type:"square",gain:.05,verb:true}); this.tone(1319,{dur:.16,type:"square",gain:.05,when:.08,verb:true}); },
   discover(){ [523,659,784,1047,1319,1568].forEach((f,i)=>this.tone(f,{dur:.4,type:"sine",gain:.09,when:i*0.09,verb:true}));
     this.tone(2093,{dur:.8,type:"sine",gain:.04,when:.55,verb:true}); },
@@ -2108,6 +2127,27 @@ const Game = {
     await Game.resolve();
   },
 
+  async jackpot(len){ // 🎆 a 5-6+ letter word is the rarest feat in the game — pay it like a slot machine
+    const title = len>=8 ? "MYTHICAL!" : len>=7 ? "LEGENDARY!" : len>=6 ? "SPECTACULAR!" : "SPLENDID!";
+    Snd.fanfare(); buzz([40,60,40,60,140]);
+    const jb=document.createElement("div"); jb.className="jackpotburst"; jb.textContent=title;
+    $("boardwrap").appendChild(jb); setTimeout(()=>jb.remove(),1700);
+    const fl=document.createElement("div"); fl.className="goldflash";
+    $("app").appendChild(fl); setTimeout(()=>fl.remove(),900);
+    UI.confetti(); setTimeout(()=>UI.confetti(),350); if(len>=6) setTimeout(()=>UI.confetti(),700);
+    for(let i=0;i<14;i++){ const s=document.createElement("div"); s.className="petal"; s.textContent="✨";
+      s.style.left=Math.random()*100+"%"; s.style.top="0";
+      s.style.setProperty("--fall",(boardEl.clientHeight*0.9+Math.random()*30)+"px");
+      s.style.animationDuration=(1.0+Math.random()*0.8)+"s"; s.style.animationDelay=(Math.random()*0.5)+"s";
+      boardEl.appendChild(s); setTimeout(()=>s.remove(),2400); }
+    // the whole party goes wild, the paw meter fills, and the garden showers you with tools
+    for(let s=0;s<4;s++){ const el=$("pet-"+s); if(el && el.classList.contains("has")){
+      el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy"); } }
+    Game.cheer(Game.petNeed());
+    Game.earnBreeze(); if(len>=6){ Game.earnWish(); }
+    await wait(900);
+  },
+
   /* THE BLOOM PAUSE — resolves the "COUP→COP betrayal" without a lock mechanic.
      A tool-formed little word always DOES something (older players read silence as a bug):
      it lights up and blooms after a breath. One friendly 🌱 bubble lets a builder hold it. */
@@ -2181,7 +2221,10 @@ const Game = {
       const len=w.cells.length;
       let pts=0;
       w.cells.forEach(t=>{ let v = t.kind==="wild"?0:VAL[t.letter]; if(t.kind==="gold") v*=3; pts+=v; });
-      pts = Math.round(pts * (1+0.5*(len-3)) * S.chain * (twin?1.5:1));
+      // 5+ letter words are JACKPOTS: rare, hard, and they should pay like it.
+      // a good 6-letter word will often clear the whole level — that's the chase.
+      const lenMult = len<=4 ? (1+0.5*(len-3)) : (len-3)*2;   // 3→1, 4→1.5, 5→4, 6→6, 7→8, 8→10
+      pts = Math.round(pts * lenMult * S.chain * (twin?1.5:1));
       let charmed=false;
       if(S.charm>0){ pts*=2; S.charm--; charmed=true; } // 💖 Sweet Song: this word sings double
       gained += pts;
@@ -2202,7 +2245,7 @@ const Game = {
       banner.classList.add("done");
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
-      if(len>=5){ Game.cheer(1); UI.confetti(); } // long words delight the pets — a bonus paw charge
+      if(len>=5) await Game.jackpot(len);              // 🎆 the moment worth chasing
       if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌸
       else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
       Game.recordWord(w, pts, S.chain);
