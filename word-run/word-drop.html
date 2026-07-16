@@ -25,27 +25,38 @@
     --tile-face:linear-gradient(148deg,#fffdf4 0%, #f7ecd6 55%, #eadbba 100%);
     --tile-edge:#b3a685;
     --tile-ink:#4a3b28;
-    --board-bg:rgba(121,92,55,.1);
+    --board-bg:#f3ead4;
     --board-dot:rgba(121,92,55,.22);
+    --grass:#7fbf6e;
+    --board-tint:linear-gradient(180deg, rgba(255,232,140,.20), rgba(150,200,120,.12));
+    --frame1:#c9a06a; --frame2:#a97e4a;
   }
-  /* ===== BIOMES: the world changes every 5 levels — letter tiles + board only,
-     special tiles keep their identity so they stay instantly readable ===== */
-  #app.bio1{ /* 🌊 pond */
+  /* ===== BIOMES: the world changes every 5 levels — the whole plot takes on the place.
+     letter tiles keep readable; special tiles keep their identity. ===== */
+  #app.bio1{ /* 🌊 lily pond */
     --tile-face:linear-gradient(148deg,#f4fcf8 0%, #ddf0e6 55%, #c2ddcd 100%);
     --tile-edge:#84ab97; --tile-ink:#2e4b3c;
-    --board-bg:rgba(70,120,100,.12); --board-dot:rgba(70,120,100,.26); }
-  #app.bio2{ /* 🍂 autumn */
+    --board-bg:#dbeee6; --board-dot:rgba(70,120,100,.26); --grass:#6fbf9e;
+    --board-tint:linear-gradient(180deg, rgba(150,215,235,.22), rgba(90,175,150,.14));
+    --frame1:#8fc3ae; --frame2:#5e9e86; }
+  #app.bio2{ /* 🍂 autumn wood */
     --tile-face:linear-gradient(148deg,#fff6e6 0%, #fbe3bd 55%, #eec584 100%);
     --tile-edge:#bd8a48; --tile-ink:#5c3d17;
-    --board-bg:rgba(160,100,40,.11); --board-dot:rgba(160,100,40,.24); }
-  #app.bio3{ /* 🌙 dusk */
+    --board-bg:#f3e0c2; --board-dot:rgba(160,100,40,.24); --grass:#d09a4a;
+    --board-tint:linear-gradient(180deg, rgba(245,190,110,.24), rgba(200,130,60,.14));
+    --frame1:#c99a55; --frame2:#9c6f33; }
+  #app.bio3{ /* 🌙 moonlit glade */
     --tile-face:linear-gradient(148deg,#f9f5fd 0%, #e9def4 55%, #d2c2e4 100%);
     --tile-edge:#9c86b8; --tile-ink:#463359;
-    --board-bg:rgba(110,85,150,.11); --board-dot:rgba(110,85,150,.24); }
-  #app.bio4{ /* ❄ winter */
+    --board-bg:#e4dcf0; --board-dot:rgba(110,85,150,.24); --grass:#9f88c0;
+    --board-tint:linear-gradient(180deg, rgba(180,150,220,.22), rgba(110,85,150,.16));
+    --frame1:#a893c8; --frame2:#7d63b8; }
+  #app.bio4{ /* ❄ winter grove */
     --tile-face:linear-gradient(148deg,#fbfdff 0%, #e8f2fa 55%, #d2e2ef 100%);
     --tile-edge:#8fa9c0; --tile-ink:#2f4459;
-    --board-bg:rgba(90,130,170,.11); --board-dot:rgba(90,130,170,.24); }
+    --board-bg:#e2edf5; --board-dot:rgba(90,130,170,.24); --grass:#a9c4d8;
+    --board-tint:linear-gradient(180deg, rgba(200,225,240,.26), rgba(120,160,195,.14));
+    --frame1:#a9c0d4; --frame2:#7d9bb4; }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{ height:100%; margin:0; }
   body{
@@ -142,12 +153,24 @@
   #hill-near .sprout{ position:absolute; top:8px; font-size:26px; animation:sway 4s ease-in-out infinite; transform-origin:bottom center; }
   #hill-near .sprout:nth-child(even){ animation-delay:-2s; }
   @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(6deg) } }
-  #hill-near .peek{ position:absolute; top:-18px; font-size:30px; animation:peekbob 3.5s ease-in-out infinite;
+  #hill-near .peek{ position:absolute; top:-16px; font-size:30px; transform-origin:bottom center;
     filter:drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+  #hill-near .peek:nth-of-type(1){ animation:hop 2.8s ease-in-out infinite; }
+  #hill-near .peek:nth-of-type(2){ animation:wiggle 3.4s ease-in-out infinite .6s; }
+  @keyframes hop{ 0%,58%,100%{ transform:translateY(0) rotate(0) } 66%{ transform:translateY(-16px) rotate(-8deg) }
+    74%{ transform:translateY(0) rotate(0) } 82%{ transform:translateY(-9px) } 90%{ transform:translateY(0) } }
+  @keyframes wiggle{ 0%,60%,100%{ transform:rotate(0) } 68%{ transform:rotate(-14deg) } 76%{ transform:rotate(12deg) }
+    84%{ transform:rotate(-8deg) } 92%{ transform:rotate(0) } }
   @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
   #home-content{ position:relative; z-index:2; width:100%; flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:24px; padding:0 14px; }
+    align-items:center; justify-content:space-between;
+    padding:calc(46px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom)); }
   #homelogo{ text-align:center; }
+  .home-pills{ margin-top:-4px; }
+  .home-links{ background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.7);
+    border-radius:999px; padding:8px 12px; box-shadow:0 6px 16px rgba(60,110,45,.25); backdrop-filter:blur(2px); }
+  .home-links .iconbtn{ width:50px; height:50px; font-size:22px; background:#fff; border:1px solid rgba(121,92,55,.14);
+    box-shadow:0 3px 8px rgba(60,110,45,.2); }
   .logo-tiles{ display:flex; gap:8px; justify-content:center; }
   .logo-tiles .tile{ width:54px; height:58px; font-size:27px; position:relative; animation:logobob 2.6s ease-in-out infinite; }
   .logo-tiles .tile:nth-child(2){ animation-delay:.18s } .logo-tiles .tile:nth-child(3){ animation-delay:.36s }
@@ -176,6 +199,14 @@
   #tut-dots{ display:flex; gap:7px; justify-content:center; }
   #tut-dots i{ width:8px; height:8px; border-radius:50%; background:rgba(121,92,55,.25); }
   #tut-dots i.on{ background:var(--gold-deep); }
+  #ov-tut{ background:none; }
+  #tut-sky{ position:absolute; inset:0 0 32% 0; background:linear-gradient(180deg,#bfe6f5,#eaf6ee); }
+  #tut-sun{ position:absolute; top:9%; right:16%; width:64px; height:64px; border-radius:50%;
+    background:radial-gradient(circle,#fff3c4,#ffd35e); box-shadow:0 0 40px 12px rgba(255,221,120,.6); }
+  #tut-hill{ position:absolute; left:0; right:0; bottom:0; height:36%;
+    background:linear-gradient(180deg,#7fbf6e,#5c9c50); border-radius:60% 60% 0 0 / 22% 22% 0 0; }
+  #tut-hill .sprout{ position:absolute; top:12px; font-size:26px; }
+  #ov-tut .card{ position:relative; z-index:2; }
 
   /* ================= GAME SCENE ================= */
   #scene-game{ padding-top:calc(10px + env(safe-area-inset-top)); gap:var(--sp2); }
@@ -215,16 +246,18 @@
   #board{ position:relative;
     background-color:var(--board-bg);
     background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='14'%3E%3Cpath d='M0 14 Q6 1 12 14 Q18 2 24 14 Q30 1 36 14 Q42 2 48 14 Z' fill='%237fbf6e'/%3E%3C/svg%3E"),
-      radial-gradient(circle, var(--board-dot) 2px, transparent 2.7px);
-    background-repeat:repeat-x, repeat;
-    background-position:left top, -2px 12px;
-    background-size:48px 14px, 48px 48px;
+      radial-gradient(7px 11px at 7px -1px, var(--grass) 0 6.5px, transparent 7.5px),  /* grass blades along the top */
+      radial-gradient(circle, var(--board-dot) 2px, transparent 2.7px),                /* planting holes */
+      var(--board-tint);                                                               /* the place's light */
+    background-repeat:repeat-x, repeat, no-repeat;
+    background-position:0 0, -2px 12px, center;
+    background-size:14px 12px, 48px 48px, cover;
     border-radius:6px var(--r-md) var(--r-md) var(--r-md); overflow:hidden;
+    transition:background-color .6s;
     box-shadow:
-      0 0 0 6px #c9a06a, 0 0 0 8px #a97e4a,  /* wooden planter frame */
-      0 22px 44px -18px rgba(90,60,30,.55), inset 0 -30px 40px -20px rgba(120,85,45,.4),
-      inset 0 14px 10px -8px rgba(127,191,110,.35); }  /* grass light + soil depth */
+      0 0 0 6px var(--frame1), 0 0 0 8px var(--frame2),
+      0 22px 44px -18px rgba(90,60,30,.55), inset 0 -30px 40px -20px rgba(120,85,45,.3),
+      inset 0 16px 12px -8px color-mix(in srgb, var(--grass) 55%, transparent); }
   #board.danger{ animation:dangerpulse 1s infinite; }
   @keyframes dangerpulse{ 50%{ box-shadow:0 0 0 6px #e2654f, 0 0 0 8px #b84a38,
     0 22px 44px -18px rgba(90,60,30,.55); } }
@@ -259,14 +292,16 @@
     background:var(--tile-face); color:var(--tile-ink); text-shadow:0 1px 0 rgba(255,255,255,.55);
     box-shadow:0 4px 0 var(--tile-edge), 0 5px 7px rgba(0,0,0,.3),
       inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(150,128,86,.28); }
-  #ps-wild.has{ background:linear-gradient(148deg,#cfb3ff,#9a67ff 55%,#6a3de0); color:#fff; text-shadow:0 1px 2px rgba(40,0,90,.6);
-    box-shadow:0 4px 0 #4527a0, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -3px 4px rgba(60,20,140,.4); }
-  #ps-bomb.has{ background:linear-gradient(148deg,#5a5a64,#33333b 55%,#1d1d23); color:#ff8a5c; text-shadow:0 1px 2px #000;
-    box-shadow:0 4px 0 #101013, 0 5px 7px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.15), inset 0 -3px 4px rgba(0,0,0,.5); }
-  #ps-oracle.has{ background:linear-gradient(148deg,#e6d9ff,#b9a3f0 55%,#7c5fd0); color:#2a1b52; text-shadow:0 1px 0 rgba(255,255,255,.4);
-    box-shadow:0 4px 0 #4a3690, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.8), inset 0 -3px 4px rgba(70,50,140,.35); }
-  #ps-swap.has{ background:linear-gradient(148deg,#d9f4ff,#a8dcf5 55%,#74b4dd); color:#173a52;
-    box-shadow:0 4px 0 #3e6f91, 0 5px 7px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(40,90,130,.35); }
+  #ps-swap.has{ background:linear-gradient(148deg,#e3f7ee,#c2ebd6 55%,#9fd9bd);
+    box-shadow:0 4px 0 #6aa98a, 0 5px 7px rgba(0,0,0,.25), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(70,140,100,.3); }
+  #ps-wild.has{ background:linear-gradient(148deg,#ffe4f0,#ffc2dd 55%,#f79cc2);
+    box-shadow:0 4px 0 #c96b96, 0 5px 7px rgba(0,0,0,.25), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(180,80,120,.3); }
+  #ps-bomb.has{ background:linear-gradient(148deg,#f0dcc0,#dcb886 55%,#c39a5c);
+    box-shadow:0 4px 0 #8a6532, 0 5px 7px rgba(0,0,0,.28), inset 0 1.5px 0 rgba(255,255,255,.8), inset 0 -3px 4px rgba(120,85,40,.35); }
+  #ps-oracle.has{ background:linear-gradient(148deg,#ede2ff,#d3bffa 55%,#b39ae8);
+    box-shadow:0 4px 0 #7d63b8, 0 5px 7px rgba(0,0,0,.25), inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(100,75,160,.3); }
+  #ps-transmute.has{ background:linear-gradient(148deg,#e6f6d8,#c9eaa8 55%,#a9d97f);
+    box-shadow:0 4px 0 #6fa347, 0 5px 7px rgba(0,0,0,.25), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(90,140,50,.3); }
   .pslot.armed{ box-shadow:0 0 16px rgba(255,213,79,.75), 0 4px 0 #b3a685!important; transform:scale(1.12) translateY(-3px); }
   .pslot .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold); color:#3a2a00;
     font-size:10px; font-weight:800; min-width:17px; height:17px; border-radius:9px;
@@ -300,7 +335,8 @@
   #visitor{ position:absolute; top:-8px; right:6px; z-index:50; font-size:30px; cursor:pointer; display:none;
     filter:drop-shadow(0 3px 6px rgba(0,0,0,.6)); animation:visitorbob 3s ease-in-out infinite; }
   #visitor.here{ display:block; }
-  @keyframes visitorbob{ 0%,100%{ transform:translateY(0) rotate(-3deg) } 50%{ transform:translateY(-6px) rotate(3deg) } }
+  @keyframes visitorbob{ 0%,50%,100%{ transform:translateY(0) rotate(-3deg) } 60%{ transform:translateY(-12px) rotate(6deg) }
+    70%{ transform:translateY(0) rotate(-2deg) } 78%{ transform:translateY(-6px) rotate(4deg) } 86%{ transform:translateY(0) rotate(-3deg) } }
   #visitor.bless{ animation:visitorjump .9s; }
   @keyframes visitorjump{ 0%{ transform:translateY(0) } 25%{ transform:translateY(-26px) scale(1.3) rotate(-8deg) }
     50%{ transform:translateY(0) scale(1) } 70%{ transform:translateY(-12px) rotate(6deg) } 100%{ transform:translateY(0) } }
@@ -455,7 +491,8 @@
   .grovemoji.locked{ animation:none; }
   .grovemoji.locked .gm{ filter:brightness(0) opacity(.22); }
   .grovemoji .qm{ position:absolute; top:-6px; right:-8px; font-size:12px; font-weight:900; color:#4a3b28; opacity:.8; }
-  @keyframes gfloat{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
+  @keyframes gfloat{ 0%,55%,100%{ transform:translateY(0) rotate(0) } 64%{ transform:translateY(-10px) rotate(-6deg) }
+    72%{ transform:translateY(0) rotate(4deg) } 80%{ transform:translateY(-5px) rotate(-2deg) } 88%{ transform:translateY(0) rotate(0) } }
   .statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .stat{ background:var(--surface); border-radius:var(--r-md); padding:12px 6px; font-size:20px; text-align:center; }
   .stat b{ display:block; font-size:18px; color:var(--gold-deep); margin-top:2px; }
@@ -520,11 +557,11 @@
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
     </div>
     <div id="powerbar">
-      <div class="pslot" id="ps-swap" onclick="Game.usePower('swap')"><span class="ic">🔀</span><span class="req">3</span><span class="cnt">0</span><span class="prog"></span></div>
-      <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')"><span class="ic">★</span><span class="req">4+</span><span class="cnt">0</span><span class="prog"></span></div>
-      <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')"><span class="ic">💣</span><span class="req">5+</span><span class="cnt">0</span></div>
-      <div class="pslot" id="ps-oracle" onclick="Game.usePower('oracle')"><span class="ic">🔮</span><span class="req">×3</span><span class="cnt">0</span></div>
-      <div class="pslot" id="ps-transmute" onclick="Game.usePower('transmute')"><span class="ic">🪄</span><span class="req">⭐+</span><span class="cnt">0</span></div>
+      <div class="pslot" id="ps-swap" onclick="Game.usePower('swap')"><span class="ic">🍃</span><span class="req">3</span><span class="cnt">0</span><span class="prog"></span></div>
+      <div class="pslot" id="ps-wild" onclick="Game.usePower('wild')"><span class="ic">🌸</span><span class="req">4+</span><span class="cnt">0</span><span class="prog"></span></div>
+      <div class="pslot" id="ps-bomb" onclick="Game.usePower('bomb')"><span class="ic">🌰</span><span class="req">5+</span><span class="cnt">0</span></div>
+      <div class="pslot" id="ps-oracle" onclick="Game.usePower('oracle')"><span class="ic">🦋</span><span class="req">×3</span><span class="cnt">0</span></div>
+      <div class="pslot" id="ps-transmute" onclick="Game.usePower('transmute')"><span class="ic">🌱</span><span class="req">⭐+</span><span class="cnt">0</span></div>
     </div>
   </div>
 
@@ -541,6 +578,8 @@
 
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay" id="ov-tut">
+    <div id="tut-sky"><div id="tut-sun"></div></div>
+    <div id="tut-hill"><span class="sprout" style="left:12%">🌷</span><span class="sprout" style="right:14%">🌼</span></div>
     <div class="card">
       <div id="tut-slide"></div>
       <div id="tut-dots"></div>
@@ -673,7 +712,7 @@ function recipe(L){ // each level opens with a different board problem
 
 /* =================== SOUND =================== */
 const Snd = {
-  ctx:null, master:null, wet:null, on:true, ambientTimer:null,
+  ctx:null, master:null, wet:null, on:true, ambientTimer:null, musicTimer:null,
   init(){
     if(this.ctx) { if(this.ctx.state==="suspended") this.ctx.resume(); return; }
     const C = window.AudioContext||window.webkitAudioContext; if(!C) { this.on=false; return; }
@@ -692,7 +731,8 @@ const Snd = {
   },
   toggle(){ this.on=!this.on; P.sound=this.on; save();
     document.querySelectorAll(".soundbtn").forEach(el=>el.textContent = this.on?"🔊":"🔇");
-    if(this.on) this.init(); },
+    if(this.on){ this.init(); this.startMusic(); }
+    else { clearInterval(this.musicTimer); clearInterval(this.ambientTimer); } },
   now(){ return this.ctx.currentTime; },
   tone(freq, o){
     if(!this.on||!this.ctx) return; o=o||{};
@@ -747,11 +787,38 @@ const Snd = {
     clearInterval(this.ambientTimer);
     this.ambientTimer = setInterval(()=>{
       if(!this.on||!this.ctx||!S||S.over||S.busy) return;
-      if(Math.random()<0.65){
+      if(Math.random()<0.5){
         const n=this.PENTA[Math.floor(Math.random()*6)];
-        this.tone(n/2,{dur:1.2,type:"sine",gain:.014,verb:true});
+        this.tone(n/2,{dur:1.4,type:"sine",gain:.012,verb:true});
       }
-    }, 3200);
+    }, 3600);
+    this.startMusic();
+  },
+  // a slow, cozy lofi-ish chord bed — soft warm pads through the reverb, one chord every 4.4s
+  CHORDS:[ [130.8,164.8,196.0], [146.8,174.6,220.0], [110.0,164.8,220.0], [123.5,146.8,196.0] ], // C · Dm-ish · Am · G, low & mellow
+  _chord:0,
+  startMusic(){
+    clearInterval(this.musicTimer);
+    const play=()=>{
+      if(!this.on||!this.ctx) return;
+      const ch=this.CHORDS[this._chord%this.CHORDS.length]; this._chord++;
+      ch.forEach((f,i)=>{
+        // soft triangle pad, slow attack, long release, gentle detune for warmth
+        const c=this.ctx, t0=c.currentTime;
+        const o=c.createOscillator(), g=c.createGain(), lp=c.createBiquadFilter();
+        o.type="triangle"; o.frequency.value=f*(1+(Math.random()*0.006-0.003));
+        lp.type="lowpass"; lp.frequency.value=900;
+        g.gain.setValueAtTime(0.0001,t0);
+        g.gain.exponentialRampToValueAtTime(0.02,t0+0.9);      // slow swell
+        g.gain.exponentialRampToValueAtTime(0.0001,t0+4.2);    // long fade
+        o.connect(lp); lp.connect(g); g.connect(this.master); g.connect(this.wet);
+        o.start(t0); o.stop(t0+4.4);
+      });
+      // a soft high sparkle note occasionally, like birdsong
+      if(Math.random()<0.5) this.tone(this.PENTA[6+Math.floor(Math.random()*4)],{dur:.5,type:"sine",gain:.02,when:1+Math.random(),verb:true});
+    };
+    play();
+    this.musicTimer=setInterval(play, 4400);
   },
 };
 function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
@@ -777,25 +844,25 @@ function dailyWord(){
 }
 /* five powers, five distinct verbs — and each announces how it wants to be used */
 const POWERS={
-  swap:     {icon:"🔀", hint:"tap two tiles",  type:"target", tint:"rgba(116,180,221,.18)", tone:620},
-  wild:     {icon:"★", hint:"pick a column",  type:"drop",   tint:"rgba(154,103,255,.18)", tone:780},
-  bomb:     {icon:"💣", hint:"pick a column",  type:"drop",   tint:"rgba(226,101,79,.15)",  tone:320},
-  oracle:   {icon:"🔮", hint:"",               type:"instant",tint:null,                     tone:980},
-  transmute:{icon:"🪄", hint:"tap a tile",     type:"target", tint:"rgba(240,169,46,.16)",  tone:880},
+  swap:     {icon:"🍃", hint:"tap two tiles",  type:"target", tint:"rgba(116,180,221,.18)", tone:620}, // Breeze
+  wild:     {icon:"🌸", hint:"pick a column",  type:"drop",   tint:"rgba(240,150,190,.18)", tone:780}, // Blossom
+  bomb:     {icon:"🌰", hint:"pick a column",  type:"drop",   tint:"rgba(180,120,60,.16)",  tone:320}, // Acorn
+  oracle:   {icon:"🦋", hint:"",               type:"instant",tint:null,                     tone:980}, // Butterfly
+  transmute:{icon:"🌱", hint:"tap a tile",     type:"target", tint:"rgba(120,190,110,.18)", tone:880}, // Sprout
 };
-const POW_NEED={ swap:2, wild:2, bomb:1, oracle:1, transmute:1 }; // small words must be SAVED UP
-const POW_CAP ={ swap:2, wild:3, bomb:3, oracle:3, transmute:3 };
+const POW_NEED={ swap:1, wild:1, bomb:1, oracle:1, transmute:1 }; // every qualifying word grants a charge — no confusing "save up"
+const POW_CAP ={ swap:3, wild:3, bomb:3, oracle:3, transmute:3 };
 // nothing is handed to you: powers are LEARNED one at a time, each unlocking on its own level
 // with a teaching card. this is the tutorial — spread across the first hour, not a wall of text.
 const POW_UNLOCK={ swap:2, wild:3, bomb:5, oracle:7, transmute:9 };
 const POW_REQ={ swap:"3", wild:"4+", bomb:"5+", oracle:"×3", transmute:"⭐+" };
 const POW_ORDER=["swap","wild","bomb","oracle","transmute"];
 const POW_TEACH={
-  swap:     {title:"You learned SHUFFLE!", body:"Every 3-letter word earns a 🔀. Tap it, then tap two tiles to swap their places — line up bigger words."},
-  wild:     {title:"You learned WILD!", body:"4-letter words earn a ★. Drop it into any column — it becomes whatever letter finishes a word."},
-  bomb:     {title:"You learned BLOSSOM!", body:"5-letter words earn a 💣. Drop it to clear a 3×3 burst — perfect for breaking stone."},
-  oracle:   {title:"You learned VISION!", body:"Chains of ×3 earn a 🔮. Tap it to reveal every winning spot for your current letter."},
-  transmute:{title:"You learned GROW!", body:"Clearing levels earns a 🪄. Tap it, then tap any tile to grow it into a helpful letter."},
+  swap:     {title:"A gentle Breeze 🍃", body:"Every 3-letter word earns a breeze. Tap it, then tap two tiles — the wind swaps their places so you can line up bigger words."},
+  wild:     {title:"A Blossom bloomed 🌸", body:"4-letter words earn a blossom. Drop it into any column — it opens into whatever letter finishes a word."},
+  bomb:     {title:"An Acorn dropped 🌰", body:"5-letter words earn an acorn. Drop it to burst a 3×3 patch — perfect for clearing stone."},
+  oracle:   {title:"A Butterfly appeared 🦋", body:"A ×3 chain earns a butterfly. Tap it and it flits to every spot where your letter finishes a word."},
+  transmute:{title:"A Sprout grew 🌱", body:"Clearing levels earns a sprout. Tap it, then tap any tile to grow it into a more helpful letter."},
 };
 function unlocked(k){ return P.level>=POW_UNLOCK[k]; }
 function pendingUnlock(L){ return POW_ORDER.find(k=>POW_UNLOCK[k]===L); }
@@ -815,7 +882,7 @@ function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
-    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, run:null };
+    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, lastGroveLevel:0, run:null };
   try{
     let p = JSON.parse(localStorage.getItem("worddrop_v3"));
     if(!p){ // fresh brand: keep the grove & habits worth carrying, but relearn the powers
@@ -873,7 +940,7 @@ function newState(level){
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[], visitor:null,
+    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[], visitor:null, wanderer:null,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
 }
@@ -1396,6 +1463,14 @@ const Game = {
     P.level++; P.stats.wins++; P.stats.stars=(P.stats.stars||0)+S.stars; P.run=null;
     if(S.bestWordPts>0) P.bestWord=S.bestWord;
     P.stats.bestChain=Math.max(P.stats.bestChain,S.maxChain);
+    // the grove always grows: if you haven't found a friend lately, one wanders in on a win
+    const undiscovered = GROVE.filter(g=>!P.grove[g.w]);
+    const sinceFind = (P.level-1) - (P.lastGroveLevel||0);
+    if(undiscovered.length && (S.newGrove.length===0) && sinceFind>=2){
+      const g = undiscovered[Math.floor(Math.random()*undiscovered.length)];
+      P.grove[g.w]=Date.now(); P.lastGroveLevel=P.level-1;
+      S.wanderer = g;
+    } else if(S.newGrove.length){ P.lastGroveLevel=P.level-1; }
     save();
     Game.earn("transmute", true);
     if(S.milestone){ Game.earn("wild", true); Game.earn("bomb", true); } // 👑 milestones pay double
@@ -1753,7 +1828,10 @@ const UI = {
       : (S.levelScore>=S.target*0.85 ? "So close…" : "Out of moves");
     $("ev-score").textContent = S.levelScore + " / " + S.target;
     $("ev-word").textContent = S.bestWord||"—";
-    $("ev-grove").textContent = S.newGrove.map(w=>GROVE_BY_WORD[w].e).join(" ");
+    const found = S.newGrove.map(w=>GROVE_BY_WORD[w].e);
+    if(S.wanderer) $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ")
+      + '<div style="font-size:12px;color:var(--dim);margin-top:2px">'+S.wanderer.e+' a friend wandered into your grove!</div>';
+    else $("ev-grove").textContent = found.join(" ");
     $("btn-next").style.display = won ? "flex":"none";
     $("btn-retry").style.display = won ? "none":"flex";
     $("btn-moves").style.display = (!won && !S.revived && S.levelScore>0 && !boardFull()) ? "flex":"none";
