@@ -262,6 +262,12 @@
   .pill b{ color:var(--ink); }
   .pill.pop{ animation:slotpop .45s; border-color:rgba(255,213,79,.6); }
   .pill.done{ color:var(--accent); }
+  #breezepill{ cursor:pointer; transition:box-shadow .2s, transform .2s; }
+  #breezepill.empty{ opacity:.45; }
+  #breezepill.armed{ background:linear-gradient(148deg,#e3f7ee,#c2ebd6); border-color:#6aa98a;
+    box-shadow:0 0 14px rgba(120,200,160,.7); transform:scale(1.08); animation:breezearm 1.4s ease-in-out infinite; }
+  @keyframes breezearm{ 50%{ box-shadow:0 0 22px rgba(120,200,160,.95); } }
+  #breezepill.deny{ animation:denyshake .32s; }
 
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1; }
@@ -670,7 +676,7 @@
       <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
     <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
-    <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="starpill">🌟 <b id="star-count">0</b></span></div>
+    <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="starpill">🌟 <b id="star-count">0</b></span><span class="pill" id="breezepill" onclick="Game.armBreeze()">🍃 <b id="breeze-cnt">0</b></span></div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
@@ -1097,7 +1103,7 @@ function newState(level){
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
+    usingBreeze:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -1355,6 +1361,7 @@ const Game = {
     S.cur = makePiece(); S.next = makePiece();
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
+    $("breezepill").classList.remove("armed");
     fitBoard(); UI.all(); UI.visitor();
     applyBiome(level);
     $("ov-end").classList.remove("active");
@@ -1595,6 +1602,68 @@ const Game = {
     else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.toast("Copied!"); }
   },
 
+  /* ---- the BREEZE: the player's own hands-on tool. pets act on their own; the wind is YOURS. ---- */
+  earnBreeze(){
+    P.pow.swap=Math.min(3,(P.pow.swap||0)+1); save();
+    UI.breezePill(); UI.pillPop("breezepill");
+    Snd.tone(880,{dur:.08,type:"triangle",gain:.05});
+    if(!P.seenTip.breeze){ setTimeout(()=>{ if(S && !S.busy) UI.tileTip("breeze"); }, 700); }
+  },
+  armBreeze(){
+    if(!S || S.busy || S.over || S.won) return;
+    Snd.init(); S.lastAction=Date.now();
+    if(S.usingBreeze){ Game.disarmBreeze(); return; }
+    if(!(P.pow.swap>0)){
+      const el=$("breezepill");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); buzz(30); return;
+    }
+    S.usingBreeze=true;
+    $("breezepill").classList.add("armed");
+    UI.toast("🍃 tap two tiles — the wind will swap them");
+    Snd.tone(620,{dur:.14,type:"sine",gain:.07,verb:true}); Snd.tone(930,{dur:.1,type:"sine",gain:.05,when:.09,verb:true});
+    UI.ghost(-1);
+  },
+  disarmBreeze(){
+    S.usingBreeze=false;
+    if(S.swapSel){ S.swapSel.inner.classList.remove("selswap"); S.swapSel=null; }
+    $("breezepill").classList.remove("armed");
+  },
+  async breezeAt(row,col){ // pick two tiles; a gentle gust carries them past each other
+    const t = S.board[row] && S.board[row][col];
+    if(!t || NONWORD.has(t.kind)){ Snd.reject(); return; } // stone won't budge; ice is frozen solid
+    if(!S.swapSel){
+      S.swapSel=t; t.inner.classList.add("selswap");
+      Snd.tone(760,{dur:.09,type:"triangle",gain:.07}); buzz(8);
+      return;
+    }
+    if(S.swapSel===t){
+      t.inner.classList.remove("selswap"); S.swapSel=null;
+      Snd.tone(420,{dur:.08,type:"triangle",gain:.06});
+      return;
+    }
+    const a=S.swapSel, b=t;
+    a.inner.classList.remove("selswap"); S.swapSel=null;
+    S.busy=true;
+    P.pow.swap--; save(); Game.disarmBreeze(); UI.breezePill();
+    UI.breeze(); // the soft gust + drifting leaves
+    const ar=a.r, ac=a.c, br=b.r, bc=b.c;
+    S.board[ar][ac]=b; S.board[br][bc]=a;
+    [a,b].forEach(x=>{ x.el.style.transition="transform .5s cubic-bezier(.4,.05,.35,1)"; });
+    placeTile(a,br,bc,false); placeTile(b,ar,ac,false);
+    [a,b].forEach(x=>{ x.inner.classList.add("gust"); setTimeout(()=>x.inner.classList.remove("gust"),700); });
+    buzz([15,25,15]);
+    await wait(520);
+    [a,b].forEach(x=>{ x.el.style.transition=""; });
+    S.chain=1; S.lastAction=Date.now();
+    await Game.resolve([a,b]);
+    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
+    S.busy=false;
+    UI.all(); saveRun();
+    Game.checkEnd();
+  },
+
   cheer(n){ // rewards (crates, quests, daily word, cascades) excite your pets — extra paw charge
     if(!S || !UI.equipped().length) return;
     S.petCharge=(S.petCharge||0)+(n||1);
@@ -1829,6 +1898,7 @@ const Game = {
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
       if(len>=5){ Game.cheer(1); UI.confetti(); } // long words delight the pets — a bonus paw charge
+      else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words are fuel: they buy you the wind
       Game.recordWord(w, pts, S.chain);
       await wait(700);
       banner.classList.add("fade"); setTimeout(()=>banner.remove(),450);
@@ -1994,7 +2064,7 @@ const UI = {
       qe.innerHTML = P.questDone ? q.emoji+" ✓" : q.emoji+" <b>"+Math.min(q.target,P.questProgress)+"</b>/"+q.target;
       qe.title = q.text;
     }
-    UI.petMeter();
+    UI.petMeter(); UI.breezePill();
   },
   equipped(){ // the party on duty: chosen in the grove, else your most recent friends
     const max=slotsFor(P.level);
@@ -2002,6 +2072,12 @@ const UI = {
     const chosen = (P.equip||[]).map(w=>GROVE_BY_WORD[w]).filter(g=>g && P.metGrove[g.w]);
     if(chosen.length) return chosen.slice(0,max);
     return met.sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0)).slice(0,max);
+  },
+  breezePill(){ // the wind in your pocket: 3-letter words refill it (up to 3)
+    const el=$("breezepill"); if(!el) return;
+    $("breeze-cnt").textContent = P.pow.swap||0;
+    el.classList.toggle("empty", !(P.pow.swap>0));
+    el.title="every 3-letter word earns a breeze · tap, then tap two tiles to swap them";
   },
   petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
     if(UI.equipped().length && S){
@@ -2256,7 +2332,7 @@ const UI = {
   ghostEl:null,
   ghost(col){
     if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
-    if(!S || col<0 || S.over || S.won || S.busy) return;
+    if(!S || col<0 || S.over || S.won || S.busy || S.usingBreeze) return;
     if(S.board[0][col]) return;
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
     const g=document.createElement("div");
@@ -2273,6 +2349,7 @@ const UI = {
   },
   toast(m){ const t=$("toast"); t.textContent=m; t.style.opacity=1; clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity=0,1500); },
   TIPS:{
+    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap 🍃 up top, then tap <b>two tiles</b> — the wind swaps their places so you can line up longer words."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
@@ -2331,6 +2408,13 @@ boardEl.addEventListener("pointerleave", ()=>UI.ghost(-1));
 boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c); });
 boardEl.addEventListener("pointerup", e=>{
   if(!S) return;
+  if(S.usingBreeze){ // the wind is armed: taps pick tiles instead of dropping
+    const r=boardEl.getBoundingClientRect();
+    const col=Math.max(0,Math.min(COLS-1,Math.floor((e.clientX-r.left)/(r.width/COLS))));
+    const row=Math.max(0,Math.min(ROWS-1,Math.floor((e.clientY-r.top)/(r.height/ROWS))));
+    if(!S.busy && !S.over && !S.won) Game.breezeAt(row,col);
+    return;
+  }
   const c=colFromEvent(e);
   if(c>=0) Game.drop(c);
 });
