@@ -602,8 +602,16 @@
   .grovemoji{ position:absolute; animation:gfloat 4.5s ease-in-out infinite; cursor:default;
     filter:drop-shadow(0 3px 5px rgba(60,90,50,.4)); }
   .grovemoji.locked{ animation:none; }
+  .grovemoji.met{ cursor:pointer; }
   .grovemoji.locked .gm{ filter:brightness(0) opacity(.22); }
   .grovemoji .qm{ position:absolute; top:-6px; right:-8px; font-size:12px; font-weight:900; color:#4a3b28; opacity:.8; }
+  .grovemoji.onduty::before{ content:""; position:absolute; inset:-7px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,220,110,.55), transparent 70%); z-index:-1; }
+  .grovemoji .duty{ position:absolute; top:-9px; right:-10px; font-size:13px;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+  #gr-hint{ width:100%; text-align:center; font-size:11.5px; color:var(--dim); line-height:1.5;
+    background:rgba(255,255,255,.65); border-radius:12px; padding:7px 12px; z-index:1; }
+  #gr-hint b{ color:var(--gold-deep); }
   @keyframes gfloat{ 0%,55%,100%{ transform:translateY(0) rotate(0) } 64%{ transform:translateY(-10px) rotate(-6deg) }
     72%{ transform:translateY(0) rotate(4deg) } 80%{ transform:translateY(-5px) rotate(-2deg) } 88%{ transform:translateY(0) rotate(0) } }
   .statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -688,6 +696,7 @@
       <span class="chip">📅 <b id="gr-daily">?</b></span>
     </div>
     <div id="grovefield"></div>
+    <div id="gr-hint"></div>
   </div>
 
   <!-- ============ OVERLAYS ============ -->
@@ -962,22 +971,35 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 /* =================== THE GROVE =================== */
 // The grove is a living place — every friend is a real creature you might meet in a
 // garden or a national park. Spell its name and it comes to live in your grove.
+/* every pet has a real, board-changing power (a:), used automatically every few words:
+   gold  ✨ Golden Touch — turns a tile golden (×3 letter scores)
+   align 🍀 Word Weaver  — nudges two tiles together to line up a 4+ letter word
+   wild  🌸 Blossom Gift — blooms a tile into a blossom that matches any letter
+   moves 🪽 Second Wind  — flutters in extra moves
+   clear 🍂 Tidy Paws    — sweeps away awkward letters */
+const PET_ABIL={
+  gold: {n:"Golden Touch", i:"✨", d:"turns a tile <b>golden</b> — its letter scores ×3"},
+  align:{n:"Word Weaver",  i:"🍀", d:"nudges tiles together to <b>line up a long word</b>"},
+  wild: {n:"Blossom Gift", i:"🌸", d:"blooms a tile into a <b>blossom</b> that matches any letter"},
+  moves:{n:"Second Wind",  i:"🪽", d:"flutters in <b>extra moves</b>"},
+  clear:{n:"Tidy Paws",    i:"🍂", d:"<b>sweeps away</b> awkward letters"},
+};
 const GROVE = [
-  // your first friends — taught in rounds 1 & 2
-  {w:"cat",e:"🐱",z:"ground"},{w:"dog",e:"🐕",z:"ground"},
+  // your first friends — taught in the early levels
+  {w:"cat",e:"🐱",z:"ground",a:"gold"},{w:"dog",e:"🐕",z:"ground",a:"align"},
   // in the air
-  {w:"bee",e:"🐝",z:"sky"},{w:"moth",e:"🦋",z:"sky"},{w:"owl",e:"🦉",z:"sky"},{w:"crow",e:"🐦‍⬛",z:"sky"},
-  {w:"dove",e:"🕊️",z:"sky"},{w:"robin",e:"🐦",z:"sky"},{w:"duck",e:"🦆",z:"sky"},{w:"swan",e:"🦢",z:"sky"},
-  {w:"goose",e:"🪿",z:"sky"},{w:"hawk",e:"🦅",z:"sky"},{w:"bat",e:"🦇",z:"sky"},{w:"heron",e:"🦩",z:"sky"},
-  {w:"wasp",e:"🐝",z:"sky"},{w:"fly",e:"🪰",z:"sky"},
+  {w:"bee",e:"🐝",z:"sky",a:"align"},{w:"moth",e:"🦋",z:"sky",a:"wild"},{w:"owl",e:"🦉",z:"sky",a:"moves"},{w:"crow",e:"🐦‍⬛",z:"sky",a:"clear"},
+  {w:"dove",e:"🕊️",z:"sky",a:"wild"},{w:"robin",e:"🐦",z:"sky",a:"gold"},{w:"duck",e:"🦆",z:"sky",a:"moves"},{w:"swan",e:"🦢",z:"sky",a:"wild"},
+  {w:"goose",e:"🪿",z:"sky",a:"gold"},{w:"hawk",e:"🦅",z:"sky",a:"moves"},{w:"bat",e:"🦇",z:"sky",a:"clear"},{w:"heron",e:"🦩",z:"sky",a:"moves"},
+  {w:"wasp",e:"🐝",z:"sky",a:"clear"},{w:"fly",e:"🪰",z:"sky",a:"clear"},
   // on the ground
-  {w:"fox",e:"🦊",z:"ground"},{w:"frog",e:"🐸",z:"ground"},{w:"deer",e:"🦌",z:"ground"},{w:"bear",e:"🐻",z:"ground"},
-  {w:"wolf",e:"🐺",z:"ground"},{w:"hare",e:"🐇",z:"ground"},{w:"mouse",e:"🐭",z:"ground"},{w:"mole",e:"🦫",z:"ground"},
-  {w:"snail",e:"🐌",z:"ground"},{w:"worm",e:"🪱",z:"ground"},{w:"ant",e:"🐜",z:"ground"},{w:"crab",e:"🦀",z:"ground"},
-  {w:"fish",e:"🐟",z:"ground"},{w:"snake",e:"🐍",z:"ground"},{w:"toad",e:"🐸",z:"ground"},{w:"newt",e:"🦎",z:"ground"},
-  {w:"otter",e:"🦦",z:"ground"},{w:"boar",e:"🐗",z:"ground"},{w:"moose",e:"🫎",z:"ground"},{w:"seal",e:"🦭",z:"ground"},
-  {w:"turtle",e:"🐢",z:"ground"},{w:"beaver",e:"🦫",z:"ground"},{w:"badger",e:"🦡",z:"ground"},{w:"lizard",e:"🦎",z:"ground"},
-  {w:"pony",e:"🐴",z:"ground"},{w:"lamb",e:"🐑",z:"ground"},
+  {w:"fox",e:"🦊",z:"ground",a:"gold"},{w:"frog",e:"🐸",z:"ground",a:"align"},{w:"deer",e:"🦌",z:"ground",a:"wild"},{w:"bear",e:"🐻",z:"ground",a:"clear"},
+  {w:"wolf",e:"🐺",z:"ground",a:"clear"},{w:"hare",e:"🐇",z:"ground",a:"moves"},{w:"mouse",e:"🐭",z:"ground",a:"align"},{w:"mole",e:"🦫",z:"ground",a:"clear"},
+  {w:"snail",e:"🐌",z:"ground",a:"align"},{w:"worm",e:"🪱",z:"ground",a:"align"},{w:"ant",e:"🐜",z:"ground",a:"align"},{w:"crab",e:"🦀",z:"ground",a:"clear"},
+  {w:"fish",e:"🐟",z:"ground",a:"gold"},{w:"snake",e:"🐍",z:"ground",a:"align"},{w:"toad",e:"🐸",z:"ground",a:"align"},{w:"newt",e:"🦎",z:"ground",a:"wild"},
+  {w:"otter",e:"🦦",z:"ground",a:"align"},{w:"boar",e:"🐗",z:"ground",a:"clear"},{w:"moose",e:"🫎",z:"ground",a:"clear"},{w:"seal",e:"🦭",z:"ground",a:"moves"},
+  {w:"turtle",e:"🐢",z:"ground",a:"moves"},{w:"beaver",e:"🦫",z:"ground",a:"align"},{w:"badger",e:"🦡",z:"ground",a:"clear"},{w:"lizard",e:"🦎",z:"ground",a:"gold"},
+  {w:"pony",e:"🐴",z:"ground",a:"moves"},{w:"lamb",e:"🐑",z:"ground",a:"wild"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 function dailyWord(){
@@ -1025,7 +1047,7 @@ function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
-    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, grove:{}, metGrove:{}, run:null };
+    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, grove:{}, metGrove:{}, equip:[], run:null };
   try{
     let p = JSON.parse(localStorage.getItem("worddrop_v3"));
     if(!p){ // fresh brand: keep the grove & habits worth carrying, but relearn the powers
@@ -1038,6 +1060,7 @@ function load(){
     out.seenUnlock = out.seenUnlock||{};
     out.seenTip = out.seenTip||{};
     out.metGrove = out.metGrove||{};
+    out.equip = out.equip||[];
     out.stats = Object.assign({}, defaults.stats, out.stats||{});
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
     if(out.pow.laser){ out.pow.oracle=(out.pow.oracle||0)+out.pow.laser; delete out.pow.laser; } // laser retired → oracle
@@ -1054,7 +1077,7 @@ function saveRun(){
   P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
-    maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, treats:S.treats };
+    maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn };
   save();
 }
 function loadRun(){
@@ -1065,7 +1088,8 @@ function loadRun(){
     S=newState(r.level);
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
-      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next, tutorWord:r.tutorWord||null, treats:r.treats||0 });
+      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
+      petCharge:r.petCharge||0, petTurn:r.petTurn||0 });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
       if(!cell) return;
       const t=newTile(cell.l,cell.k,ri,ci);
@@ -1085,7 +1109,8 @@ function newState(level){
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null, treats:0,
+    usingPower:null, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
+    petCharge:0, petTurn:0, petReady:false, petActing:false,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
 }
@@ -1266,11 +1291,12 @@ function riggedLetter(){
   if(!S) return drawLetter();
   const gen = S.level<=3 ? 1 : S.level<=6 ? 0.65 : S.level<=12 ? 0.4 : 0.25;
   const best=helpfulByLength();
+  // long words FIRST and most often — 3-letter pops got boring; 4+ is where the joy is
   const longs=Object.keys(best).filter(l=>best[l]>=4);
-  if(longs.length && Math.random()<0.34+0.30*gen) return rand(longs);              // finish a long word
-  if(Object.keys(best).length && Math.random()<0.20+0.32*gen) return rand(Object.keys(best)); // finish any word
+  if(longs.length && Math.random()<0.52+0.28*gen) return rand(longs);              // finish a long word
   const b=builderLetters();
-  if(b.length && Math.random()<0.38+0.30*gen) return rand(b);                      // extend a fragment
+  if(b.length && Math.random()<0.46+0.26*gen) return rand(b);                      // grow a fragment toward a long word
+  if(Object.keys(best).length && Math.random()<0.12+0.22*gen) return rand(Object.keys(best)); // any completion (mostly 3s) — rarer now
   return drawLetter();
 }
 
@@ -1388,7 +1414,11 @@ const Game = {
   closeUnlock(){ Snd.init(); $("ov-unlock").classList.remove("active"); $("ov-intro").classList.add("active"); },
   closeMeet(){
     Snd.init(); $("ov-meet").classList.remove("active");
-    if(UI._meetWord){ P.metGrove[UI._meetWord]=Date.now(); save(); UI._meetWord=null; }
+    if(UI._meetWord){
+      P.metGrove[UI._meetWord]=Date.now();
+      if((P.equip||[]).length<2 && !P.equip.includes(UI._meetWord)) P.equip.push(UI._meetWord); // new friends join the duty roster while there's room
+      save(); UI._meetWord=null;
+    }
     UI.meetBloom(UI._meetCreature); buzz(20);
     UI.visitor(); // the new friend now sits by your letters
     setTimeout(()=>{ if(!Game.showPendingMeet()){ if(S){ S.busy=false; S.lastAction=Date.now(); } Game.showPendingTip(); } }, 900);
@@ -1418,7 +1448,7 @@ const Game = {
     if(!S || S.busy || S.over || S.won) return;
     const order=[];
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
-    for(const t of Object.values(S.tiles)){ if(t.kind==="stone"||t.kind==="ice"||t.kind==="crate") order.push(t.kind); }
+    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
@@ -1552,7 +1582,8 @@ const Game = {
     await wait(520);
     [a,b].forEach(x=>{ x.el.style.transition=""; });
     S.chain=1; S.lastAction=Date.now();
-    await Game.resolve();
+    await Game.resolve([a,b]);
+    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
     Game.checkEnd();
@@ -1576,7 +1607,8 @@ const Game = {
     await wait(320);
     t.inner.classList.remove("morph");
     S.chain=1; S.lastAction=Date.now();
-    await Game.resolve();
+    await Game.resolve([t]);
+    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
     Game.checkEnd();
@@ -1622,10 +1654,12 @@ const Game = {
     if(piece.kind==="wild") UI.blossom(); // a blossom opens over the board
 
     S.cascadeMax=1; S.clearedThisDrop=false; S.lastAction=Date.now();
-    if(piece.kind==="bomb"){ await Game.explode(t); }
+    let focus=[t];
+    if(piece.kind==="bomb"){ focus = await Game.explode(t); } // words come from what the blast tumbled
     S.chain=1;
-    await Game.resolve();
+    await Game.resolve(focus);
     if(S.cascadeMax>=3) Game.earn("oracle", true);
+    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
 
     if(!power){
       // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
@@ -1725,23 +1759,85 @@ const Game = {
     setTimeout(()=>{ fly.remove(); slot.classList.add("pop"); setTimeout(()=>slot.classList.remove("pop"),480); UI.tray(); Snd.earn(); buzz(15); }, 560);
   },
 
-  petFetch(){ // ACTIVE pets: your companions fetch you a treat every few words
-    if(!Object.keys(P.metGrove).length) return;
-    const side = $("pet-right").classList.contains("has") && Math.random()<0.5 ? "right" : "left";
-    const el=$("pet-"+side); if(!el.classList.contains("has")) return;
+  /* ============ PET POWERS — every few words, your companion changes the board ============ */
+  petNeed(){ return UI.equipped().length>=2 ? 3 : 4; }, // best friends work faster together
+  petSynergy(){ const eq=UI.equipped(); return eq.length>=2 && eq[0].z===eq[1].z; }, // same home → stronger powers
+
+  async petAct(){
+    const eq=UI.equipped(); if(!eq.length) return;
+    const pet=eq[S.petTurn % eq.length]; S.petTurn++;
+    const boost=Game.petSynergy();
+    S.petActing=true;
+    const el=$("pet-"+(eq.indexOf(pet)===0?"left":"right"));
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
-    const avail=POW_ORDER.filter(unlocked);
-    if(avail.length){ const k=rand(avail); Game.earn(k, true);
-      UI.toast((el.title||"Your pet")+" fetched you a "+POWERS[k].icon+"!"); }
-    else { S.levelScore+=8; UI.hud(); UI.toast((el.title||"Your pet")+" fetched a treat +8!"); }
+    UI.toast(pet.e+" "+PET_ABIL[pet.a].n+"! "+PET_ABIL[pet.a].i+(boost?" ×2":""));
+    await wait(420);
+    const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
+    if(pet.a==="gold"){
+      const picks=normals().sort(()=>Math.random()-.5).slice(0, boost?2:1);
+      for(const t of picks){ t.kind="gold"; t.inner.classList.add("gold");
+        t.inner.classList.add("thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560);
+        UI.shards(t.r,t.c,"#ffd54f"); Snd.gold(); await wait(220); }
+    } else if(pet.a==="align"){
+      const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
+      if(!done){ const t=rand(normals()); if(t){ t.kind="wild"; t.inner.className="tile wild thawpop";
+        t.inner.innerHTML=tileFace(t); setTimeout(()=>t.inner.classList.remove("thawpop"),560); UI.blossom(); } }
+    } else if(pet.a==="wild"){
+      const picks=normals().sort(()=>Math.random()-.5).slice(0, boost?2:1);
+      for(const t of picks){ t.kind="wild"; t.inner.className="tile wild thawpop";
+        t.inner.innerHTML=tileFace(t); setTimeout(()=>t.inner.classList.remove("thawpop"),560); await wait(200); }
+      UI.blossom();
+      S.chain=1; await Game.resolve(picks); // if the blossom completes a word, it blooms open right away
+    } else if(pet.a==="moves"){
+      const n=boost?3:2; S.movesLeft+=n; UI.hud();
+      boardEl.classList.toggle("danger", S.movesLeft<=3);
+      const f=document.createElement("div"); f.className="movesfloat"; f.textContent="+"+n;
+      const mb=$("movesbox").getBoundingClientRect(), ar=$("app").getBoundingClientRect();
+      f.style.left=(mb.left-ar.left+mb.width/2-10)+"px"; f.style.top=(mb.top-ar.top)+"px";
+      $("app").appendChild(f); setTimeout(()=>f.remove(),1000);
+    } else if(pet.a==="clear"){
+      const junk=normals().filter(t=>"qzxjv".includes(t.letter));
+      const picks=(junk.length?junk:normals()).sort(()=>Math.random()-.5).slice(0, boost?2:1);
+      for(const t of picks){ UI.shards(t.r,t.c,"#c9b18a"); removeTile(t); Snd.crack(true); await wait(180); }
+      const fell=await Game.gravity();
+      S.chain=1; await Game.resolve(fell); // tidy-up may tumble tiles into a word — let it bloom
+    }
+    S.petActing=false;
+    UI.petMeter(); UI.all(); saveRun();
+  },
+  async petAlign(minLen){ // find two tiles whose swap makes a word of minLen+ — and weave it
+    const ts=Object.values(S.tiles).filter(t=>t.kind==="normal"||t.kind==="gold");
+    for(let i=ts.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [ts[i],ts[j]]=[ts[j],ts[i]]; }
+    for(let i=0;i<ts.length;i++) for(let j=i+1;j<ts.length;j++){
+      const a=ts[i], b=ts[j];
+      if(a.letter===b.letter) continue;
+      S.board[a.r][a.c]=b; S.board[b.r][b.c]=a;
+      const ar0=a.r,ac0=a.c; a.r=b.r; a.c=b.c; b.r=ar0; b.c=ac0;
+      const hit=findWords().find(w=>w.cells.length>=minLen && (w.cells.includes(a)||w.cells.includes(b)));
+      if(hit){
+        // keep the board state and animate the weave
+        [a,b].forEach(x=>{ x.el.style.transition="transform .5s cubic-bezier(.4,.05,.35,1)"; });
+        placeTile(a,a.r,a.c,false); placeTile(b,b.r,b.c,false);
+        UI.breeze();
+        await wait(540);
+        [a,b].forEach(x=>{ x.el.style.transition=""; });
+        S.chain=1; await Game.resolve([a,b]);
+        return true;
+      }
+      // revert
+      S.board[a.r][a.c]=b; S.board[b.r][b.c]=a;
+      const ar1=a.r,ac1=a.c; a.r=b.r; a.c=b.c; b.r=ar1; b.c=ac1;
+    }
+    return false;
   },
 
   recordWord(word, points, chain){
     P.stats.words++;
-    // pets fetch a treat every few words — but only once you've met one
-    if(Object.keys(P.metGrove).length){ S.treats=(S.treats||0)+1; UI.treatMeter();
-      if(S.treats>=5){ S.treats=0; Game.petFetch(); UI.treatMeter(); } }
+    // every word charges your pets' power — but only once you've met one
+    if(UI.equipped().length && !S.petActing){
+      S.petCharge=(S.petCharge||0)+1; UI.petMeter();
+      if(S.petCharge>=Game.petNeed()){ S.petCharge=0; S.petReady=true; UI.petMeter(); } }
     // the grove and the daily word must be EARNED: only words YOU made (chain 1 count).
     // A friend is UNLOCKED here but you MEET them (the ritual) at the start of the next round.
     if(chain===1){
@@ -1792,7 +1888,7 @@ const Game = {
     }
     S.levelScore += 10; UI.hud();
     await wait(340);
-    await Game.gravity();
+    return await Game.gravity();
   },
 
   async stirShifters(){
@@ -1814,8 +1910,14 @@ const Game = {
     await Game.resolve();
   },
 
-  async resolve(){
-    const words = findWords();
+  async resolve(focus){
+    let words = findWords();
+    // AUTHORED clears: every pass only clears words involving tiles that just changed —
+    // the tile you placed or moved, then (in cascades) tiles that fell, rained in, or
+    // thawed. The game must never "spell words for you" out of static leftovers.
+    if(focus && focus.length){
+      words = words.filter(w=>w.cells.some(c=>focus.includes(c)));
+    }
     if(!words.length) return;
     S.clearedThisDrop = true;
     if(S.chain>=2){
@@ -1868,18 +1970,18 @@ const Game = {
     allCells.forEach(t=>removeTile(t));
     Snd.collapse(allCells.size);
     await wait(220);
-    await Game.hitNeighbors(clearedPos);
-    await Game.gravity();
+    const thawed = await Game.hitNeighbors(clearedPos);
+    const fell = await Game.gravity();
     // one honest rain tile: cascade potential, never a gift
-    await Game.rain(1);
+    const rained = await Game.rain(1);
     S.chain++;
     Snd.riser(S.chain);
     await wait(430);
-    await Game.resolve();
+    await Game.resolve([...(thawed||[]), ...(fell||[]), ...(rained||[])]);
   },
 
   async hitNeighbors(cells){ // clearing beside stone cracks it, beside ice thaws it, beside a crate pops it
-    const seen=new Set(); let acted=false;
+    const seen=new Set(); let acted=false; const thawed=[];
     for(const p of cells){
       for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
         const r=p.r+d[0], c=p.c+d[1];
@@ -1899,7 +2001,7 @@ const Game = {
           buzz(15);
         } else if(t.kind==="ice"){
           acted=true;
-          t.kind="normal";
+          t.kind="normal"; thawed.push(t);
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
@@ -1913,15 +2015,18 @@ const Game = {
       }
     }
     if(acted){ UI.hud(); await wait(340); }
+    return thawed;
   },
 
   async rain(count){
+    const added=[];
     for(let i=0;i<count;i++){
       const open=[];
       for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
-      if(!open.length) return;
+      if(!open.length) return added;
       const p=open[Math.floor(Math.random()*open.length)];
       const t=newTile(drawLetter(),"normal",p.land,p.c,false);
+      added.push(t);
       t.el.style.transition="none"; t.el.style.transform=xy(-1.2,p.c); void t.el.offsetWidth;
       const ms=70+p.land*32;
       t.el.style.transition="transform "+ms+"ms cubic-bezier(.55,0,.85,.55)";
@@ -1933,10 +2038,11 @@ const Game = {
       UI.dust(p.land,p.c);
     }
     await wait(160);
+    return added;
   },
 
   async gravity(){
-    let moved=false;
+    let moved=false; const movedTiles=[];
     for(let c=0;c<COLS;c++){
       const stack=[];
       for(let r=ROWS-1;r>=0;r--){ const t=S.board[r][c]; if(t) stack.push(t); S.board[r][c]=null; }
@@ -1944,7 +2050,7 @@ const Game = {
         const nr=ROWS-1-i;
         const dist = nr - t.r;
         const falling = dist>0;
-        if(falling) moved=true;
+        if(falling){ moved=true; movedTiles.push(t); }
         S.board[nr][c]=t; t.r=nr; t.c=c;
         setTimeout(()=>{
           if(falling){ t.el.style.transition="transform "+(90+dist*55)+"ms cubic-bezier(.55,0,.85,.6)"; }
@@ -1956,6 +2062,7 @@ const Game = {
       });
     }
     if(moved) await wait(340);
+    return movedTiles;
   },
 };
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -2016,13 +2123,19 @@ const UI = {
       qe.innerHTML = P.questDone ? q.emoji+" ✓" : q.emoji+" <b>"+Math.min(q.target,P.questProgress)+"</b>/"+q.target;
       qe.title = q.text;
     }
-    UI.treatMeter();
+    UI.petMeter();
   },
-  treatMeter(){ // the pets' treat basket fills as you make words; full → they fetch a gift
-    if(Object.keys(P.metGrove).length && S){
-      const t=((S.treats||0)%5);
-      $("starpill").innerHTML = "🎁 "+"●".repeat(t)+"○".repeat(5-t);
-      $("starpill").title="pets fetch a treat every 5 words";
+  equipped(){ // the pets on duty: chosen in the grove, else your two most recent friends
+    const met = GROVE.filter(g=>P.metGrove[g.w]);
+    const chosen = (P.equip||[]).map(w=>GROVE_BY_WORD[w]).filter(g=>g && P.metGrove[g.w]);
+    if(chosen.length) return chosen.slice(0,2);
+    return met.sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0)).slice(0,2);
+  },
+  petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
+    if(UI.equipped().length && S){
+      const need=Game.petNeed(), t=Math.min(S.petCharge||0, need);
+      $("starpill").innerHTML = "🐾 "+"●".repeat(t)+"○".repeat(need-t);
+      $("starpill").title="your pet acts every "+need+" words"+(Game.petSynergy()?" · same-home friends: powers ×2!":"");
     } else {
       $("starpill").innerHTML = "🌟 <b>"+(P.stats.stars||0)+"</b>";
     }
@@ -2067,19 +2180,20 @@ const UI = {
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
-  visitor(){ // pets only appear AFTER you've MET them (the ritual); two most-recent sit by your letters
-    const met = GROVE.filter(g=>P.metGrove[g.w]).sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0));
-    const active = met.length>0;
+  visitor(){ // your ON-DUTY pets sit by your letters (choose them in the grove)
+    const eq = UI.equipped();
+    const active = eq.length>0;
     const size = 34 + Math.min(Math.floor((P.petBond||0)/5)*4, 32); // clear step every 5 taps, capped +32
     const paint=(id, g)=>{
       const el=$(id);
       el.classList.toggle("active", active); // reserve equal width both sides → letters stay centered
       if(g){ el.dataset.w=g.w; el.style.fontSize=size+"px";
-        el.innerHTML='<span class="petbody">'+g.e+'</span>'; el.title=g.w.toUpperCase(); el.classList.add("has"); }
+        el.innerHTML='<span class="petbody">'+g.e+'</span>';
+        el.title=g.w.toUpperCase()+" · "+PET_ABIL[g.a].n; el.classList.add("has"); }
       else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); }
     };
-    paint("pet-left", met[0]);
-    paint("pet-right", met[1]);
+    paint("pet-left", eq[0]);
+    paint("pet-right", eq[1]);
   },
   petTap(side){ // tap a companion → hearts, a happy hop, and a little bond
     const el=$(side==="left"?"pet-left":"pet-right");
@@ -2103,11 +2217,12 @@ const UI = {
     Snd.discover(); buzz([30,50,30,50,90]); UI.confetti();
     $("meet-creature").textContent = g.e;
     $("meet-name").textContent = g.w.toUpperCase();
-    // the ritual explains what pets DO — this is the first friend's teaching moment
+    // the ritual explains this pet's POWER — its real, board-changing job
+    const ab=PET_ABIL[g.a];
     const firstEver = Object.keys(P.metGrove).length===0;
     $("meet-line").innerHTML = firstEver
-      ? "joins your grove! Your pets sit by your letters and <b>cheer you on</b> — spell a few words and they'll <b>fetch you a treat 🎁</b>. Tap them for love 💛"
-      : "has come to live in your grove 🌳 and will help fetch you treats!";
+      ? "joins you! <b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".<br>Tap your pets for love 💛 · swap them in the grove 🌳"
+      : "<b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".";
     $("meet-count").textContent = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length;
     UI._meetCreature = g.e;
     $("ov-meet").classList.add("active");
@@ -2154,12 +2269,15 @@ const UI = {
     const f=$("grovefield"); f.innerHTML="";
     // a tidy collection: sky friends in two neat rows up top, ground friends in ranks on the grass.
     // every friend owns a fixed spot — silhouette today, colour the day you spell it.
+    const onduty = UI.equipped().map(g=>g.w);
     const place=(g, col, row, startTop, rowGap)=>{
-      const found=!!P.grove[g.w];
+      const found=!!P.grove[g.w], met=!!P.metGrove[g.w];
       const el=document.createElement("div");
-      el.className="grovemoji"+(found?"":" locked");
-      el.innerHTML='<span class="gm">'+g.e+"</span>"+(found?"":'<span class="qm">?</span>');
-      el.title = found ? g.w.toUpperCase() : "???"; // never leak the word — the hunt IS the game
+      el.className="grovemoji"+(found?"":" locked")+(met?" met":"")+(onduty.includes(g.w)?" onduty":"");
+      el.innerHTML='<span class="gm">'+g.e+"</span>"+(found?"":'<span class="qm">?</span>')
+        +(onduty.includes(g.w)?'<span class="duty">'+PET_ABIL[g.a].i+'</span>':'');
+      el.title = found ? g.w.toUpperCase()+" · "+PET_ABIL[g.a].n : "???"; // never leak the word — the hunt IS the game
+      if(met) el.onclick=()=>UI.equipToggle(g.w);
       el.style.left = (7 + col*15.4)+"%";
       el.style.top = (startTop + row*rowGap)+"%";
       el.style.fontSize = "25px";
@@ -2169,7 +2287,24 @@ const UI = {
     const sky=GROVE.filter(g=>g.z==="sky"), ground=GROVE.filter(g=>g.z!=="sky");
     sky.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 6, 12));
     ground.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 44, 11));
+    const hint=$("gr-hint");
+    if(hint) hint.innerHTML = Object.keys(P.metGrove).length
+      ? "tap a friend to put them <b>on duty</b> (two at a time) · same-home friends make powers <b>×2</b>"
+      : "spell a creature's name to invite it home";
     UI.scene("scene-grove");
+  },
+  equipToggle(w){ // choose who comes adventuring with you
+    if(!P.metGrove[w]) return;
+    P.equip = P.equip||[];
+    const i=P.equip.indexOf(w);
+    if(i>=0){ P.equip.splice(i,1); UI.toast(GROVE_BY_WORD[w].e+" stays home for now"); }
+    else {
+      if(P.equip.length>=2){ const old=P.equip.shift(); UI.toast(GROVE_BY_WORD[old].e+" swapped out for "+GROVE_BY_WORD[w].e); }
+      else UI.toast(GROVE_BY_WORD[w].e+" is on duty!");
+      P.equip.push(w);
+      Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
+    }
+    save(); UI.visitor(); UI.groveShow();
   },
   statsShow(){
     $("st-level").textContent=P.level;
@@ -2353,17 +2488,8 @@ boardEl.addEventListener("pointerup", e=>{
 });
 document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
 
-/* idle life */
-setInterval(()=>{
-  if(!S || S.over || S.won || S.busy) return;
-  if(!$("scene-game").classList.contains("active")) return;
-  const tiles = Object.values(S.tiles);
-  if(!tiles.length) return;
-  const t = tiles[Math.floor(Math.random()*tiles.length)];
-  const fx = Math.random()<0.5 ? "glint" : "breathe";
-  t.inner.classList.add(fx);
-  setTimeout(()=>t.inner.classList.remove(fx), 780);
-}, 2400);
+/* (idle tile sparkle removed — playtesters read random shine as "drop your tile HERE".
+   only deliberate signals may light a tile: hints, word clears, and pet powers.) */
 
 /* stuck nudge — onboarding only: after level 2 the player is on their own */
 setInterval(()=>{
