@@ -22,9 +22,10 @@
     --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px;
     --fs-num:34px; --fs-big:22px; --fs-md:15px; --fs-sm:12px; --fs-xs:10px;
     --shadow-panel:0 10px 26px -12px rgba(121,92,55,.4);
-    --tile-face:linear-gradient(150deg,#fffef8 0%, #fbf1da 46%, #f0dcb6 100%);
-    --tile-edge:#cbab7a;
-    --tile-ink:#5a4526;
+    --tile-face:linear-gradient(150deg,#fff4d6 0%, #f6e2ac 44%, #eccf88 100%);
+    --tile-edge:#c69a52;
+    --tile-ink:#6a4a1c;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(150,105,40,.09) 0 2px, transparent 2px 7px);
     --board-bg:#e7d3ab;
     --board-dot:rgba(120,88,45,.28);
     --grass:#79c268;
@@ -128,6 +129,13 @@
   .card .rowstat div{ font-size:var(--fs-sm); color:var(--dim); }
   .card .rowstat b{ display:block; font-size:22px; color:var(--gold-deep); font-variant-numeric:tabular-nums; }
 
+  #tiptip{ position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); z-index:110; display:none;
+    width:80%; max-width:270px; background:#fffdf6; border:2px solid var(--gold); border-radius:18px; padding:16px 18px;
+    text-align:center; box-shadow:0 16px 36px -12px rgba(90,60,30,.5); }
+  #tiptip.on{ display:block; animation:scenein .3s; }
+  #tiptip .ti{ font-size:44px; }
+  #tiptip .tt{ font-size:14px; color:var(--ink); line-height:1.5; margin-top:6px; }
+  #tiptip .tk{ margin-top:10px; font-size:12px; color:var(--accent-deep); font-weight:800; letter-spacing:1px; }
   #toast{ position:absolute; left:50%; bottom:96px; transform:translateX(-50%); background:rgba(74,59,40,.93); color:#fff8ec;
     padding:9px 16px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .3s;
     z-index:300; pointer-events:none; white-space:nowrap; }
@@ -382,29 +390,47 @@
   .tw{ position:absolute; will-change:transform; transition:transform .22s cubic-bezier(.3,1.2,.5,1); }
   .tw > .tile{ width:100%; height:100%; }
   .tile{ display:flex; align-items:center; justify-content:center;
-    background:var(--tile-face); color:var(--tile-ink); border-radius:11px; font-weight:900; overflow:hidden;
-    text-shadow:0 1px 0 rgba(255,255,255,.85);
-    box-shadow:0 5px 0 var(--tile-edge), 0 6px 9px rgba(90,60,25,.35),
-      inset 0 2px 0 rgba(255,255,255,.95), inset 0 -4px 5px rgba(150,120,70,.32),
-      inset 0 0 0 1.5px rgba(255,255,255,.35); }
-  .tile small{ position:absolute; bottom:2px; right:4px; font-size:9px; font-weight:800; color:rgba(120,95,55,.7); }
-  .tile.gold{ background:linear-gradient(148deg,#ffefb0,#ffd54f 55%,#f5a800);
-    box-shadow:0 4px 0 #a97a00, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9),
-      inset 0 -3px 4px rgba(160,110,0,.35), 0 0 12px rgba(255,213,79,.45); }
-  .tile.wild{ background:linear-gradient(148deg,#cfb3ff,#9a67ff 55%,#6a3de0); color:#fff; text-shadow:0 1px 2px rgba(40,0,90,.6);
-    box-shadow:0 4px 0 #4527a0, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -3px 4px rgba(60,20,140,.4); }
-  .tile.bomb{ background:linear-gradient(148deg,#5a5a64,#33333b 55%,#1d1d23); color:#ff8a5c; text-shadow:0 1px 2px #000;
-    box-shadow:0 4px 0 #101013, 0 5px 8px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.15), inset 0 -3px 4px rgba(0,0,0,.5); }
-  .tile.shift{ background:linear-gradient(148deg,#d9f4ff,#a8dcf5 55%,#74b4dd); color:#173a52;
-    box-shadow:0 4px 0 #3e6f91, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(40,90,130,.35); }
-  .tile.stone{ background:linear-gradient(148deg,#8a8f99,#5f6570 55%,#3f444d); font-size:22px!important;
-    box-shadow:0 4px 0 #23262c, 0 5px 8px rgba(0,0,0,.4), inset 0 1.5px 0 rgba(255,255,255,.25), inset 0 -3px 4px rgba(0,0,0,.45); }
-  .tile.stone.cracked{ filter:brightness(.7) saturate(.7);
-    background-image:linear-gradient(148deg,#8a8f99,#5f6570 55%,#3f444d),
-      repeating-linear-gradient(37deg, transparent 0 7px, rgba(0,0,0,.5) 7px 8.5px); background-blend-mode:multiply; }
-  .tile.ice{ background:linear-gradient(148deg,rgba(226,244,255,.92),rgba(168,214,240,.88) 55%,rgba(120,175,214,.85));
-    color:rgba(23,58,82,.55); text-shadow:none;
-    box-shadow:0 4px 0 #4a7fa3, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.95), inset 0 -3px 6px rgba(60,120,170,.4); }
+    background:var(--tile-grain), var(--tile-face); color:var(--tile-ink); border-radius:12px; font-weight:900; overflow:hidden;
+    text-shadow:0 1px 0 rgba(255,255,255,.7), 0 -1px 0 rgba(120,80,20,.25);
+    box-shadow:0 5px 0 var(--tile-edge), 0 7px 10px rgba(90,55,15,.4),
+      inset 0 2px 0 rgba(255,255,255,.9), inset 0 -5px 6px rgba(150,105,45,.4),
+      inset 0 0 0 1.5px rgba(255,240,205,.55); }
+  .tile::before{ content:""; position:absolute; top:3px; left:6%; right:38%; height:34%; border-radius:50%;
+    background:linear-gradient(180deg, rgba(255,255,255,.6), transparent); pointer-events:none; } /* glossy top sheen */
+  .tile small{ position:absolute; bottom:2px; right:5px; font-size:10px; font-weight:800; color:rgba(120,80,25,.65); }
+  /* ✨ GOLD — a treasure tile that shines */
+  .tile.gold{ background:linear-gradient(150deg,#fff1b0,#ffd54f 45%,#f5a300);
+    box-shadow:0 5px 0 #b47e00, 0 7px 12px rgba(120,80,0,.45), inset 0 2px 0 rgba(255,255,255,.95),
+      inset 0 -5px 6px rgba(170,110,0,.45), 0 0 16px rgba(255,205,60,.6); }
+  .tile.gold::after{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.85) 48%, transparent 60%);
+    background-size:250% 100%; animation:shimmer 2.4s linear infinite; }
+  @keyframes shimmer{ from{ background-position:180% 0 } to{ background-position:-80% 0 } }
+  /* 🌸 BLOSSOM (wild) — a flower tile */
+  .tile.wild{ background:radial-gradient(circle at 50% 42%, #fff0f6 0 22%, #ffb3d4 40%, #f77bb0 100%); color:#7a1f4e; text-shadow:0 1px 0 rgba(255,255,255,.6);
+    box-shadow:0 5px 0 #c85b8e, 0 7px 12px rgba(150,40,90,.4), inset 0 2px 0 rgba(255,255,255,.8), inset 0 -5px 6px rgba(190,70,120,.4); }
+  /* 🌰 ACORN (bomb) */
+  .tile.bomb{ background:linear-gradient(150deg,#b98a52,#8a5f30 50%,#5e3d1c); color:#ffe9c7; text-shadow:0 1px 2px #3a2408;
+    box-shadow:0 5px 0 #3d2810, 0 7px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,235,200,.5), inset 0 -5px 6px rgba(50,30,10,.5); }
+  .tile.shift{ background:linear-gradient(150deg,#e6faff,#a8e4f5 50%,#66c2e0); color:#0f4257;
+    box-shadow:0 5px 0 #3a8aa8, 0 7px 12px rgba(20,80,110,.4), inset 0 2px 0 rgba(255,255,255,.9), inset 0 -5px 6px rgba(30,100,140,.4); }
+  /* 🪨 STONE — a rounded mossy boulder */
+  .tile.stone{ background:radial-gradient(120% 120% at 38% 28%, #9aa0a8, #6b7178 55%, #474d55); color:transparent;
+    border-radius:44% 46% 42% 48%; font-size:22px!important;
+    box-shadow:0 5px 0 #2c3138, 0 7px 12px rgba(0,0,0,.5), inset 0 3px 4px rgba(255,255,255,.35), inset 0 -6px 8px rgba(0,0,0,.5); }
+  .tile.stone::before{ content:"🌿"; position:absolute; top:-3px; left:-1px; font-size:15px; opacity:.9;
+    background:none; width:auto; height:auto; border-radius:0; } /* a tuft of moss */
+  .tile.stone.cracked{ background:radial-gradient(120% 120% at 38% 28%, #7f858d, #565c63 55%, #383d44);
+    box-shadow:0 5px 0 #22262c, 0 7px 12px rgba(0,0,0,.5), inset 0 0 0 2px rgba(0,0,0,.35), inset 0 -6px 8px rgba(0,0,0,.55); }
+  .tile.stone.cracked::after{ content:""; position:absolute; inset:15% 30% 20% 22%; pointer-events:none;
+    background:linear-gradient(115deg, transparent 45%, rgba(0,0,0,.6) 47% 50%, transparent 52%),
+      linear-gradient(60deg, transparent 45%, rgba(0,0,0,.5) 48% 50%, transparent 53%); }
+  /* 🧊 ICE — a frosted crystal */
+  .tile.ice{ background:linear-gradient(150deg,rgba(240,251,255,.96),rgba(190,228,246,.9) 50%,rgba(140,200,232,.88));
+    color:rgba(20,70,105,.65); text-shadow:0 1px 0 rgba(255,255,255,.9);
+    box-shadow:0 5px 0 #5f9ec0, 0 7px 12px rgba(40,110,150,.4), inset 0 2px 0 rgba(255,255,255,.95),
+      inset 0 -5px 8px rgba(70,140,185,.45), inset 0 0 14px rgba(255,255,255,.6); }
+  .tile.ice::after{ content:"❄"; position:absolute; top:0; right:2px; font-size:11px; color:rgba(255,255,255,.9); }
   .tile.ice::before{ content:"❄"; position:absolute; top:1px; left:4px; font-size:10px; color:rgba(30,90,140,.8); }
   .tile.crate{ background:linear-gradient(148deg,#e8c58a,#c99a55 55%,#9c6f33); font-size:22px!important;
     box-shadow:0 4px 0 #6b4a1e, 0 5px 8px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -3px 4px rgba(110,75,30,.5); }
@@ -733,6 +759,7 @@
     </div>
   </div>
 
+  <div id="tiptip" onclick="UI.hideTip()"><div class="ti"></div><div class="tt"></div><div class="tk">TAP TO CONTINUE</div></div>
   <div id="toast"></div>
 </div>
 
@@ -974,7 +1001,7 @@ function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
-    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, lastGroveLevel:0, petBond:0, run:null };
+    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, lastGroveLevel:0, petBond:0, seenTip:{}, run:null };
   try{
     let p = JSON.parse(localStorage.getItem("worddrop_v3"));
     if(!p){ // fresh brand: keep the grove & habits worth carrying, but relearn the powers
@@ -985,6 +1012,7 @@ function load(){
     }
     const out = Object.assign({}, defaults, p||{});
     out.seenUnlock = out.seenUnlock||{};
+    out.seenTip = out.seenTip||{};
     out.stats = Object.assign({}, defaults.stats, out.stats||{});
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
     if(out.pow.laser){ out.pow.oracle=(out.pow.oracle||0)+out.pow.laser; delete out.pow.laser; } // laser retired → oracle
@@ -1058,12 +1086,12 @@ boardEl.style.width = (COLS*STEP-GAP)+"px";
 boardEl.style.height = (ROWS*STEP-GAP)+"px";
 function xy(r,c){ return "translate("+(c*STEP)+"px,"+(r*STEP)+"px)"; }
 function tileFace(t){
-  if(t.kind==="bomb") return "💣";
-  if(t.kind==="wild") return "★";
-  if(t.kind==="stone") return "🪨";
+  if(t.kind==="bomb") return "🌰";              // acorn
+  if(t.kind==="wild") return "🌸";              // blossom
+  if(t.kind==="stone") return "";               // the CSS renders the mossy rock
   if(t.kind==="crate") return "🎁";
-  const val = (t.kind==="ice") ? "" : "<small>"+VAL[t.letter]+"</small>";
-  return t.letter.toUpperCase()+val;
+  const val = (t.kind==="ice") ? "<small>"+VAL[t.letter]+"</small>" : "<small>"+VAL[t.letter]+"</small>";
+  return t.letter.toUpperCase()+val;            // ice shows its letter (frosted) — you can see what to free
 }
 function makeTileEl(t){
   const outer=document.createElement("div");
@@ -1323,6 +1351,14 @@ const Game = {
       $("boardwrap").appendChild(hand);
     }
     saveRun();
+    setTimeout(()=>Game.showPendingTip(), 500); // explain any special tiles this level
+  },
+  showPendingTip(){ // first time you meet a special tile, explain it
+    if(!S || S.busy || S.over || S.won) return;
+    const order=[];
+    if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
+    for(const t of Object.values(S.tiles)){ if(t.kind==="stone"||t.kind==="ice"||t.kind==="crate") order.push(t.kind); }
+    for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
   nextLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(P.level); },
@@ -1540,6 +1576,7 @@ const Game = {
     UI.all();
     saveRun();
     Game.checkEnd();
+    if(!S.over && !S.won) Game.showPendingTip(); // e.g. a gold or shifting tile just showed up
   },
 
   checkEnd(){
@@ -2160,6 +2197,24 @@ const UI = {
     }
   },
   toast(m){ const t=$("toast"); t.textContent=m; t.style.opacity=1; clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity=0,1500); },
+  TIPS:{
+    gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
+    stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it — or blast it with an 🌰 acorn."},
+    ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
+    crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open with a free power."},
+    shift: {i:"🌀", t:"A <b>restless tile</b> — it changes its letter every few drops. Catch it at the right moment!"},
+  },
+  tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
+    P.seenTip[kind]=true; save();
+    const tip=UI.TIPS[kind]; if(!tip) return false;
+    S.busy=true;
+    $("tiptip").querySelector(".ti").textContent=tip.i;
+    $("tiptip").querySelector(".tt").innerHTML=tip.t;
+    $("tiptip").classList.add("on");
+    Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
+    return true;
+  },
+  hideTip(){ $("tiptip").classList.remove("on"); if(S){ S.busy=false; S.lastAction=Date.now(); } },
   confetti(){
     const colors=["#7dd87d","#ffd54f","#4fc3f7","#ff8a5c","#b388ff"];
     for(let i=0;i<24;i++){ const c=document.createElement("div"); c.className="confetti";
