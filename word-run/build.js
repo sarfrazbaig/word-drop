@@ -26,7 +26,12 @@ const g10k = fs.readFileSync(path.join(__dirname, "common10k.txt"), "utf8")
 const subs = fs.readFileSync(path.join(__dirname, "freq50k.txt"), "utf8")
   .split(/\r?\n/).slice(0, 30000).map(l => l.split(" ")[0])
   .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
-const common = [...new Set([...g10k, ...subs])];
+// family filter: this is a cozy game that auto-celebrates words with chimes and
+// confetti — crude words must never get the fanfare (playtest cleared "ASS" with applause).
+const CRUDE = new Set(("ass arse anal anus boob boobs butt clit cock cum dick dildo fag fart hell homo jerk "+
+  "kink milf nude oral orgy penis pee piss poo poop porn pube rape scat semen sex sexy shag shit slut smut "+
+  "tit tits turd twat vagina wank whore damn crap cunt hoe").split(" "));
+const common = [...new Set([...g10k, ...subs])].filter(w => !CRUDE.has(w));
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);

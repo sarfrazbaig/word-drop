@@ -328,10 +328,15 @@
     font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
   .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
+  .toolbtn.pop{ animation:slotpop .6s; }
   .toolbtn.deny{ animation:denyshake .32s; }
   .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fdeef5, #f7cfe0 65%, #eeaac8); box-shadow:0 4px 0 #c07d9c, 0 6px 12px rgba(160,70,110,.3), inset 0 2px 0 rgba(255,255,255,.85); }
   .toolbtn.wish:active{ box-shadow:0 2px 0 #c07d9c, 0 4px 8px rgba(160,70,110,.3); }
   .toolbtn.wish .cnt{ background:#c2588a; }
+  #wishbtn.armed{ transform:scale(1.1);
+    box-shadow:0 4px 0 #c07d9c, 0 0 22px rgba(240,150,190,.9), inset 0 2px 0 rgba(255,255,255,.85);
+    animation:wisharm 1.4s ease-in-out infinite; }
+  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #c07d9c, 0 0 32px rgba(240,150,190,1), inset 0 2px 0 rgba(255,255,255,.85); } }
   #breezepill.armed{ transform:scale(1.1);
     box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
@@ -343,6 +348,9 @@
   #wish-grid .tile{ position:relative; height:38px; font-size:17px; cursor:pointer; display:flex;
     align-items:center; justify-content:center; }
   #wish-grid .tile:active{ transform:scale(.92); }
+  #wish-pluck{ margin-top:12px; width:100%; border:1.5px dashed rgba(160,110,60,.4); background:rgba(255,250,240,.8);
+    border-radius:12px; padding:9px; font-size:12.5px; font-weight:700; color:#8a6532; cursor:pointer; }
+  #wish-pluck:active{ transform:scale(.97); }
 
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1; }
@@ -803,6 +811,7 @@
         <div id="wish-title">🌸 Wish for a letter</div>
         <div id="wish-grid"></div>
         <div id="wish-sub">it becomes your next tile</div>
+        <button id="wish-pluck" onclick="Game.armPluck(event)">🍂 …or pluck a letter OFF the board</button>
       </div>
     </div>
   </div>
@@ -965,24 +974,27 @@ function isSpike(L){ return L%5===0; }
 function isMilestone(L){ return L%10===0; }
 // The first eight levels are hand-tuned — this is the funnel that decides if anyone
 // stays. L1 is nearly unloseable; each new power gets an easy level to play with.
+/* Retuned after the honest-play audit (50% loss rate at L4-7 was churning the cozy
+   audience). Targets assume ~5-8 mostly-3-letter words per level; the first ten
+   levels should be ~95% winnable while the game teaches itself. */
 const EARLY=[ null,
-  [15,18],  // L1 · no powers · gentle
-  [20,18],  // L2 · 🔀 shuffle unlocks
-  [26,17],  // L3 · ★ wild unlocks
-  [30,17],  // L4 · breather
-  [36,16],  // L5 · 💣 blossom unlocks
-  [38,17],  // L6 · breather
-  [44,16],  // L7 · 🔮 vision unlocks
-  [50,16],  // L8
+  [15,18],  // L1 · gentle
+  [18,18],  // L2
+  [22,18],  // L3 · 🍃 breeze arrives
+  [22,18],  // L4 · spell CAT
+  [26,18],  // L5 · meet your first pet
+  [28,18],  // L6 · spell DOG
+  [34,17],  // L7 · two pets
+  [38,17],  // L8
 ];
 function TARGET(L){
   if(EARLY[L]) return EARLY[L][0];
-  const base = 46 + 16*Math.pow(L-8, 0.86);
+  const base = 34 + 10*Math.pow(L-8, 0.86);
   return Math.round(base*RHYTHM[(L-1)%5]/5)*5;
 }
 function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
-  return Math.min(20, 16+Math.floor((L-8)/6)) - (isSpike(L)?1:0);
+  return Math.min(20, 17+Math.floor((L-8)/6)) - (isSpike(L)?1:0);
 }
 function recipe(L){ // obstacles arrive slowly, one new kind at a time
   return {
@@ -1241,7 +1253,7 @@ function newState(level){
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
-    usingBreeze:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
+    usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -1273,6 +1285,13 @@ function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy t
 function makePiece(){
   // gently paced: no special tiles in the early levels — one new idea at a time
   if(S && S.tutorWord && Math.random()<0.8){ const l=tutorLetter(); if(l) return {letter:l, kind:"normal"}; }
+  // MERCY is deterministic, not a dice roll: after two wordless drops the deck
+  // ALWAYS deals a completion if one exists anywhere. droughts are the #1 quit reason.
+  if(S && S.deadDrops>=2){
+    const best=helpfulByLength(); const ks=Object.keys(best);
+    if(ks.length){ const longs=ks.filter(l=>best[l]>=4);
+      return {letter:rand(longs.length?longs:ks), kind:"normal"}; }
+  }
   const roll=Math.random();
   const goldOK = S && S.level>=9;              // ✨ gold tiles arrive at level 9
   const shiftOK = S && S.level>=16;            // 🌀 restless tiles much later
@@ -1421,14 +1440,15 @@ function riggedLetter(){
   /* A KIND but not trivial deck. Words should form often — this is cozy, not a crossword.
      Generosity is highest in the early levels and eases as the player finds their feet. */
   if(!S) return drawLetter();
-  const gen = S.level<=3 ? 1 : S.level<=6 ? 0.65 : S.level<=12 ? 0.4 : 0.25;
+  // generous much longer: the audit showed honest players starving from L4 on
+  const gen = S.level<=6 ? 1 : S.level<=10 ? 0.7 : S.level<=14 ? 0.45 : 0.3;
   const best=helpfulByLength();
   // long words FIRST and most often — 3-letter pops got boring; 4+ is where the joy is
   const longs=Object.keys(best).filter(l=>best[l]>=4);
-  if(longs.length && Math.random()<0.52+0.28*gen) return rand(longs);              // finish a long word
+  if(longs.length && Math.random()<0.58+0.28*gen) return rand(longs);              // finish a long word
   const b=builderLetters();
-  if(b.length && Math.random()<0.46+0.26*gen) return rand(b);                      // grow a fragment toward a long word
-  if(Object.keys(best).length && Math.random()<0.12+0.22*gen) return rand(Object.keys(best)); // any completion (mostly 3s) — rarer now
+  if(b.length && Math.random()<0.48+0.26*gen) return rand(b);                      // grow a fragment toward a long word
+  if(Object.keys(best).length && Math.random()<0.14+0.24*gen) return rand(Object.keys(best)); // any completion (mostly 3s) — rarer now
   return drawLetter();
 }
 
@@ -1466,11 +1486,13 @@ const Game = {
     S = newState(level);
     // level SHAPE varies with the rhythm so no two feel the same: some open airy,
     // spikes start crowded, breathers start nearly bare. tuned by the same 5-beat cycle.
+    // strays are what make words POSSIBLE: a landing slot next to a stray is a
+    // completion waiting to happen. airy boards were starving players of words.
     const shapes=[
-      {rows:1, strays:4},   // beat 1 — gentle
-      {rows:1, strays:1},   // beat 2 — breather (airy)
-      {rows:2, strays:2},   // beat 3 — build
-      {rows:1, strays:3},   // beat 4 — breather
+      {rows:1, strays:5},   // beat 1 — gentle
+      {rows:1, strays:4},   // beat 2 — breather
+      {rows:2, strays:4},   // beat 3 — build
+      {rows:1, strays:4},   // beat 4 — breather
       {rows:2, strays:5},   // beat 5 — 🔥 spike (crowded)
     ];
     const sh = isMilestone(level) ? {rows:2, strays:6} : shapes[(level-1)%5];
@@ -1500,6 +1522,7 @@ const Game = {
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     $("breezepill").classList.remove("armed");
+    $("wishbtn").classList.remove("armed");
     $("ov-wish").classList.remove("active");
     fitBoard(); UI.all(); UI.visitor();
     applyBiome(level);
@@ -1535,14 +1558,19 @@ const Game = {
       $("un-body").textContent=SLOT_MSG[slots].b;
       $("un-try").style.display="block";
       $("un-try").innerHTML='<b>Visit the grove 🌳</b><br>tap a friend to add them to your party';
-      $("ov-unlock").classList.add("active");
+      $("ov-unlock").classList.add("active"); Game.shown("unlock");
       Snd.levelUp(); UI.confetti(); buzz([40,60,120]);
     } else {
       $("ov-intro").classList.add("active");
     }
   },
-  closeUnlock(){ Snd.init(); $("ov-unlock").classList.remove("active"); $("ov-intro").classList.add("active"); },
+  // spam-guard: fast tappers were skipping their own rewards before seeing them.
+  // important cards ignore taps for the first beat — long enough to register, never annoying.
+  guard(key){ const t=Game._shownAt && Game._shownAt[key]; return t && (Date.now()-t)<700; },
+  shown(key){ (Game._shownAt=Game._shownAt||{})[key]=Date.now(); },
+  closeUnlock(){ if(Game.guard("unlock")) return; Snd.init(); $("ov-unlock").classList.remove("active"); $("ov-intro").classList.add("active"); },
   closeMeet(){
+    if(Game.guard("meet")) return;
     Snd.init(); $("ov-meet").classList.remove("active");
     if(UI._meetWord){
       P.metGrove[UI._meetWord]=Date.now();
@@ -1677,7 +1705,7 @@ const Game = {
 
     // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
     if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
-    else { S.deadDrops++; if(S.deadDrops>=2){ S.deadDrops=0; if(S.level<=2) setTimeout(()=>UI.nudge(), 350); } }
+    else { S.deadDrops++; if(S.deadDrops===2 && S.level<=2) setTimeout(()=>UI.nudge(), 350); } // keeps counting — deck mercy engages at 2+
     S.drops++;
     if(S.drops % 3 === 0){ await Game.stirShifters(); }
     S.busy=false;
@@ -1693,6 +1721,14 @@ const Game = {
     if(S.movesLeft <= 0 || boardFull()){ Game.failLevel(); return; }
     if(S.movesLeft <= 3) Snd.danger();
     boardEl.classList.toggle("danger", S.movesLeft<=3);
+    // players kept dying with charged tools they'd forgotten — one gentle reminder per level
+    if(S.movesLeft<=4 && !S.toolNudged && (P.pow.swap>0 || P.pow.wild>0)){
+      S.toolNudged=true;
+      const which = P.pow.swap>0 && P.pow.wild>0 ? "🍃 a breeze or a 🌸 wish" : P.pow.swap>0 ? "🍃 a breeze" : "🌸 a wish";
+      UI.toast("psst — you still have "+which+"!");
+      [P.pow.swap>0&&"breezepill", P.pow.wild>0&&"wishbtn"].filter(Boolean).forEach(id=>{
+        const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
+    }
   },
 
   async winLevel(){
@@ -1796,7 +1832,7 @@ const Game = {
     await wait(520);
     [a,b].forEach(x=>{ x.el.style.transition=""; });
     S.chain=1; S.lastAction=Date.now();
-    await Game.resolve([a,b]);
+    await Game.resolve([a,b], 4); // the wind BUILDS — it never harvests a 3-letter word from under your plan
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -1832,6 +1868,32 @@ const Game = {
     Snd.tone(780,{dur:.14,type:"sine",gain:.07,verb:true}); Snd.tone(1170,{dur:.1,type:"sine",gain:.05,when:.09,verb:true});
   },
   closeWish(){ $("ov-wish").classList.remove("active"); },
+  armPluck(e){ // the other kind of wish: take a letter OUT of the way
+    if(e) e.stopPropagation();
+    if(!(P.pow.wild>0)) { Game.closeWish(); return; }
+    Game.closeWish();
+    S.usingPluck=true;
+    $("wishbtn").classList.add("armed");
+    UI.toast("🍂 tap the tile you want plucked away");
+    Snd.tone(700,{dur:.12,type:"sine",gain:.06,verb:true});
+    UI.ghost(-1);
+  },
+  async pluckAt(row,col){
+    const t = S.board[row] && S.board[row][col];
+    S.usingPluck=false; $("wishbtn").classList.remove("armed");
+    if(!t || (t.kind!=="normal" && t.kind!=="gold" && t.kind!=="shift")){ Snd.reject(); UI.toast("that one won't budge"); return; }
+    S.busy=true;
+    P.pow.wild--; save(); UI.wishPill();
+    UI.shards(t.r,t.c,"#e8c9a0"); removeTile(t); Snd.crack(true); buzz([15,30]);
+    await wait(200);
+    const fell=await Game.gravity();
+    S.chain=1; S.lastAction=Date.now();
+    await Game.resolve(fell, 4); // plucking is building too — no accidental 3-letter pops
+    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
+    S.busy=false;
+    UI.all(); saveRun();
+    Game.checkEnd();
+  },
   pickWish(l){ // the blossom grants it: your current tile becomes the letter you wished for
     if(!(P.pow.wild>0)) { Game.closeWish(); return; }
     P.pow.wild--; save();
@@ -1855,7 +1917,7 @@ const Game = {
   },
 
   /* ============ PET POWERS — every few words, your companion changes the board ============ */
-  petNeed(){ const n=UI.equipped().length; return n>=4 ? 2 : n>=2 ? 3 : 4; }, // a bigger party acts faster
+  petNeed(){ const n=UI.equipped().length; return n>=2 ? 2 : 3; }, // pets act often — they ARE the powers
   petBoost(pet){ // same-home synergy: this pet is ×2 if another duty friend shares its home
     return UI.equipped().some(g=>g!==pet && g.z===pet.z);
   },
@@ -2034,13 +2096,18 @@ const Game = {
     await Game.resolve();
   },
 
-  async resolve(focus){
+  async resolve(focus, minLen){
     let words = findWords();
     // AUTHORED clears: every pass only clears words involving tiles that just changed —
     // the tile you placed or moved, then (in cascades) tiles that fell, rained in, or
     // thawed. The game must never "spell words for you" out of static leftovers.
     if(focus && focus.length){
       words = words.filter(w=>w.cells.some(c=>focus.includes(c)));
+    }
+    // TOOL moves are for BUILDING: the breeze must never pop a little word out from
+    // under the big one you're setting up (the COUP→COP betrayal). minLen guards that.
+    if(minLen && S.chain===1){
+      words = words.filter(w=>w.cells.length>=minLen);
     }
     if(!words.length) return;
     S.clearedThisDrop = true;
@@ -2052,13 +2119,23 @@ const Game = {
       if(S.chain>=3) UI.confetti();
       await wait(400);
     }
+    // TWIN WORDS: one move clearing two+ words at once is a feat — celebrate it loudly
+    const twin = words.length>=2;
+    if(twin){
+      const cb=document.createElement("div"); cb.className="chainburst";
+      cb.textContent = words.length>=3 ? "TRIPLE WORD!" : "DOUBLE WORD!";
+      $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),950);
+      Snd.chainBig(2); UI.confetti(); buzz([30,40,30,80]);
+      Game.cheer(1); // the pets love a clever move
+      await wait(400);
+    }
     const allCells = new Set();
     let gained=0;
     for(const w of words){
       const len=w.cells.length;
       let pts=0;
       w.cells.forEach(t=>{ let v = t.kind==="wild"?0:VAL[t.letter]; if(t.kind==="gold") v*=3; pts+=v; });
-      pts = Math.round(pts * (1+0.5*(len-3)) * S.chain);
+      pts = Math.round(pts * (1+0.5*(len-3)) * S.chain * (twin?1.5:1));
       let charmed=false;
       if(S.charm>0){ pts*=2; S.charm--; charmed=true; } // 💖 Sweet Song: this word sings double
       gained += pts;
@@ -2311,9 +2388,10 @@ const UI = {
     $("tut-slide").innerHTML=UI.TUT[i];
     $("tut-dots").innerHTML=UI.TUT.map((_,d)=>'<i class="'+(d===i?"on":"")+'"></i>').join("");
     $("tut-next").textContent = i===UI.TUT.length-1 ? "Play ▶" : "Next";
-    $("ov-tut").classList.add("active");
+    $("ov-tut").classList.add("active"); Game.shown("tut");
   },
   tutNext(){
+    if(Game.guard("tut")) return; // one beat per slide — spam-tapping can't skip the rules
     Snd.init();
     if(UI._tut < UI.TUT.length-1){ UI.tutShow(UI._tut+1); Snd.tone(660,{dur:.08,type:"triangle",gain:.07}); return; }
     P.tut=true; save();
@@ -2344,7 +2422,7 @@ const UI = {
       : "<b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".";
     $("meet-count").textContent = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length;
     UI._meetCreature = g.e;
-    $("ov-meet").classList.add("active");
+    $("ov-meet").classList.add("active"); Game.shown("meet");
   },
   breeze(){ // a soft, gentle breeze drifts across, carrying leaves that twirl in the wind
     const g=document.createElement("div"); g.className="gustsweep"; boardEl.appendChild(g);
@@ -2500,7 +2578,7 @@ const UI = {
   ghostEl:null,
   ghost(col){
     if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
-    if(!S || col<0 || S.over || S.won || S.busy || S.usingBreeze) return;
+    if(!S || col<0 || S.over || S.won || S.busy || S.usingBreeze || S.usingPluck) return;
     if(S.board[0][col]) return;
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
     const g=document.createElement("div");
@@ -2531,11 +2609,11 @@ const UI = {
     S.busy=true;
     $("tiptip").querySelector(".ti").textContent=tip.i;
     $("tiptip").querySelector(".tt").innerHTML=tip.t;
-    $("tiptip").classList.add("on");
+    $("tiptip").classList.add("on"); Game.shown("tip");
     Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
     return true;
   },
-  hideTip(){ $("tiptip").classList.remove("on"); if(S){ S.busy=false; S.lastAction=Date.now(); } },
+  hideTip(){ if(Game.guard("tip")) return; $("tiptip").classList.remove("on"); if(S){ S.busy=false; S.lastAction=Date.now(); } },
   confetti(){
     const colors=["#7dd87d","#ffd54f","#4fc3f7","#ff8a5c","#b388ff"];
     for(let i=0;i<24;i++){ const c=document.createElement("div"); c.className="confetti";
@@ -2577,11 +2655,11 @@ boardEl.addEventListener("pointerleave", ()=>UI.ghost(-1));
 boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c); });
 boardEl.addEventListener("pointerup", e=>{
   if(!S) return;
-  if(S.usingBreeze){ // the wind is armed: taps pick tiles instead of dropping
+  if(S.usingBreeze || S.usingPluck){ // a tool is armed: taps pick tiles instead of dropping
     const r=boardEl.getBoundingClientRect();
     const col=Math.max(0,Math.min(COLS-1,Math.floor((e.clientX-r.left)/(r.width/COLS))));
     const row=Math.max(0,Math.min(ROWS-1,Math.floor((e.clientY-r.top)/(r.height/ROWS))));
-    if(!S.busy && !S.over && !S.won) Game.breezeAt(row,col);
+    if(!S.busy && !S.over && !S.won){ S.usingPluck ? Game.pluckAt(row,col) : Game.breezeAt(row,col); }
     return;
   }
   const c=colFromEvent(e);
