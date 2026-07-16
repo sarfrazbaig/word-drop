@@ -189,9 +189,13 @@
   #tiptip .ti{ font-size:44px; }
   #tiptip .tt{ font-size:14px; color:var(--ink); line-height:1.5; margin-top:6px; }
   #tiptip .tk{ margin-top:10px; font-size:12px; color:var(--accent-deep); font-weight:800; letter-spacing:1px; }
-  #toast{ position:absolute; left:50%; bottom:96px; transform:translateX(-50%); background:rgba(74,59,40,.93); color:#fff8ec;
-    padding:9px 16px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .3s;
-    z-index:300; pointer-events:none; white-space:nowrap; }
+  /* announcements land CENTER STAGE — toasts are website furniture, players miss them */
+  #toast{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%) scale(.6); opacity:0;
+    background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:13px 22px;
+    font-size:16px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
+    max-width:84%; box-shadow:0 14px 34px rgba(90,60,30,.4); z-index:300; pointer-events:none;
+    transition:opacity .22s, transform .25s cubic-bezier(.3,1.4,.5,1); }
+  #toast.on{ opacity:1; transform:translate(-50%,-50%) scale(1); }
 
   /* ================= HOME — a garden gate ================= */
   #scene-home{ justify-content:flex-start; gap:0; overflow:hidden; padding:0; }
@@ -1167,9 +1171,9 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
    hint  🔆 Bright Eyes  — spots a word for you and lights it up
    smash 💥 Boulder Buster — cracks every stone and thaws every ice */
 const PET_ABIL={
-  gold: {n:"Golden Touch",  i:"✨", c:"#ffd54f", d:"turns a tile <b>golden</b> — its letter scores ×3"},
+  gold: {n:"Golden Touch",  i:"✨", c:"#ffd54f", d:"turns <b>your next letter golden</b> — ×3 wherever you drop it"},
   align:{n:"Word Weaver",   i:"🍀", c:"#8fd694", d:"nudges tiles together to <b>line up a long word</b>"},
-  wild: {n:"Blossom Gift",  i:"🌸", c:"#f7a6c8", d:"blooms a tile into a <b>blossom</b> that matches any letter"},
+  wild: {n:"Blossom Gift",  i:"🌸", c:"#f7a6c8", d:"blooms <b>your next letter</b> into a blossom that matches anything"},
   moves:{n:"Second Wind",   i:"🪽", c:"#9fd4f2", d:"flutters in <b>extra moves</b>"},
   clear:{n:"Tidy Paws",     i:"🍂", c:"#d8b077", d:"<b>sweeps away</b> awkward letters"},
   charm:{n:"Sweet Song",    i:"💖", c:"#f6a9a9", d:"sings — your <b>next word scores double</b>"},
@@ -1965,20 +1969,23 @@ const Game = {
     await wait(420);
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
     if(pet.a==="gold"){
-      const picks=normals().sort(()=>Math.random()-.5).slice(0, boost?2:1);
-      for(const t of picks){ t.kind="gold"; t.inner.classList.add("gold");
-        t.inner.classList.add("thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560);
-        UI.shards(t.r,t.c,"#ffd54f"); Snd.gold(); await wait(220); }
+      // Golden Touch lands IN YOUR HAND — a random board tile was a wasted lottery.
+      // your played word earned it; your next letter carries it, and YOU aim it.
+      if(S.cur && S.cur.kind==="normal"){ S.cur.kind="gold"; }
+      else if(S.next && S.next.kind==="normal"){ S.next.kind="gold"; }
+      else { const t=rand(normals()); if(t){ t.kind="gold"; t.inner.classList.add("gold"); UI.shards(t.r,t.c,"#ffd54f"); } }
+      if(boost && S.next && S.next.kind==="normal") S.next.kind="gold"; // ×2: the next one too
+      UI.piece(); Snd.gold();
+      const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); }
     } else if(pet.a==="align"){
       const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
-      if(!done){ const t=rand(normals()); if(t){ t.kind="wild"; t.inner.className="tile wild thawpop";
-        t.inner.innerHTML=tileFace(t); setTimeout(()=>t.inner.classList.remove("thawpop"),560); UI.blossom(); } }
+      if(!done && S.cur){ S.cur={letter:"★", kind:"wild"}; UI.piece(); UI.blossom(); } // no weave found — a blossom in hand instead
     } else if(pet.a==="wild"){
-      const picks=normals().sort(()=>Math.random()-.5).slice(0, boost?2:1);
-      for(const t of picks){ t.kind="wild"; t.inner.className="tile wild thawpop";
-        t.inner.innerHTML=tileFace(t); setTimeout(()=>t.inner.classList.remove("thawpop"),560); await wait(200); }
-      UI.blossom();
-      S.chain=1; await Game.resolve(picks); // if the blossom completes a word, it blooms open right away
+      // Blossom Gift blooms YOUR NEXT LETTER into a wild — drop it anywhere, match anything
+      if(S.cur){ S.cur={letter:"★", kind:"wild"}; }
+      if(boost && S.next){ S.next={letter:"★", kind:"wild"}; } // ×2: the one after too
+      UI.piece(); UI.blossom();
+      const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); }
     } else if(pet.a==="moves"){
       const n=boost?3:2; S.movesLeft+=n; UI.hud();
       boardEl.classList.toggle("danger", S.movesLeft<=3);
@@ -2692,7 +2699,11 @@ const UI = {
       boardEl.appendChild(dl); g._label=dl;
     }
   },
-  toast(m){ const t=$("toast"); t.textContent=m; t.style.opacity=1; clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity=0,1500); },
+  toast(m){ // a centered, unmissable announcement — same API, real presence
+    const t=$("toast"); t.innerHTML=m;
+    t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
+    clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"), 2100);
+  },
   TIPS:{
     breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. A little word blooms after a breath — tap <b>🌱 hold</b> if you're building something bigger."},
     wish:  {i:"🌸", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌸 button beside your letters and <b>choose any letter</b> — it becomes your next tile."},
