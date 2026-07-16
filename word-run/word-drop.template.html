@@ -470,14 +470,10 @@
   .pbdeco:nth-child(2){ left:26px; bottom:4px; font-size:10px; }
   .pbdeco:nth-last-child(2){ right:26px; bottom:4px; font-size:10px; }
   .pbdeco:nth-last-child(1){ right:9px; }
-  /* every pet sits in the SAME round portrait badge — one consistent token, face or full-body */
-  .petcompanion{ display:none; width:40px; height:40px; margin-bottom:5px; border-radius:50%;
-    align-items:center; justify-content:center; padding:0; border:1.5px solid rgba(121,92,55,.16); position:relative;
-    background:radial-gradient(120% 120% at 40% 30%, #fffdf6, #f6ecd4 68%, #ecdcba);
-    box-shadow:0 2px 5px rgba(90,60,30,.2), inset 0 1.5px 0 rgba(255,255,255,.9),
-      0 0 0 2.5px var(--pet-glow, transparent);
-    animation:petidle 3.4s ease-in-out infinite; }
-  .petcompanion.has{ display:flex; }
+  /* pets are bare friendly faces — no frames, no glow; the character IS the token */
+  .petcompanion{ display:none; background:none; border:none; padding:0 0 4px; position:relative; line-height:1;
+    filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
+  .petcompanion.has{ display:block; }
   .petcompanion:nth-of-type(2){ animation-delay:.9s; } .petcompanion:nth-of-type(3){ animation-delay:1.7s; }
   .petcompanion:nth-of-type(4){ animation-delay:2.4s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
@@ -1139,7 +1135,7 @@ const PET_ABIL={
 };
 const GROVE = [
   // your first friends — taught in the early levels
-  {w:"cat",e:"🐱",z:"ground",a:"gold"},{w:"dog",e:"🐕",z:"ground",a:"align"},
+  {w:"cat",e:"🐱",z:"ground",a:"gold"},{w:"dog",e:"🐶",z:"ground",a:"align"},
   // in the air
   {w:"bee",e:"🐝",z:"sky",a:"align"},{w:"moth",e:"🦋",z:"sky",a:"wild"},{w:"owl",e:"🦉",z:"sky",a:"hint"},{w:"crow",e:"🐦‍⬛",z:"sky",a:"clear"},
   {w:"dove",e:"🕊️",z:"sky",a:"charm"},{w:"robin",e:"🐦",z:"sky",a:"charm"},{w:"duck",e:"🦆",z:"sky",a:"moves"},{w:"swan",e:"🦢",z:"sky",a:"wild"},
@@ -1147,7 +1143,7 @@ const GROVE = [
   {w:"wasp",e:"🐝",z:"sky",a:"smash"},{w:"fly",e:"🪰",z:"sky",a:"clear"},{w:"ladybug",e:"🐞",z:"sky",a:"charm"},{w:"cricket",e:"🦗",z:"sky",a:"charm"},
   // on the ground
   {w:"fox",e:"🦊",z:"ground",a:"gold"},{w:"frog",e:"🐸",z:"ground",a:"align"},{w:"deer",e:"🦌",z:"ground",a:"wild"},{w:"bear",e:"🐻",z:"ground",a:"smash"},
-  {w:"wolf",e:"🐺",z:"ground",a:"clear"},{w:"hare",e:"🐇",z:"ground",a:"moves"},{w:"mouse",e:"🐭",z:"ground",a:"align"},{w:"mole",e:"🦫",z:"ground",a:"clear"},
+  {w:"wolf",e:"🐺",z:"ground",a:"clear"},{w:"hare",e:"🐰",z:"ground",a:"moves"},{w:"mouse",e:"🐭",z:"ground",a:"align"},{w:"mole",e:"🦫",z:"ground",a:"clear"},
   {w:"snail",e:"🐌",z:"ground",a:"align"},{w:"worm",e:"🪱",z:"ground",a:"align"},{w:"ant",e:"🐜",z:"ground",a:"align"},{w:"crab",e:"🦀",z:"ground",a:"smash"},
   {w:"fish",e:"🐟",z:"ground",a:"gold"},{w:"snake",e:"🐍",z:"ground",a:"align"},{w:"toad",e:"🐸",z:"ground",a:"align"},{w:"newt",e:"🦎",z:"ground",a:"wild"},
   {w:"otter",e:"🦦",z:"ground",a:"align"},{w:"boar",e:"🐗",z:"ground",a:"smash"},{w:"moose",e:"🫎",z:"ground",a:"clear"},{w:"seal",e:"🦭",z:"ground",a:"moves"},
@@ -2330,11 +2326,10 @@ const UI = {
     $("petbar").classList.toggle("on", eq.length>0);
     for(let s=0;s<4;s++){
       const el=$("pet-"+s), g=eq[s];
-      if(g){ el.dataset.w=g.w; el.style.fontSize="22px";
-        el.style.setProperty("--pet-glow", PET_ABIL[g.a].c+"aa");
+      if(g){ el.dataset.w=g.w; el.style.fontSize="31px";
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+PET_ABIL[g.a].n; el.classList.add("has"); }
-      else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); el.style.removeProperty("--pet-glow"); }
+      else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); }
     }
   },
   discover(g){ // the MEET ritual: shown at the start of the round AFTER you unlocked them
