@@ -351,6 +351,18 @@
   #wish-pluck{ margin-top:12px; width:100%; border:1.5px dashed rgba(160,110,60,.4); background:rgba(255,250,240,.8);
     border-radius:12px; padding:9px; font-size:12.5px; font-weight:700; color:#8a6532; cursor:pointer; }
   #wish-pluck:active{ transform:scale(.97); }
+  /* the bloom pause: a little word waits a breath — hold it, or let it bloom */
+  .gracebubble{ position:absolute; z-index:60; display:flex; align-items:center; gap:8px;
+    background:#fffdf6; border:2px solid var(--gold); border-radius:14px; padding:6px 8px 8px;
+    box-shadow:0 8px 18px rgba(90,60,30,.35); animation:bannerin .2s; overflow:hidden; }
+  .gracebubble .gw{ font-size:15px; font-weight:900; letter-spacing:1.5px; color:var(--gold-deep); }
+  .gracebubble .ghold{ border:none; border-radius:999px; padding:5px 10px; font-size:12px; font-weight:800;
+    background:linear-gradient(148deg,#e3f7ee,#c2ebd6); color:#2e6b4c; cursor:pointer;
+    box-shadow:0 2px 0 #6aa98a; }
+  .gracebubble .ghold:active{ transform:translateY(1px); box-shadow:0 1px 0 #6aa98a; }
+  .gracebubble .gbar{ position:absolute; left:0; bottom:0; height:3px; background:var(--gold);
+    animation:gracebar 2.6s linear forwards; }
+  @keyframes gracebar{ from{ width:100% } to{ width:0 } }
 
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1; }
@@ -1831,8 +1843,8 @@ const Game = {
     buzz([15,25,15]);
     await wait(520);
     [a,b].forEach(x=>{ x.el.style.transition=""; });
-    S.chain=1; S.lastAction=Date.now();
-    await Game.resolve([a,b], 4); // the wind BUILDS — it never harvests a 3-letter word from under your plan
+    S.lastAction=Date.now();
+    await Game.toolResolve([a,b]); // little words bloom after a breath — with a 🌱 hold to keep building
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -1887,8 +1899,8 @@ const Game = {
     UI.shards(t.r,t.c,"#e8c9a0"); removeTile(t); Snd.crack(true); buzz([15,30]);
     await wait(200);
     const fell=await Game.gravity();
-    S.chain=1; S.lastAction=Date.now();
-    await Game.resolve(fell, 4); // plucking is building too — no accidental 3-letter pops
+    S.lastAction=Date.now();
+    await Game.toolResolve(fell); // same bloom-pause: tumbled little words wait a breath, holdable
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -2094,6 +2106,40 @@ const Game = {
     await wait(shifts.length*110+620);
     S.chain=1;
     await Game.resolve();
+  },
+
+  /* THE BLOOM PAUSE — resolves the "COUP→COP betrayal" without a lock mechanic.
+     A tool-formed little word always DOES something (older players read silence as a bug):
+     it lights up and blooms after a breath. One friendly 🌱 bubble lets a builder hold it. */
+  async toolResolve(focus){
+    const words=findWords().filter(w=>w.cells.some(c=>focus.includes(c)));
+    if(!words.length) return;
+    if(words.some(w=>w.cells.length>=4)){ S.chain=1; await Game.resolve(focus); return; } // big words are always deliberate
+    const cells=[...new Set(words.flatMap(w=>w.cells))];
+    cells.forEach(t=>t.inner.classList.add("lit"));
+    // the bubble sits just above the word
+    const mid=cells[Math.floor(cells.length/2)];
+    const b=document.createElement("div"); b.className="gracebubble";
+    b.innerHTML='<span class="gw">'+words.map(w=>w.word.toUpperCase()).join(" · ")+'</span>'
+      +'<button class="ghold">🌱 hold</button><i class="gbar"></i>';
+    b.style.left=Math.max(4, Math.min(mid.c*STEP-30, COLS*STEP-150))+"px";
+    b.style.top=Math.max(4,(mid.r*STEP)-52)+"px";
+    boardEl.appendChild(b);
+    Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
+    let held=false;
+    b.querySelector(".ghold").onclick=e=>{ e.stopPropagation(); held=true; };
+    ["pointerdown","pointerup"].forEach(ev=>b.addEventListener(ev,e=>e.stopPropagation()));
+    for(let i=0;i<26 && !held;i++) await wait(100); // ~2.6s to decide; doing nothing = it blooms
+    b.remove();
+    if(held){
+      cells.forEach(t=>t.inner.classList.remove("lit"));
+      UI.toast("🌱 saved — build it into something bigger!");
+      Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
+      return;
+    }
+    cells.forEach(t=>t.inner.classList.remove("lit"));
+    S.chain=1;
+    await Game.resolve(focus);
   },
 
   async resolve(focus, minLen){
@@ -2595,7 +2641,7 @@ const UI = {
   },
   toast(m){ const t=$("toast"); t.textContent=m; t.style.opacity=1; clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity=0,1500); },
   TIPS:{
-    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> — the wind swaps their places."},
+    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. A little word blooms after a breath — tap <b>🌱 hold</b> if you're building something bigger."},
     wish:  {i:"🌸", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌸 button beside your letters and <b>choose any letter</b> — it becomes your next tile."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
