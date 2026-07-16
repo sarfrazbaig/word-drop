@@ -262,22 +262,32 @@
   .pill b{ color:var(--ink); }
   .pill.pop{ animation:slotpop .45s; border-color:rgba(255,213,79,.6); }
   .pill.done{ color:var(--accent); }
-  /* the breeze: the ONE tappable tool — a clear round button floating on the plot's corner */
-  #breezepill{ position:absolute; right:-4px; bottom:-6px; z-index:30; width:48px; height:48px;
-    border-radius:50%; font-size:22px; cursor:pointer; border:none;
+  /* your TWO tools flank your letters — breeze on the left, wish on the right */
+  .toolbtn{ position:relative; width:46px; height:46px; align-self:center;
+    border-radius:50%; font-size:21px; cursor:pointer; border:none;
     background:radial-gradient(120% 120% at 40% 30%, #eef9f0, #cdebd4 65%, #a9d6b4);
-    box-shadow:0 4px 0 #7aa886, 0 8px 14px rgba(60,110,60,.4), inset 0 2px 0 rgba(255,255,255,.8);
+    box-shadow:0 4px 0 #7aa886, 0 6px 12px rgba(60,110,60,.35), inset 0 2px 0 rgba(255,255,255,.8);
     transition:box-shadow .2s, transform .2s; }
-  #breezepill:active{ transform:translateY(2px); box-shadow:0 2px 0 #7aa886, 0 4px 8px rgba(60,110,60,.4); }
-  #breezepill .cnt{ position:absolute; top:-4px; right:-3px; background:var(--accent-deep); color:#fff;
+  .toolbtn:active{ transform:translateY(2px); box-shadow:0 2px 0 #7aa886, 0 4px 8px rgba(60,110,60,.35); }
+  .toolbtn .cnt{ position:absolute; top:-4px; right:-3px; background:var(--accent-deep); color:#fff;
     font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
-  #breezepill.empty{ opacity:.4; filter:grayscale(.4); }
-  #breezepill.armed{ transform:scale(1.12);
-    box-shadow:0 4px 0 #7aa886, 0 0 20px rgba(120,200,160,.85), inset 0 2px 0 rgba(255,255,255,.8);
+  .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
+  .toolbtn.deny{ animation:denyshake .32s; }
+  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fdeef5, #f7cfe0 65%, #eeaac8); box-shadow:0 4px 0 #c07d9c, 0 6px 12px rgba(160,70,110,.3), inset 0 2px 0 rgba(255,255,255,.85); }
+  .toolbtn.wish:active{ box-shadow:0 2px 0 #c07d9c, 0 4px 8px rgba(160,70,110,.3); }
+  .toolbtn.wish .cnt{ background:#c2588a; }
+  #breezepill.armed{ transform:scale(1.1);
+    box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
-  @keyframes breezearm{ 50%{ box-shadow:0 4px 0 #7aa886, 0 0 30px rgba(120,200,160,1), inset 0 2px 0 rgba(255,255,255,.8); } }
-  #breezepill.deny{ animation:denyshake .32s; }
+  @keyframes breezearm{ 50%{ box-shadow:0 4px 0 #7aa886, 0 0 32px rgba(120,200,160,1), inset 0 2px 0 rgba(255,255,255,.8); } }
+  /* the wish picker: a cozy grid of little letter tiles */
+  #wish-title{ font-size:18px; font-weight:900; color:#a94a76; }
+  #wish-sub{ font-size:12px; color:var(--dim); margin-top:8px; }
+  #wish-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-top:12px; }
+  #wish-grid .tile{ position:relative; height:38px; font-size:17px; cursor:pointer; display:flex;
+    align-items:center; justify-content:center; }
+  #wish-grid .tile:active{ transform:scale(.92); }
 
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1; }
@@ -376,16 +386,25 @@
 
   /* -------- grove visitor: your collection plays with you -------- */
   /* grove companions — sit by your thumbs, tap them for hearts, they grow as you bond */
-  /* up to 4 duty pets live IN the garden — perched on the grass along the top of the plot */
-  .petcompanion{ display:none; position:absolute; top:0; z-index:4; transform:translateX(-50%);
-    padding:0 2px 1px; background:none; border:none; line-height:1; cursor:pointer;
+  /* the PET MEADOW — a little strip of garden that belongs to your party */
+  #petbar{ display:none; width:100%; height:46px; z-index:2; position:relative; overflow:visible;
+    border-radius:14px; padding:0 14px; align-items:flex-end; justify-content:center; gap:22px;
+    background:linear-gradient(180deg,#9ed48c 0%, #7fbf6e 55%, #6aad5c 100%);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.35), inset 0 -6px 10px rgba(60,110,45,.35),
+      0 4px 10px rgba(60,110,45,.3); }
+  #petbar.on{ display:flex; }
+  #petbar::before{ content:""; position:absolute; left:0; right:0; top:-5px; height:10px;
+    background:radial-gradient(6px 10px at 7px 9px, #8cc47a 0 5px, transparent 6px); background-size:13px 10px;
+    background-repeat:repeat-x; } /* grass blades along the meadow's back edge */
+  .pbdeco{ font-size:15px; align-self:flex-end; padding-bottom:5px; filter:drop-shadow(0 1px 2px rgba(40,80,30,.4)); }
+  .pbdeco:nth-child(2), .pbdeco:nth-last-child(1){ font-size:12px; opacity:.9; }
+  .petcompanion{ display:none; background:none; border:none; line-height:1; padding:0 0 3px; position:relative;
     filter:drop-shadow(0 3px 4px rgba(40,60,25,.45)); animation:petidle 3.4s ease-in-out infinite; }
   .petcompanion.has{ display:block; }
-  .petcompanion::before{ content:""; position:absolute; inset:auto -4px -3px -4px; height:60%; border-radius:50%;
-    background:radial-gradient(50% 70% at 50% 92%, var(--pet-glow,transparent), transparent 72%); z-index:-1; }
+  .petcompanion::before{ content:""; position:absolute; inset:auto -5px -2px -5px; height:55%; border-radius:50%;
+    background:radial-gradient(50% 70% at 50% 92%, var(--pet-glow,transparent), transparent 72%); }
   .petcompanion:nth-of-type(2){ animation-delay:.9s; } .petcompanion:nth-of-type(3){ animation-delay:1.7s; }
   .petcompanion:nth-of-type(4){ animation-delay:2.4s; }
-  .petcompanion.grew{ animation:petgrew .7s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
   #pet-right .petbody{ transform:scaleX(-1); }
   .petbody{ display:block; }
@@ -686,14 +705,32 @@
     </div>
     <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
     <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="starpill">🌟 <b id="star-count">0</b></span></div>
+    <div id="petbar">
+      <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
+      <span class="petcompanion" id="pet-0"></span>
+      <span class="petcompanion" id="pet-1"></span>
+      <span class="petcompanion" id="pet-2"></span>
+      <span class="petcompanion" id="pet-3"></span>
+      <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
+    </div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
-      <button id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
     </div>
     <div id="dock">
+      <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
+      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()">🌸<span class="cnt" id="wish-cnt">0</span></button>
+    </div>
+
+    <!-- 🌸 WISH: choose the letter you need -->
+    <div class="overlay" id="ov-wish" onclick="Game.closeWish()">
+      <div class="card" onclick="event.stopPropagation()">
+        <div id="wish-title">🌸 Wish for a letter</div>
+        <div id="wish-grid"></div>
+        <div id="wish-sub">it becomes your next tile</div>
+      </div>
     </div>
   </div>
 
@@ -1368,6 +1405,7 @@ const Game = {
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     $("breezepill").classList.remove("armed");
+    $("ov-wish").classList.remove("active");
     fitBoard(); UI.all(); UI.visitor();
     applyBiome(level);
     $("ov-end").classList.remove("active");
@@ -1670,6 +1708,47 @@ const Game = {
     Game.checkEnd();
   },
 
+  /* ---- the WISH: your second tool. 4-letter words earn one; pick any letter for your next tile. ---- */
+  earnWish(){
+    P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save();
+    UI.wishPill(); UI.pillPop("wishbtn");
+    Snd.tone(1046,{dur:.08,type:"sine",gain:.05});
+    if(!P.seenTip.wish){ setTimeout(()=>{ if(S && !S.busy) UI.tileTip("wish"); }, 700); }
+  },
+  openWish(){
+    if(!S || S.busy || S.over || S.won) return;
+    Snd.init(); S.lastAction=Date.now();
+    if(S.usingBreeze) Game.disarmBreeze();
+    if(!(P.pow.wild>0)){
+      const el=$("wishbtn");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); buzz(30); return;
+    }
+    const grid=$("wish-grid");
+    if(!grid.children.length){
+      "abcdefghijklmnopqrstuvwxyz".split("").forEach(l=>{
+        const t=document.createElement("div"); t.className="tile"; t.textContent=l.toUpperCase();
+        t.onclick=()=>Game.pickWish(l);
+        grid.appendChild(t);
+      });
+    }
+    $("ov-wish").classList.add("active");
+    Snd.tone(780,{dur:.14,type:"sine",gain:.07,verb:true}); Snd.tone(1170,{dur:.1,type:"sine",gain:.05,when:.09,verb:true});
+  },
+  closeWish(){ $("ov-wish").classList.remove("active"); },
+  pickWish(l){ // the blossom grants it: your current tile becomes the letter you wished for
+    if(!(P.pow.wild>0)) { Game.closeWish(); return; }
+    P.pow.wild--; save();
+    S.cur={letter:l, kind:"normal"};
+    Game.closeWish(); UI.wishPill(); UI.piece(); UI.hints(); UI.ghost(S.hoverCol);
+    UI.blossom(); // petals drift as the wish arrives
+    Snd.tone(1046,{dur:.16,type:"sine",gain:.07,verb:true}); Snd.tone(1568,{dur:.22,type:"sine",gain:.05,when:.1,verb:true});
+    buzz([15,30]);
+    UI.toast("🌸 "+l.toUpperCase()+" is yours — drop it anywhere");
+    S.lastAction=Date.now();
+  },
+
   cheer(n){ // rewards (crates, quests, daily word, cascades) excite your pets — extra paw charge
     if(!S || !UI.equipped().length) return;
     S.petCharge=(S.petCharge||0)+(n||1);
@@ -1904,7 +1983,8 @@ const Game = {
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
       if(len>=5){ Game.cheer(1); UI.confetti(); } // long words delight the pets — a bonus paw charge
-      else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words are fuel: they buy you the wind
+      if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌸
+      else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
       Game.recordWord(w, pts, S.chain);
       await wait(700);
       banner.classList.add("fade"); setTimeout(()=>banner.remove(),450);
@@ -2070,7 +2150,7 @@ const UI = {
       qe.innerHTML = P.questDone ? q.emoji+" ✓" : q.emoji+" <b>"+Math.min(q.target,P.questProgress)+"</b>/"+q.target;
       qe.title = q.text;
     }
-    UI.petMeter(); UI.breezePill();
+    UI.petMeter(); UI.breezePill(); UI.wishPill();
   },
   equipped(){ // the party on duty: chosen in the grove, else your most recent friends
     const max=slotsFor(P.level);
@@ -2084,6 +2164,12 @@ const UI = {
     $("breeze-cnt").textContent = P.pow.swap||0;
     el.classList.toggle("empty", !(P.pow.swap>0));
     el.title="every 3-letter word earns a breeze · tap, then tap two tiles to swap them";
+  },
+  wishPill(){ // the blossom in your pocket: 4-letter words refill it (up to 3)
+    const el=$("wishbtn"); if(!el) return;
+    $("wish-cnt").textContent = P.pow.wild||0;
+    el.classList.toggle("empty", !(P.pow.wild>0));
+    el.title="every 4-letter word earns a wish · tap to choose any letter for your next tile";
   },
   petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
     if(UI.equipped().length && S){
@@ -2134,44 +2220,16 @@ const UI = {
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
-  PET_X:["12%","36%","64%","88%"], // perch spots along the top of the garden plot
-  visitor(){ // your ON-DUTY pets (up to 4) live IN the garden, perched on the grass up top
+  visitor(){ // your ON-DUTY pets (up to 4) live in their own little meadow above the plot
     const eq = UI.equipped();
-    const size = 24 + Math.min(Math.floor((P.petBond||0)/5)*3, 12); // grow with bond, but stay garden-sized
+    $("petbar").classList.toggle("on", eq.length>0);
     for(let s=0;s<4;s++){
-      let el=$("pet-"+s);
-      if(!el){ // the board is wiped each level — rebuild the perch when needed
-        el=document.createElement("button");
-        el.className="petcompanion"; el.id="pet-"+s;
-        el.onclick=(i=>()=>UI.petTap(i))(s);
-        // pets sit ON the board: swallow the tap so it doesn't drop a tile
-        ["pointerup","pointerdown"].forEach(ev=>el.addEventListener(ev, e=>e.stopPropagation()));
-        boardEl.appendChild(el);
-      } else if(el.parentElement!==boardEl){ boardEl.appendChild(el); }
-      const g=eq[s];
-      if(g){ el.dataset.w=g.w; el.style.fontSize=size+"px"; el.style.left=UI.PET_X[s];
+      const el=$("pet-"+s), g=eq[s];
+      if(g){ el.dataset.w=g.w; el.style.fontSize="27px";
         el.style.setProperty("--pet-glow", PET_ABIL[g.a].c+"88");
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+PET_ABIL[g.a].n; el.classList.add("has"); }
       else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); el.style.removeProperty("--pet-glow"); }
-    }
-  },
-  petTap(slot){ // tap a companion → hearts, a happy hop, and a little bond
-    const el=$("pet-"+slot);
-    if(!el.classList.contains("has")) return;
-    P.petBond=(P.petBond||0)+1; save();
-    el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
-    Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); Snd.tone(1174,{dur:.14,type:"sine",gain:.05,when:.07,verb:true});
-    buzz(12);
-    const app=$("app"), ar=app.getBoundingClientRect(), r=el.getBoundingClientRect();
-    for(let i=0;i<3;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💛";
-      h.style.left=(r.left-ar.left+r.width/2-9+(i-1)*12)+"px"; h.style.top=(r.top-ar.top-4)+"px";
-      h.style.animationDelay=(i*0.08)+"s"; app.appendChild(h); setTimeout(()=>h.remove(),1100); }
-    if((P.petBond%5)===0){ // every 5 taps they visibly grow — celebrate it
-      UI.visitor();
-      el.classList.remove("grew"); void el.offsetWidth; el.classList.add("grew");
-      Snd.tone(1318,{dur:.2,type:"sine",gain:.06,verb:true}); UI.confetti();
-      UI.toast(el.title+" grew a little! 🌱");
     }
   },
   discover(g){ // the MEET ritual: shown at the start of the round AFTER you unlocked them
@@ -2182,7 +2240,7 @@ const UI = {
     const ab=PET_ABIL[g.a];
     const firstEver = Object.keys(P.metGrove).length===0;
     $("meet-line").innerHTML = firstEver
-      ? "joins you! <b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".<br>Tap your pets for love 💛 · swap them in the grove 🌳"
+      ? "joins you! <b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".<br>Your party lives in the meadow above the garden 🌿 · swap them in the grove 🌳"
       : "<b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".";
     $("meet-count").textContent = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length;
     UI._meetCreature = g.e;
@@ -2359,7 +2417,8 @@ const UI = {
   },
   toast(m){ const t=$("toast"); t.textContent=m; t.style.opacity=1; clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity=0,1500); },
   TIPS:{
-    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the round 🍃 button on the garden's corner, then tap <b>two tiles</b> — the wind swaps their places."},
+    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> — the wind swaps their places."},
+    wish:  {i:"🌸", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌸 button beside your letters and <b>choose any letter</b> — it becomes your next tile."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
