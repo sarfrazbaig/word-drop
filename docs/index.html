@@ -400,8 +400,16 @@
     background-size:100% 100%, cover;
     box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
   #petbar.on{ display:flex; }
-  #petbar #starpill{ position:absolute; right:8px; top:50%; transform:translateY(-50%);
-    font-size:11px; padding:4px 9px; background:rgba(255,255,255,.75); }
+  /* the bar IS the paw meter: its edges warm up as the pets get closer to acting */
+  #petbar{ margin-top:10px; margin-bottom:2px; transition:box-shadow .4s; }
+  #petbar.on{ box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8),
+    0 0 var(--pawglow,0px) rgba(255,200,90,var(--pawalpha,0)),
+    inset 0 0 0 1.5px rgba(255,200,90,var(--pawring,0)); }
+  #petbar.pulse{ animation:pawpulse .5s; }
+  @keyframes pawpulse{ 40%{ transform:scale(1.03); } }
+  .petcompanion.excited{ animation:petexcited .55s ease-in-out infinite !important; }
+  @keyframes petexcited{ 0%,100%{ transform:translateY(0) rotate(0) } 25%{ transform:translateY(-4px) rotate(-6deg) }
+    50%{ transform:translateY(0) rotate(5deg) } 75%{ transform:translateY(-3px) rotate(-4deg) } }
   .pbdeco{ font-size:17px; align-self:flex-end; padding-bottom:4px; filter:drop-shadow(0 1px 2px rgba(90,110,60,.3)); }
   .pbdeco:nth-child(2), .pbdeco:nth-last-child(1){ font-size:13px; opacity:.9; }
   .petcompanion{ display:none; background:none; border:none; line-height:1; padding:0 0 3px; position:relative;
@@ -720,7 +728,6 @@
       <span class="petcompanion" id="pet-2"></span>
       <span class="petcompanion" id="pet-3"></span>
       <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
-      <span class="pill" id="starpill">🌟 <b id="star-count">0</b></span>
     </div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
@@ -1762,7 +1769,9 @@ const Game = {
     if(!S || !UI.equipped().length) return;
     S.petCharge=(S.petCharge||0)+(n||1);
     if(S.petCharge>=Game.petNeed()){ S.petCharge=0; S.petReady=true; }
-    UI.petMeter(); UI.pillPop("starpill");
+    UI.petMeter();
+    const pb=$("petbar"); pb.classList.remove("pulse"); void pb.offsetWidth; pb.classList.add("pulse");
+    setTimeout(()=>pb.classList.remove("pulse"),520);
     Snd.tone(880,{dur:.08,type:"triangle",gain:.06});
   },
 
@@ -1814,7 +1823,7 @@ const Game = {
     } else if(pet.a==="charm"){
       S.charm=(S.charm||0)+(boost?2:1); // your next word(s) score double
       UI.toast(pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖");
-      const hb=$("starpill"); hb.classList.add("pop"); setTimeout(()=>hb.classList.remove("pop"),500);
+      const hb=$("petbar"); hb.classList.add("pulse"); setTimeout(()=>hb.classList.remove("pulse"),520);
       for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
         h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%";
         h.style.animationDelay=(i*0.1)+"s"; $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
@@ -2183,10 +2192,14 @@ const UI = {
   petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
     if(UI.equipped().length && S){
       const need=Game.petNeed(), t=Math.min(S.petCharge||0, need);
-      $("starpill").innerHTML = "🐾 "+"●".repeat(t)+"○".repeat(need-t);
-      $("starpill").title="your pets act every "+need+" words · same-home friends: powers ×2";
-    } else {
-      $("starpill").innerHTML = "🌟 <b>"+(P.stats.stars||0)+"</b>";
+      const frac=t/need, bar=$("petbar");
+      bar.style.setProperty("--pawglow",(frac*16)+"px");
+      bar.style.setProperty("--pawalpha",(frac*0.75).toFixed(2));
+      bar.style.setProperty("--pawring",(frac*0.9).toFixed(2));
+      bar.title="the shelf glows as your pets charge up — they act every "+need+" words · same-home friends: powers ×2";
+      // one word away (or ready): the pets can barely contain themselves
+      const excited = S.petReady || t>=need-1;
+      for(let s=0;s<4;s++){ const el=$("pet-"+s); if(el) el.classList.toggle("excited", excited && el.classList.contains("has")); }
     }
   },
   pillPop(id){
