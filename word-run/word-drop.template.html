@@ -2509,7 +2509,10 @@ const UI = {
     $("meet-line").innerHTML = firstEver
       ? "joins you! <b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".<br>Your party lives in the meadow above the garden 🌿 · swap them in the grove 🌳"
       : "<b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".";
-    $("meet-count").textContent = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length;
+    // if the party is full, say so RIGHT NOW — otherwise the missing pet reads as a bug
+    const max=slotsFor(P.level), full=(P.equip||[]).length>=max && !(P.equip||[]).includes(g.w);
+    $("meet-count").innerHTML = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length
+      + (full ? "<br>your party is full (<b>"+max+"</b> for now"+(UI.nextSlotAt()?", room for more at level "+UI.nextSlotAt():"")+") — swap friends in the grove 🌳" : "");
     UI._meetCreature = g.e;
     $("ov-meet").classList.add("active"); Game.shown("meet");
   },
@@ -2574,11 +2577,14 @@ const UI = {
     sky.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 6, 12));
     ground.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 44, 11));
     const hint=$("gr-hint");
-    if(hint) hint.innerHTML = Object.keys(P.metGrove).length
-      ? "tap a friend to add them to your party — <b>"+UI.equipped().length+" / "+slotsFor(P.level)+" slots</b> · same-home friends make powers <b>×2</b> · a bigger party acts faster"
-      : "spell a creature's name to invite it home";
+    if(hint){ const nxt=UI.nextSlotAt();
+      hint.innerHTML = Object.keys(P.metGrove).length
+        ? "tap a friend to add them to your party — <b>"+UI.equipped().length+" / "+slotsFor(P.level)+" slots</b>"
+          +(nxt?" (next slot at <b>level "+nxt+"</b>)":"")+" · same-home friends make powers <b>×2</b>"
+        : "spell a creature's name to invite it home"; }
     UI.scene("scene-grove");
   },
+  nextSlotAt(){ const m=slotsFor(P.level); return m>=4?null : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
     if(!P.metGrove[w]) return;
     P.equip = P.equip||[];
@@ -2586,7 +2592,11 @@ const UI = {
     const i=P.equip.indexOf(w);
     if(i>=0){ P.equip.splice(i,1); UI.toast(GROVE_BY_WORD[w].e+" stays home for now"); }
     else {
-      if(P.equip.length>=max){ const old=P.equip.shift(); UI.toast(GROVE_BY_WORD[old].e+" swapped out for "+GROVE_BY_WORD[w].e); }
+      if(P.equip.length>=max){
+        const old=P.equip.shift();
+        const nxt=UI.nextSlotAt();
+        UI.toast(GROVE_BY_WORD[old].e+" ↔ "+GROVE_BY_WORD[w].e+" — party of "+max+(nxt?" until level "+nxt:""));
+      }
       else UI.toast(GROVE_BY_WORD[w].e+" joins the party!");
       P.equip.push(w);
       Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
