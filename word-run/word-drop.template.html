@@ -22,14 +22,14 @@
     --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px;
     --fs-num:34px; --fs-big:22px; --fs-md:15px; --fs-sm:12px; --fs-xs:10px;
     --shadow-panel:0 10px 26px -12px rgba(121,92,55,.4);
-    --tile-face:linear-gradient(148deg,#fffdf4 0%, #f7ecd6 55%, #eadbba 100%);
-    --tile-edge:#b3a685;
-    --tile-ink:#4a3b28;
-    --board-bg:#f3ead4;
-    --board-dot:rgba(121,92,55,.22);
-    --grass:#7fbf6e;
-    --board-tint:linear-gradient(180deg, rgba(255,232,140,.20), rgba(150,200,120,.12));
-    --frame1:#c9a06a; --frame2:#a97e4a;
+    --tile-face:linear-gradient(150deg,#fffef8 0%, #fbf1da 46%, #f0dcb6 100%);
+    --tile-edge:#cbab7a;
+    --tile-ink:#5a4526;
+    --board-bg:#e7d3ab;
+    --board-dot:rgba(120,88,45,.28);
+    --grass:#79c268;
+    --board-tint:linear-gradient(180deg, rgba(255,236,150,.32) 0%, rgba(168,214,130,.16) 55%, rgba(120,175,95,.14) 100%);
+    --frame1:#caa26a; --frame2:#9a6f3c;
   }
   /* ===== BIOMES: the world changes every 5 levels — the whole plot takes on the place.
      letter tiles keep readable; special tiles keep their identity. ===== */
@@ -162,20 +162,23 @@
   @keyframes wiggle{ 0%,60%,100%{ transform:rotate(0) } 68%{ transform:rotate(-14deg) } 76%{ transform:rotate(12deg) }
     84%{ transform:rotate(-8deg) } 92%{ transform:rotate(0) } }
   @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
-  #home-content{ position:relative; z-index:2; width:100%; flex:1; display:flex; flex-direction:column;
-    align-items:center; justify-content:space-between;
-    padding:calc(64px + env(safe-area-inset-top)) 14px calc(22px + env(safe-area-inset-bottom)); }
-  #homelogo{ text-align:center; position:relative; }
+  #home-content{ position:absolute; inset:0; z-index:2; }
+  #homelogo{ position:absolute; left:0; right:0; top:38%; transform:translateY(-50%); text-align:center; }
   #homelogo::before{ content:""; position:absolute; inset:-26px -30px; z-index:-1;
-    background:radial-gradient(60% 60% at 50% 42%, rgba(255,255,255,.75), rgba(255,255,255,0) 72%); }
-  .home-pills{ margin-top:-4px; }
-  .home-links{ background:linear-gradient(180deg,#d9b483,#c39a5c); border:none;
-    border-radius:22px; padding:9px 14px; gap:12px;
-    box-shadow:0 5px 0 #9c7233, 0 10px 18px rgba(90,60,30,.3); }
-  .home-links .iconbtn{ width:50px; height:50px; font-size:22px;
-    background:linear-gradient(180deg,#fffdf6,#f3e7cf); border:1.5px solid #e6cfa2;
-    box-shadow:0 3px 0 #cbb184, inset 0 1px 0 rgba(255,255,255,.9); color:var(--ink); }
-  .home-links .iconbtn:active{ transform:translateY(2px); box-shadow:0 1px 0 #cbb184; }
+    background:radial-gradient(60% 60% at 50% 42%, rgba(255,255,255,.72), rgba(255,255,255,0) 72%); }
+  .home-pills{ position:absolute; left:0; right:0; top:80%; display:flex; gap:8px; justify-content:center; }
+  #btn-play{ position:absolute; left:50%; top:62%; transform:translate(-50%,-50%); }
+  .home-links{ position:absolute; left:0; right:0; bottom:calc(20px + env(safe-area-inset-bottom));
+    display:flex; gap:22px; justify-content:center; }
+  /* bottom links = round mossy stepping-stones set into the grass */
+  .home-links .iconbtn{ width:58px; height:58px; font-size:24px; position:relative;
+    background:radial-gradient(120% 120% at 40% 30%, #f2ead6, #d9c9a6 70%, #c3ad82);
+    border:none; color:var(--ink);
+    box-shadow:0 4px 0 #9c8a63, 0 8px 14px rgba(60,90,40,.35),
+      inset 0 2px 0 rgba(255,255,255,.7), inset 0 -3px 5px rgba(120,95,55,.35); }
+  .home-links .iconbtn::after{ content:""; position:absolute; inset:auto 6px 4px 6px; height:6px; border-radius:50%;
+    background:radial-gradient(50% 100% at 50% 0, rgba(107,168,90,.55), transparent 70%); }
+  .home-links .iconbtn:active{ transform:translateY(3px); box-shadow:0 1px 0 #9c8a63, 0 4px 8px rgba(60,90,40,.35); }
   .home-links .iconbtn .cnt{ background:var(--accent-deep); color:#fff; }
   .logo-tiles{ display:flex; gap:8px; justify-content:center; }
   .logo-tiles .tile{ width:54px; height:58px; font-size:27px; position:relative; animation:logobob 2.6s ease-in-out infinite; }
@@ -187,15 +190,14 @@
   .logo-sub{ display:inline-block; margin-top:10px; font-size:12px; letter-spacing:1.5px; color:#6b5a3e; font-weight:700;
     background:rgba(255,255,255,.7); border:1px solid rgba(121,92,55,.18); border-radius:999px; padding:4px 14px;
     box-shadow:0 2px 6px rgba(90,60,30,.15); }
-  #btn-play{ width:96px; height:96px; border-radius:50%; font-size:24px; font-weight:900;
+  #btn-play{ width:100px; height:100px; border-radius:50%; font-size:26px; font-weight:900;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
-    background:linear-gradient(150deg,var(--accent),var(--accent-deep)); color:#fff;
-    box-shadow:0 8px 0 rgba(61,102,61,.55), 0 0 34px rgba(104,177,104,.35); animation:playpulse 1.9s infinite; z-index:1; }
-  #btn-play small{ font-size:11px; font-weight:800; opacity:.85; letter-spacing:1px; }
-  @keyframes playpulse{ 50%{ box-shadow:0 8px 0 rgba(61,102,61,.55), 0 0 52px rgba(104,177,104,.6); transform:scale(1.04); } }
-  #btn-play:active{ transform:scale(.92); }
-  .home-pills{ display:flex; gap:8px; z-index:1; }
-  .home-links{ display:flex; gap:14px; z-index:1; }
+    background:linear-gradient(150deg,#ffcf6b,#f2a33a 60%,#e0862a); color:#5a3410;
+    border:3px solid #fff6e6;
+    box-shadow:0 9px 0 #b56a1e, 0 0 40px rgba(255,180,80,.5); animation:playpulse 1.9s infinite; z-index:1; }
+  #btn-play small{ font-size:11px; font-weight:800; opacity:.8; letter-spacing:1px; }
+  @keyframes playpulse{ 50%{ box-shadow:0 9px 0 #b56a1e, 0 0 58px rgba(255,180,80,.7); transform:translate(-50%,-50%) scale(1.05); } }
+  #btn-play:active{ transform:translate(-50%,-50%) scale(.93); }
 
   /* -------- first-run tutorial: four wordless-leaning slides -------- */
   #tut-slide{ min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
@@ -258,21 +260,26 @@
   #board{ position:relative;
     background-color:var(--board-bg);
     background-image:
-      radial-gradient(7px 11px at 7px -1px, var(--grass) 0 6.5px, transparent 7.5px),  /* grass blades along the top */
-      radial-gradient(circle, var(--board-dot) 2px, transparent 2.7px),                /* planting holes */
-      var(--board-tint);                                                               /* the place's light */
-    background-repeat:repeat-x, repeat, no-repeat;
-    background-position:0 0, -2px 12px, center;
-    background-size:14px 12px, 48px 48px, cover;
-    border-radius:6px var(--r-md) var(--r-md) var(--r-md); overflow:hidden;
+      radial-gradient(6px 16px at 6px -3px, color-mix(in srgb,var(--grass) 78%,#1f5a24) 0 6px, transparent 7px), /* back grass */
+      radial-gradient(7px 13px at 10px -1px, var(--grass) 0 7px, transparent 8px),                                /* front grass */
+      linear-gradient(180deg, color-mix(in srgb,var(--grass) 45%,transparent) 0, transparent 20px),               /* green shade under grass */
+      radial-gradient(circle, var(--board-dot) 2.2px, transparent 3px),                                           /* planting holes */
+      repeating-linear-gradient(24deg, rgba(120,85,40,.05) 0 3px, transparent 3px 9px),                           /* soil grain */
+      var(--board-tint);                                                                                          /* the place's light */
+    background-repeat:repeat-x, repeat-x, repeat-x, repeat, repeat, no-repeat;
+    background-position:4px 0, 0 0, 0 0, -2px 16px, 0 0, center;
+    background-size:14px 16px, 14px 14px, 100% 20px, 48px 48px, auto, cover;
+    border-radius:4px var(--r-lg) var(--r-lg) var(--r-lg); overflow:hidden;
     transition:background-color .6s;
     box-shadow:
-      0 0 0 6px var(--frame1), 0 0 0 8px var(--frame2),
-      0 22px 44px -18px rgba(90,60,30,.55), inset 0 -30px 40px -20px rgba(120,85,45,.3),
-      inset 0 16px 12px -8px color-mix(in srgb, var(--grass) 55%, transparent); }
+      0 0 0 5px var(--frame1), 0 0 0 7px var(--frame2), 0 0 0 10px color-mix(in srgb,var(--frame2) 70%,#3a2410),
+      0 26px 50px -16px rgba(70,45,20,.65),
+      inset 0 -34px 46px -22px rgba(110,75,35,.42),
+      inset 0 0 60px -12px rgba(90,60,25,.25),
+      inset 0 18px 14px -10px color-mix(in srgb, var(--grass) 60%, transparent); }
   #board.danger{ animation:dangerpulse 1s infinite; }
-  @keyframes dangerpulse{ 50%{ box-shadow:0 0 0 6px #e2654f, 0 0 0 8px #b84a38,
-    0 22px 44px -18px rgba(90,60,30,.55); } }
+  @keyframes dangerpulse{ 50%{ box-shadow:0 0 0 5px #e2654f, 0 0 0 7px #b84a38, 0 0 0 10px #7a2a1e,
+    0 26px 50px -16px rgba(70,45,20,.65); } }
 
   /* -------- dock: the hand -------- */
   #dock{ width:100%; display:flex; align-items:flex-end; justify-content:center; gap:10px;
@@ -344,14 +351,25 @@
     display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; }
 
   /* -------- grove visitor: your collection plays with you -------- */
-  #visitor{ position:absolute; top:-8px; right:6px; z-index:50; font-size:30px; cursor:pointer; display:none;
-    filter:drop-shadow(0 3px 6px rgba(0,0,0,.6)); animation:visitorbob 3s ease-in-out infinite; }
-  #visitor.here{ display:block; }
-  @keyframes visitorbob{ 0%,50%,100%{ transform:translateY(0) rotate(-3deg) } 60%{ transform:translateY(-12px) rotate(6deg) }
-    70%{ transform:translateY(0) rotate(-2deg) } 78%{ transform:translateY(-6px) rotate(4deg) } 86%{ transform:translateY(0) rotate(-3deg) } }
-  #visitor.bless{ animation:visitorjump .9s; }
-  @keyframes visitorjump{ 0%{ transform:translateY(0) } 25%{ transform:translateY(-26px) scale(1.3) rotate(-8deg) }
-    50%{ transform:translateY(0) scale(1) } 70%{ transform:translateY(-12px) rotate(6deg) } 100%{ transform:translateY(0) } }
+  /* grove companions — sit by your thumbs, tap them for hearts, they grow as you bond */
+  .petcompanion{ position:absolute; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:6; display:none;
+    width:auto; height:auto; padding:0; background:none; border:none; line-height:1; cursor:pointer;
+    filter:drop-shadow(0 4px 5px rgba(60,90,40,.4)); animation:petidle 3.4s ease-in-out infinite; }
+  .petcompanion.show{ display:block; }
+  #pet-left{ left:8px; }
+  #pet-right{ right:8px; animation-delay:1.1s; }
+  #pet-right .petbody{ transform:scaleX(-1); }
+  .petbody{ display:block; }
+  .petcompanion .zsleep{ position:absolute; top:-6px; right:-8px; font-size:14px; opacity:.7; animation:zfloat 3s ease-in-out infinite; }
+  @keyframes petidle{ 0%,62%,100%{ transform:translateY(0) rotate(0) } 70%{ transform:translateY(-10px) rotate(-5deg) }
+    78%{ transform:translateY(0) } 86%{ transform:translateY(-5px) rotate(4deg) } 94%{ transform:translateY(0) } }
+  @keyframes zfloat{ 0%,100%{ transform:translateY(0); opacity:.3 } 50%{ transform:translateY(-6px); opacity:.7 } }
+  .petcompanion.happy{ animation:pethappy .7s; }
+  @keyframes pethappy{ 0%{ transform:translateY(0) scale(1) } 30%{ transform:translateY(-22px) scale(1.25) rotate(-10deg) }
+    55%{ transform:translateY(0) scale(1.1) } 75%{ transform:translateY(-10px) rotate(8deg) } 100%{ transform:translateY(0) scale(1) } }
+  .heart{ position:absolute; z-index:80; font-size:18px; pointer-events:none; animation:heartup 1s ease-out forwards; }
+  @keyframes heartup{ 0%{ transform:translateY(0) scale(.5); opacity:0 } 25%{ opacity:1; transform:translateY(-10px) scale(1.1) }
+    100%{ transform:translateY(-48px) scale(.9); opacity:0 } }
   #iv-visitor{ font-size:13px; color:var(--dim); }
   #iv-visitor b{ font-size:20px; }
   .movesfloat{ position:absolute; z-index:90; font-size:22px; font-weight:900; color:var(--accent); pointer-events:none;
@@ -364,11 +382,12 @@
   .tw{ position:absolute; will-change:transform; transition:transform .22s cubic-bezier(.3,1.2,.5,1); }
   .tw > .tile{ width:100%; height:100%; }
   .tile{ display:flex; align-items:center; justify-content:center;
-    background:var(--tile-face); color:var(--tile-ink); border-radius:9px; font-weight:800; overflow:hidden;
-    text-shadow:0 1px 0 rgba(255,255,255,.55);
-    box-shadow:0 4px 0 var(--tile-edge), 0 5px 7px rgba(0,0,0,.3),
-      inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -3px 4px rgba(150,128,86,.28); }
-  .tile small{ position:absolute; bottom:1px; right:4px; font-size:9px; font-weight:700; color:#8d8064; }
+    background:var(--tile-face); color:var(--tile-ink); border-radius:11px; font-weight:900; overflow:hidden;
+    text-shadow:0 1px 0 rgba(255,255,255,.85);
+    box-shadow:0 5px 0 var(--tile-edge), 0 6px 9px rgba(90,60,25,.35),
+      inset 0 2px 0 rgba(255,255,255,.95), inset 0 -4px 5px rgba(150,120,70,.32),
+      inset 0 0 0 1.5px rgba(255,255,255,.35); }
+  .tile small{ position:absolute; bottom:2px; right:4px; font-size:9px; font-weight:800; color:rgba(120,95,55,.7); }
   .tile.gold{ background:linear-gradient(148deg,#ffefb0,#ffd54f 55%,#f5a800);
     box-shadow:0 4px 0 #a97a00, 0 5px 8px rgba(0,0,0,.3), inset 0 1.5px 0 rgba(255,255,255,.9),
       inset 0 -3px 4px rgba(160,110,0,.35), 0 0 12px rgba(255,213,79,.45); }
@@ -601,8 +620,9 @@
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
-      <div id="visitor" onclick="UI.visitorPeek()"></div>
     </div>
+    <button class="petcompanion" id="pet-left" onclick="UI.petTap('left')"></button>
+    <button class="petcompanion" id="pet-right" onclick="UI.petTap('right')"></button>
     <div id="dock">
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
@@ -954,7 +974,7 @@ function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
-    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, lastGroveLevel:0, run:null };
+    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, lastGroveLevel:0, petBond:0, run:null };
   try{
     let p = JSON.parse(localStorage.getItem("worddrop_v3"));
     if(!p){ // fresh brand: keep the grove & habits worth carrying, but relearn the powers
@@ -1616,9 +1636,10 @@ const Game = {
 
   visitorBless(){ // the grove pays you back: sky friends give moves, ground friends give powers
     const v=S.visitor;
-    const el=$("visitor");
-    el.classList.remove("bless"); void el.offsetWidth; el.classList.add("bless");
+    const el=$("pet-left");
+    el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,25,60]);
+    UI.visitor(); // drop the ✨ marker now that the visitor has given its gift
     if(v.z==="sky"){
       S.movesLeft+=2; UI.hud();
       const f=document.createElement("div"); f.className="movesfloat"; f.textContent="+2";
@@ -1940,16 +1961,36 @@ const UI = {
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
-  visitor(){
-    const el=$("visitor");
-    if(S && S.visitor){ el.textContent=S.visitor.e; el.title=S.visitor.w.toUpperCase(); el.classList.add("here"); }
-    else el.classList.remove("here");
+  visitor(){ // two grove companions sit by your thumbs; they grow as you bond with them
+    const disc = GROVE.filter(g=>P.grove[g.w]).sort((a,b)=>(P.grove[b.w]||0)-(P.grove[a.w]||0)); // most recent first
+    // left pet = the level's visitor (blesses on a 4+ word); right pet = another friend
+    const left = S && S.visitor ? S.visitor : disc[0];
+    const right = disc.find(g=>!left || g.w!==left.w);
+    const size = 32 + Math.min(P.petBond||0, 24); // grows with bond, capped
+    const paint=(id, g, isLeft)=>{
+      const el=$(id);
+      if(!g){ el.classList.remove("show"); return; }
+      el.dataset.w=g.w;
+      el.style.fontSize=size+"px";
+      el.innerHTML='<span class="petbody">'+g.e+'</span>'+(isLeft&&S&&S.visitor&&!S.visitor.used?'<span class="zsleep">✨</span>':'');
+      el.title=g.w.toUpperCase();
+      el.classList.add("show");
+    };
+    paint("pet-left", left, true);
+    paint("pet-right", right, false);
   },
-  visitorPeek(){ // tap the visitor: it hops and reminds you what it wants
-    if(!S || !S.visitor) return;
-    const el=$("visitor");
-    el.classList.remove("bless"); void el.offsetWidth; el.classList.add("bless");
-    Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true});
+  petTap(side){ // tap a companion → hearts, a happy hop, and a little bond
+    const el=$(side==="left"?"pet-left":"pet-right");
+    if(!el.classList.contains("show")) return;
+    P.petBond=(P.petBond||0)+1; save();
+    el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
+    Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); Snd.tone(1174,{dur:.14,type:"sine",gain:.05,when:.07,verb:true});
+    buzz(12);
+    const app=$("app"), ar=app.getBoundingClientRect(), r=el.getBoundingClientRect();
+    for(let i=0;i<3;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💛";
+      h.style.left=(r.left-ar.left+r.width/2-9+(i-1)*12)+"px"; h.style.top=(r.top-ar.top-4)+"px";
+      h.style.animationDelay=(i*0.08)+"s"; app.appendChild(h); setTimeout(()=>h.remove(),1100); }
+    if((P.petBond%10)===0) UI.visitor(); // every 10 taps they visibly grow
   },
   discover(g){ // a ritual: meet the creature, then it changes the board itself
     Snd.discover(); buzz([30,50,30,50,90]); UI.confetti();
@@ -2126,7 +2167,7 @@ const UI = {
       c.style.animationDelay=(Math.random()*0.3)+"s";
       $("app").appendChild(c); setTimeout(()=>c.remove(),1900); }
   },
-  all(){ UI.hud(); UI.piece(); UI.hints(); UI.tray(); UI.cozy(); },
+  all(){ UI.hud(); UI.piece(); UI.hints(); UI.tray(); UI.cozy(); UI.visitor(); },
 };
 
 /* =================== LAYOUT & INPUT =================== */
