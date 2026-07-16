@@ -1242,6 +1242,7 @@ function load(){
     out.seenTip = out.seenTip||{};
     out.metGrove = out.metGrove||{};
     out.equip = out.equip||[];
+    out.said = out.said||{};
     out.stats = Object.assign({}, defaults.stats, out.stats||{});
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
     out.powProg = out.powProg||{};
@@ -1831,7 +1832,7 @@ const Game = {
     }
     S.usingBreeze=true;
     $("breezepill").classList.add("armed");
-    UI.toast("🍃 tap two tiles — the wind will swap them");
+    UI.say("arm-breeze", "🍃 tap two tiles — the wind will swap them");
     Snd.tone(620,{dur:.14,type:"sine",gain:.07,verb:true}); Snd.tone(930,{dur:.1,type:"sine",gain:.05,when:.09,verb:true});
     UI.ghost(-1);
   },
@@ -1909,7 +1910,7 @@ const Game = {
     Game.closeWish();
     S.usingPluck=true;
     $("wishbtn").classList.add("armed");
-    UI.toast("🍂 tap the tile you want plucked away");
+    UI.say("arm-pluck", "🍂 tap the tile you want plucked away");
     Snd.tone(700,{dur:.12,type:"sine",gain:.06,verb:true});
     UI.ghost(-1);
   },
@@ -1937,7 +1938,7 @@ const Game = {
     UI.blossom(); // petals drift as the wish arrives
     Snd.tone(1046,{dur:.16,type:"sine",gain:.07,verb:true}); Snd.tone(1568,{dur:.22,type:"sine",gain:.05,when:.1,verb:true});
     buzz([15,30]);
-    UI.toast("🌸 "+l.toUpperCase()+" is yours — drop it anywhere");
+    UI.say("wish-grant", "🌸 "+l.toUpperCase()+" is yours — drop it anywhere");
     S.lastAction=Date.now();
   },
 
@@ -1965,7 +1966,7 @@ const Game = {
     const el=$("pet-"+idx) || $("pet-0");
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
-    UI.toast(pet.e+" "+PET_ABIL[pet.a].n+"! "+PET_ABIL[pet.a].i+(boost?" ×2":""));
+    UI.say("abil-"+pet.a, pet.e+" "+PET_ABIL[pet.a].n+"! "+PET_ABIL[pet.a].i+(boost?" ×2":""), 2);
     await wait(420);
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
     if(pet.a==="gold"){
@@ -2001,7 +2002,7 @@ const Game = {
       S.chain=1; await Game.resolve(fell); // tidy-up may tumble tiles into a word — let it bloom
     } else if(pet.a==="charm"){
       S.charm=(S.charm||0)+(boost?2:1); // your next word(s) score double
-      UI.toast(pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖");
+      UI.say("charm-sing", pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
       const hb=$("petbar"); hb.classList.add("pulse"); setTimeout(()=>hb.classList.remove("pulse"),520);
       for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
         h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%";
@@ -2180,7 +2181,7 @@ const Game = {
     b.remove();
     if(held){
       cells.forEach(t=>t.inner.classList.remove("lit"));
-      UI.toast("🌱 saved — build it into something bigger!");
+      UI.say("hold-saved", "🌱 saved — build it into something bigger!");
       Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
       return;
     }
@@ -2703,6 +2704,13 @@ const UI = {
     const t=$("toast"); t.innerHTML=m;
     t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
     clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"), 2100);
+  },
+  say(key, msg, times){ // teach loudly, then trust the player: instructional messages
+    // show center-stage the first couple of times, then go quiet — glow/sound carries it.
+    P.said=P.said||{};
+    if((P.said[key]||0) >= (times||2)) return;
+    P.said[key]=(P.said[key]||0)+1; save();
+    UI.toast(msg);
   },
   TIPS:{
     breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. A little word blooms after a breath — tap <b>🌱 hold</b> if you're building something bigger."},
