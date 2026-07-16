@@ -256,7 +256,9 @@
     filter:grayscale(1) opacity(.5); transition:filter .3s, transform .3s; }
   #goalbar.done .star{ filter:none; transform:translateY(-50%) scale(1.25); }
 
-  #cozyrow{ display:flex; gap:var(--sp2); z-index:2; }
+  #goalrow{ width:100%; display:flex; gap:var(--sp2); align-items:center; z-index:2; }
+  #goalrow #goalbar{ flex:1; width:auto; }
+  #goalrow #quest{ flex:none; }
   .pill{ font-size:var(--fs-sm); color:var(--dim); background:var(--surface); border:1px solid var(--surface-border);
     border-radius:999px; padding:6px 13px; white-space:nowrap; letter-spacing:1px; display:inline-flex; align-items:center; gap:5px; }
   .pill b{ color:var(--ink); }
@@ -392,14 +394,14 @@
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:
-      radial-gradient(6px 10px at 7px calc(100% - 1px), var(--grass) 0 5px, transparent 6px), /* grass tufts underfoot */
-      linear-gradient(0deg, color-mix(in srgb, var(--grass) 38%, transparent) 0, transparent 16px),
+      linear-gradient(0deg, color-mix(in srgb, var(--grass) 30%, transparent) 0, transparent 14px),
       linear-gradient(180deg, rgba(255,253,246,.95), #f6efdc);
-    background-repeat:repeat-x, no-repeat, no-repeat;
-    background-size:14px 11px, 100% 100%, cover;
-    background-position:0 100%, 0 0, center;
+    background-repeat:no-repeat, no-repeat;
+    background-size:100% 100%, cover;
     box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
   #petbar.on{ display:flex; }
+  #petbar #starpill{ position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    font-size:11px; padding:4px 9px; background:rgba(255,255,255,.75); }
   .pbdeco{ font-size:17px; align-self:flex-end; padding-bottom:4px; filter:drop-shadow(0 1px 2px rgba(90,110,60,.3)); }
   .pbdeco:nth-child(2), .pbdeco:nth-last-child(1){ font-size:13px; opacity:.9; }
   .petcompanion{ display:none; background:none; border:none; line-height:1; padding:0 0 3px; position:relative;
@@ -707,8 +709,10 @@
       <span id="lvlchip" class="chip">LV <b id="h-level">1</b></span>
       <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
-    <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
-    <div id="cozyrow"><span class="pill" id="quest"></span><span class="pill" id="starpill">🌟 <b id="star-count">0</b></span></div>
+    <div id="goalrow">
+      <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
+      <span class="pill" id="quest"></span>
+    </div>
     <div id="petbar">
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
       <span class="petcompanion" id="pet-0"></span>
@@ -716,6 +720,7 @@
       <span class="petcompanion" id="pet-2"></span>
       <span class="petcompanion" id="pet-3"></span>
       <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
+      <span class="pill" id="starpill">🌟 <b id="star-count">0</b></span>
     </div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
@@ -2146,7 +2151,7 @@ const UI = {
     if(S && S.tutorWord){ // rounds 1-2: guide the player to spell their first friend
       const g=GROVE_BY_WORD[S.tutorWord];
       qe.classList.remove("done");
-      qe.innerHTML = g.e+" spell <b>"+S.tutorWord.toUpperCase()+"</b> to meet a friend!";
+      qe.innerHTML = g.e+" spell <b>"+S.tutorWord.toUpperCase()+"</b>!";
       qe.title="spell "+S.tutorWord.toUpperCase();
     } else {
       const q=dailyQuest();
