@@ -1006,27 +1006,27 @@ function isMilestone(L){ return L%10===0; }
 /* Retuned after the honest-play audit (50% loss rate at L4-7 was churning the cozy
    audience). Targets assume ~5-8 mostly-3-letter words per level; the first ten
    levels should be ~95% winnable while the game teaches itself. */
-/* Move budgets are tight now: ~3-4 spare for a decent clear, not a dozen. A loose
-   budget makes the star rating meaningless and drains all tension. The early flat-18
-   is gone — moves ramp with the target so the surplus stays small at every level. */
+/* Clean, round move counts (15 then 20 — never an odd 13). Difficulty rides the
+   TARGET, which is what we tune per level; moves stay a familiar multiple of 5.
+   Targets are multiples of 5 too, so nothing on screen looks arbitrary. */
 const EARLY=[ null,
-  [15,13],  // L1 · gentle
-  [18,14],  // L2
-  [22,16],  // L3 · 🍃 breeze arrives
-  [22,16],  // L4 · spell CAT
-  [26,16],  // L5 · meet your first pet
-  [28,17],  // L6 · spell DOG
-  [34,17],  // L7 · two pets
-  [38,17],  // L8
+  [15,15],  // L1 · gentle
+  [20,15],  // L2
+  [25,15],  // L3 · 🍃 breeze arrives
+  [25,15],  // L4 · spell CAT
+  [30,20],  // L5 · meet your first pet
+  [35,20],  // L6 · spell DOG
+  [40,20],  // L7 · two pets
+  [45,20],  // L8
 ];
 function TARGET(L){
   if(EARLY[L]) return EARLY[L][0];
-  const base = 34 + 10*Math.pow(L-8, 0.86);
-  return Math.round(base*RHYTHM[(L-1)%5]/5)*5;
+  const base = 45 + 12*Math.pow(L-8, 0.85);
+  return Math.round(base*RHYTHM[(L-1)%5]/5)*5;   // always lands on a multiple of 5
 }
 function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
-  return Math.min(19, 17+Math.floor((L-8)/8)) - (isSpike(L)?1:0);
+  return 20;   // clean and constant after level 8 — the target carries the challenge
 }
 function recipe(L){ // obstacles arrive slowly, one new kind at a time
   return {
@@ -1304,12 +1304,14 @@ function drawLetter(){
   if(letters>4 && vowels/letters<0.25 && Math.random()<0.5) return rand(["a","e","i","o"]);
   return FREQ[Math.floor(Math.random()*FREQ.length)];
 }
-function tutorPrefill(word){ // a clean, guided board: the word's first letters sit ready
-  for(const t of Object.values(S.tiles)) t.el.remove();
-  S.tiles={}; S.board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+function tutorPrefill(word){ // guide the word WITHOUT emptying the plot (a barren board starves words)
   const head=word.slice(0,-1).split(""); // "ca" for cat
-  const startCol=2;
-  head.forEach((l,i)=>newTile(l,"normal",ROWS-1,startCol+i)); // leaves the next column empty for the last letter
+  // drop the opening letters onto an open stretch of the normal prefill, leaving the next slot free.
+  for(let c=0; c+head.length<COLS; c++){
+    let open=true; for(let i=0;i<=head.length;i++){ if(S.board[ROWS-1][c+i]){ open=false; break; } }
+    if(open){ head.forEach((l,i)=>newTile(l,"normal",ROWS-1,c+i)); return; }
+  }
+  // no clean stretch — the deck forcing (tutorLetter) still leads the player to the word
 }
 function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy to spell
   const w=S.tutorWord; if(!w) return null;
@@ -1324,16 +1326,20 @@ function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy t
 function makePiece(){
   // gently paced: no special tiles in the early levels — one new idea at a time
   if(S && S.tutorWord && Math.random()<0.8){ const l=tutorLetter(); if(l) return {letter:l, kind:"normal"}; }
-  // MERCY is deterministic, not a dice roll: after two wordless drops the deck
-  // ALWAYS deals a completion if one exists anywhere. droughts are the #1 quit reason.
-  if(S && S.deadDrops>=2){
+  // MERCY is deterministic, not a dice roll: after two wordless drops the deck ALWAYS
+  // deals a completion if one exists. And in the ENDGAME (few moves left) even ONE dead
+  // drop triggers it — a drought on your last moves is what quietly loses winnable levels.
+  const mercy = S && (S.deadDrops>=2 || (S.movesLeft<=6 && S.deadDrops>=1));
+  if(mercy){
     const best=helpfulByLength(); const ks=Object.keys(best);
     if(ks.length){ const longs=ks.filter(l=>best[l]>=4);
       return {letter:rand(longs.length?longs:ks), kind:"normal"}; }
     // no completion exists (a scattered board) — force a BUILDER so one appears next drop.
-    // this is what kills deep droughts: progress is guaranteed within two moves.
     const b=builderLetters();
     if(b.length) return {letter:rand(b), kind:"normal"};
+    // still nothing makeable in a real drought — a blossom drifts in to rescue you.
+    // it matches ANY letter, so beside almost any pair it completes a word. skill-proof.
+    if(S.deadDrops>=3 || S.movesLeft<=5) return {letter:"★", kind:"wild"};
   }
   const roll=Math.random();
   const goldOK = S && S.level>=9;              // ✨ gold tiles arrive at level 9
