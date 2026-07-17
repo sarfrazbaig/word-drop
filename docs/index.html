@@ -156,10 +156,10 @@
     font-size:var(--fs-sm); color:var(--dim); }
   .chip b{ color:var(--ink); font-size:14px; font-variant-numeric:tabular-nums; }
   .btn-primary{ display:flex; align-items:center; justify-content:center; gap:8px;
-    background:linear-gradient(150deg,var(--accent),var(--accent-deep)); color:#0c1e0c;
-    border-radius:var(--r-md); font-size:17px; font-weight:800; padding:15px 22px; width:100%;
-    box-shadow:0 5px 0 rgba(0,0,0,.35); }
-  .btn-primary:active{ transform:translateY(2px); box-shadow:0 3px 0 rgba(0,0,0,.35); }
+    background:radial-gradient(130% 130% at 40% 25%, #7fae72, var(--accent-deep)); color:#f4f8ee;
+    border:1.5px solid rgba(255,255,255,.28); border-radius:var(--r-md); font-size:17px; font-weight:800; padding:14px 22px; width:100%;
+    box-shadow:0 5px 0 #385a34, 0 8px 16px rgba(40,50,35,.35); }
+  .btn-primary:active{ transform:translateY(2px); box-shadow:0 3px 0 #385a34; }
   .btn-gold{ background:linear-gradient(150deg,var(--gold),var(--gold-deep)); color:#3a2a00; }
   .btn-ghost{ background:var(--surface); border:1px solid var(--surface-border); color:var(--ink); }
   .iconbtn{ width:44px; height:44px; border-radius:50%; font-size:18px; flex:none;
@@ -179,12 +179,14 @@
 
   .overlay{ position:absolute; inset:0; z-index:100; display:none; flex-direction:column;
     align-items:center; justify-content:center; padding:26px;
-    background:rgba(96,72,46,.42); backdrop-filter:blur(3px); }
+    background:rgba(48,42,72,.5); backdrop-filter:blur(3px); }
   .overlay.active{ display:flex; animation:scenein .3s; }
-  .card{ width:100%; max-width:300px; background:#fffdf6; border:1px solid var(--surface-border);
-    border-radius:var(--r-xl); padding:var(--sp5); text-align:center;
-    box-shadow:0 20px 44px -14px rgba(90,60,30,.5); display:flex; flex-direction:column; gap:var(--sp3); }
-  .card h2{ margin:0; font-size:26px; }
+  /* cards are pages of the book: warm parchment with a soft gilt edge */
+  .card{ width:100%; max-width:300px; background:linear-gradient(180deg,#fbf5e6,#f3e9d2);
+    border:1px solid rgba(150,120,70,.3); border-radius:var(--r-xl); padding:var(--sp5); text-align:center;
+    box-shadow:0 22px 48px -14px rgba(30,25,55,.6), inset 0 0 0 1px rgba(255,250,235,.6),
+      inset 0 2px 0 rgba(255,255,255,.7); display:flex; flex-direction:column; gap:var(--sp3); }
+  .card h2{ margin:0; font-size:25px; color:var(--ink); }
   .card .rowstat{ display:flex; justify-content:space-around; }
   .card .rowstat div{ font-size:var(--fs-sm); color:var(--dim); }
   .card .rowstat b{ display:block; font-size:22px; color:var(--gold-deep); font-variant-numeric:tabular-nums; }
@@ -216,6 +218,14 @@
     border-radius:inherit; transition:opacity .7s ease;
     background:linear-gradient(180deg, rgba(139,147,199,.52) 0%, rgba(139,147,199,.28) 45%, rgba(139,147,199,0) 100%);
     mix-blend-mode:normal; }
+  /* THE WAKING ARC: early in the journey the whole wood is deep in hush (a dusk-violet
+     veil over the board). every name you remember lifts it a little — the world you're
+     restoring literally brightens under your hands. driven by --wake (0=asleep, 1=awake). */
+  #wakeveil{ position:absolute; inset:0; z-index:27; pointer-events:none; border-radius:inherit;
+    transition:opacity 1s ease;
+    background:
+      radial-gradient(130% 100% at 50% 22%, transparent 46%, rgba(58,54,96,.30) 100%),
+      linear-gradient(180deg, rgba(74,68,112,.24), rgba(52,48,88,.12)); }
   /* ===== the cover of the book: the wood at the edge of waking ===== */
   #sky{ position:absolute; inset:0 0 32% 0; z-index:0;
     background:linear-gradient(180deg,#6d6f9e 0%, #9d92bb 30%, #d9a988 62%, #f2d9a8 84%, #f7ecd0 100%); }
@@ -254,13 +264,18 @@
       radial-gradient(11% 92% at 66% 100%, #446880 0 96%, transparent 100%),
       radial-gradient(9% 70% at 80% 100%, #3f5f74 0 96%, transparent 100%),
       radial-gradient(12% 88% at 94% 100%, #446880 0 96%, transparent 100%); }
-  #hill-near .sprout{ position:absolute; top:8px; font-size:26px; animation:sway 4s ease-in-out infinite; transform-origin:bottom center; }
+  #hill-near .sprout{ position:absolute; top:11px; font-size:18px; opacity:.7; animation:sway 4s ease-in-out infinite; transform-origin:bottom center; }
   #hill-near .sprout:nth-child(even){ animation-delay:-2s; }
   @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(6deg) } }
-  #hill-near .peek{ position:absolute; top:-16px; font-size:30px; transform-origin:bottom center;
-    filter:drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+  /* your party peeks from the wood's edge — the cast changes as you wake more names */
+  #hill-near .peek{ position:absolute; top:-14px; font-size:28px; transform-origin:bottom center;
+    filter:drop-shadow(0 3px 5px rgba(30,25,50,.4)); }
   #hill-near .peek:nth-of-type(1){ animation:hop 2.8s ease-in-out infinite; }
-  #hill-near .peek:nth-of-type(2){ animation:wiggle 3.4s ease-in-out infinite .6s; }
+  #hill-near .peek:nth-of-type(2){ animation:wiggle 3.4s ease-in-out infinite .5s; }
+  #hill-near .peek:nth-of-type(3){ animation:hop 3.1s ease-in-out infinite 1.1s; }
+  #hill-near .peek:nth-of-type(4){ animation:wiggle 3.7s ease-in-out infinite 1.6s; }
+  #hill-near .peek.newwake{ animation:peekwake .9s ease-out; } /* a freshly-woken friend arrives */
+  @keyframes peekwake{ 0%{ transform:translateY(30px) scale(.4); opacity:0 } 60%{ transform:translateY(-8px) scale(1.15) } 100%{ transform:translateY(0) scale(1) } }
   @keyframes hop{ 0%,58%,100%{ transform:translateY(0) rotate(0) } 66%{ transform:translateY(-16px) rotate(-8deg) }
     74%{ transform:translateY(0) rotate(0) } 82%{ transform:translateY(-9px) } 90%{ transform:translateY(0) } }
   @keyframes wiggle{ 0%,60%,100%{ transform:rotate(0) } 68%{ transform:rotate(-14deg) } 76%{ transform:rotate(12deg) }
@@ -274,16 +289,21 @@
   #btn-play{ position:absolute; left:50%; top:62%; transform:translate(-50%,-50%); }
   .home-links{ position:absolute; left:0; right:0; bottom:calc(20px + env(safe-area-inset-bottom));
     display:flex; gap:22px; justify-content:center; }
-  /* bottom links = round mossy stepping-stones set into the grass */
-  .home-links .iconbtn{ width:58px; height:58px; font-size:24px; position:relative;
-    background:radial-gradient(120% 120% at 40% 30%, #f2ead6, #d9c9a6 70%, #c3ad82);
-    border:none; color:var(--ink);
-    box-shadow:0 4px 0 #9c8a63, 0 8px 14px rgba(60,90,40,.35),
-      inset 0 2px 0 rgba(255,255,255,.7), inset 0 -3px 5px rgba(120,95,55,.35); }
-  .home-links .iconbtn::after{ content:""; position:absolute; inset:auto 6px 4px 6px; height:6px; border-radius:50%;
-    background:radial-gradient(50% 100% at 50% 0, rgba(107,168,90,.55), transparent 70%); }
-  .home-links .iconbtn:active{ transform:translateY(3px); box-shadow:0 1px 0 #9c8a63, 0 4px 8px rgba(60,90,40,.35); }
-  .home-links .iconbtn .cnt{ background:var(--accent-deep); color:#fff; }
+  /* bottom links = warm carved-wood buttons at the wood's edge, dusk-lit */
+  .home-links .iconbtn{ width:56px; height:56px; font-size:23px; position:relative;
+    background:radial-gradient(120% 120% at 40% 28%, #f4ead4, #d8c39c 68%, #b99f74);
+    border:1.5px solid rgba(90,72,45,.3); color:var(--ink);
+    box-shadow:0 4px 0 #8a7048, 0 9px 16px rgba(40,35,60,.4),
+      inset 0 2px 0 rgba(255,250,235,.75), inset 0 -3px 5px rgba(120,95,55,.35); }
+  .home-links .iconbtn::after{ content:""; position:absolute; inset:auto 7px 4px 7px; height:6px; border-radius:50%;
+    background:radial-gradient(50% 100% at 50% 0, rgba(232,182,76,.55), transparent 70%); }
+  .home-links .iconbtn:active{ transform:translateY(3px); box-shadow:0 1px 0 #8a7048, 0 4px 8px rgba(40,35,60,.4); }
+  .home-links .iconbtn .cnt{ background:var(--gold-deep); color:#fff; }
+  /* the two pills = little parchment tags */
+  .home-pills .chip{ font-family:var(--font-ui); background:rgba(247,236,208,.82);
+    border:1px solid rgba(90,80,120,.22); color:#5b5030;
+    box-shadow:0 3px 8px rgba(40,35,70,.28); backdrop-filter:blur(2px); }
+  .home-pills .chip b{ color:var(--gold-deep); }
   .logo-tiles{ display:flex; gap:8px; justify-content:center; }
   .logo-tiles .tile{ width:54px; height:58px; font-size:27px; position:relative; animation:logobob 2.6s ease-in-out infinite; }
   .logo-tiles .tile:nth-child(2){ animation-delay:.18s } .logo-tiles .tile:nth-child(3){ animation-delay:.36s }
@@ -322,12 +342,12 @@
   #tut-dots i{ width:8px; height:8px; border-radius:50%; background:rgba(121,92,55,.25); }
   #tut-dots i.on{ background:var(--gold-deep); }
   #ov-tut{ background:none; }
-  #tut-sky{ position:absolute; inset:0 0 32% 0; background:linear-gradient(180deg,#bfe6f5,#eaf6ee); }
-  #tut-sun{ position:absolute; top:9%; right:16%; width:64px; height:64px; border-radius:50%;
-    background:radial-gradient(circle,#fff3c4,#ffd35e); box-shadow:0 0 40px 12px rgba(255,221,120,.6); }
+  #tut-sky{ position:absolute; inset:0 0 32% 0; background:linear-gradient(180deg,#5b5d8c 0%,#8a7fae 45%,#c99f82 78%,#e7d3ac 100%); }
+  #tut-sun{ position:absolute; top:9%; right:16%; width:52px; height:52px; border-radius:50%;
+    background:radial-gradient(circle,#fff6dc,#f5cc74); box-shadow:0 0 42px 14px rgba(255,224,150,.45); }
   #tut-hill{ position:absolute; left:0; right:0; bottom:0; height:36%;
-    background:linear-gradient(180deg,#7fbf6e,#5c9c50); border-radius:60% 60% 0 0 / 22% 22% 0 0; }
-  #tut-hill .sprout{ position:absolute; top:12px; font-size:26px; }
+    background:linear-gradient(180deg,#59855a,#3c6140); border-radius:60% 60% 0 0 / 22% 22% 0 0; }
+  #tut-hill .sprout{ position:absolute; top:12px; font-size:22px; opacity:.75; }
   #ov-tut .card{ position:relative; z-index:2; }
 
   /* ================= GAME SCENE ================= */
@@ -714,14 +734,14 @@
     30%{ transform:translate(-50%,-50%) scale(1) } 80%{ opacity:1 } 100%{ transform:translate(-50%,-80%) scale(.9); opacity:0 } }
   /* ---- meet a new friend ritual ---- */
   #ov-meet{ background:none; overflow:hidden; z-index:170; }
-  #meet-sky{ position:absolute; inset:0 0 34% 0; background:linear-gradient(180deg,#bfe6f5,#eaf6ee); }
-  #meet-sun{ position:absolute; top:8%; left:50%; transform:translateX(-50%); width:70px; height:70px; border-radius:50%;
-    background:radial-gradient(circle,#fff3c4,#ffd35e); box-shadow:0 0 50px 16px rgba(255,221,120,.6); }
+  #meet-sky{ position:absolute; inset:0 0 34% 0; background:linear-gradient(180deg,#514f82 0%,#8579a6 48%,#cf9f7e 100%); }
+  #meet-sun{ position:absolute; top:8%; left:50%; transform:translateX(-50%); width:66px; height:66px; border-radius:50%;
+    background:radial-gradient(circle,#fff6dc,#f5cc74); box-shadow:0 0 54px 20px rgba(255,226,150,.55); }
   #meet-hill{ position:absolute; left:0; right:0; bottom:0; height:38%;
-    background:linear-gradient(180deg,#7fbf6e,#5c9c50); border-radius:60% 60% 0 0 / 24% 24% 0 0; }
+    background:linear-gradient(180deg,#59855a,#3c6140); border-radius:60% 60% 0 0 / 24% 24% 0 0; }
   #meet-rays{ position:absolute; left:50%; top:36%; width:260px; height:260px; transform:translate(-50%,-50%);
-    background:repeating-conic-gradient(from 0deg, rgba(255,240,180,.5) 0 8deg, transparent 8deg 22deg);
-    border-radius:50%; animation:rayspin 22s linear infinite; opacity:.7; }
+    background:repeating-conic-gradient(from 0deg, rgba(255,236,170,.55) 0 8deg, transparent 8deg 22deg);
+    border-radius:50%; animation:rayspin 22s linear infinite; opacity:.65; }
   @keyframes rayspin{ to{ transform:translate(-50%,-50%) rotate(360deg) } }
   #ov-meet .card{ position:relative; z-index:2; padding:22px 24px 20px; }
   #meet-label{ font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-deep); font-weight:800; }
@@ -773,7 +793,7 @@
   #ov-unlock .card{ cursor:pointer; gap:var(--sp3); }
   #un-burst{ font-size:64px; animation:unpop .6s; filter:drop-shadow(0 4px 14px rgba(240,169,46,.55)); }
   @keyframes unpop{ 0%{ transform:scale(0) rotate(-20deg); opacity:0 } 55%{ transform:scale(1.3) rotate(8deg) } 100%{ transform:scale(1) } }
-  #un-title{ font-size:21px; font-weight:900; color:var(--accent-deep); }
+  #un-title{ font-family:var(--font-story); font-size:22px; font-weight:750; color:var(--accent-deep); }
   #un-body{ font-size:14px; color:var(--ink); line-height:1.55; }
   #un-try{ font-size:13px; color:var(--gold-deep); line-height:1.5; background:rgba(240,169,46,.12);
     border:1px dashed rgba(201,138,16,.4); border-radius:12px; padding:8px 12px; }
@@ -902,12 +922,12 @@
     </div>
     <div id="hill-far"></div>
     <div id="hill-near">
-      <span class="sprout" style="left:8%">🌷</span>
-      <span class="sprout" style="left:20%">🌿</span>
-      <span class="sprout" style="right:24%">🌼</span>
-      <span class="sprout" style="right:8%">🌱</span>
-      <span class="peek" style="left:14%">🦊</span>
-      <span class="peek" style="right:16%">🦉</span>
+      <span class="sprout" style="left:24%">🌿</span>
+      <span class="sprout" style="right:28%">🌱</span>
+      <span class="peek" id="peek-0" style="left:12%">🐱</span>
+      <span class="peek" id="peek-1" style="left:33%">🐰</span>
+      <span class="peek" id="peek-2" style="right:31%">🦌</span>
+      <span class="peek" id="peek-3" style="right:11%">🐶</span>
     </div>
     <div id="home-content">
       <div id="homelogo">
@@ -1008,7 +1028,7 @@
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay" id="ov-tut">
     <div id="tut-sky"><div id="tut-sun"></div></div>
-    <div id="tut-hill"><span class="sprout" style="left:12%">🌷</span><span class="sprout" style="right:14%">🌼</span></div>
+    <div id="tut-hill"><span class="sprout" style="left:10%">🌿</span><span class="peek" style="left:16%;top:-14px;font-size:26px">🦊</span><span class="peek" style="right:15%;top:-14px;font-size:26px">🦉</span><span class="sprout" style="right:9%">🍄</span></div>
     <div class="card">
       <div id="tut-slide"></div>
       <div id="tut-dots"></div>
@@ -1148,7 +1168,15 @@ function applyBiome(L){
   boardEl.insertBefore(d, boardEl.firstChild);
   // the hush hangs over every fresh clearing — words will thin it (see hud)
   const oldMist=document.getElementById("hushmist"); if(oldMist) oldMist.remove();
-  const mist=document.createElement("div"); mist.id="hushmist";
+  const oldVeil=document.getElementById("wakeveil"); if(oldVeil) oldVeil.remove();
+  // the waking arc lives UNDER the tiles: the more names you've remembered, the brighter
+  // the wood has become. deep hush at the start, lifting as the collection grows.
+  const veil=document.createElement("div"); veil.id="wakeveil";
+  const woke = Object.keys(P.grove||{}).length / GROVE.length;   // 0 → 1
+  const wake = Math.min(1, 0.28 + woke*1.1);                     // never pitch-dark; readable always
+  veil.style.opacity=(1-wake).toFixed(3);
+  boardEl.appendChild(veil);
+  const mist=document.createElement("div"); mist.id="hushmist";  // the mist sits above the veil
   boardEl.appendChild(mist);
 }
 function isSpike(L){ return L%5===0; }
@@ -1880,6 +1908,7 @@ const Game = {
     Snd.init(); $("ov-meet").classList.remove("active");
     if(UI._meetWord){
       P.metGrove[UI._meetWord]=Date.now();
+      UI._lastWake=GROVE_BY_WORD[UI._meetWord] ? GROVE_BY_WORD[UI._meetWord].e : null; // greet them on the home cover
       if((P.equip||[]).length<slotsFor(P.level) && !P.equip.includes(UI._meetWord)) P.equip.push(UI._meetWord); // new friends join the party while there's room
       save(); UI._meetWord=null;
     }
@@ -2840,10 +2869,32 @@ const UI = {
     const ring=Math.floor((P.level-1)/25)+1;
     $("home-place").textContent = "— "+(ring>1?"Ring "+ring+" · ":"")+BIOME_NAMES[biomeOf(P.level)]+" —";
     $("hm-streak").textContent=P.streak||0;
+    UI.homeCast();
     const q=dailyQuest();
     $("hm-quest").innerHTML = q.emoji+' <em class="chiplbl">'+(P.questDone ? "quest done ✓" : "today: "+q.text)+'</em>';
     $("hm-quest").title=q.name+": "+q.text;
     $("grove-badge").textContent=Object.keys(P.grove).length;
+  },
+  homeCast(){ // the wood's edge shows YOUR journey: two most-recent wakes + two more, refreshed each visit
+    const met=GROVE.filter(g=>P.metGrove[g.w]).sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0));
+    let cast;
+    if(met.length>=2){ // your two newest names, plus two random old friends to keep it fresh
+      const recent=met.slice(0,2);
+      const rest=met.slice(2).sort(()=>Math.random()-0.5).slice(0,2);
+      cast=[...recent,...rest];
+      while(cast.length<4) cast.push(GROVE_BY_WORD[cast.length? "dog":"cat"]);
+    } else { // just starting out — the two friends everyone begins with
+      cast=[GROVE_BY_WORD.cat, GROVE_BY_WORD.dog, GROVE_BY_WORD.deer, GROVE_BY_WORD.owl];
+    }
+    for(let i=0;i<4;i++){ const el=$("peek-"+i); if(!el) continue;
+      const g=cast[i]; if(g){ el.textContent=g.e; el.style.display=""; el.title=g.w.toUpperCase(); }
+      else el.style.display="none";
+    }
+    // if a name was JUST remembered this session, let it pop in
+    if(UI._lastWake){ const el=[0,1,2,3].map(i=>$("peek-"+i)).find(e=>e && e.textContent===UI._lastWake);
+      if(el){ el.classList.remove("newwake"); void el.offsetWidth; el.classList.add("newwake"); }
+      UI._lastWake=null;
+    }
   },
   hud(){
     $("h-level").textContent=S.level;
