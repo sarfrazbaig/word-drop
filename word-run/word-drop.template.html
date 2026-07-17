@@ -511,6 +511,14 @@
   .petcompanion{ display:none; background:none; border:none; padding:0 0 4px; position:relative; line-height:1;
     cursor:pointer; filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
   .petcompanion.has{ display:block; }
+  /* seats you can SEE: open ones invite, locked ones promise (with their level) */
+  .petcompanion.slotopen, .petcompanion.slotlocked{ display:block; position:relative; animation:none; cursor:pointer; }
+  .pawghost{ opacity:.28; filter:grayscale(1); }
+  .slotlocked .pawghost{ opacity:.2; }
+  .slotlock{ position:absolute; top:-7px; right:-8px; font-size:11px; font-style:normal;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+  .slotlv{ position:absolute; left:50%; bottom:-11px; transform:translateX(-50%); font-size:7.5px; font-weight:900;
+    letter-spacing:.5px; color:var(--dim); white-space:nowrap; }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
   .petcompanion .petcount{ position:absolute; top:-7px; right:-9px; min-width:17px; height:17px; border-radius:9px;
     background:var(--gold); color:#3a2a00; font-size:11px; font-weight:900; display:flex; align-items:center;
@@ -770,6 +778,8 @@
   .gpartypet:nth-child(4) .pe{ animation-delay:2.4s }
   .gpartypet small{ font-size:10px; font-weight:800; color:var(--ink); letter-spacing:.5px; }
   .gpartypet .pw{ font-size:9px; color:var(--dim); }
+  .gpartypet.gseat .pe{ animation:none; font-size:30px; }
+  .gpartypet.gseat small{ color:var(--dim); font-weight:700; }
   .gparty .note{ margin-top:7px; font-size:10.5px; color:var(--dim); }
   /* pawprint progress + keepsake badges */
   .gprog{ background:rgba(255,255,255,.7); border-radius:12px; padding:8px 12px; margin-bottom:14px;
@@ -800,7 +810,7 @@
   .gcard .gmate{ position:absolute; top:4px; right:5px; font-size:11px; opacity:.45; filter:grayscale(1); }
   .gcard .gmate.lit{ opacity:1; filter:none; }
   .gcard.mystery{ background:linear-gradient(180deg,#fbf7ec,#f3ecd8); border-style:dashed; cursor:default; }
-  .gcard.mystery .ge{ opacity:.55; }
+  .gcard.mystery .ge{ filter:brightness(0) saturate(0); opacity:.22; } /* the creature's SHAPE — character, not a leak */
   .gcard.mystery .gn{ color:var(--dim); font-weight:700; letter-spacing:.5px; font-size:10px; }
   .gcard.wiggle{ animation:denyshake .32s; }
   /* the friend sheet: one pet, told properly */
@@ -813,6 +823,20 @@
   #pet-sheet-mate{ font-size:12px; color:var(--dim); margin-top:8px; }
   #pet-sheet-met{ font-size:10.5px; color:rgba(140,115,80,.8); margin-top:8px; letter-spacing:.5px; }
   #pet-sheet-btn{ margin-top:12px; }
+  /* the swap picker: party full → YOU choose who rests, right here in the sheet */
+  #pet-sheet-swap{ display:none; margin-top:12px; background:rgba(240,169,46,.08);
+    border:1.5px dashed rgba(201,138,16,.35); border-radius:14px; padding:10px 10px 12px; }
+  #pet-sheet-swap.on{ display:block; }
+  #pet-sheet-swap .swlbl{ font-size:12px; font-weight:800; color:var(--gold-deep); margin-bottom:8px; }
+  #pet-sheet-swap .swrow{ display:flex; justify-content:center; gap:12px; }
+  .swpet{ display:flex; flex-direction:column; align-items:center; gap:2px; border:none; cursor:pointer;
+    background:linear-gradient(180deg,#fffdf6,#f3e9d2); border-radius:12px; padding:7px 10px;
+    box-shadow:0 2px 5px rgba(90,60,30,.18), inset 0 1.5px 0 rgba(255,255,255,.85); }
+  .swpet:active{ transform:scale(.94); }
+  .swpet .se{ font-size:26px; line-height:1; }
+  .swpet small{ font-size:9px; font-weight:800; color:var(--ink); }
+  #pet-sheet-swap .swcancel{ margin-top:9px; border:none; background:none; font-size:11px; color:var(--dim);
+    text-decoration:underline; cursor:pointer; }
   .statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .stat{ background:var(--surface); border-radius:var(--r-md); padding:12px 6px 9px; font-size:20px; text-align:center; }
   .stat b{ display:block; font-size:18px; color:var(--gold-deep); margin-top:2px; }
@@ -923,6 +947,11 @@
       <div id="pet-sheet-mate"></div>
       <div id="pet-sheet-met"></div>
       <button class="btn-primary" id="pet-sheet-btn" onclick="UI.sheetEquip()">🌿 Bring on duty</button>
+      <div id="pet-sheet-swap">
+        <div class="swlbl">the party is full — who should rest? 💤</div>
+        <div class="swrow" id="pet-sheet-swrow"></div>
+        <button class="swcancel" onclick="document.getElementById('pet-sheet-swap').classList.remove('on')">never mind</button>
+      </div>
     </div>
   </div>
 
@@ -2839,7 +2868,15 @@ const UI = {
   },
   petInfo(slot){ // tap a pet: what it does, and exactly when it acts — no mystery
     const eq=UI.equipped(), g=eq[slot];
-    if(!g || !S) return;
+    if(!g){ // an empty or locked seat still answers when tapped
+      if(!S) return;
+      const slots=slotsFor(P.level);
+      if(slot<slots) UI.say("seat-open", "🐾 an open seat — spell more creatures to fill it!", 3);
+      else UI.toast("🔒 this seat unlocks at <b>level "+UI.SLOT_LV[slot]+"</b>");
+      Snd.tone(520,{dur:.08,type:"triangle",gain:.05});
+      return;
+    }
+    if(!S) return;
     Snd.tone(880,{dur:.09,type:"triangle",gain:.06,verb:true}); buzz(8);
     let turn;
     if(g.ps) turn="<b>always on</b> while on duty";
@@ -2913,15 +2950,24 @@ const UI = {
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
-  visitor(){ // your ON-DUTY pets (up to 4) live in their own little meadow above the plot
-    const eq = UI.equipped();
+  SLOT_LV:[null,7,10,14], // the level each seat (index 1-3) unlocks at
+  visitor(){ // the meadow shows ALL FOUR seats: pets, open seats, and locked ones with their level
+    const eq = UI.equipped(), slots=slotsFor(P.level);
     $("petbar").classList.toggle("on", eq.length>0);
     for(let s=0;s<4;s++){
       const el=$("pet-"+s), g=eq[s];
+      el.classList.remove("slotopen","slotlocked");
       if(g){ el.dataset.w=g.w; el.style.fontSize="31px";
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
-      else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); }
+      else if(s<slots){ // an open seat — an invitation
+        el.innerHTML='<span class="pawghost">🐾</span>';
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="24px";
+        el.title="an open seat — meet more friends!"; }
+      else { // a locked seat — you can SEE what's coming
+        el.innerHTML='<span class="pawghost">🐾</span><i class="slotlock">🔒</i><small class="slotlv">LV '+UI.SLOT_LV[s]+'</small>';
+        el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="24px";
+        el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
     }
     if(S && !S.over) UI.petMeter(); // repainting wipes the countdown badge — restore it
   },
@@ -2993,11 +3039,18 @@ const UI = {
     const party=document.createElement("div"); party.className="gparty";
     const eq=UI.equipped();
     const nxt=UI.nextSlotAt();
+    const slots=slotsFor(P.level);
+    const seats=[];
+    for(let s=0;s<4;s++){
+      const g=eq[s];
+      if(g) seats.push('<div class="gpartypet"><span class="pe">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>');
+      else if(s<slots) seats.push('<div class="gpartypet gseat"><span class="pe pawghost">🐾</span><small>open seat</small><span class="pw">meet a friend</span></div>');
+      else seats.push('<div class="gpartypet gseat"><span class="pe pawghost">🐾</span><small>🔒 LV '+UI.SLOT_LV[s]+'</small><span class="pw">unlocks later</span></div>');
+    }
     party.innerHTML="<h4>🌿 your party</h4>"
-      + (eq.length
-        ? '<div class="row">'+eq.map(g=>'<div class="gpartypet"><span class="pe">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>').join("")+'</div>'
-        : '<div class="note">your first friend joins around level 4 🐾</div>')
-      + '<div class="note">'+eq.length+' / '+slotsFor(P.level)+' slots'+(nxt?' · next at level '+nxt:'')
+      + '<div class="row">'+seats.join("")+'</div>'
+      + (eq.length? '' : '<div class="note">your first friend joins around level 4 🐾</div>')
+      + '<div class="note">'+eq.length+' / '+slots+' seats filled'
       + (activePairs().length? ' · '+activePairs().map(p=>p.i+" "+p.n).join(" · ")+' active' : '')+'</div>';
     f.appendChild(party);
     // ---- pawprint progress + keepsake badges ----
@@ -3033,7 +3086,7 @@ const UI = {
           el.onclick=()=>UI.petSheet(g.w);
         } else {
           el.className="gcard mystery";
-          el.innerHTML='<span class="ge">🐾</span><span class="mound"></span>'
+          el.innerHTML='<span class="ge">'+g.e+'</span><span class="mound"></span>'
             +'<span class="gn">a shy friend</span>'
             +'<span class="gp">hides in a '+g.w.length+'-letter word</span>';
           el.onclick=()=>{ el.classList.remove("wiggle"); void el.offsetWidth; el.classList.add("wiggle");
@@ -3069,11 +3122,35 @@ const UI = {
     else { btn.disabled=false; btn.textContent = on ? "💤 Let them rest" : "🌿 Bring on duty"; }
     $("ov-pet").classList.add("active");
   },
-  closeSheet(){ $("ov-pet").classList.remove("active"); },
+  closeSheet(){ $("ov-pet").classList.remove("active"); $("pet-sheet-swap").classList.remove("on"); },
   sheetEquip(){
-    const w=UI._sheetW; if(!w) return;
-    UI.equipToggle(w);          // handles slots, swaps, pair announcements, re-render
-    UI.petSheet(w);             // refresh the sheet with the new duty state
+    const w=UI._sheetW; if(!w || !P.metGrove[w]) return;
+    const on=UI.equipped().some(x=>x.w===w);
+    const full=(P.equip||[]).length>=slotsFor(P.level);
+    if(on || !full){ UI.equipToggle(w); UI.petSheet(w); return; }
+    // party full: YOU pick who rests — no surprise swaps
+    const row=$("pet-sheet-swrow"); row.innerHTML="";
+    UI.equipped().forEach(g=>{
+      const b=document.createElement("button"); b.className="swpet";
+      b.innerHTML='<span class="se">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small>';
+      b.onclick=()=>UI.equipSwap(g.w, w);
+      row.appendChild(b);
+    });
+    $("pet-sheet-swap").classList.add("on");
+    Snd.tone(700,{dur:.1,type:"sine",gain:.05,verb:true});
+  },
+  equipSwap(outW, inW){ // the deliberate trade: outW rests, inW joins
+    P.equip=(P.equip||[]).filter(x=>x!==outW);
+    P.equip.push(inW);
+    save();
+    UI.toast(GROVE_BY_WORD[outW].e+" rests · "+GROVE_BY_WORD[inW].e+" joins the party!");
+    Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
+    const formed=PAIRS.find(p=>(p.a===inW||p.b===inW) && P.equip.includes(p.a) && P.equip.includes(p.b));
+    if(formed){ const other=GROVE_BY_WORD[formed.a===inW?formed.b:formed.a];
+      setTimeout(()=>{ UI.toast(formed.i+" <b>"+formed.n+"!</b><br>"+GROVE_BY_WORD[inW].e+" & "+other.e+" — "+formed.d);
+        UI.confetti(); Snd.discover(); }, 900); }
+    $("pet-sheet-swap").classList.remove("on");
+    UI.visitor(); UI.groveShow(); UI.petSheet(inW);
   },
   nextSlotAt(){ const m=slotsFor(P.level); return m>=4?null : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
@@ -3083,12 +3160,12 @@ const UI = {
     const i=P.equip.indexOf(w);
     if(i>=0){ P.equip.splice(i,1); UI.toast(GROVE_BY_WORD[w].e+" stays home for now"); }
     else {
-      if(P.equip.length>=max){
-        const old=P.equip.shift();
+      if(P.equip.length>=max){ // never surprise-swap: the sheet's picker owns full-party trades
         const nxt=UI.nextSlotAt();
-        UI.toast(GROVE_BY_WORD[old].e+" ↔ "+GROVE_BY_WORD[w].e+" — party of "+max+(nxt?" until level "+nxt:""));
+        UI.toast("the party is full ("+max+(nxt?" until level "+nxt:"")+") — pick who rests first 💤");
+        return;
       }
-      else UI.toast(GROVE_BY_WORD[w].e+" joins the party!");
+      UI.toast(GROVE_BY_WORD[w].e+" joins the party!");
       P.equip.push(w);
       Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
       // ✨ a best-friend pair just formed? announce the bonus loudly
