@@ -1409,9 +1409,17 @@ function load(){
     out.seenUnlock = out.seenUnlock||{};
     out.seenTip = out.seenTip||{};
     out.metGrove = out.metGrove||{};
-    out.equip = out.equip||[];
     out.said = out.said||{};
     out.groveMile = out.groveMile||{};
+    // MIGRATION: some creatures were renamed in updates (wasp→beetle, toad→chick,
+    // mole→pig, newt→goat) — carry the friendship over. Anything unknown is gently
+    // released: one orphaned word in an old save froze every level start.
+    const RENAMED={wasp:"beetle",toad:"chick",mole:"pig",newt:"goat"};
+    const remap=o=>{ const m={}; for(const w in (o||{})){ const nw=RENAMED[w]||w;
+      if(GROVE_BY_WORD[nw] && !m[nw]) m[nw]=o[w]; } return m; };
+    out.grove = remap(out.grove);
+    out.metGrove = remap(out.metGrove);
+    out.equip = (out.equip||[]).map(w=>RENAMED[w]||w).filter((w,i,a)=>GROVE_BY_WORD[w] && a.indexOf(w)===i);
     out.stats = Object.assign({}, defaults.stats, out.stats||{});
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
     out.powProg = out.powProg||{};
@@ -1437,7 +1445,7 @@ function loadRun(){
     S=newState(r.level);
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
-      maxChain:r.maxChain||1, newGrove:r.newGrove||[], cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
+      maxChain:r.maxChain||1, newGrove:(r.newGrove||[]).filter(w=>GROVE_BY_WORD[w]), cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
       petCharge:r.petCharge||0, petTurn:r.petTurn||0, charm:r.charm||0 });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
       if(!cell) return;
@@ -1826,8 +1834,10 @@ const Game = {
   },
   showPendingMeet(){ // meet any friend you unlocked last round — the ritual explains what pets do
     if(!S || S.over || S.won) return false;
-    const pending = Object.keys(P.grove).filter(w=>!P.metGrove[w])
+    const pending = Object.keys(P.grove).filter(w=>GROVE_BY_WORD[w] && !P.metGrove[w])
       .sort((a,b)=>(P.grove[a]||0)-(P.grove[b]||0));
+    // an unknown word must NEVER freeze the level — release it and move on
+    Object.keys(P.grove).forEach(w=>{ if(!GROVE_BY_WORD[w]){ delete P.grove[w]; save(); } });
     if(!pending.length) return false;
     UI._meetWord = pending[0];
     S.busy = true;
@@ -2972,6 +2982,7 @@ const UI = {
     if(S && !S.over) UI.petMeter(); // repainting wipes the countdown badge — restore it
   },
   discover(g){ // the MEET ritual: shown at the start of the round AFTER you unlocked them
+    if(!g){ if(S){ S.busy=false; } return; } // never let a missing creature freeze the garden
     Snd.discover(); buzz([30,50,30,50,90]); UI.confetti();
     $("meet-creature").textContent = g.e;
     $("meet-name").textContent = g.w.toUpperCase();
