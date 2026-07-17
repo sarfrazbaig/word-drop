@@ -1269,6 +1269,20 @@ const PAIRS=[
   {a:"dove",b:"swan",    n:"Grace Notes",   i:"🎼", t:"charmPlus",   d:"Sweet Song charms one extra word"},
   {a:"duck",b:"heron",   n:"Pond Patrol",   i:"🐾", t:"movesPlus",   d:"move gifts give +1 more"},
   {a:"deer",b:"bison",   n:"Herd Path",     i:"🌾", t:"rowScore",    d:"row-clearing powers also score +12"},
+  {a:"moth",b:"bat",     n:"Night Flight",  i:"🌃", t:"wildWorth",   d:"blossom tiles score +4 in words"},
+  {a:"robin",b:"chick",  n:"Dawn Chorus",   i:"🌅", t:"vowelWorth",  d:"every vowel scores +1 more"},
+  {a:"goose",b:"squirrel",n:"Nest & Stash", i:"🌰", t:"cap4",        d:"breeze & wish pockets hold 4"},
+  {a:"hawk",b:"snake",   n:"Sharp Hunters", i:"🎯", t:"goldBest",    d:"Shed Skin's letter arrives golden"},
+  {a:"beetle",b:"boar",  n:"Demolition Duo",i:"💥", t:"smashScore",  d:"smashing powers also score +10"},
+  {a:"fly",b:"skunk",    n:"Stink & Swarm", i:"🦨", t:"junkMove",    d:"clearing awkward letters refunds a move"},
+  {a:"frog",b:"otter",   n:"River Games",   i:"🛶", t:"riverCharge", d:"their powers add a bonus paw charge"},
+  {a:"bear",b:"moose",   n:"Big Neighbors", i:"🏔️", t:"bigRain",     d:"their powers shake a helpful letter loose"},
+  {a:"wolf",b:"hare",    n:"The Chase",     i:"🌪️", t:"refund3",     d:"Quickstep refunds 3-letter words too"},
+  {a:"snail",b:"worm",   n:"Soil Crew",     i:"🪹", t:"steady4",     d:"a free step every 4th drop, not 6th"},
+  {a:"ant",b:"beaver",   n:"Master Builders",i:"🏗️",t:"buildPlus",   d:"letter-raining powers drop one extra"},
+  {a:"crab",b:"seal",    n:"Beach Day",     i:"🏖️", t:"beachScore",  d:"their powers also score +8"},
+  {a:"lizard",b:"badger",n:"Sun & Stone",   i:"⛏️", t:"earthGold",   d:"their powers also leave a golden letter behind"},
+  {a:"pony",b:"dog",     n:"Zoomies",       i:"💫", t:"zoomies",     d:"5+ letter words refund 2 moves"},
 ];
 function pairOn(t){ const eq=UI.equipped().map(g=>g.w);
   return PAIRS.some(p=>p.t===t && eq.includes(p.a) && eq.includes(p.b)); }
@@ -1834,7 +1848,7 @@ const Game = {
     let free=false;
     if(Game.hasPassive("firstFree") && S.drops===0){ free=true; }                    // 🛡️ Shell Shield
     S.stepN=(S.stepN||0)+1;
-    if(!free && Game.hasPassive("freeStep") && S.stepN%6===0){ free=true; }          // 🐌 Slow & Sure
+    if(!free && Game.hasPassive("freeStep") && S.stepN%(pairOn("steady4")?4:6)===0){ free=true; } // 🐌 Slow & Sure (🪹 Soil Crew hurries it)
     if(free){ Game.movesFloat("0 · free step"); Snd.tone(740,{dur:.1,type:"triangle",gain:.05,verb:true}); }
     else S.movesLeft--;
     S._refunded=false; // Quickstep refunds at most once per drop
@@ -1943,7 +1957,7 @@ const Game = {
 
   /* ---- the BREEZE: the player's own hands-on tool. pets act on their own; the wind is YOURS. ---- */
   earnBreeze(){
-    P.pow.swap=Math.min(3,(P.pow.swap||0)+1); save();
+    P.pow.swap=Math.min(pairOn("cap4")?4:3,(P.pow.swap||0)+1); save(); // 🌰 Nest & Stash holds more
     UI.breezePill(); UI.pillPop("breezepill");
     Snd.tone(880,{dur:.08,type:"triangle",gain:.05});
     if(!P.seenTip.breeze){ setTimeout(()=>{ if(S && !S.busy) UI.tileTip("breeze"); }, 700); }
@@ -2005,7 +2019,7 @@ const Game = {
 
   /* ---- the WISH: your second tool. 4-letter words earn one; pick any letter for your next tile. ---- */
   earnWish(){
-    P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save();
+    P.pow.wild=Math.min(pairOn("cap4")?4:3,(P.pow.wild||0)+1); save(); // 🌰 Nest & Stash holds more
     UI.wishPill(); UI.pillPop("wishbtn");
     Snd.tone(1046,{dur:.08,type:"sine",gain:.05});
     if(!P.seenTip.wish){ setTimeout(()=>{ if(S && !S.busy) UI.tileTip("wish"); }, 700); }
@@ -2134,7 +2148,7 @@ const Game = {
       case "weave": { const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.blossom(); } break; }
       case "rainHelp": { const added=[];
-        for(let i=0;i<fx.n*m;i++){ const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
+        for(let i=0;i<fx.n*m+(pairOn("buildPlus")?1:0);i++){ const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
           if(!open.length) break; const p=rand(open);
           const t=newTile(riggedLetter(),"normal",p.land,p.c,false); added.push(t);
           t.el.style.transition="none"; t.el.style.transform=xy(-1.2,p.c); void t.el.offsetWidth;
@@ -2166,10 +2180,12 @@ const Game = {
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
         for(const t of rocks){ if(boost||t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); removeTile(t); S.levelScore+=5; Snd.crack(true); }
           else { t.cracks=1; t.inner.classList.add("cracked"); Snd.crack(false); } await wait(110); }
+        if(pairOn("smashScore")){ S.levelScore+=10; } // 💥 Demolition Duo
         UI.hud(); await Game.settle(); break; }
       case "eatWorst": { const picks=Game.worstTiles(fx.n*m);
         if(!picks.length){ Game.addMoves(2); break; }
         for(const t of picks){ UI.shards(t.r,t.c,"#c9b18a"); removeTile(t); Snd.crack(true); await wait(160); }
+        if(pairOn("junkMove")) Game.addMoves(1); // 🦨 Stink & Swarm tidy efficiently
         await Game.settle(); break; }
       case "flatBonus": S.flatB=(S.flatB||0)+fx.n*m; break;
       case "chainBoost": S.chainBoost=true; break;
@@ -2213,6 +2229,7 @@ const Game = {
         contents.unshift(contents.pop());
         ts.forEach((t,i)=>{ t.letter=contents[i].l; t.kind=contents[i].k;
           t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
+        if(pairOn("beachScore")){ S.levelScore+=8; UI.hud(); } // 🏖️ Beach Day
         UI.breeze(); S.chain=1; await Game.resolve(ts); break; }
       case "goldSchool": { const count={}; normals().forEach(t=>count[t.letter]=(count[t.letter]||0)+1);
         const top=Object.keys(count).sort((a,b)=>count[b]-count[a])[0];
@@ -2221,7 +2238,8 @@ const Game = {
         Snd.gold(); break; }
       case "bestHand": { const best=helpfulByLength(); const ks=Object.keys(best).sort((a,b)=>best[b]-best[a]);
         const l=ks[0] || (builderLetters()[0]) || riggedLetter();
-        S.cur={letter:l,kind:S.cur&&S.cur.kind==="gold"?"gold":"normal"}; UI.piece(); Game.handPop(); break; }
+        S.cur={letter:l, kind:(pairOn("goldBest")||(S.cur&&S.cur.kind==="gold"))?"gold":"normal"}; // 🎯 Sharp Hunters gild the strike
+        UI.piece(); Game.handPop(); break; }
       case "twinHand": { if(S.cur) S.next={letter:S.cur.letter,kind:S.cur.kind}; UI.piece(); Game.handPop(); break; }
       case "thawAll": { const ices=Object.values(S.tiles).filter(t=>t.kind==="ice");
         if(!ices.length){ Game.addMoves(2); break; }
@@ -2231,14 +2249,16 @@ const Game = {
         if(!h[c]){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
         for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); removeTile(t); } }
+        if(pairOn("smashScore")){ S.levelScore+=10; UI.hud(); } // 💥 Demolition Duo
         Snd.collapse(6); break; }
       case "sweepTops": { const picks=[];
         for(let c=0;c<COLS;c++){ for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ if(t.kind==="normal"||t.kind==="gold"||t.kind==="wild") picks.push(t); break; } } }
         if(!picks.length){ Game.addMoves(2); break; }
         for(const t of picks){ UI.shards(t.r,t.c,"#9fd4f2"); removeTile(t); }
         Snd.collapse(picks.length); break; }
-      case "splash": S.splash=(S.splash||0)+fx.n*m; break;
-      case "damFill": { const h=cols(); const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0,fx.n);
+      case "splash": { S.splash=(S.splash||0)+fx.n*m;
+        if(pairOn("beachScore")){ S.levelScore+=8; UI.hud(); } break; } // 🏖️ Beach Day
+      case "damFill": { const h=cols(); const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0,fx.n+(pairOn("buildPlus")?1:0));
         const added=[];
         for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
           if(land<2) continue; const t=newTile(riggedLetter(),"normal",land,c,false); added.push(t);
@@ -2270,6 +2290,7 @@ const Game = {
           : ts.slice().sort((a,b)=>VAL[b.letter]-VAL[a.letter])[0].letter;
         const picks=ts.filter(t=>t.letter===target);
         for(const t of picks){ UI.shards(t.r,t.c,"#c9e29a"); removeTile(t); await wait(120); }
+        if(pairOn("junkMove")) Game.addMoves(1); // 🦨 Stink & Swarm
         Snd.collapse(picks.length); await Game.settle(); break; }
       case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice") || Game.worstTiles(1)[0];
         if(!cand){ Game.addMoves(2); break; }
@@ -2287,8 +2308,9 @@ const Game = {
       case "refund4": case "crumb": case "freeStep": case "helpDeck": case "kindred": case "firstFree":
         break; // passives never reach here (filtered), but stay safe
     }
-    // 🎉 Garden Party: bee & ladybug sprinkle a helpful letter after EVERY power
-    if(pairOn("actRain") && !S.over && !S.won){
+    // 🎉 Garden Party (every power) / 🏔️ Big Neighbors (bear & moose): a helpful letter shakes loose
+    const rainAfter = (pairOn("actRain") || (pairOn("bigRain") && (pet.w==="bear"||pet.w==="moose")));
+    if(rainAfter && !S.over && !S.won){
       const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
       if(open.length){ const p=rand(open);
         const t=newTile(riggedLetter(),"normal",p.land,p.c,false);
@@ -2297,6 +2319,14 @@ const Game = {
         await wait(260); t.el.style.transition="";
         S.chain=1; await Game.resolve([t]); }
     }
+    // ⛏️ Sun & Stone: lizard & badger leave a golden letter behind them
+    if(pairOn("earthGold") && (pet.w==="lizard"||pet.w==="badger")){
+      const ns=Object.values(S.tiles).filter(t=>t.kind==="normal");
+      const t=rand(ns); if(t){ t.kind="gold"; t.inner.classList.add("gold","thawpop");
+        setTimeout(()=>t.inner.classList.remove("thawpop"),560); UI.shards(t.r,t.c,"#ffd54f"); Snd.gold(); }
+    }
+    // 🛶 River Games: frog & otter play on — a bonus paw charge
+    if(pairOn("riverCharge") && (pet.w==="frog"||pet.w==="otter")) S.petCharge=(S.petCharge||0)+1;
     if(pairOn("headStart")) S.petCharge=Math.max(S.petCharge||0,1); // 🤝 Old Friends never fully wind down
     S.petActing=false;
     UI.petMeter(); UI.all(); saveRun();
@@ -2501,8 +2531,11 @@ const Game = {
     for(const w of words){
       const len=w.cells.length;
       let pts=0;
-      const goldX = pairOn("gold4") ? 4 : 3; // 🌊 River Gold: fox & fish gild deeper
-      w.cells.forEach(t=>{ let v = t.kind==="wild"?0:VAL[t.letter]; if(t.kind==="gold") v*=goldX; pts+=v; });
+      const goldX = pairOn("gold4") ? 4 : 3;                       // 🌊 River Gold: fox & fish gild deeper
+      const wildV = pairOn("wildWorth") ? 4 : 0;                   // 🌃 Night Flight: blossoms are worth something
+      const vowelB = pairOn("vowelWorth") ? 1 : 0;                 // 🌅 Dawn Chorus: vowels sing
+      w.cells.forEach(t=>{ let v = t.kind==="wild"?wildV:VAL[t.letter]; if(t.kind==="gold") v*=goldX;
+        if(t.kind!=="wild" && "aeiou".includes(t.letter)) v+=vowelB; pts+=v; });
       // 5+ letter words are JACKPOTS: rare, hard, and they should pay like it.
       // a good 6-letter word will often clear the whole level — that's the chase.
       const lenMult = len<=4 ? (1+0.5*(len-3)) : (len-3)*2;   // 3→1, 4→1.5, 5→4, 6→6, 7→8, 8→10
@@ -2516,7 +2549,8 @@ const Game = {
       if(S.flatB>0){ pts+=5; S.flatB--; }                          // 🍀 Lucky Spots: +5 a word
       if(len===3 && Game.hasPassive("crumb")) pts+=3;              // 🧀 Crumb Collector
       if(GROVE_BY_WORD[w.word] && Game.hasPassive("kindred")) pts*=(pairOn("kindred3")?3:2); // 🐾 Kindred Call (🌼 Meadow Kin sings louder)
-      if(len>=4 && S.chain===1 && Game.hasPassive("refund4") && !S._refunded){ S._refunded=true; Game.addMoves(1); } // 💨 Quickstep
+      if(len>=(pairOn("refund3")?3:4) && S.chain===1 && Game.hasPassive("refund4") && !S._refunded){ S._refunded=true; Game.addMoves(1); } // 💨 Quickstep (🌪️ The Chase widens it)
+      if(len>=5 && S.chain===1 && pairOn("zoomies")) Game.addMoves(2); // 💫 Zoomies: big words, big energy
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
       banner.style.fontSize = Math.min(16+len*2, 28)+"px";
