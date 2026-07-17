@@ -4,24 +4,31 @@
 <title>Hushwood</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="%23f7ecd6" stroke="%23b3a685" stroke-width="3" transform="rotate(-4 32 32)"/><text x="32" y="44" font-family="Segoe UI,sans-serif" font-size="34" font-weight="800" fill="%234a3b28" text-anchor="middle">W</text></svg>'>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="%23f7ecd6" stroke="%23b3a685" stroke-width="3" transform="rotate(-4 32 32)"/><text x="32" y="44" font-family="Georgia,serif" font-size="34" font-weight="800" fill="%234a3b28" text-anchor="middle">H</text></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   /* ================= DESIGN TOKENS — one system, everything derives from here ================= */
   :root{
-    /* ===== "MORNING MEADOW" — warm daylight cozy. no sad dark. ===== */
-    --bg0:#cdbfa5;            /* linen table behind the phone */
-    --bg1:#fdf8ee;            /* app: morning cream */
-    --bg2:#f6e9d2;            /* app: warm sand */
-    --surface:rgba(121,92,55,.07);
-    --surface-border:rgba(121,92,55,.15);
-    --ink:#4a3b28; --dim:#a28c6d;
-    --accent:#68b168; --accent-deep:#4d914d;
-    --gold:#f0a92e; --gold-deep:#c98a10;
-    --danger:#e2654f;
+    /* ===== "HUSHWOOD DUSK" — a storybook at the edge of evening. warm parchment,
+       moss and ember, and the hush itself: a soft violet that marks quiet things. ===== */
+    --font-story:"Fraunces", Georgia, "Times New Roman", serif;   /* the book's voice */
+    --font-ui:"Nunito", "Segoe UI", system-ui, sans-serif;        /* the friendly hand */
+    --bg0:#b9aa96;            /* worn table behind the page */
+    --bg1:#f7efe0;            /* app: parchment */
+    --bg2:#efe2c9;            /* app: deeper page */
+    --surface:rgba(101,78,48,.07);
+    --surface-border:rgba(101,78,48,.16);
+    --ink:#3d3226; --dim:#9c8768;
+    --accent:#6f9e63; --accent-deep:#4c7a46;
+    --hush:#8b93c7; --hush-deep:#5d6494;   /* the colour of the quiet */
+    --gold:#e8b64c; --gold-deep:#bd8619;
+    --blush:#d98ba6;
+    --danger:#d95f4a;
     --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:26px;
     --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px;
     --fs-num:34px; --fs-big:22px; --fs-md:15px; --fs-sm:12px; --fs-xs:10px;
-    --shadow-panel:0 10px 26px -12px rgba(121,92,55,.4);
+    --shadow-panel:0 10px 26px -12px rgba(90,70,45,.42);
     --tile-face:linear-gradient(150deg,#fff4d6 0%, #f6e2ac 44%, #eccf88 100%);
     --tile-edge:#c69a52;
     --tile-ink:#6a4a1c;
@@ -114,7 +121,7 @@
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{ height:100%; margin:0; }
   body{
-    font-family:"Segoe UI",system-ui,-apple-system,sans-serif; color:var(--ink);
+    font-family:var(--font-ui); color:var(--ink);
     background:var(--bg0);
     display:flex; align-items:center; justify-content:center;
     overflow:hidden; user-select:none; -webkit-user-select:none; touch-action:manipulation;
@@ -199,22 +206,54 @@
 
   /* ================= HOME — a garden gate ================= */
   #scene-home{ justify-content:flex-start; gap:0; overflow:hidden; padding:0; }
-  #sky{ position:absolute; inset:0 0 38% 0; z-index:0;
-    background:linear-gradient(180deg,#bfe6f5 0%, #d9f0f7 45%, #eaf6ee 100%); }
-  #sun{ position:absolute; top:5%; left:9%; width:56px; height:56px; border-radius:50%;
-    background:radial-gradient(circle,#fff3c4 0%,#ffe58a 55%,#ffd35e 100%);
-    box-shadow:0 0 40px 12px rgba(255,221,120,.55); animation:sunpulse 5s ease-in-out infinite; }
-  @keyframes sunpulse{ 50%{ box-shadow:0 0 60px 22px rgba(255,221,120,.75); } }
-  .cloud{ position:absolute; width:120px; height:34px; border-radius:30px; background:rgba(255,255,255,.85);
-    filter:blur(1px); animation:drift 26s linear infinite; }
-  .cloud::before{ content:""; position:absolute; top:-16px; left:26px; width:56px; height:56px; border-radius:50%; background:inherit; }
-  .cloud::after{ content:""; position:absolute; top:-10px; right:22px; width:40px; height:40px; border-radius:50%; background:inherit; }
+  /* the book's voice: every storybook heading speaks in serif */
+  h2, #meet-name, #meet-label, #un-title, #wish-title, #pet-sheet-n, #pet-sheet-f,
+  .gsection h3, .gparty h4, #iv-placename, .jackpotburst, .wordbanner, #tut-slide p{
+    font-family:var(--font-story); }
+  #meet-name, #pet-sheet-n{ font-weight:750; }
+  /* the hush itself: a soft violet mist over the plot that THINS as you score */
+  #hushmist{ position:absolute; left:0; right:0; top:0; height:46%; z-index:26; pointer-events:none;
+    border-radius:inherit; transition:opacity .7s ease;
+    background:linear-gradient(180deg, rgba(139,147,199,.52) 0%, rgba(139,147,199,.28) 45%, rgba(139,147,199,0) 100%);
+    mix-blend-mode:normal; }
+  /* ===== the cover of the book: the wood at the edge of waking ===== */
+  #sky{ position:absolute; inset:0 0 32% 0; z-index:0;
+    background:linear-gradient(180deg,#6d6f9e 0%, #9d92bb 30%, #d9a988 62%, #f2d9a8 84%, #f7ecd0 100%); }
+  #sun{ position:absolute; top:8%; right:14%; width:44px; height:44px; border-radius:50%;
+    background:radial-gradient(circle,#fff6dc 0%,#ffe9ad 55%,#f5cc74 100%);
+    box-shadow:0 0 44px 16px rgba(255,224,150,.45); animation:sunpulse 6s ease-in-out infinite; }
+  @keyframes sunpulse{ 50%{ box-shadow:0 0 58px 24px rgba(255,224,150,.6); } }
+  .cloud{ position:absolute; width:120px; height:30px; border-radius:30px; background:rgba(255,236,214,.35);
+    filter:blur(2px); animation:drift 34s linear infinite; }
+  .cloud::before{ content:""; position:absolute; top:-14px; left:26px; width:52px; height:52px; border-radius:50%; background:inherit; }
+  .cloud::after{ content:""; position:absolute; top:-9px; right:22px; width:38px; height:38px; border-radius:50%; background:inherit; }
   @keyframes drift{ to{ transform:translateX(560px); } }
-  #hill-far{ position:absolute; left:-5%; right:-5%; bottom:30%; height:26%; z-index:0;
-    background:radial-gradient(120% 100% at 50% 100%, #9fd08a 0%, #8cc47a 70%, transparent 71%); opacity:.85; }
-  #hill-near{ position:absolute; left:0; right:0; bottom:0; height:40%; z-index:1;
-    background:linear-gradient(180deg,#7fbf6e 0%, #6aad5c 55%, #5c9c50 100%);
-    border-radius:60% 60% 0 0 / 22% 22% 0 0; box-shadow:0 -6px 20px rgba(60,110,45,.25); }
+  /* letter-motes: the hush made visible — little glowing letters drifting like fireflies */
+  .mote{ position:absolute; z-index:1; font-family:var(--font-story); font-weight:650; color:rgba(255,240,200,.9);
+    text-shadow:0 0 8px rgba(255,220,140,.9), 0 0 18px rgba(255,210,120,.5); pointer-events:none;
+    animation:motefloat var(--mdur,14s) ease-in-out infinite alternate; opacity:.85; }
+  @keyframes motefloat{ 0%{ transform:translate(0,0) rotate(-6deg) } 100%{ transform:translate(var(--mx,20px),var(--my,-34px)) rotate(8deg) } }
+  /* the treeline: three hushed silhouette layers framing the clearing */
+  #hill-far{ position:absolute; left:-4%; right:-4%; bottom:26%; height:30%; z-index:0; opacity:.9;
+    background:
+      radial-gradient(14% 58% at 8% 100%, #5a5f8e 0 98%, transparent 100%),
+      radial-gradient(16% 74% at 22% 100%, #545a8a 0 98%, transparent 100%),
+      radial-gradient(13% 52% at 36% 100%, #5a5f8e 0 98%, transparent 100%),
+      radial-gradient(17% 80% at 52% 100%, #4f5584 0 98%, transparent 100%),
+      radial-gradient(14% 60% at 68% 100%, #5a5f8e 0 98%, transparent 100%),
+      radial-gradient(16% 72% at 84% 100%, #545a8a 0 98%, transparent 100%),
+      radial-gradient(13% 50% at 97% 100%, #5a5f8e 0 98%, transparent 100%); }
+  #hill-near{ position:absolute; left:0; right:0; bottom:0; height:34%; z-index:1;
+    background:linear-gradient(180deg,#59855a 0%, #47724a 55%, #3c6140 100%);
+    border-radius:60% 60% 0 0 / 20% 20% 0 0; box-shadow:0 -8px 26px rgba(50,70,90,.35); }
+  #hill-near::before{ content:""; position:absolute; left:-3%; right:-3%; top:-34px; height:44px; opacity:.85;
+    background:
+      radial-gradient(10% 100% at 6% 100%, #3f5f74 0 96%, transparent 100%),
+      radial-gradient(12% 86% at 20% 100%, #446880 0 96%, transparent 100%),
+      radial-gradient(9% 72% at 34% 100%, #3f5f74 0 96%, transparent 100%),
+      radial-gradient(11% 92% at 66% 100%, #446880 0 96%, transparent 100%),
+      radial-gradient(9% 70% at 80% 100%, #3f5f74 0 96%, transparent 100%),
+      radial-gradient(12% 88% at 94% 100%, #446880 0 96%, transparent 100%); }
   #hill-near .sprout{ position:absolute; top:8px; font-size:26px; animation:sway 4s ease-in-out infinite; transform-origin:bottom center; }
   #hill-near .sprout:nth-child(even){ animation-delay:-2s; }
   @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(6deg) } }
@@ -230,7 +269,7 @@
   #home-content{ position:absolute; inset:0; z-index:2; }
   #homelogo{ position:absolute; left:0; right:0; top:38%; transform:translateY(-50%); text-align:center; }
   #homelogo::before{ content:""; position:absolute; inset:-26px -30px; z-index:-1;
-    background:radial-gradient(60% 60% at 50% 42%, rgba(255,255,255,.72), rgba(255,255,255,0) 72%); }
+    background:radial-gradient(60% 60% at 50% 42%, rgba(58,54,96,.35), rgba(58,54,96,0) 74%); }
   .home-pills{ position:absolute; left:0; right:0; top:80%; display:flex; gap:8px; justify-content:center; }
   #btn-play{ position:absolute; left:50%; top:62%; transform:translate(-50%,-50%); }
   .home-links{ position:absolute; left:0; right:0; bottom:calc(20px + env(safe-area-inset-bottom));
@@ -250,19 +289,23 @@
   .logo-tiles .tile:nth-child(2){ animation-delay:.18s } .logo-tiles .tile:nth-child(3){ animation-delay:.36s }
   .logo-tiles .tile:nth-child(4){ animation-delay:.54s }
   @keyframes logobob{ 0%,100%{ transform:translateY(0) rotate(-1deg) } 50%{ transform:translateY(-8px) rotate(1.5deg) } }
-  .logo-word{ margin-top:10px; font-size:38px; font-weight:900; letter-spacing:6px; padding-left:6px;
-    color:var(--accent-deep); text-shadow:0 2px 0 #fff, 0 3px 0 rgba(255,255,255,.7), 0 6px 16px rgba(77,145,77,.35); }
-  .logo-sub{ display:inline-block; margin-top:10px; font-size:12px; letter-spacing:1.5px; color:#6b5a3e; font-weight:700;
-    background:rgba(255,255,255,.7); border:1px solid rgba(121,92,55,.18); border-radius:999px; padding:4px 14px;
-    box-shadow:0 2px 6px rgba(90,60,30,.15); }
+  .logo-word{ margin-top:8px; font-family:var(--font-story); font-size:42px; font-weight:650; letter-spacing:4px; padding-left:4px;
+    color:#f7ecd0; text-shadow:0 2px 0 rgba(60,50,90,.55), 0 6px 20px rgba(40,35,70,.6); }
+  .logo-sub{ display:inline-block; margin-top:10px; font-family:var(--font-story); font-style:italic; font-size:12.5px;
+    letter-spacing:1px; color:#4a4066; font-weight:500;
+    background:rgba(247,236,208,.88); border:1px solid rgba(90,80,120,.25); border-radius:999px; padding:4px 15px;
+    box-shadow:0 3px 8px rgba(40,35,70,.35); }
   #btn-play{ width:100px; height:100px; border-radius:50%; font-size:26px; font-weight:900;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
-    background:linear-gradient(150deg,#ffcf6b,#f2a33a 60%,#e0862a); color:#5a3410;
-    border:3px solid #fff6e6;
-    box-shadow:0 9px 0 #b56a1e, 0 0 40px rgba(255,180,80,.5); animation:playpulse 1.9s infinite; z-index:1; }
+    background:radial-gradient(120% 120% at 38% 28%, #ffe3a0, #f2b348 55%, #d98a2a);
+    color:#5a3410; border:3px solid #fdf3dc;
+    box-shadow:0 9px 0 #a86a20, 0 0 46px rgba(255,196,110,.55); animation:playpulse 2.1s infinite; z-index:2; }
   #btn-play small{ font-size:11px; font-weight:800; opacity:.8; letter-spacing:1px; }
-  @keyframes playpulse{ 50%{ box-shadow:0 9px 0 #b56a1e, 0 0 58px rgba(255,180,80,.7); transform:translate(-50%,-50%) scale(1.05); } }
+  @keyframes playpulse{ 50%{ box-shadow:0 9px 0 #a86a20, 0 0 64px rgba(255,196,110,.8); transform:translate(-50%,-50%) scale(1.05); } }
   #btn-play:active{ transform:translate(-50%,-50%) scale(.93); }
+  #home-place{ position:absolute; left:0; right:0; top:71.5%; text-align:center; z-index:2;
+    font-family:var(--font-story); font-style:italic; font-size:12.5px; color:#eee6d0;
+    text-shadow:0 1px 3px rgba(40,50,40,.6); letter-spacing:.5px; }
 
   /* -------- first-run tutorial: four wordless-leaning slides -------- */
   #tut-slide{ min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
@@ -845,11 +888,17 @@
 </style>
 
 <div id="app">
-  <!-- ============ HOME — the garden gate ============ -->
+  <!-- ============ HOME — the cover of the book: the wood at the edge of waking ============ -->
   <div class="scene active" id="scene-home">
     <div id="sky"><div id="sun"></div>
       <div class="cloud" style="top:9%;left:-20%;animation-delay:0s"></div>
       <div class="cloud" style="top:20%;left:-40%;animation-delay:-9s;transform:scale(.7)"></div>
+      <span class="mote" style="left:12%;top:26%;font-size:15px;--mx:26px;--my:-30px;--mdur:13s">e</span>
+      <span class="mote" style="left:76%;top:31%;font-size:12px;--mx:-20px;--my:-40px;--mdur:17s;animation-delay:-6s">a</span>
+      <span class="mote" style="left:30%;top:14%;font-size:11px;--mx:32px;--my:-18px;--mdur:15s;animation-delay:-3s">s</span>
+      <span class="mote" style="left:60%;top:12%;font-size:13px;--mx:-26px;--my:-26px;--mdur:19s;animation-delay:-10s">o</span>
+      <span class="mote" style="left:44%;top:34%;font-size:10px;--mx:18px;--my:-36px;--mdur:16s;animation-delay:-8s">t</span>
+      <span class="mote" style="left:87%;top:18%;font-size:11px;--mx:-16px;--my:-24px;--mdur:14s;animation-delay:-4s">n</span>
     </div>
     <div id="hill-far"></div>
     <div id="hill-near">
@@ -870,6 +919,7 @@
         <div class="logo-sub">a storybook of true names</div>
       </div>
       <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
+      <div id="home-place">— The First Clearing —</div>
       <div class="home-pills">
         <span class="chip">🔥 <b id="hm-streak">0</b> <em class="chiplbl">day streak</em></span>
         <span class="chip" id="hm-quest">🌤️</span>
@@ -1096,6 +1146,10 @@ function applyBiome(L){
     d.appendChild(s);
   });
   boardEl.insertBefore(d, boardEl.firstChild);
+  // the hush hangs over every fresh clearing — words will thin it (see hud)
+  const oldMist=document.getElementById("hushmist"); if(oldMist) oldMist.remove();
+  const mist=document.createElement("div"); mist.id="hushmist";
+  boardEl.appendChild(mist);
 }
 function isSpike(L){ return L%5===0; }
 function isMilestone(L){ return L%10===0; }
@@ -2783,6 +2837,8 @@ const UI = {
   },
   home(){
     $("play-lvl").textContent = "LV "+P.level;
+    const ring=Math.floor((P.level-1)/25)+1;
+    $("home-place").textContent = "— "+(ring>1?"Ring "+ring+" · ":"")+BIOME_NAMES[biomeOf(P.level)]+" —";
     $("hm-streak").textContent=P.streak||0;
     const q=dailyQuest();
     $("hm-quest").innerHTML = q.emoji+' <em class="chiplbl">'+(P.questDone ? "quest done ✓" : "today: "+q.text)+'</em>';
@@ -2798,6 +2854,8 @@ const UI = {
     $("goalfill").style.width=pct+"%";
     $("goaltext").textContent=S.levelScore+" / "+S.target;
     $("goalbar").classList.toggle("done", S.levelScore>=S.target);
+    const mist=document.getElementById("hushmist"); // every word thins the hush — visibly
+    if(mist) mist.style.opacity=Math.max(0, 1-(pct/100)*1.25);
   },
   miniTile(t, size, font){
     const el=document.createElement("div");
