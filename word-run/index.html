@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#fdf8ee">
-<title>Wordgrove</title>
+<title>Hushwood</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="%23f7ecd6" stroke="%23b3a685" stroke-width="3" transform="rotate(-4 32 32)"/><text x="32" y="44" font-family="Segoe UI,sans-serif" font-size="34" font-weight="800" fill="%234a3b28" text-anchor="middle">W</text></svg>'>
@@ -863,11 +863,11 @@
     <div id="home-content">
       <div id="homelogo">
         <div class="logo-tiles">
-          <div class="tile">W<small>4</small></div><div class="tile">O<small>1</small></div>
-          <div class="tile">R<small>1</small></div><div class="tile">D<small>2</small></div>
+          <div class="tile">H<small>4</small></div><div class="tile">U<small>1</small></div>
+          <div class="tile">S<small>1</small></div><div class="tile">H<small>4</small></div>
         </div>
-        <div class="logo-word">🌳 grove</div>
-        <div class="logo-sub">a cozy word garden</div>
+        <div class="logo-word">🌲 wood</div>
+        <div class="logo-sub">a storybook of true names</div>
       </div>
       <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
       <div class="home-pills">
@@ -875,7 +875,7 @@
         <span class="chip" id="hm-quest">🌤️</span>
       </div>
       <div class="home-links">
-        <button class="iconbtn" id="btn-grove" onclick="UI.groveShow()">🌳<span class="cnt" id="grove-badge">0</span></button>
+        <button class="iconbtn" id="btn-grove" onclick="UI.groveShow()" title="the Book of Names">📖<span class="cnt" id="grove-badge">0</span></button>
         <button class="iconbtn" onclick="UI.statsShow()">📊</button>
         <button class="iconbtn" onclick="UI.tutReplay()" title="how to play">❓</button>
         <button class="iconbtn soundbtn" onclick="Snd.toggle()">🔊</button>
@@ -932,7 +932,7 @@
       <button class="iconbtn sm" onclick="UI.scene('scene-home')">←</button>
       <span class="chip">🌳 <b id="gr-count">0/40</b></span>
       <span style="flex:1"></span>
-      <span class="chip" title="one secret word each day — spell it for a full paw meter">📅 <em class="chiplbl">daily word</em> <b id="gr-daily">?</b></span>
+      <span class="chip" title="one whispered word each day — spell it for a full paw meter">📅 <em class="chiplbl">today's whisper</em> <b id="gr-daily">?</b></span>
     </div>
     <div id="grovefield"></div>
   </div>
@@ -982,7 +982,7 @@
     <div id="meet-hill"></div>
     <div id="meet-rays"></div>
     <div class="card">
-      <div id="meet-label">a new friend!</div>
+      <div id="meet-label">a name remembered!</div>
       <div id="meet-creature">🦊</div>
       <div id="meet-name">FOX</div>
       <div id="meet-line">has come to live in your grove 🌳</div>
@@ -1067,7 +1067,7 @@ const MIN_LEN = 3;
    Every 10th level is a 👑 golden milestone. Targets grow sub-linearly so the wall never comes. */
 const RHYTHM=[1.0, 0.88, 1.02, 0.92, 1.16];
 const BIOMES=["🌼","🌊","🍂","🌙","❄️"]; // the world changes every 5 levels
-const BIOME_NAMES=["Sunny Meadow","Lily Pond","Autumn Wood","Moonlit Glade","Winter Grove"];
+const BIOME_NAMES=["The First Clearing","The Listening Pond","The Amber Thicket","The Moonquiet","The Snowhush"];
 function biomeOf(L){ return Math.floor((L-1)/5)%5; }
 // each place gets living scenery on the plot — quiet, behind the tiles, never in the way
 const BIOME_DECOR=[
@@ -1785,7 +1785,8 @@ const Game = {
     const step=(level-1)%5;
     $("iv-path").innerHTML = Array.from({length:5},(_,i)=>
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
-    $("iv-level").textContent = "Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
+    const ring=Math.floor((level-1)/25)+1; // each 25 levels = one ring deeper into the wood
+    $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
     $("iv-target").textContent = S.target;
     $("iv-moves").textContent = S.movesLeft;
     const ob=$("iv-obstacles");
@@ -2039,7 +2040,7 @@ const Game = {
   },
 
   share(){
-    const txt="🌳 Wordgrove — LV "+S.level+" · "+S.levelScore+" pts · 👑 best word "+(S.bestWord||"—")+"\nplay: sarfrazbaig.github.io/word-drop";
+    const txt="🌲 Hushwood — LV "+S.level+" · "+S.levelScore+" pts · 👑 best word "+(S.bestWord||"—")+"\nplay: sarfrazbaig.github.io/word-drop";
     if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.toast("Copied!"); }
   },
@@ -2465,8 +2466,8 @@ const Game = {
         if(S.tutorWord===g.w) S.tutorWord=null; // guided word found — clear the prompt
         Snd.discover(); UI.confetti(); buzz([30,50,40]);
         // say "meet them next round" only the very first time — after that the ritual speaks for itself
-        UI.toast(Object.keys(P.metGrove).length ? "🌱 You found "+g.w.toUpperCase()+"!"
-          : "🌱 You found "+g.w.toUpperCase()+"! Meet them next round");
+        UI.toast(Object.keys(P.metGrove).length ? "✨ "+g.w.toUpperCase()+" remembers its name!"
+          : "✨ "+g.w.toUpperCase()+" remembers its name! It wakes next round");
         Game.cheer(2);
       }
       const day=Math.floor(Date.now()/864e5);
@@ -2934,10 +2935,10 @@ const UI = {
     $("ov-end").classList.add("active");
   },
   TUT:[
-    '<div class="big">🌳</div><p>Welcome to <b>Wordgrove</b>,<br>a cozy little word garden.</p><small>drop letters · spell words · grow a grove</small>',
-    '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>Drop letters into columns.<br>Spell a word and it clears ✨</p><small>words read left → right and top → bottom</small>',
-    '<div class="tut-goals"><span>🎯<b>40</b>target</span><span>🔻<b>15</b>moves</span></div><p>Reach the target<br>before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
-    '<div class="big">🦊🦉🐝</div><p>50 wild friends hide in the words.<br>Spell one and it joins your party.</p><small>every friend has its OWN power — no two are alike</small>',
+    '<div class="big">🌲</div><p>A hush fell over the wood —<br>and the creatures forgot their names.</p><small>only loose letters drift where its voice used to be</small>',
+    '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>You are the <b>Namekeeper</b>.<br>Weave letters into words ✨</p><small>drop them into columns — words read left → right, top → bottom</small>',
+    '<div class="tut-goals"><span>🎯<b>40</b>target</span><span>🔻<b>15</b>moves</span></div><p>Every word thins the hush.<br>Clear it before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
+    '<div class="big">🦊🦉🐝</div><p>Spell a creature\'s <b>true name</b><br>and it remembers itself — and joins you.</p><small>50 friends to wake · every one has its OWN power</small>',
   ],
   _tut:0,
   tutShow(i){
@@ -2990,11 +2991,11 @@ const UI = {
     const firstEver = Object.keys(P.metGrove).length===0;
     const how = g.ps ? "always on while "+g.w+"'s on duty" : "every few words";
     $("meet-line").innerHTML = firstEver
-      ? "joins you! <b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".<br>Your party lives in the meadow above the garden 🌿 · swap them in the grove 🌳"
+      ? "awake, and itself again. <b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".<br>Your party walks the meadow above the clearing 🌿 · swap them in the Book 📖"
       : "<b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".";
     // if the party is full, say so RIGHT NOW — otherwise the missing pet reads as a bug
     const max=slotsFor(P.level), full=(P.equip||[]).length>=max && !(P.equip||[]).includes(g.w);
-    $("meet-count").innerHTML = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length
+    $("meet-count").innerHTML = "name "+Object.keys(P.grove).length+" of "+GROVE.length+" remembered"
       + (full ? "<br>your party is full (<b>"+max+"</b> for now"+(UI.nextSlotAt()?", room for more at level "+UI.nextSlotAt():"")+") — swap friends in the grove 🌳" : "");
     UI._meetCreature = g.e;
     $("ov-meet").classList.add("active"); Game.shown("meet");
@@ -3035,8 +3036,8 @@ const UI = {
     boardEl.appendChild(c); setTimeout(()=>c.remove(),1700);
     Snd.discover();
   },
-  GROVE_MILES:[ {n:10,i:"🌸",t:"Your grove is blooming!"}, {n:25,i:"🎶",t:"Your grove is humming!"},
-    {n:40,i:"🎼",t:"Your grove is singing!"}, {n:50,i:"🌈",t:"Your grove is COMPLETE!"} ],
+  GROVE_MILES:[ {n:10,i:"🌸",t:"The wood begins to stir!"}, {n:25,i:"🎶",t:"The wood is waking!"},
+    {n:40,i:"🎼",t:"The wood remembers its song!"}, {n:50,i:"🌈",t:"The wood is AWAKE!"} ],
   groveShow(){
     const found=Object.keys(P.grove).length;
     $("gr-count").textContent = found+"/"+GROVE.length;
@@ -3098,8 +3099,8 @@ const UI = {
         } else {
           el.className="gcard mystery";
           el.innerHTML='<span class="ge">'+g.e+'</span><span class="mound"></span>'
-            +'<span class="gn">a shy friend</span>'
-            +'<span class="gp">hides in a '+g.w.length+'-letter word</span>';
+            +'<span class="gn">a hushed friend</span>'
+            +'<span class="gp">its name has '+g.w.length+' letters</span>';
           el.onclick=()=>{ el.classList.remove("wiggle"); void el.offsetWidth; el.classList.add("wiggle");
             Snd.tone(520,{dur:.08,type:"triangle",gain:.05}); };
         }

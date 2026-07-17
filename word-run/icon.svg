@@ -4,10 +4,10 @@
   <g transform="rotate(-5 256 262)">
     <rect x="150" y="150" width="212" height="224" rx="34" fill="#f7ecd6" stroke="#b3a685" stroke-width="10"/>
     <rect x="150" y="150" width="212" height="224" rx="34" fill="url(#g)"/>
-    <text x="256" y="312" font-family="Segoe UI, Arial, sans-serif" font-size="168" font-weight="800" fill="#4a3b28" text-anchor="middle">W</text>
+    <text x="256" y="312" font-family="Segoe UI, Arial, sans-serif" font-size="168" font-weight="800" fill="#4a3b28" text-anchor="middle">H</text>
     <text x="330" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="700" fill="#8d8064" text-anchor="middle">4</text>
   </g>
-  <text x="256" y="150" font-size="70" text-anchor="middle">🌳</text>
+  <text x="256" y="150" font-size="70" text-anchor="middle">🌲</text>
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#fffdf4"/>

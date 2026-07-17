@@ -1,7 +1,7 @@
 {
-  "name": "Wordgrove — a cozy word garden",
-  "short_name": "Wordgrove",
-  "description": "Drop letters, spell words, and grow a grove of little friends. A cozy word-drop puzzle.",
+  "name": "Hushwood — a storybook of true names",
+  "short_name": "Hushwood",
+  "description": "A hush fell over the wood and the creatures forgot their names. Weave letters into words, spell their true names, and wake them one by one. A cozy word-drop storybook.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

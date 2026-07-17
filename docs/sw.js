@@ -1,5 +1,5 @@
-// Wordgrove service worker — offline-first for a single-file game.
-const CACHE = "wordgrove-v1";
+// Hushwood service worker — offline-first for a single-file game.
+const CACHE = "hushwood-v1";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {
