@@ -23,16 +23,32 @@ const enableSet = new Set(words);
 const g10k = fs.readFileSync(path.join(__dirname, "common10k.txt"), "utf8")
   .split(/\r?\n/)
   .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
-const subs = fs.readFileSync(path.join(__dirname, "freq50k.txt"), "utf8")
-  .split(/\r?\n/).slice(0, 30000).map(l => l.split(" ")[0])
+// TIERED vocabulary. Short words (3-4 letters) clear by ACCIDENT all the time, so they
+// must be strictly familiar — the audit showed lei/nos/vee/sei popping "for" the player,
+// which reads as the game cheating. Long words (5+) are essentially always deliberate,
+// so they get the full vocabulary: spelling BISTRO must always pay its jackpot.
+const subsLines = fs.readFileSync(path.join(__dirname, "freq50k.txt"), "utf8").split(/\r?\n/);
+const subsAt = n => subsLines.slice(0, n).map(l => l.split(" ")[0])
   .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
+const subsStrict = subsAt(12000), subsWide = subsAt(30000);
+const subs = [
+  ...[...new Set([...subsStrict])].filter(w => w.length <= 4),
+  ...[...new Set([...subsWide])].filter(w => w.length >= 5),
+];
 // family filter: this is a cozy game that auto-celebrates words with chimes and
 // confetti — crude words must never get the fanfare (playtest cleared "ASS" with applause).
 const CRUDE = new Set(("ass arse anal anus boob boobs butt clit cock cum dick dildo fag fart hell homo jerk "+
   "kink milf nude oral orgy penis pee piss poo poop porn pube rape scat semen sex sexy shag shit slut smut "+
   "tit tits turd twat vagina wank whore damn crap cunt hoe").split(" "));
-const common = [...new Set([...g10k, ...subs])].filter(w => !CRUDE.has(w));
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
+// every grove creature must stay spellable no matter how the frequency lists shift —
+// pull their names straight out of the template so the two can never drift apart.
+const grove = [...dropTemplate.matchAll(/\{w:"([a-z]+)"/g)].map(m => m[1]);
+// g10k is web-frequency: its long tail is fine, but its SHORT tail carries web junk
+// (biz, faq...) — hold short words to the same strict spoken-familiarity bar.
+const strictShort = new Set(subsStrict.filter(w => w.length <= 4));
+const g10kTiered = g10k.filter(w => w.length >= 5 || strictShort.has(w));
+const common = [...new Set([...g10kTiered, ...subs, ...grove])].filter(w => !CRUDE.has(w));
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
 fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game — it owns the root

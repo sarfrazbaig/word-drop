@@ -509,8 +509,20 @@
   .pbdeco:nth-last-child(1){ right:9px; }
   /* pets are bare friendly faces — no frames, no glow; the character IS the token */
   .petcompanion{ display:none; background:none; border:none; padding:0 0 4px; position:relative; line-height:1;
-    filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
+    cursor:pointer; filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
   .petcompanion.has{ display:block; }
+  /* the countdown badge: the NEXT pet to act wears the words-to-go number */
+  .petcompanion .petcount{ position:absolute; top:-7px; right:-9px; min-width:17px; height:17px; border-radius:9px;
+    background:var(--gold); color:#3a2a00; font-size:11px; font-weight:900; display:flex; align-items:center;
+    justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.3); padding:0 3px; }
+  .petcompanion .petcount.ready{ background:var(--accent-deep); color:#fff; }
+  /* the little shout a pet gives when its power fires — always visible, never modal */
+  .petsay{ position:absolute; z-index:80; font-size:12.5px; font-weight:800; color:var(--gold-deep); white-space:nowrap;
+    background:#fffdf6; border:1.5px solid var(--gold); border-radius:999px; padding:4px 10px;
+    box-shadow:0 4px 10px rgba(90,60,30,.3); pointer-events:none; transform:translate(-50%,0);
+    animation:petsayup 1.6s ease-out forwards; }
+  @keyframes petsayup{ 0%{ opacity:0; transform:translate(-50%,6px) scale(.7) } 15%{ opacity:1; transform:translate(-50%,0) scale(1) }
+    80%{ opacity:1 } 100%{ opacity:0; transform:translate(-50%,-14px) } }
   .petcompanion:nth-of-type(2){ animation-delay:.9s; } .petcompanion:nth-of-type(3){ animation-delay:1.7s; }
   .petcompanion:nth-of-type(4){ animation-delay:2.4s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
@@ -756,12 +768,19 @@
     filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
   #gr-hint{ width:100%; text-align:center; font-size:11.5px; color:var(--dim); line-height:1.5;
     background:rgba(255,255,255,.65); border-radius:12px; padding:7px 12px; z-index:1; }
+  #gr-teaser{ position:absolute; left:50%; top:38%; transform:translate(-50%,-50%); width:72%;
+    background:#fffdf6; border:2px solid var(--gold); border-radius:16px; padding:14px 16px;
+    text-align:center; font-size:13px; line-height:1.6; color:var(--ink);
+    box-shadow:0 12px 28px rgba(90,60,30,.35); }
+  #gr-teaser b{ color:var(--gold-deep); }
   #gr-hint b{ color:var(--gold-deep); }
   @keyframes gfloat{ 0%,55%,100%{ transform:translateY(0) rotate(0) } 64%{ transform:translateY(-10px) rotate(-6deg) }
     72%{ transform:translateY(0) rotate(4deg) } 80%{ transform:translateY(-5px) rotate(-2deg) } 88%{ transform:translateY(0) rotate(0) } }
   .statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .stat{ background:var(--surface); border-radius:var(--r-md); padding:12px 6px; font-size:20px; text-align:center; }
+  .stat{ background:var(--surface); border-radius:var(--r-md); padding:12px 6px 9px; font-size:20px; text-align:center; }
   .stat b{ display:block; font-size:18px; color:var(--gold-deep); margin-top:2px; }
+  .stat small{ display:block; font-size:9.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--dim); margin-top:3px; }
+  .chiplbl{ font-style:normal; font-size:10px; color:var(--dim); letter-spacing:.3px; }
 </style>
 
 <div id="app">
@@ -791,12 +810,13 @@
       </div>
       <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
       <div class="home-pills">
-        <span class="chip">🔥 <b id="hm-streak">0</b></span>
+        <span class="chip">🔥 <b id="hm-streak">0</b> <em class="chiplbl">day streak</em></span>
         <span class="chip" id="hm-quest">🌤️</span>
       </div>
       <div class="home-links">
         <button class="iconbtn" id="btn-grove" onclick="UI.groveShow()">🌳<span class="cnt" id="grove-badge">0</span></button>
         <button class="iconbtn" onclick="UI.statsShow()">📊</button>
+        <button class="iconbtn" onclick="UI.tutReplay()" title="how to play">❓</button>
         <button class="iconbtn soundbtn" onclick="Snd.toggle()">🔊</button>
       </div>
     </div>
@@ -817,10 +837,10 @@
     </div>
     <div id="petbar">
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
-      <span class="petcompanion" id="pet-0"></span>
-      <span class="petcompanion" id="pet-1"></span>
-      <span class="petcompanion" id="pet-2"></span>
-      <span class="petcompanion" id="pet-3"></span>
+      <span class="petcompanion" id="pet-0" onclick="UI.petInfo(0)"></span>
+      <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
+      <span class="petcompanion" id="pet-2" onclick="UI.petInfo(2)"></span>
+      <span class="petcompanion" id="pet-3" onclick="UI.petInfo(3)"></span>
       <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
     </div>
     <div id="boardwrap">
@@ -851,7 +871,7 @@
       <button class="iconbtn sm" onclick="UI.scene('scene-home')">←</button>
       <span class="chip">🌳 <b id="gr-count">0/40</b></span>
       <span style="flex:1"></span>
-      <span class="chip">📅 <b id="gr-daily">?</b></span>
+      <span class="chip" title="one secret word each day — spell it for a full paw meter">📅 <em class="chiplbl">daily word</em> <b id="gr-daily">?</b></span>
     </div>
     <div id="grovefield"></div>
     <div id="gr-hint"></div>
@@ -931,12 +951,12 @@
   <div class="overlay" id="m-stats" onclick="UI.statsHide(event)">
     <div class="card">
       <div class="statgrid">
-        <div class="stat">⭐<b id="st-level">1</b></div>
-        <div class="stat">🏁<b id="st-wins">0</b></div>
-        <div class="stat">🗣<b id="st-words">0</b></div>
-        <div class="stat">🔥<b id="st-streak">0</b></div>
-        <div class="stat">⛓<b id="st-chain">×1</b></div>
-        <div class="stat">👑<b id="st-word" style="font-size:14px">—</b></div>
+        <div class="stat">⭐<b id="st-level">1</b><small>level</small></div>
+        <div class="stat">🏁<b id="st-wins">0</b><small>levels won</small></div>
+        <div class="stat">🗣<b id="st-words">0</b><small>words spelled</small></div>
+        <div class="stat">🔥<b id="st-streak">0</b><small>day streak</small></div>
+        <div class="stat">⛓<b id="st-chain">×1</b><small>best chain</small></div>
+        <div class="stat">👑<b id="st-word" style="font-size:14px">—</b><small>best word</small></div>
       </div>
       <button class="btn-primary" onclick="UI.statsHide()">✓</button>
       <button class="btn-primary btn-ghost" id="btn-restart1" onclick="Game.restartFromOne()">↺ Start over from level 1</button>
@@ -1190,12 +1210,12 @@ const GROVE = [
   {w:"bee",e:"🐝",z:"sky",a:"align"},{w:"moth",e:"🦋",z:"sky",a:"wild"},{w:"owl",e:"🦉",z:"sky",a:"hint"},{w:"crow",e:"🐦‍⬛",z:"sky",a:"clear"},
   {w:"dove",e:"🕊️",z:"sky",a:"charm"},{w:"robin",e:"🐦",z:"sky",a:"charm"},{w:"duck",e:"🦆",z:"sky",a:"moves"},{w:"swan",e:"🦢",z:"sky",a:"wild"},
   {w:"goose",e:"🪿",z:"sky",a:"gold"},{w:"hawk",e:"🦅",z:"sky",a:"hint"},{w:"bat",e:"🦇",z:"sky",a:"clear"},{w:"heron",e:"🦩",z:"sky",a:"moves"},
-  {w:"wasp",e:"🐝",z:"sky",a:"smash"},{w:"fly",e:"🪰",z:"sky",a:"clear"},{w:"ladybug",e:"🐞",z:"sky",a:"charm"},{w:"cricket",e:"🦗",z:"sky",a:"charm"},
+  {w:"beetle",e:"🪲",z:"sky",a:"smash"},{w:"fly",e:"🪰",z:"sky",a:"clear"},{w:"ladybug",e:"🐞",z:"sky",a:"charm"},{w:"cricket",e:"🦗",z:"sky",a:"charm"},
   // on the ground
   {w:"fox",e:"🦊",z:"ground",a:"gold"},{w:"frog",e:"🐸",z:"ground",a:"align"},{w:"deer",e:"🦌",z:"ground",a:"wild"},{w:"bear",e:"🐻",z:"ground",a:"smash"},
-  {w:"wolf",e:"🐺",z:"ground",a:"clear"},{w:"hare",e:"🐰",z:"ground",a:"moves"},{w:"mouse",e:"🐭",z:"ground",a:"align"},{w:"mole",e:"🦫",z:"ground",a:"clear"},
+  {w:"wolf",e:"🐺",z:"ground",a:"clear"},{w:"hare",e:"🐇",z:"ground",a:"moves"},{w:"mouse",e:"🐭",z:"ground",a:"align"},{w:"pig",e:"🐷",z:"ground",a:"clear"},
   {w:"snail",e:"🐌",z:"ground",a:"align"},{w:"worm",e:"🪱",z:"ground",a:"align"},{w:"ant",e:"🐜",z:"ground",a:"align"},{w:"crab",e:"🦀",z:"ground",a:"smash"},
-  {w:"fish",e:"🐟",z:"ground",a:"gold"},{w:"snake",e:"🐍",z:"ground",a:"align"},{w:"toad",e:"🐸",z:"ground",a:"align"},{w:"newt",e:"🦎",z:"ground",a:"wild"},
+  {w:"fish",e:"🐟",z:"ground",a:"gold"},{w:"snake",e:"🐍",z:"ground",a:"align"},{w:"chick",e:"🐤",z:"ground",a:"align"},{w:"goat",e:"🐐",z:"ground",a:"wild"},
   {w:"otter",e:"🦦",z:"ground",a:"align"},{w:"boar",e:"🐗",z:"ground",a:"smash"},{w:"moose",e:"🫎",z:"ground",a:"clear"},{w:"seal",e:"🦭",z:"ground",a:"moves"},
   {w:"turtle",e:"🐢",z:"ground",a:"moves"},{w:"beaver",e:"🦫",z:"ground",a:"align"},{w:"badger",e:"🦡",z:"ground",a:"smash"},{w:"lizard",e:"🦎",z:"ground",a:"gold"},
   {w:"pony",e:"🐴",z:"ground",a:"moves"},{w:"lamb",e:"🐑",z:"ground",a:"wild"},{w:"bunny",e:"🐰",z:"ground",a:"hint"},{w:"skunk",e:"🦨",z:"ground",a:"clear"},
@@ -1982,6 +2002,12 @@ const Game = {
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
     UI.say("abil-"+pet.a, pet.e+" "+PET_ABIL[pet.a].n+"! "+PET_ABIL[pet.a].i+(boost?" ×2":""), 2);
+    // and ALWAYS a little shout above the pet itself — every act stays attributable
+    const ar=$("app").getBoundingClientRect(), pr=el.getBoundingClientRect();
+    const sayEl=document.createElement("div"); sayEl.className="petsay";
+    sayEl.textContent=PET_ABIL[pet.a].i+" "+PET_ABIL[pet.a].n+"!"+(boost?" ×2":"");
+    sayEl.style.left=(pr.left-ar.left+pr.width/2)+"px"; sayEl.style.top=(pr.top-ar.top-30)+"px";
+    $("app").appendChild(sayEl); setTimeout(()=>sayEl.remove(),1650);
     await wait(420);
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
     if(pet.a==="gold"){
@@ -2393,8 +2419,8 @@ const UI = {
     $("play-lvl").textContent = "LV "+P.level;
     $("hm-streak").textContent=P.streak||0;
     const q=dailyQuest();
-    $("hm-quest").textContent=q.emoji + (P.questDone?" ✓":"");
-    $("hm-quest").title=q.text;
+    $("hm-quest").innerHTML = q.emoji+' <em class="chiplbl">'+(P.questDone ? "quest done ✓" : "today: "+q.text)+'</em>';
+    $("hm-quest").title=q.name+": "+q.text;
     $("grove-badge").textContent=Object.keys(P.grove).length;
   },
   hud(){
@@ -2467,8 +2493,29 @@ const UI = {
       bar.title="the shelf glows as your pets charge up — they act every "+need+" words · same-home friends: powers ×2";
       // one word away (or ready): the pets can barely contain themselves
       const excited = S.petReady || t>=need-1;
-      for(let s=0;s<4;s++){ const el=$("pet-"+s); if(el) el.classList.toggle("excited", excited && el.classList.contains("has")); }
+      const eq=UI.equipped(), nextIdx=eq.length ? S.petTurn % eq.length : -1;
+      for(let s=0;s<4;s++){ const el=$("pet-"+s); if(!el) continue;
+        el.classList.toggle("excited", excited && el.classList.contains("has"));
+        // NO MYSTERY: the next pet to act wears a countdown — "2 words… 1… go!"
+        let b=el.querySelector(".petcount");
+        if(s===nextIdx && el.classList.contains("has")){
+          if(!b){ b=document.createElement("span"); b.className="petcount"; el.appendChild(b); }
+          const togo = S.petReady ? 0 : need-t;
+          b.textContent = togo<=0 ? "✨" : togo;
+          b.classList.toggle("ready", togo<=0);
+        } else if(b) b.remove();
+      }
     }
+  },
+  petInfo(slot){ // tap a pet: what it does, and exactly when it acts — no mystery
+    const eq=UI.equipped(), g=eq[slot];
+    if(!g || !S) return;
+    Snd.tone(880,{dur:.09,type:"triangle",gain:.06,verb:true}); buzz(8);
+    const need=Game.petNeed(), togo=Math.max(0, need-(S.petCharge||0));
+    const mine = (S.petTurn % eq.length)===slot;
+    const turn = mine ? (togo<=0 ? "acting now!" : "acts in <b>"+togo+" word"+(togo>1?"s":"")+"</b>")
+                      : "acts after "+eq[S.petTurn % eq.length].e;
+    UI.toast(g.e+" <b>"+PET_ABIL[g.a].n+" "+PET_ABIL[g.a].i+"</b><br>"+PET_ABIL[g.a].d+"<br><small>"+turn+(Game.petBoost(g)?" · ×2 with its same-home friend":"")+"</small>");
   },
   pillPop(id){
     const el=$(id);
@@ -2482,7 +2529,16 @@ const UI = {
     $("ev-score").textContent = S.levelScore + " / " + S.target;
     $("ev-word").textContent = S.bestWord||"—";
     const found = S.newGrove.map(w=>GROVE_BY_WORD[w].e);
-    $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ");
+    if(won){
+      $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ");
+    } else { // a loss should feel like your friends rooting for you, not a cold verdict
+      const eq=UI.equipped(), gap=S.target-S.levelScore;
+      $("ev-grove").innerHTML = (eq.length?eq.map(g=>"<span>"+g.e+"</span>").join(" ")+"<br>":"")
+        + '<span style="font-size:12px;color:var(--dim)">'
+        + (gap<=10 ? "only <b>"+gap+"</b> points to go — you nearly had it!"
+                   : (eq.length? "your friends believe in you — " : "")+"<b>"+gap+"</b> points to go")
+        + '</span>';
+    }
     $("btn-next").style.display = won ? "flex":"none";
     $("btn-retry").style.display = won ? "none":"flex";
     $("btn-moves").style.display = (!won && !S.revived && S.levelScore>0 && !boardFull()) ? "flex":"none";
@@ -2499,15 +2555,19 @@ const UI = {
     UI._tut=i;
     $("tut-slide").innerHTML=UI.TUT[i];
     $("tut-dots").innerHTML=UI.TUT.map((_,d)=>'<i class="'+(d===i?"on":"")+'"></i>').join("");
-    $("tut-next").textContent = i===UI.TUT.length-1 ? "Play ▶" : "Next";
+    $("tut-next").textContent = i===UI.TUT.length-1 ? (UI._tutReplay ? "Got it ✓" : "Play ▶") : "Next";
     $("ov-tut").classList.add("active"); Game.shown("tut");
+  },
+  tutReplay(){ // re-read the rules any time, without touching your progress
+    Snd.init(); UI._tutReplay=true; UI.tutShow(0);
   },
   tutNext(){
     if(Game.guard("tut")) return; // one beat per slide — spam-tapping can't skip the rules
     Snd.init();
     if(UI._tut < UI.TUT.length-1){ UI.tutShow(UI._tut+1); Snd.tone(660,{dur:.08,type:"triangle",gain:.07}); return; }
-    P.tut=true; save();
     $("ov-tut").classList.remove("active");
+    if(UI._tutReplay){ UI._tutReplay=false; return; } // just refreshing the rules — stay where you were
+    P.tut=true; save();
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
@@ -2521,6 +2581,7 @@ const UI = {
         el.title=g.w.toUpperCase()+" · "+PET_ABIL[g.a].n; el.classList.add("has"); }
       else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); }
     }
+    if(S && !S.over) UI.petMeter(); // repainting wipes the countdown badge — restore it
   },
   discover(g){ // the MEET ritual: shown at the start of the round AFTER you unlocked them
     Snd.discover(); buzz([30,50,30,50,90]); UI.confetti();
@@ -2599,6 +2660,11 @@ const UI = {
     const sky=GROVE.filter(g=>g.z==="sky"), ground=GROVE.filter(g=>g.z!=="sky");
     sky.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 6, 12));
     ground.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 44, 11));
+    if(!Object.keys(P.grove).length){ // a wall of grey needs a warm first step
+      const tz=document.createElement("div"); tz.id="gr-teaser";
+      tz.innerHTML="🐾<br>every friend you spell comes to live here<br><b>your first one is waiting around level 4</b>";
+      f.appendChild(tz);
+    }
     const hint=$("gr-hint");
     if(hint){ const nxt=UI.nextSlotAt();
       hint.innerHTML = Object.keys(P.metGrove).length
