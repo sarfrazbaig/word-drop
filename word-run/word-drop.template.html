@@ -1324,14 +1324,30 @@ function drawLetter(){
   if(letters>4 && vowels/letters<0.25 && Math.random()<0.5) return rand(["a","e","i","o"]);
   return FREQ[Math.floor(Math.random()*FREQ.length)];
 }
-function tutorPrefill(word){ // guide the word WITHOUT emptying the plot (a barren board starves words)
-  const head=word.slice(0,-1).split(""); // "ca" for cat
-  // drop the opening letters onto an open stretch of the normal prefill, leaving the next slot free.
-  for(let c=0; c+head.length<COLS; c++){
-    let open=true; for(let i=0;i<=head.length;i++){ if(S.board[ROWS-1][c+i]){ open=false; break; } }
-    if(open){ head.forEach((l,i)=>newTile(l,"normal",ROWS-1,c+i)); return; }
+function tutorPrefill(word){ // GUARANTEED guidance: build level ground, set the opening letters on it
+  const head=word.slice(0,-1).split(""); // "ca" for cat, "do" for dog
+  const L=head.length+1;                 // fragment + the completion slot
+  const landAt=c=>{ let r=ROWS-1; while(r>=0 && S.board[r][c]) r--; return r; };
+  // rank every start column by how much filler it needs to become level ground
+  const starts=[];
+  for(let c=0; c+L-1<COLS; c++){
+    const ls=[]; for(let i=0;i<L;i++) ls.push(landAt(c+i));
+    if(ls.some(r=>r<2)) continue;                       // stacks too tall here
+    const target=Math.min(...ls);                       // align to the tallest stack's level
+    starts.push({c, target, filler:ls.reduce((a,r)=>a+(r-target),0)});
   }
-  // no clean stretch — the deck forcing (tutorLetter) still leads the player to the word
+  starts.sort((a,b)=>a.filler-b.filler || Math.abs(2-a.c)-Math.abs(2-b.c));
+  for(const s of starts){
+    const added=[];
+    for(let i=0;i<L;i++){                               // raise short columns up to the target level
+      let r=landAt(s.c+i);
+      while(r>s.target){ added.push(newTile(drawLetter(),"normal",r,s.c+i)); r--; }
+    }
+    head.forEach((l,i)=>added.push(newTile(l,"normal",s.target,s.c+i)));
+    if(findWords().length){ added.forEach(t=>removeTile(t)); continue; } // fillers made a word — next spot
+    return;
+  }
+  // pathological board — the deck forcing (tutorLetter) still leads the player there
 }
 function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy to spell
   const w=S.tutorWord; if(!w) return null;
