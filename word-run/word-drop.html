@@ -750,32 +750,69 @@
   #grovenav{ width:100%; display:flex; align-items:center; gap:10px; z-index:1; }
   #grovenav .chip b{ color:var(--gold-deep); }
   .iconbtn.sm{ width:40px; height:40px; font-size:16px; }
-  #grovefield{ position:relative; width:100%; flex:1; border-radius:var(--r-xl); overflow:hidden;
-    background:
-      radial-gradient(circle at 82% 10%, rgba(255,238,170,.95) 0 20px, rgba(255,238,170,.35) 38px, transparent 58px),
-      linear-gradient(180deg,#bfe4f7 0%,#dcf0fb 34%,#a8d6a0 58%,#7cbd7d 100%);
-    box-shadow:inset 0 0 50px rgba(90,60,30,.15), var(--shadow-panel),
-      0 0 0 5px rgba(255,253,246,.9), 0 0 0 6px rgba(121,92,55,.22); }
-  .grovemoji{ position:absolute; animation:gfloat 4.5s ease-in-out infinite; cursor:default;
-    filter:drop-shadow(0 3px 5px rgba(60,90,50,.4)); }
-  .grovemoji.locked{ animation:none; }
-  .grovemoji.met{ cursor:pointer; }
-  .grovemoji.locked .gm{ filter:brightness(0) opacity(.22); }
-  .grovemoji .qm{ position:absolute; top:-6px; right:-8px; font-size:12px; font-weight:900; color:#4a3b28; opacity:.8; }
-  .grovemoji.onduty::before{ content:""; position:absolute; inset:-7px; border-radius:50%;
-    background:radial-gradient(circle, rgba(255,220,110,.55), transparent 70%); z-index:-1; }
-  .grovemoji .duty{ position:absolute; top:-9px; right:-10px; font-size:13px;
-    filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
-  #gr-hint{ width:100%; text-align:center; font-size:11.5px; color:var(--dim); line-height:1.5;
-    background:rgba(255,255,255,.65); border-radius:12px; padding:7px 12px; z-index:1; }
-  #gr-teaser{ position:absolute; left:50%; top:38%; transform:translate(-50%,-50%); width:72%;
-    background:#fffdf6; border:2px solid var(--gold); border-radius:16px; padding:14px 16px;
-    text-align:center; font-size:13px; line-height:1.6; color:var(--ink);
-    box-shadow:0 12px 28px rgba(90,60,30,.35); }
-  #gr-teaser b{ color:var(--gold-deep); }
-  #gr-hint b{ color:var(--gold-deep); }
-  @keyframes gfloat{ 0%,55%,100%{ transform:translateY(0) rotate(0) } 64%{ transform:translateY(-10px) rotate(-6deg) }
-    72%{ transform:translateY(0) rotate(4deg) } 80%{ transform:translateY(-5px) rotate(-2deg) } 88%{ transform:translateY(0) rotate(0) } }
+  /* ============ THE GROVE ALBUM — a trophy book you keep, not a wall of ghosts ============ */
+  #grovefield{ position:relative; width:100%; flex:1; border-radius:var(--r-xl); overflow-y:auto; overflow-x:hidden;
+    background:linear-gradient(180deg,#cfe9f8 0%,#e6f3f4 22%, #f7f2e2 60%, #f2ecd8 100%);
+    box-shadow:inset 0 0 50px rgba(90,60,30,.1), var(--shadow-panel),
+      0 0 0 5px rgba(255,253,246,.9), 0 0 0 6px rgba(121,92,55,.22);
+    padding:14px 12px 20px; scrollbar-width:none; }
+  #grovefield::-webkit-scrollbar{ display:none; }
+  /* the party shelf: your team, front and center like framed family photos */
+  .gparty{ background:linear-gradient(180deg,#fffdf6,#f6efdc); border:1px solid var(--surface-border);
+    border-radius:16px; padding:10px 12px 12px; margin-bottom:12px; text-align:center;
+    box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
+  .gparty h4{ margin:0 0 8px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); }
+  .gparty .row{ display:flex; justify-content:center; gap:20px; }
+  .gpartypet{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .gpartypet .pe{ font-size:38px; line-height:1; filter:drop-shadow(0 3px 4px rgba(40,60,25,.35));
+    animation:petidle 3.4s ease-in-out infinite; }
+  .gpartypet:nth-child(2) .pe{ animation-delay:.8s } .gpartypet:nth-child(3) .pe{ animation-delay:1.6s }
+  .gpartypet:nth-child(4) .pe{ animation-delay:2.4s }
+  .gpartypet small{ font-size:10px; font-weight:800; color:var(--ink); letter-spacing:.5px; }
+  .gpartypet .pw{ font-size:9px; color:var(--dim); }
+  .gparty .note{ margin-top:7px; font-size:10.5px; color:var(--dim); }
+  /* pawprint progress + keepsake badges */
+  .gprog{ background:rgba(255,255,255,.7); border-radius:12px; padding:8px 12px; margin-bottom:14px;
+    font-size:11.5px; color:var(--dim); text-align:center; }
+  .gprog b{ color:var(--gold-deep); font-size:13px; }
+  .gbar{ height:10px; border-radius:999px; background:rgba(121,92,55,.14); margin:6px 0 4px; overflow:hidden; }
+  .gbarfill{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--accent),var(--gold));
+    transition:width .6s cubic-bezier(.2,.8,.3,1.1); }
+  .gmiles{ display:flex; justify-content:center; gap:6px; margin-top:5px; }
+  .gmiles span{ font-size:13px; opacity:.25; filter:grayscale(1); }
+  .gmiles span.earned{ opacity:1; filter:none; }
+  /* album sections + trophy cards */
+  .gsection h3{ margin:6px 2px 8px; font-size:13px; color:var(--ink); letter-spacing:1px; }
+  .ggrid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; margin-bottom:16px; }
+  .gcard{ position:relative; border-radius:14px; padding:10px 6px 8px; text-align:center; cursor:pointer;
+    background:linear-gradient(180deg,#fffdf6,#f7efdb); border:1.5px solid rgba(121,92,55,.16);
+    box-shadow:0 3px 8px rgba(90,60,30,.14), inset 0 1.5px 0 rgba(255,255,255,.85); }
+  .gcard:active{ transform:scale(.96); }
+  .gcard .ge{ display:block; font-size:37px; line-height:1.15; filter:drop-shadow(0 3px 3px rgba(40,60,25,.3)); }
+  .gcard .mound{ display:block; width:70%; height:7px; margin:-4px auto 5px; border-radius:50%;
+    background:radial-gradient(50% 100% at 50% 0, var(--grass), transparent 75%); opacity:.7; }
+  .gcard .gn{ display:block; font-size:11px; font-weight:900; letter-spacing:1px; color:var(--ink); }
+  .gcard .gp{ display:block; font-size:9px; color:var(--dim); margin-top:2px; }
+  .gcard .gd{ display:block; font-size:8.5px; color:rgba(140,115,80,.75); margin-top:3px; }
+  .gcard .ribbon{ position:absolute; top:-6px; left:50%; transform:translateX(-50%); font-size:8px; font-weight:900;
+    letter-spacing:1px; color:#5a3410; background:linear-gradient(180deg,#ffd54f,#f0a92e); border-radius:999px;
+    padding:2px 8px; box-shadow:0 2px 4px rgba(120,80,0,.35); white-space:nowrap; }
+  .gcard .gmate{ position:absolute; top:4px; right:5px; font-size:11px; opacity:.45; filter:grayscale(1); }
+  .gcard .gmate.lit{ opacity:1; filter:none; }
+  .gcard.mystery{ background:linear-gradient(180deg,#fbf7ec,#f3ecd8); border-style:dashed; cursor:default; }
+  .gcard.mystery .ge{ opacity:.55; }
+  .gcard.mystery .gn{ color:var(--dim); font-weight:700; letter-spacing:.5px; font-size:10px; }
+  .gcard.wiggle{ animation:denyshake .32s; }
+  /* the friend sheet: one pet, told properly */
+  #ov-pet .card{ text-align:center; }
+  #pet-sheet-e{ font-size:74px; line-height:1.1; filter:drop-shadow(0 6px 8px rgba(0,0,0,.2)); animation:meethop 1.2s ease-in-out infinite; }
+  #pet-sheet-n{ font-size:24px; font-weight:900; letter-spacing:2px; color:var(--ink); }
+  #pet-sheet-f{ font-size:12.5px; color:var(--dim); font-style:italic; margin-top:2px; }
+  #pet-sheet-p{ font-size:13px; color:var(--ink); line-height:1.55; margin-top:10px;
+    background:rgba(240,169,46,.1); border:1px dashed rgba(201,138,16,.35); border-radius:12px; padding:8px 12px; }
+  #pet-sheet-mate{ font-size:12px; color:var(--dim); margin-top:8px; }
+  #pet-sheet-met{ font-size:10.5px; color:rgba(140,115,80,.8); margin-top:8px; letter-spacing:.5px; }
+  #pet-sheet-btn{ margin-top:12px; }
   .statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .stat{ background:var(--surface); border-radius:var(--r-md); padding:12px 6px 9px; font-size:20px; text-align:center; }
   .stat b{ display:block; font-size:18px; color:var(--gold-deep); margin-top:2px; }
@@ -874,7 +911,19 @@
       <span class="chip" title="one secret word each day — spell it for a full paw meter">📅 <em class="chiplbl">daily word</em> <b id="gr-daily">?</b></span>
     </div>
     <div id="grovefield"></div>
-    <div id="gr-hint"></div>
+  </div>
+
+  <!-- ============ THE FRIEND SHEET — one pet, told properly ============ -->
+  <div class="overlay" id="ov-pet" onclick="UI.closeSheet()">
+    <div class="card" onclick="event.stopPropagation()">
+      <div id="pet-sheet-e">🐱</div>
+      <div id="pet-sheet-n">CAT</div>
+      <div id="pet-sheet-f"></div>
+      <div id="pet-sheet-p"></div>
+      <div id="pet-sheet-mate"></div>
+      <div id="pet-sheet-met"></div>
+      <button class="btn-primary" id="pet-sheet-btn" onclick="UI.sheetEquip()">🌿 Bring on duty</button>
+    </div>
   </div>
 
   <!-- ============ OVERLAYS ============ -->
@@ -1198,59 +1247,59 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
    description; fx = effect spec (petAct's switchboard); ps:true = PASSIVE, always on
    while on duty (passives don't use the paw meter — they just work). */
 const GROVE = [
-  // your first friends — taught in the early levels
-  {w:"cat",e:"🐱",z:"ground",pn:"Golden Paw",pi:"✨",pd:"turns <b>your next letter golden</b> — ×3 wherever you drop it",fx:{t:"goldHand"}},
-  {w:"dog",e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"}},
+  // your first friends — taught in the early levels (f: = the little plaque on their album card)
+  {w:"cat",e:"🐱",z:"ground",pn:"Golden Paw",pi:"✨",pd:"turns <b>your next letter golden</b> — ×3 wherever you drop it",fx:{t:"goldHand"},f:"naps wherever the golden tiles are warmest"},
+  {w:"dog",e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
-  {w:"bee",e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2}},
-  {w:"moth",e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>blossom that matches anything</b>",fx:{t:"wildHand"}},
-  {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"}},
-  {w:"crow",e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"}},
-  {w:"dove",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1}},
-  {w:"robin",e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"}},
-  {w:"duck",e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2}},
-  {w:"swan",e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2}},
-  {w:"goose",e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"}},
-  {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"}},
-  {w:"bat",e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"}},
-  {w:"heron",e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"}},
-  {w:"beetle",e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"}},
-  {w:"fly",e:"🪰",z:"sky",pn:"Little Nibble",pi:"😋",pd:"eats the single <b>most awkward letter</b>",fx:{t:"eatWorst",n:1}},
-  {w:"ladybug",e:"🐞",z:"sky",pn:"Lucky Spots",pi:"🍀",pd:"your next <b>3 words each score +5</b>",fx:{t:"flatBonus",n:3}},
-  {w:"cricket",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"}},
+  {w:"bee",e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
+  {w:"moth",e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>blossom that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
+  {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
+  {w:"crow",e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
+  {w:"dove",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
+  {w:"robin",e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"},f:"wakes the vowels up every morning"},
+  {w:"duck",e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2},f:"paddles hard so your moves float easy"},
+  {w:"swan",e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
+  {w:"goose",e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
+  {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
+  {w:"bat",e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"},f:"reads the bottom row backwards for fun"},
+  {w:"heron",e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
+  {w:"beetle",e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"rolls boulders away like morning chores"},
+  {w:"fly",e:"🪰",z:"sky",pn:"Little Nibble",pi:"😋",pd:"eats the single <b>most awkward letter</b>",fx:{t:"eatWorst",n:1},f:"eats the letters nobody wanted, happily"},
+  {w:"ladybug",e:"🐞",z:"sky",pn:"Lucky Spots",pi:"🍀",pd:"your next <b>3 words each score +5</b>",fx:{t:"flatBonus",n:3},f:"lands a little luck on everything"},
+  {w:"cricket",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
-  {w:"fox",e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"}},
-  {w:"frog",e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"}},
-  {w:"deer",e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"}},
-  {w:"bear",e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"}},
-  {w:"wolf",e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3}},
-  {w:"hare",e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"}},
-  {w:"mouse",e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"}},
-  {w:"pig",e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"}},
-  {w:"snail",e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6}},
-  {w:"worm",e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3}},
-  {w:"ant",e:"🐜",z:"ground",ps:true,pn:"Tiny Planner",pi:"📐",pd:"the deck <b>leans extra helpful</b>",fx:{t:"helpDeck"}},
-  {w:"crab",e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"}},
-  {w:"fish",e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"}},
-  {w:"snake",e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"}},
-  {w:"chick",e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"}},
-  {w:"goat",e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"}},
-  {w:"otter",e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"}},
-  {w:"boar",e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"}},
-  {w:"moose",e:"🫎",z:"ground",pn:"Antler Sweep",pi:"🌬️",pd:"knocks the <b>top letter off every column</b>",fx:{t:"sweepTops"}},
-  {w:"seal",e:"🦭",z:"ground",pn:"Playful Splash",pi:"💦",pd:"your next <b>2 words score +50%</b>",fx:{t:"splash",n:2}},
-  {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"}},
-  {w:"beaver",e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3}},
-  {w:"badger",e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"}},
-  {w:"lizard",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"}},
-  {w:"pony",e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"}},
-  {w:"lamb",e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3}},
-  {w:"bunny",e:"🐰",z:"ground",ps:true,pn:"Daily Whisper",pi:"🥕",pd:"sniffs out the <b>daily word's first letter</b> (see the grove)",fx:{t:"whisper"}},
-  {w:"skunk",e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"}},
-  {w:"raccoon",e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"}},
-  {w:"squirrel",e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"}},
-  {w:"spider",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"}},
-  {w:"bison",e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"}},
+  {w:"fox",e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
+  {w:"frog",e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
+  {w:"deer",e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"},f:"grazes the bottom row down to fresh grass"},
+  {w:"bear",e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"},f:"hugs a little too hard, helpfully"},
+  {w:"wolf",e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3},f:"howls and the awkward letters scatter"},
+  {w:"hare",e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"},f:"runs so fast the move comes right back"},
+  {w:"mouse",e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"},f:"saves every crumb — they add up"},
+  {w:"pig",e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"},f:"can smell a gift crate a mile away"},
+  {w:"snail",e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6},f:"slow, sure, and never wastes a step"},
+  {w:"worm",e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3},f:"keeps the soil soft and the letters fresh"},
+  {w:"ant",e:"🐜",z:"ground",ps:true,pn:"Tiny Planner",pi:"📐",pd:"the deck <b>leans extra helpful</b>",fx:{t:"helpDeck"},f:"plans your deck three drops ahead"},
+  {w:"crab",e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"},f:"tidies the bottom row walking sideways"},
+  {w:"fish",e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"},f:"makes the whole school shimmer gold"},
+  {w:"snake",e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
+  {w:"chick",e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
+  {w:"goat",e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
+  {w:"otter",e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"warms the pond until every ice lets go"},
+  {w:"boar",e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
+  {w:"moose",e:"🫎",z:"ground",pn:"Antler Sweep",pi:"🌬️",pd:"knocks the <b>top letter off every column</b>",fx:{t:"sweepTops"},f:"sweeps the treetops with one shake"},
+  {w:"seal",e:"🦭",z:"ground",pn:"Playful Splash",pi:"💦",pd:"your next <b>2 words score +50%</b>",fx:{t:"splash",n:2},f:"claps for your words — they score better for it"},
+  {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"},f:"carries your first step, every level, free"},
+  {w:"beaver",e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
+  {w:"badger",e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"will dig any letter out, no questions asked"},
+  {w:"lizard",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
+  {w:"pony",e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
+  {w:"lamb",e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
+  {w:"bunny",e:"🐰",z:"ground",ps:true,pn:"Daily Whisper",pi:"🥕",pd:"sniffs out the <b>daily word's first letter</b> (see the grove)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
+  {w:"skunk",e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room — every last copy of it"},
+  {w:"raccoon",e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
+  {w:"squirrel",e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"stashes acorns that go off with a pop"},
+  {w:"spider",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
+  {w:"bison",e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"},f:"charges through the middle row, politely"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 /* ============ BEST FRIENDS — simple, named pair synergies ============
@@ -1333,6 +1382,7 @@ function load(){
     out.metGrove = out.metGrove||{};
     out.equip = out.equip||[];
     out.said = out.said||{};
+    out.groveMile = out.groveMile||{};
     out.stats = Object.assign({}, defaults.stats, out.stats||{});
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
     out.powProg = out.powProg||{};
@@ -2928,45 +2978,102 @@ const UI = {
     boardEl.appendChild(c); setTimeout(()=>c.remove(),1700);
     Snd.discover();
   },
+  GROVE_MILES:[ {n:10,i:"🌸",t:"Your grove is blooming!"}, {n:25,i:"🎶",t:"Your grove is humming!"},
+    {n:40,i:"🎼",t:"Your grove is singing!"}, {n:50,i:"🌈",t:"Your grove is COMPLETE!"} ],
   groveShow(){
-    $("gr-count").textContent = Object.keys(P.grove).length+"/"+GROVE.length;
+    const found=Object.keys(P.grove).length;
+    $("gr-count").textContent = found+"/"+GROVE.length;
     $("gr-daily").textContent = P.dailyWordDay===Math.floor(Date.now()/864e5) ? "✓"
       : (Game.hasPassive("whisper") ? dailyWord()[0].toUpperCase()+"…" : "?"); // 🥕 the bunny knows
     const f=$("grovefield"); f.innerHTML="";
-    // a tidy collection: sky friends in two neat rows up top, ground friends in ranks on the grass.
-    // every friend owns a fixed spot — silhouette today, colour the day you spell it.
-    const onduty = UI.equipped().map(g=>g.w);
-    const place=(g, col, row, startTop, rowGap)=>{
-      const found=!!P.grove[g.w], met=!!P.metGrove[g.w];
-      const el=document.createElement("div");
-      el.className="grovemoji"+(found?"":" locked")+(met?" met":"")+(onduty.includes(g.w)?" onduty":"");
-      el.innerHTML='<span class="gm">'+g.e+"</span>"+(found?"":'<span class="qm">?</span>')
-        +(onduty.includes(g.w)?'<span class="duty">'+g.pi+'</span>':'');
-      el.title = found ? g.w.toUpperCase()+" · "+g.pn+(g.ps?" (always on)":"") : "???"; // never leak the word — the hunt IS the game
-      if(met) el.onclick=()=>UI.equipToggle(g.w);
-      el.style.left = (7 + col*15.4)+"%";
-      el.style.top = (startTop + row*rowGap)+"%";
-      el.style.fontSize = "25px";
-      el.style.animationDelay = (col*0.3 + row*0.5)+"s";
-      f.appendChild(el);
+    const onduty=UI.equipped().map(g=>g.w);
+    const met=w=>!!P.metGrove[w];
+    const fmt=ts=>new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    // ---- the party shelf: your team, like framed family photos ----
+    const party=document.createElement("div"); party.className="gparty";
+    const eq=UI.equipped();
+    const nxt=UI.nextSlotAt();
+    party.innerHTML="<h4>🌿 your party</h4>"
+      + (eq.length
+        ? '<div class="row">'+eq.map(g=>'<div class="gpartypet"><span class="pe">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>').join("")+'</div>'
+        : '<div class="note">your first friend joins around level 4 🐾</div>')
+      + '<div class="note">'+eq.length+' / '+slotsFor(P.level)+' slots'+(nxt?' · next at level '+nxt:'')
+      + (activePairs().length? ' · '+activePairs().map(p=>p.i+" "+p.n).join(" · ")+' active' : '')+'</div>';
+    f.appendChild(party);
+    // ---- pawprint progress + keepsake badges ----
+    const prog=document.createElement("div"); prog.className="gprog";
+    const nextMile=UI.GROVE_MILES.find(mi=>found<mi.n);
+    prog.innerHTML="🐾 <b>"+found+"</b> of "+GROVE.length+" friends"
+      + '<div class="gbar"><div class="gbarfill" style="width:'+(100*found/GROVE.length)+'%"></div></div>'
+      + (nextMile? (nextMile.n-found)+" more until "+nextMile.i+" <i>"+nextMile.t.toLowerCase()+"</i>" : "🌈 every friend is home")
+      + '<div class="gmiles">'+UI.GROVE_MILES.map(mi=>'<span class="'+(found>=mi.n?"earned":"")+'" title="'+mi.t+'">'+mi.i+'</span>').join("")+'</div>';
+    f.appendChild(prog);
+    // milestone crossings celebrate ONCE, then the badge stays forever
+    P.groveMile=P.groveMile||{};
+    UI.GROVE_MILES.forEach(mi=>{ if(found>=mi.n && !P.groveMile[mi.n]){
+      P.groveMile[mi.n]=true; save();
+      setTimeout(()=>{ UI.confetti(); Snd.levelUp(); UI.toast(mi.i+" <b>"+mi.t+"</b>"); }, 500); } });
+    // ---- the album: sky then ground, every friend a trophy card ----
+    const section=(title, list)=>{
+      const sec=document.createElement("div"); sec.className="gsection";
+      sec.innerHTML="<h3>"+title+"</h3>";
+      const grid=document.createElement("div"); grid.className="ggrid";
+      list.forEach(g=>{
+        const has=!!P.grove[g.w];
+        const el=document.createElement("div");
+        if(has){
+          el.className="gcard";
+          const pr=pairFor(g.w); const mateOwned=pr && P.grove[pr.a===g.w?pr.b:pr.a];
+          el.innerHTML=(onduty.includes(g.w)?'<span class="ribbon">ON DUTY</span>':'')
+            +(pr?'<span class="gmate'+(mateOwned?" lit":"")+'" title="best friend">'+GROVE_BY_WORD[pr.a===g.w?pr.b:pr.a].e+'</span>':'')
+            +'<span class="ge">'+g.e+'</span><span class="mound"></span>'
+            +'<span class="gn">'+g.w.toUpperCase()+'</span>'
+            +'<span class="gp">'+g.pi+' '+g.pn+'</span>'
+            +'<span class="gd">since '+fmt(P.grove[g.w])+'</span>';
+          el.onclick=()=>UI.petSheet(g.w);
+        } else {
+          el.className="gcard mystery";
+          el.innerHTML='<span class="ge">🐾</span><span class="mound"></span>'
+            +'<span class="gn">a shy friend</span>'
+            +'<span class="gp">hides in a '+g.w.length+'-letter word</span>';
+          el.onclick=()=>{ el.classList.remove("wiggle"); void el.offsetWidth; el.classList.add("wiggle");
+            Snd.tone(520,{dur:.08,type:"triangle",gain:.05}); };
+        }
+        grid.appendChild(el);
+      });
+      sec.appendChild(grid); f.appendChild(sec);
     };
-    const sky=GROVE.filter(g=>g.z==="sky"), ground=GROVE.filter(g=>g.z!=="sky");
-    sky.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 6, 12));
-    ground.forEach((g,i)=>place(g, i%6, Math.floor(i/6), 44, 11));
-    if(!Object.keys(P.grove).length){ // a wall of grey needs a warm first step
-      const tz=document.createElement("div"); tz.id="gr-teaser";
-      tz.innerHTML="🐾<br>every friend you spell comes to live here<br><b>your first one is waiting around level 4</b>";
-      f.appendChild(tz);
-    }
-    const hint=$("gr-hint");
-    if(hint){ const nxt=UI.nextSlotAt();
-      const duo=activePairs().map(p=>p.i+" "+p.n).join(" · ");
-      hint.innerHTML = Object.keys(P.metGrove).length
-        ? "tap a friend to add them to your party — <b>"+UI.equipped().length+" / "+slotsFor(P.level)+" slots</b>"
-          +(nxt?" (next slot at <b>level "+nxt+"</b>)":"")+" · same-home friends make powers <b>×2</b>"
-          +(duo?" · <b>"+duo+"</b> active":" · some friends are <b>best friends</b> — pair them!")
-        : "spell a creature's name to invite it home"; }
+    section("🌤️ In the Sky", GROVE.filter(g=>g.z==="sky"));
+    section("🌱 On the Ground", GROVE.filter(g=>g.z!=="sky"));
     UI.scene("scene-grove");
+  },
+  petSheet(w){ // one friend, told properly — portrait, plaque, power, and the duty button
+    const g=GROVE_BY_WORD[w]; if(!g || !P.grove[w]) return;
+    UI._sheetW=w;
+    Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(8);
+    $("pet-sheet-e").textContent=g.e;
+    $("pet-sheet-n").textContent=g.w.toUpperCase();
+    $("pet-sheet-f").textContent="“"+g.f+"”";
+    $("pet-sheet-p").innerHTML="<b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+(g.ps?"<br><small>always on while on duty</small>":"");
+    const pr=pairFor(w); let mate="";
+    if(pr){ const ow=pr.a===w?pr.b:pr.a, og=GROVE_BY_WORD[ow];
+      const both=UI.equipped().some(x=>x.w===w)&&UI.equipped().some(x=>x.w===ow);
+      mate = both ? pr.i+" <b>"+pr.n+"</b> with "+og.e+" — active now!"
+        : P.grove[ow] ? "💛 best friend: "+og.e+" "+ow.toUpperCase()+" — pair them for <b>"+pr.n+"</b>"
+        : "💛 has a best friend out there somewhere…"; }
+    $("pet-sheet-mate").innerHTML=mate;
+    $("pet-sheet-met").textContent="part of your grove since "+new Date(P.grove[w]).toLocaleDateString(undefined,{month:"long",day:"numeric"});
+    const isMet=!!P.metGrove[w], on=UI.equipped().some(x=>x.w===w);
+    const btn=$("pet-sheet-btn");
+    if(!isMet){ btn.textContent="arriving next round…"; btn.disabled=true; }
+    else { btn.disabled=false; btn.textContent = on ? "💤 Let them rest" : "🌿 Bring on duty"; }
+    $("ov-pet").classList.add("active");
+  },
+  closeSheet(){ $("ov-pet").classList.remove("active"); },
+  sheetEquip(){
+    const w=UI._sheetW; if(!w) return;
+    UI.equipToggle(w);          // handles slots, swaps, pair announcements, re-render
+    UI.petSheet(w);             // refresh the sheet with the new duty state
   },
   nextSlotAt(){ const m=slotsFor(P.level); return m>=4?null : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
