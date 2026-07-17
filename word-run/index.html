@@ -1193,33 +1193,64 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
    charm 💖 Sweet Song   — your next word scores double
    hint  🔆 Bright Eyes  — spots a word for you and lights it up
    smash 💥 Boulder Buster — cracks every stone and thaws every ice */
-const PET_ABIL={
-  gold: {n:"Golden Touch",  i:"✨", c:"#ffd54f", d:"turns <b>your next letter golden</b> — ×3 wherever you drop it"},
-  align:{n:"Word Weaver",   i:"🍀", c:"#8fd694", d:"nudges tiles together to <b>line up a long word</b>"},
-  wild: {n:"Blossom Gift",  i:"🌸", c:"#f7a6c8", d:"blooms <b>your next letter</b> into a blossom that matches anything"},
-  moves:{n:"Second Wind",   i:"🪽", c:"#9fd4f2", d:"flutters in <b>extra moves</b>"},
-  clear:{n:"Tidy Paws",     i:"🍂", c:"#d8b077", d:"<b>sweeps away</b> awkward letters"},
-  charm:{n:"Sweet Song",    i:"💖", c:"#f6a9a9", d:"sings — your <b>next word scores double</b>"},
-  hint: {n:"Bright Eyes",   i:"🔆", c:"#ffe08a", d:"<b>spots a word</b> for you and lights it up"},
-  smash:{n:"Boulder Buster",i:"💥", c:"#c5a3e0", d:"<b>cracks every stone</b> and thaws every ice"},
-};
+/* ============ 50 FRIENDS, 50 POWERS ============
+   Every pet owns a power the base game never gives you. pn/pi/pd = power name/icon/
+   description; fx = effect spec (petAct's switchboard); ps:true = PASSIVE, always on
+   while on duty (passives don't use the paw meter — they just work). */
 const GROVE = [
   // your first friends — taught in the early levels
-  {w:"cat",e:"🐱",z:"ground",a:"gold"},{w:"dog",e:"🐶",z:"ground",a:"align"},
+  {w:"cat",e:"🐱",z:"ground",pn:"Golden Paw",pi:"✨",pd:"turns <b>your next letter golden</b> — ×3 wherever you drop it",fx:{t:"goldHand"}},
+  {w:"dog",e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"}},
   // in the air
-  {w:"bee",e:"🐝",z:"sky",a:"align"},{w:"moth",e:"🦋",z:"sky",a:"wild"},{w:"owl",e:"🦉",z:"sky",a:"hint"},{w:"crow",e:"🐦‍⬛",z:"sky",a:"clear"},
-  {w:"dove",e:"🕊️",z:"sky",a:"charm"},{w:"robin",e:"🐦",z:"sky",a:"charm"},{w:"duck",e:"🦆",z:"sky",a:"moves"},{w:"swan",e:"🦢",z:"sky",a:"wild"},
-  {w:"goose",e:"🪿",z:"sky",a:"gold"},{w:"hawk",e:"🦅",z:"sky",a:"hint"},{w:"bat",e:"🦇",z:"sky",a:"clear"},{w:"heron",e:"🦩",z:"sky",a:"moves"},
-  {w:"beetle",e:"🪲",z:"sky",a:"smash"},{w:"fly",e:"🪰",z:"sky",a:"clear"},{w:"ladybug",e:"🐞",z:"sky",a:"charm"},{w:"cricket",e:"🦗",z:"sky",a:"charm"},
+  {w:"bee",e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2}},
+  {w:"moth",e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>blossom that matches anything</b>",fx:{t:"wildHand"}},
+  {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"}},
+  {w:"crow",e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"}},
+  {w:"dove",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1}},
+  {w:"robin",e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"}},
+  {w:"duck",e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2}},
+  {w:"swan",e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2}},
+  {w:"goose",e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"}},
+  {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"}},
+  {w:"bat",e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"}},
+  {w:"heron",e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"}},
+  {w:"beetle",e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"}},
+  {w:"fly",e:"🪰",z:"sky",pn:"Little Nibble",pi:"😋",pd:"eats the single <b>most awkward letter</b>",fx:{t:"eatWorst",n:1}},
+  {w:"ladybug",e:"🐞",z:"sky",pn:"Lucky Spots",pi:"🍀",pd:"your next <b>3 words each score +5</b>",fx:{t:"flatBonus",n:3}},
+  {w:"cricket",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"}},
   // on the ground
-  {w:"fox",e:"🦊",z:"ground",a:"gold"},{w:"frog",e:"🐸",z:"ground",a:"align"},{w:"deer",e:"🦌",z:"ground",a:"wild"},{w:"bear",e:"🐻",z:"ground",a:"smash"},
-  {w:"wolf",e:"🐺",z:"ground",a:"clear"},{w:"hare",e:"🐇",z:"ground",a:"moves"},{w:"mouse",e:"🐭",z:"ground",a:"align"},{w:"pig",e:"🐷",z:"ground",a:"clear"},
-  {w:"snail",e:"🐌",z:"ground",a:"align"},{w:"worm",e:"🪱",z:"ground",a:"align"},{w:"ant",e:"🐜",z:"ground",a:"align"},{w:"crab",e:"🦀",z:"ground",a:"smash"},
-  {w:"fish",e:"🐟",z:"ground",a:"gold"},{w:"snake",e:"🐍",z:"ground",a:"align"},{w:"chick",e:"🐤",z:"ground",a:"align"},{w:"goat",e:"🐐",z:"ground",a:"wild"},
-  {w:"otter",e:"🦦",z:"ground",a:"align"},{w:"boar",e:"🐗",z:"ground",a:"smash"},{w:"moose",e:"🫎",z:"ground",a:"clear"},{w:"seal",e:"🦭",z:"ground",a:"moves"},
-  {w:"turtle",e:"🐢",z:"ground",a:"moves"},{w:"beaver",e:"🦫",z:"ground",a:"align"},{w:"badger",e:"🦡",z:"ground",a:"smash"},{w:"lizard",e:"🦎",z:"ground",a:"gold"},
-  {w:"pony",e:"🐴",z:"ground",a:"moves"},{w:"lamb",e:"🐑",z:"ground",a:"wild"},{w:"bunny",e:"🐰",z:"ground",a:"hint"},{w:"skunk",e:"🦨",z:"ground",a:"clear"},
-  {w:"raccoon",e:"🦝",z:"ground",a:"gold"},{w:"squirrel",e:"🐿️",z:"ground",a:"hint"},{w:"spider",e:"🕷️",z:"ground",a:"wild"},{w:"bison",e:"🦬",z:"ground",a:"smash"},
+  {w:"fox",e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"}},
+  {w:"frog",e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"}},
+  {w:"deer",e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"}},
+  {w:"bear",e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"}},
+  {w:"wolf",e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3}},
+  {w:"hare",e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"}},
+  {w:"mouse",e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"}},
+  {w:"pig",e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"}},
+  {w:"snail",e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6}},
+  {w:"worm",e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3}},
+  {w:"ant",e:"🐜",z:"ground",ps:true,pn:"Tiny Planner",pi:"📐",pd:"the deck <b>leans extra helpful</b>",fx:{t:"helpDeck"}},
+  {w:"crab",e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"}},
+  {w:"fish",e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"}},
+  {w:"snake",e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"}},
+  {w:"chick",e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"}},
+  {w:"goat",e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"}},
+  {w:"otter",e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"}},
+  {w:"boar",e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"}},
+  {w:"moose",e:"🫎",z:"ground",pn:"Antler Sweep",pi:"🌬️",pd:"knocks the <b>top letter off every column</b>",fx:{t:"sweepTops"}},
+  {w:"seal",e:"🦭",z:"ground",pn:"Playful Splash",pi:"💦",pd:"your next <b>2 words score +50%</b>",fx:{t:"splash",n:2}},
+  {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"}},
+  {w:"beaver",e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3}},
+  {w:"badger",e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"}},
+  {w:"lizard",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"}},
+  {w:"pony",e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"}},
+  {w:"lamb",e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3}},
+  {w:"bunny",e:"🐰",z:"ground",ps:true,pn:"Daily Whisper",pi:"🥕",pd:"sniffs out the <b>daily word's first letter</b> (see the grove)",fx:{t:"whisper"}},
+  {w:"skunk",e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"}},
+  {w:"raccoon",e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"}},
+  {w:"squirrel",e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"}},
+  {w:"spider",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"}},
+  {w:"bison",e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"}},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 function dailyWord(){
@@ -1314,6 +1345,7 @@ function newState(level){
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
+    wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
 }
@@ -1322,6 +1354,7 @@ function drawLetter(){
   let letters=0, vowels=0;
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const t=S.board[r][c]; if(t&&t.kind==="normal"){ letters++; if(VOWELS.has(t.letter)) vowels++; } }
   if(letters>4 && vowels/letters<0.25 && Math.random()<0.5) return rand(["a","e","i","o"]);
+  if(Game && Game.hasPassive && Game.hasPassive("vowelDeck") && Math.random()<0.3) return rand(["a","e","i","o","u"]); // 🎶 Morning Chorus
   return FREQ[Math.floor(Math.random()*FREQ.length)];
 }
 function tutorPrefill(word){ // GUARANTEED guidance: build level ground, set the opening letters on it
@@ -1378,12 +1411,15 @@ function makePiece(){
     if(S.deadDrops>=3 || S.movesLeft<=5) return {letter:"★", kind:"wild"};
   }
   const roll=Math.random();
-  const goldOK = S && S.level>=9;              // ✨ gold tiles arrive at level 9
+  // gold is the PETS' gift now — the deck only rains it on 👑 milestone celebration levels.
+  // (if the game handed out gold freely, why would you need a cat?)
   const shiftOK = S && S.level>=16;            // 🌀 restless tiles much later
-  const goldP = goldOK ? ((S.milestone)?0.28:0.14) : 0;
+  const goldP = (S && S.milestone) ? 0.25 : 0;
   if(shiftOK && roll<0.02)  return {letter:drawLetter(), kind:"shift"};
   if(roll<goldP)            return {letter:riggedLetter(), kind:"gold"};
-  return {letter:riggedLetter(), kind:"normal"};
+  let l=riggedLetter();
+  if(Game && Game.hasPassive && S && Game.hasPassive("skipJunk") && "qzxjv".includes(l)) l=riggedLetter(); // 🧠 Clever Beak rerolls once
+  return {letter:l, kind:"normal"};
 }
 
 /* =================== BOARD DOM =================== */
@@ -1526,7 +1562,8 @@ function riggedLetter(){
      Generosity is highest in the early levels and eases as the player finds their feet. */
   if(!S) return drawLetter();
   // generous much longer: the audit showed honest players starving from L4 on
-  const gen = S.level<=6 ? 1 : S.level<=10 ? 0.7 : S.level<=14 ? 0.45 : 0.3;
+  let gen = S.level<=6 ? 1 : S.level<=10 ? 0.7 : S.level<=14 ? 0.45 : 0.3;
+  if(Game && Game.hasPassive && Game.hasPassive("helpDeck")) gen=Math.min(1, gen+0.25); // 📐 Tiny Planner
   const best=helpfulByLength();
   // long words FIRST and most often — 3-letter pops got boring; 4+ is where the joy is
   const longs=Object.keys(best).filter(l=>best[l]>=4);
@@ -1604,6 +1641,7 @@ const Game = {
     S.tutorWord = (level===4 && !P.grove.cat) ? "cat" : (level===6 && !P.grove.dog) ? "dog" : null;
     if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
     S.cur = makePiece(); S.next = makePiece();
+    if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     $("breezepill").classList.remove("armed");
@@ -1762,8 +1800,18 @@ const Game = {
     UI.ghost(-1);
     if(!P.coach){ P.coach=true; save(); const h=document.querySelector(".coach"); if(h) h.remove(); }
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
-    const piece=S.cur; S.cur=S.next; S.next=makePiece();
-    S.movesLeft--; // ← the stake. every drop costs one.
+    const piece=S.cur; S.cur=S.next;
+    if(Game.hasPassive("next2")){ S.next=S.next2||makePiece(); S.next2=makePiece(); } // 👁 Far Sight: the queue runs deeper
+    else { S.next=makePiece(); S.next2=null; }
+    // the stake: every drop costs one — unless a friend covers it
+    let free=false;
+    if(Game.hasPassive("firstFree") && S.drops===0){ free=true; }                    // 🛡️ Shell Shield
+    S.stepN=(S.stepN||0)+1;
+    if(!free && Game.hasPassive("freeStep") && S.stepN%6===0){ free=true; }          // 🐌 Slow & Sure
+    if(free){ Game.movesFloat("0 · free step"); Snd.tone(740,{dur:.1,type:"triangle",gain:.05,verb:true}); }
+    else S.movesLeft--;
+    S._refunded=false; // Quickstep refunds at most once per drop
+
     const t = newTile(piece.letter, piece.kind, land, col, false);
     t.el.style.transition="none"; t.el.style.transform=xy(-1.2,col); void t.el.offsetWidth;
     const fallMs = 80 + land*42;
@@ -1785,8 +1833,10 @@ const Game = {
     S.cascadeMax=1; S.clearedThisDrop=false; S.lastAction=Date.now();
     S.chain=1;
     await Game.resolve([t]);
+    if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
+    if(Game.hasPassive("alwaysHint")) Game.petHint(false); // 🎯 Keen Eye: the hawk points, quietly, every time
 
     // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
     if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
@@ -1968,9 +2018,10 @@ const Game = {
   async pluckAt(row,col){
     const t = S.board[row] && S.board[row][col];
     S.usingPluck=false; $("wishbtn").classList.remove("armed");
-    if(!t || (t.kind!=="normal" && t.kind!=="gold" && t.kind!=="shift")){ Snd.reject(); UI.toast("that one won't budge"); return; }
+    if(!t || (t.kind!=="normal" && t.kind!=="gold" && t.kind!=="shift")){ Snd.reject(); UI.toast("that one won't budge"); S.freePluck=false; return; }
     S.busy=true;
-    P.pow.wild--; save(); UI.wishPill();
+    if(S.freePluck){ S.freePluck=false; }             // 🦡 Digger pays the bill
+    else { P.pow.wild--; save(); UI.wishPill(); }
     UI.shards(t.r,t.c,"#e8c9a0"); removeTile(t); Snd.crack(true); buzz([15,30]);
     await wait(200);
     const fell=await Game.gravity();
@@ -2003,87 +2054,209 @@ const Game = {
     Snd.tone(880,{dur:.08,type:"triangle",gain:.06});
   },
 
-  /* ============ PET POWERS — every few words, your companion changes the board ============ */
-  petNeed(){ const n=UI.equipped().length; return n>=2 ? 2 : 3; }, // pets act often — they ARE the powers
+  /* ============ PET POWERS — 50 friends, 50 powers ============
+     Actives take turns on the paw meter; passives (g.ps) are simply always on. */
+  petActives(){ return UI.equipped().filter(g=>!g.ps); },
+  hasPassive(t){ return UI.equipped().some(g=>g.ps && g.fx.t===t); },
+  petNeed(){ const n=Game.petActives().length; return n>=2 ? 2 : 3; },
   petBoost(pet){ // same-home synergy: this pet is ×2 if another duty friend shares its home
     return UI.equipped().some(g=>g!==pet && g.z===pet.z);
   },
+  movesFloat(n){ const f=document.createElement("div"); f.className="movesfloat"; f.textContent="+"+n;
+    const mb=$("movesbox").getBoundingClientRect(), ar=$("app").getBoundingClientRect();
+    f.style.left=(mb.left-ar.left+mb.width/2-10)+"px"; f.style.top=(mb.top-ar.top)+"px";
+    $("app").appendChild(f); setTimeout(()=>f.remove(),1000); },
+  addMoves(n){ S.movesLeft+=n; UI.hud(); boardEl.classList.toggle("danger", S.movesLeft<=3); Game.movesFloat(n); },
+  async settle(changed){ const fell=await Game.gravity(); S.chain=1; await Game.resolve([...(changed||[]),...(fell||[])]); },
+  worstTiles(n){ // qzxjv first, then the priciest letters — the stuff that clogs a board
+    const ts=Object.values(S.tiles).filter(t=>t.kind==="normal");
+    return ts.sort((a,b)=>{
+      const ja="qzxjv".includes(a.letter), jb="qzxjv".includes(b.letter);
+      if(ja!==jb) return ja?-1:1;
+      return VAL[b.letter]-VAL[a.letter];
+    }).slice(0,n);
+  },
+  retype(t,l){ t.letter=l; t.inner.innerHTML=t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
+    t.inner.classList.add("thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); },
+  handPop(){ const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); } },
 
   async petAct(){
-    const eq=UI.equipped(); if(!eq.length) return;
-    const idx=S.petTurn % eq.length; const pet=eq[idx]; S.petTurn++;
-    const boost=Game.petBoost(pet);
+    const actives=Game.petActives(); if(!actives.length) return;
+    const pet=actives[S.petTurn % actives.length]; S.petTurn++;
+    const eq=UI.equipped(), boost=Game.petBoost(pet);
     S.petActing=true;
-    const el=$("pet-"+idx) || $("pet-0");
+    const el=$("pet-"+eq.indexOf(pet)) || $("pet-0");
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
-    UI.say("abil-"+pet.a, pet.e+" "+PET_ABIL[pet.a].n+"! "+PET_ABIL[pet.a].i+(boost?" ×2":""), 2);
+    UI.say("abil-"+pet.fx.t, pet.e+" "+pet.pn+"! "+pet.pi+(boost?" ×2":""), 2);
     // and ALWAYS a little shout above the pet itself — every act stays attributable
     const ar=$("app").getBoundingClientRect(), pr=el.getBoundingClientRect();
     const sayEl=document.createElement("div"); sayEl.className="petsay";
-    sayEl.textContent=PET_ABIL[pet.a].i+" "+PET_ABIL[pet.a].n+"!"+(boost?" ×2":"");
+    sayEl.textContent=pet.pi+" "+pet.pn+"!"+(boost?" ×2":"");
     sayEl.style.left=(pr.left-ar.left+pr.width/2)+"px"; sayEl.style.top=(pr.top-ar.top-30)+"px";
     $("app").appendChild(sayEl); setTimeout(()=>sayEl.remove(),1650);
     await wait(420);
+    const fx=pet.fx, m=boost?2:1;
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
-    if(pet.a==="gold"){
-      // Golden Touch lands IN YOUR HAND — a random board tile was a wasted lottery.
-      // your played word earned it; your next letter carries it, and YOU aim it.
-      if(S.cur && S.cur.kind==="normal"){ S.cur.kind="gold"; }
-      else if(S.next && S.next.kind==="normal"){ S.next.kind="gold"; }
-      else { const t=rand(normals()); if(t){ t.kind="gold"; t.inner.classList.add("gold"); UI.shards(t.r,t.c,"#ffd54f"); } }
-      if(boost && S.next && S.next.kind==="normal") S.next.kind="gold"; // ×2: the next one too
-      UI.piece(); Snd.gold();
-      const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); }
-    } else if(pet.a==="align"){
-      const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
-      if(!done && S.cur){ S.cur={letter:"★", kind:"wild"}; UI.piece(); UI.blossom(); } // no weave found — a blossom in hand instead
-    } else if(pet.a==="wild"){
-      // Blossom Gift blooms YOUR NEXT LETTER into a wild — drop it anywhere, match anything
-      if(S.cur){ S.cur={letter:"★", kind:"wild"}; }
-      if(boost && S.next){ S.next={letter:"★", kind:"wild"}; } // ×2: the one after too
-      UI.piece(); UI.blossom();
-      const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); }
-    } else if(pet.a==="moves"){
-      const n=boost?3:2; S.movesLeft+=n; UI.hud();
-      boardEl.classList.toggle("danger", S.movesLeft<=3);
-      const f=document.createElement("div"); f.className="movesfloat"; f.textContent="+"+n;
-      const mb=$("movesbox").getBoundingClientRect(), ar=$("app").getBoundingClientRect();
-      f.style.left=(mb.left-ar.left+mb.width/2-10)+"px"; f.style.top=(mb.top-ar.top)+"px";
-      $("app").appendChild(f); setTimeout(()=>f.remove(),1000);
-    } else if(pet.a==="clear"){
-      const junk=normals().filter(t=>"qzxjv".includes(t.letter));
-      const picks=(junk.length?junk:normals()).sort(()=>Math.random()-.5).slice(0, boost?2:1);
-      for(const t of picks){ UI.shards(t.r,t.c,"#c9b18a"); removeTile(t); Snd.crack(true); await wait(180); }
-      const fell=await Game.gravity();
-      S.chain=1; await Game.resolve(fell); // tidy-up may tumble tiles into a word — let it bloom
-    } else if(pet.a==="charm"){
-      S.charm=(S.charm||0)+(boost?2:1); // your next word(s) score double
-      UI.say("charm-sing", pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
-      const hb=$("petbar"); hb.classList.add("pulse"); setTimeout(()=>hb.classList.remove("pulse"),520);
-      for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
-        h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%";
-        h.style.animationDelay=(i*0.1)+"s"; $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
-      Snd.tone(1046,{dur:.3,type:"sine",gain:.07,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.06,when:.15,verb:true});
-    } else if(pet.a==="hint"){
-      if(!Game.petHint(boost)){ // nothing to spot? the friend fetches a couple of moves instead
-        S.movesLeft+=2; UI.hud(); UI.toast(pet.e+" couldn't spot a word — brought you +2 moves instead!"); }
-    } else if(pet.a==="smash"){
-      const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone"||t.kind==="ice");
-      if(rocks.length){
+    const cols=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0; for(let r=0;r<8;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
+    const rowTiles=(r)=>{ const out=[]; for(let c=0;c<COLS;c++){ const t=S.board[r][c]; if(t&&(t.kind==="normal"||t.kind==="gold"||t.kind==="wild")) out.push(t); } return out; };
+    switch(fx.t){
+      case "goldHand": { if(S.cur && S.cur.kind==="normal") S.cur.kind="gold";
+        if(boost && S.next && S.next.kind==="normal") S.next.kind="gold";
+        UI.piece(); Snd.gold(); Game.handPop(); break; }
+      case "weave": { const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
+        if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.blossom(); } break; }
+      case "rainHelp": { const added=[];
+        for(let i=0;i<fx.n*m;i++){ const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
+          if(!open.length) break; const p=rand(open);
+          const t=newTile(riggedLetter(),"normal",p.land,p.c,false); added.push(t);
+          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,p.c); void t.el.offsetWidth;
+          t.el.style.transition="transform 240ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(p.land,p.c);
+          Snd.tone(600+i*90,{dur:.07,type:"triangle",gain:.05}); await wait(260); t.el.style.transition=""; }
+        S.chain=1; await Game.resolve(added); break; }
+      case "wildHand": { if(S.cur) S.cur={letter:"★",kind:"wild"};
+        if(boost && S.next) S.next={letter:"★",kind:"wild"};
+        UI.piece(); UI.blossom(); Game.handPop(); break; }
+      case "charm": { S.charm=(S.charm||0)+fx.n*m;
+        UI.say("charm-sing", pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
+        for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
+          h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
+          $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
+        Snd.tone(1046,{dur:.3,type:"sine",gain:.07,verb:true}); break; }
+      case "moves": Game.addMoves(fx.n*m); break;
+      case "wildOld": { const old=normals().sort((a,b)=>a.id.localeCompare?a.id.localeCompare(b.id):(a.id-b.id)).slice(0,fx.n);
+        old.forEach(t=>{ t.kind="wild"; t.inner.className="tile wild thawpop"; t.inner.innerHTML=tileFace(t); });
+        UI.blossom(); S.chain=1; await Game.resolve(old); break; }
+      case "goldenEgg": { S.cur={letter:"e",kind:"gold"}; if(boost) S.next={letter:"e",kind:"gold"};
+        UI.piece(); Snd.gold(); Game.handPop(); break; }
+      case "flipRow": { const ts=rowTiles(ROWS-1); const letters=ts.map(t=>({l:t.letter,k:t.kind})).reverse();
+        ts.forEach((t,i)=>{ t.letter=letters[i].l; t.kind=letters[i].k;
+          t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
+        UI.breeze(); S.chain=1; await Game.resolve(ts); break; }
+      case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); break;
+      case "crackAll": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
+        if(!rocks.length){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(const t of rocks){
-          if(t.kind==="ice"){ t.kind="normal"; t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
-            UI.shards(t.r,t.c,"#a8dcf5"); Snd.thaw(); }
-          else if(boost || t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); removeTile(t); Snd.crack(true); S.levelScore+=5; }
-          else { t.cracks=1; t.inner.classList.add("cracked"); Snd.crack(false); }
-          await wait(120);
-        }
-        UI.hud();
-        const fell=await Game.gravity();
-        S.chain=1; await Game.resolve(fell);
-      } else { // no stones today — a hearty shove of moves instead
-        S.movesLeft+=2; UI.hud(); UI.toast(pet.e+" found nothing to smash — brought you +2 moves!"); }
+        for(const t of rocks){ if(boost||t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); removeTile(t); S.levelScore+=5; Snd.crack(true); }
+          else { t.cracks=1; t.inner.classList.add("cracked"); Snd.crack(false); } await wait(110); }
+        UI.hud(); await Game.settle(); break; }
+      case "eatWorst": { const picks=Game.worstTiles(fx.n*m);
+        if(!picks.length){ Game.addMoves(2); break; }
+        for(const t of picks){ UI.shards(t.r,t.c,"#c9b18a"); removeTile(t); Snd.crack(true); await wait(160); }
+        await Game.settle(); break; }
+      case "flatBonus": S.flatB=(S.flatB||0)+fx.n*m; break;
+      case "chainBoost": S.chainBoost=true; break;
+      case "goldCol": { const h=cols(); const c=h.indexOf(Math.max(...h));
+        const changed=[]; for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t&&t.kind==="normal"){ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); changed.push(t); UI.shards(t.r,t.c,"#ffd54f"); } }
+        Snd.gold(); break; }
+      case "swapCols": { const h=cols(); const opts=[]; for(let c=0;c<COLS-1;c++) if(h[c]&&h[c+1]) opts.push(c);
+        if(!opts.length){ Game.addMoves(2); break; }
+        const c=rand(opts); const moved=[];
+        for(let r=0;r<8;r++){ const a=S.board[r][c], b=S.board[r][c+1];
+          S.board[r][c]=b; S.board[r][c+1]=a;
+          if(a){ a.c=c+1; moved.push(a); } if(b){ b.c=c; moved.push(b); } }
+        moved.forEach(t=>{ t.el.style.transition="transform .45s cubic-bezier(.4,.05,.35,1)"; placeTile(t,t.r,t.c,false); });
+        UI.breeze(); await wait(480); moved.forEach(t=>t.el.style.transition="");
+        await Game.settle(moved); break; }
+      case "eatRow": { const ts=rowTiles(ROWS-1);
+        for(const t of ts){ UI.shards(t.r,t.c,"#a8c9a0"); removeTile(t); }
+        Snd.collapse(ts.length); await Game.settle(); break; }
+      case "midRow": { const ts=rowTiles(ROWS-2);
+        if(!ts.length){ Game.addMoves(2); break; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(const t of ts){ UI.shards(t.r,t.c,"#d8b077"); removeTile(t); }
+        Snd.collapse(ts.length); await Game.settle(); break; }
+      case "smashPatch": { const picks=[];
+        for(let r=ROWS-2;r<ROWS;r++) for(let c=3;c<=4;c++){ const t=S.board[r][c]; if(t) picks.push(t); }
+        if(!picks.length){ Game.addMoves(2); break; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(const t of picks){ UI.shards(t.r,t.c,"#c5a3e0"); removeTile(t); Snd.crack(true); await wait(90); }
+        await Game.settle(); break; }
+      case "digCrate": { const h=cols(); const c=h.indexOf(Math.min(...h));
+        let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+        if(land<0){ Game.addMoves(2); break; }
+        newTile("?","crate",land,c); Snd.gold(); break; }
+      case "churn": { const picks=normals().sort(()=>Math.random()-.5).slice(0,fx.n*m);
+        picks.forEach(t=>Game.retype(t, riggedLetter()));
+        S.chain=1; await Game.resolve(picks); break; }
+      case "slideRow": { const ts=rowTiles(ROWS-1); if(ts.length<2){ Game.addMoves(2); break; }
+        const contents=ts.map(t=>({l:t.letter,k:t.kind}));
+        contents.unshift(contents.pop());
+        ts.forEach((t,i)=>{ t.letter=contents[i].l; t.kind=contents[i].k;
+          t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
+        UI.breeze(); S.chain=1; await Game.resolve(ts); break; }
+      case "goldSchool": { const count={}; normals().forEach(t=>count[t.letter]=(count[t.letter]||0)+1);
+        const top=Object.keys(count).sort((a,b)=>count[b]-count[a])[0];
+        if(!top){ Game.addMoves(2); break; }
+        normals().filter(t=>t.letter===top).forEach(t=>{ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); UI.shards(t.r,t.c,"#ffd54f"); });
+        Snd.gold(); break; }
+      case "bestHand": { const best=helpfulByLength(); const ks=Object.keys(best).sort((a,b)=>best[b]-best[a]);
+        const l=ks[0] || (builderLetters()[0]) || riggedLetter();
+        S.cur={letter:l,kind:S.cur&&S.cur.kind==="gold"?"gold":"normal"}; UI.piece(); Game.handPop(); break; }
+      case "twinHand": { if(S.cur) S.next={letter:S.cur.letter,kind:S.cur.kind}; UI.piece(); Game.handPop(); break; }
+      case "thawAll": { const ices=Object.values(S.tiles).filter(t=>t.kind==="ice");
+        if(!ices.length){ Game.addMoves(2); break; }
+        ices.forEach(t=>{ t.kind="normal"; t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#a8dcf5"); });
+        Snd.thaw(); S.chain=1; await Game.resolve(ices); break; }
+      case "smashCol": { const h=cols(); const c=h.indexOf(Math.max(...h));
+        if(!h[c]){ Game.addMoves(2); break; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); removeTile(t); } }
+        Snd.collapse(6); break; }
+      case "sweepTops": { const picks=[];
+        for(let c=0;c<COLS;c++){ for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ if(t.kind==="normal"||t.kind==="gold"||t.kind==="wild") picks.push(t); break; } } }
+        if(!picks.length){ Game.addMoves(2); break; }
+        for(const t of picks){ UI.shards(t.r,t.c,"#9fd4f2"); removeTile(t); }
+        Snd.collapse(picks.length); break; }
+      case "splash": S.splash=(S.splash||0)+fx.n*m; break;
+      case "damFill": { const h=cols(); const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0,fx.n);
+        const added=[];
+        for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+          if(land<2) continue; const t=newTile(riggedLetter(),"normal",land,c,false); added.push(t);
+          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,c); void t.el.offsetWidth;
+          t.el.style.transition="transform 240ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(land,c);
+          await wait(250); t.el.style.transition=""; }
+        S.chain=1; await Game.resolve(added); break; }
+      case "freePluck": { S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
+        UI.toast(pet.e+" dug a hole — tap any letter to pluck it FREE"); break; }
+      case "stoneGold": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
+        if(!rocks.length){ Game.addMoves(2); break; }
+        rocks.forEach(t=>{ t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
+        Snd.gold(); S.chain=1; await Game.resolve(rocks); break; }
+      case "shuffleCols": { const perm=[...Array(COLS).keys()].sort(()=>Math.random()-.5);
+        const grid=[]; for(let r=0;r<8;r++){ grid.push([...S.board[r]]); }
+        const moved=[];
+        for(let r=0;r<8;r++) for(let c=0;c<COLS;c++){ const t=grid[r][perm[c]]; S.board[r][c]=t||null;
+          if(t){ t.c=c; moved.push(t); } }
+        moved.forEach(t=>{ t.el.style.transition="transform .55s cubic-bezier(.4,.05,.35,1)"; placeTile(t,t.r,t.c,false); });
+        UI.breeze(); await wait(580); moved.forEach(t=>t.el.style.transition="");
+        await Game.settle(moved); break; }
+      case "vowelize": { const picks=normals().filter(t=>!"aeiou".includes(t.letter)).sort(()=>Math.random()-.5).slice(0,fx.n*m);
+        if(!picks.length){ Game.addMoves(2); break; }
+        picks.forEach(t=>Game.retype(t, rand(["a","e","i","o","u"])));
+        S.chain=1; await Game.resolve(picks); break; }
+      case "clearRoom": { const ts=normals(); if(!ts.length){ Game.addMoves(2); break; }
+        const junk=ts.filter(t=>"qzxjv".includes(t.letter));
+        const target = junk.length ? junk[0].letter
+          : ts.slice().sort((a,b)=>VAL[b.letter]-VAL[a.letter])[0].letter;
+        const picks=ts.filter(t=>t.letter===target);
+        for(const t of picks){ UI.shards(t.r,t.c,"#c9e29a"); removeTile(t); await wait(120); }
+        Snd.collapse(picks.length); await Game.settle(); break; }
+      case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice") || Game.worstTiles(1)[0];
+        if(!cand){ Game.addMoves(2); break; }
+        cand.kind="crate"; cand.inner.className="tile thawpop"; cand.inner.innerHTML=tileFace(cand);
+        UI.shards(cand.r,cand.c,"#ffd54f"); Snd.gold(); break; }
+      case "acornBlast": { const h=cols(); const c=h.indexOf(Math.max(...h));
+        let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+        if(land<0){ Game.addMoves(2); break; }
+        const t=newTile("🌰","bomb",land,c);
+        await wait(550);
+        const fell=await Game.explode(t);
+        S.chain=1; await Game.resolve(fell); break; }
+      case "webWrap": S.web=(S.web||0)+1*m; break;
+      case "whisper": case "next2": case "skipJunk": case "vowelDeck": case "alwaysHint":
+      case "refund4": case "crumb": case "freeStep": case "helpDeck": case "kindred": case "firstFree":
+        break; // passives never reach here (filtered), but stay safe
     }
     S.petActing=false;
     UI.petMeter(); UI.all(); saveRun();
@@ -2116,8 +2289,9 @@ const Game = {
 
   recordWord(word, points, chain){
     P.stats.words++;
-    // every word charges your pets' power — but only once you've met one
-    if(UI.equipped().length && !S.petActing){
+    S.wordsMade=(S.wordsMade||0)+1;
+    // every word charges your ACTIVE pets' powers (passives are always on)
+    if(Game.petActives().length && !S.petActing){
       S.petCharge=(S.petCharge||0)+1; UI.petMeter();
       if(S.petCharge>=Game.petNeed()){ S.petCharge=0; S.petReady=true; UI.petMeter(); } }
     // the grove and the daily word must be EARNED: only words YOU made (chain 1 count).
@@ -2291,7 +2465,14 @@ const Game = {
       const lenMult = len<=4 ? (1+0.5*(len-3)) : (len-3)*2;   // 3→1, 4→1.5, 5→4, 6→6, 7→8, 8→10
       pts = Math.round(pts * lenMult * S.chain * (twin?1.5:1));
       let charmed=false;
-      if(S.charm>0){ pts*=2; S.charm--; charmed=true; } // 💖 Sweet Song: this word sings double
+      if(S.charm>0){ pts*=2; S.charm--; charmed=true; }            // 💖 Sweet Song: this word sings double
+      if(S.splash>0){ pts=Math.round(pts*1.5); S.splash--; }       // 💦 Playful Splash: +50%
+      if(S.web>0){ pts*=2; S.web--; Game.addMoves(1); }            // 🕸️ Web Wrap: ×2 AND the move comes back
+      if(S.chainBoost && S.chain>=2){ pts*=2; S._chainBoostUsed=true; } // 🎻 Night Chorus: this cascade counts double
+      if(S.flatB>0){ pts+=5; S.flatB--; }                          // 🍀 Lucky Spots: +5 a word
+      if(len===3 && Game.hasPassive("crumb")) pts+=3;              // 🧀 Crumb Collector
+      if(GROVE_BY_WORD[w.word] && Game.hasPassive("kindred")) pts*=2; // 🐾 Kindred Call: creature words sing
+      if(len>=4 && S.chain===1 && Game.hasPassive("refund4") && !S._refunded){ S._refunded=true; Game.addMoves(1); } // 💨 Quickstep
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
       banner.style.fontSize = Math.min(16+len*2, 28)+"px";
@@ -2464,6 +2645,7 @@ const UI = {
     w.appendChild(el);
     const n=$("nextslot"); n.innerHTML="";
     n.appendChild(UI.miniTile(S.next,44,19));
+    if(S.next2 && Game.hasPassive("next2")) n.appendChild(UI.miniTile(S.next2,32,14)); // 👁 Far Sight: one more
   },
   cozy(){
     const qe=$("quest");
@@ -2509,16 +2691,19 @@ const UI = {
       bar.title="the shelf glows as your pets charge up — they act every "+need+" words · same-home friends: powers ×2";
       // one word away (or ready): the pets can barely contain themselves
       const excited = S.petReady || t>=need-1;
-      const eq=UI.equipped(), nextIdx=eq.length ? S.petTurn % eq.length : -1;
+      const eq=UI.equipped(), actives=Game.petActives();
+      const nextSlot = actives.length ? eq.indexOf(actives[S.petTurn % actives.length]) : -1;
       for(let s=0;s<4;s++){ const el=$("pet-"+s); if(!el) continue;
-        el.classList.toggle("excited", excited && el.classList.contains("has"));
-        // NO MYSTERY: the next pet to act wears a countdown — "2 words… 1… go!"
+        const g=eq[s];
+        el.classList.toggle("excited", excited && !!g && !g.ps);
+        // NO MYSTERY: the next pet to act wears a countdown; passives wear their "always on" mark
         let b=el.querySelector(".petcount");
-        if(s===nextIdx && el.classList.contains("has")){
+        if(g && (s===nextSlot || g.ps)){
           if(!b){ b=document.createElement("span"); b.className="petcount"; el.appendChild(b); }
-          const togo = S.petReady ? 0 : need-t;
-          b.textContent = togo<=0 ? "✨" : togo;
-          b.classList.toggle("ready", togo<=0);
+          if(g.ps){ b.textContent="∞"; b.classList.add("ready"); }
+          else { const togo = S.petReady ? 0 : need-t;
+            b.textContent = togo<=0 ? "✨" : togo;
+            b.classList.toggle("ready", togo<=0); }
         } else if(b) b.remove();
       }
     }
@@ -2527,11 +2712,15 @@ const UI = {
     const eq=UI.equipped(), g=eq[slot];
     if(!g || !S) return;
     Snd.tone(880,{dur:.09,type:"triangle",gain:.06,verb:true}); buzz(8);
-    const need=Game.petNeed(), togo=Math.max(0, need-(S.petCharge||0));
-    const mine = (S.petTurn % eq.length)===slot;
-    const turn = mine ? (togo<=0 ? "acting now!" : "acts in <b>"+togo+" word"+(togo>1?"s":"")+"</b>")
-                      : "acts after "+eq[S.petTurn % eq.length].e;
-    UI.toast(g.e+" <b>"+PET_ABIL[g.a].n+" "+PET_ABIL[g.a].i+"</b><br>"+PET_ABIL[g.a].d+"<br><small>"+turn+(Game.petBoost(g)?" · ×2 with its same-home friend":"")+"</small>");
+    let turn;
+    if(g.ps) turn="<b>always on</b> while on duty";
+    else {
+      const actives=Game.petActives(), need=Game.petNeed(), togo=Math.max(0, need-(S.petCharge||0));
+      const nxt=actives[S.petTurn % actives.length];
+      turn = nxt===g ? (togo<=0 ? "acting now!" : "acts in <b>"+togo+" word"+(togo>1?"s":"")+"</b>")
+                     : "acts after "+nxt.e;
+    }
+    UI.toast(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+(Game.petBoost(g)?" · ×2 with its same-home friend":"")+"</small>");
   },
   pillPop(id){
     const el=$(id);
@@ -2564,7 +2753,7 @@ const UI = {
     '<div class="big">🌳</div><p>Welcome to <b>Wordgrove</b>,<br>a cozy little word garden.</p><small>drop letters · spell words · grow a grove</small>',
     '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>Drop letters into columns.<br>Spell a word and it clears ✨</p><small>words read left → right and top → bottom</small>',
     '<div class="tut-goals"><span>🎯<b>40</b>target</span><span>🔻<b>15</b>moves</span></div><p>Reach the target<br>before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
-    '<div class="big">🦊🦉🐝</div><p>50 wild friends hide in the words.<br>Spell one and it joins your party.</p><small>your friends ARE your powers — each one changes the board its own way</small>',
+    '<div class="big">🦊🦉🐝</div><p>50 wild friends hide in the words.<br>Spell one and it joins your party.</p><small>every friend has its OWN power — no two are alike</small>',
   ],
   _tut:0,
   tutShow(i){
@@ -2594,7 +2783,7 @@ const UI = {
       const el=$("pet-"+s), g=eq[s];
       if(g){ el.dataset.w=g.w; el.style.fontSize="31px";
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
-        el.title=g.w.toUpperCase()+" · "+PET_ABIL[g.a].n; el.classList.add("has"); }
+        el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
       else { el.innerHTML=""; el.classList.remove("has"); el.removeAttribute("title"); }
     }
     if(S && !S.over) UI.petMeter(); // repainting wipes the countdown badge — restore it
@@ -2603,12 +2792,12 @@ const UI = {
     Snd.discover(); buzz([30,50,30,50,90]); UI.confetti();
     $("meet-creature").textContent = g.e;
     $("meet-name").textContent = g.w.toUpperCase();
-    // the ritual explains this pet's POWER — its real, board-changing job
-    const ab=PET_ABIL[g.a];
+    // the ritual explains this pet's OWN power — no two friends are alike
     const firstEver = Object.keys(P.metGrove).length===0;
+    const how = g.ps ? "always on while "+g.w+"'s on duty" : "every few words";
     $("meet-line").innerHTML = firstEver
-      ? "joins you! <b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".<br>Your party lives in the meadow above the garden 🌿 · swap them in the grove 🌳"
-      : "<b>"+ab.n+" "+ab.i+"</b> — every few words, "+g.w+" "+ab.d+".";
+      ? "joins you! <b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".<br>Your party lives in the meadow above the garden 🌿 · swap them in the grove 🌳"
+      : "<b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".";
     // if the party is full, say so RIGHT NOW — otherwise the missing pet reads as a bug
     const max=slotsFor(P.level), full=(P.equip||[]).length>=max && !(P.equip||[]).includes(g.w);
     $("meet-count").innerHTML = "grove friend "+Object.keys(P.grove).length+" of "+GROVE.length
@@ -2654,7 +2843,8 @@ const UI = {
   },
   groveShow(){
     $("gr-count").textContent = Object.keys(P.grove).length+"/"+GROVE.length;
-    $("gr-daily").textContent = P.dailyWordDay===Math.floor(Date.now()/864e5) ? "✓" : "?";
+    $("gr-daily").textContent = P.dailyWordDay===Math.floor(Date.now()/864e5) ? "✓"
+      : (Game.hasPassive("whisper") ? dailyWord()[0].toUpperCase()+"…" : "?"); // 🥕 the bunny knows
     const f=$("grovefield"); f.innerHTML="";
     // a tidy collection: sky friends in two neat rows up top, ground friends in ranks on the grass.
     // every friend owns a fixed spot — silhouette today, colour the day you spell it.
@@ -2664,8 +2854,8 @@ const UI = {
       const el=document.createElement("div");
       el.className="grovemoji"+(found?"":" locked")+(met?" met":"")+(onduty.includes(g.w)?" onduty":"");
       el.innerHTML='<span class="gm">'+g.e+"</span>"+(found?"":'<span class="qm">?</span>')
-        +(onduty.includes(g.w)?'<span class="duty">'+PET_ABIL[g.a].i+'</span>':'');
-      el.title = found ? g.w.toUpperCase()+" · "+PET_ABIL[g.a].n : "???"; // never leak the word — the hunt IS the game
+        +(onduty.includes(g.w)?'<span class="duty">'+g.pi+'</span>':'');
+      el.title = found ? g.w.toUpperCase()+" · "+g.pn+(g.ps?" (always on)":"") : "???"; // never leak the word — the hunt IS the game
       if(met) el.onclick=()=>UI.equipToggle(g.w);
       el.style.left = (7 + col*15.4)+"%";
       el.style.top = (startTop + row*rowGap)+"%";
