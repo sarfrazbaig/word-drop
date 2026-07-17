@@ -1006,13 +1006,16 @@ function isMilestone(L){ return L%10===0; }
 /* Retuned after the honest-play audit (50% loss rate at L4-7 was churning the cozy
    audience). Targets assume ~5-8 mostly-3-letter words per level; the first ten
    levels should be ~95% winnable while the game teaches itself. */
+/* Move budgets are tight now: ~3-4 spare for a decent clear, not a dozen. A loose
+   budget makes the star rating meaningless and drains all tension. The early flat-18
+   is gone — moves ramp with the target so the surplus stays small at every level. */
 const EARLY=[ null,
-  [15,18],  // L1 · gentle
-  [18,18],  // L2
-  [22,18],  // L3 · 🍃 breeze arrives
-  [22,18],  // L4 · spell CAT
-  [26,18],  // L5 · meet your first pet
-  [28,18],  // L6 · spell DOG
+  [15,13],  // L1 · gentle
+  [18,14],  // L2
+  [22,16],  // L3 · 🍃 breeze arrives
+  [22,16],  // L4 · spell CAT
+  [26,16],  // L5 · meet your first pet
+  [28,17],  // L6 · spell DOG
   [34,17],  // L7 · two pets
   [38,17],  // L8
 ];
@@ -1023,7 +1026,7 @@ function TARGET(L){
 }
 function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
-  return Math.min(20, 17+Math.floor((L-8)/6)) - (isSpike(L)?1:0);
+  return Math.min(19, 17+Math.floor((L-8)/8)) - (isSpike(L)?1:0);
 }
 function recipe(L){ // obstacles arrive slowly, one new kind at a time
   return {
@@ -1327,6 +1330,10 @@ function makePiece(){
     const best=helpfulByLength(); const ks=Object.keys(best);
     if(ks.length){ const longs=ks.filter(l=>best[l]>=4);
       return {letter:rand(longs.length?longs:ks), kind:"normal"}; }
+    // no completion exists (a scattered board) — force a BUILDER so one appears next drop.
+    // this is what kills deep droughts: progress is guaranteed within two moves.
+    const b=builderLetters();
+    if(b.length) return {letter:rand(b), kind:"normal"};
   }
   const roll=Math.random();
   const goldOK = S && S.level>=9;              // ✨ gold tiles arrive at level 9
@@ -1769,8 +1776,10 @@ const Game = {
 
   async winLevel(){
     S.won=true; S.busy=true;
-    // stars are judged on moves left BEFORE they convert to bonus points
-    S.stars = S.movesLeft>=6 ? 3 : S.movesLeft>=3 ? 2 : 1;
+    // stars scale with the level's OWN budget (not an absolute count), so a tight
+    // level's 3★ stays earnable: clear with ~30% of your moves spare for gold.
+    const mv=MOVES(S.level);
+    S.stars = S.movesLeft>=Math.ceil(mv*0.30) ? 3 : S.movesLeft>=Math.ceil(mv*0.12) ? 2 : 1;
     const bonus = S.movesLeft*5;
     if(bonus){
       for(let i=0;i<S.movesLeft;i++){
