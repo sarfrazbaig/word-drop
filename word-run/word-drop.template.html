@@ -1253,6 +1253,28 @@ const GROVE = [
   {w:"bison",e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"}},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
+/* ============ BEST FRIENDS — simple, named pair synergies ============
+   Put both halves of a duo on duty together and their bonus switches on.
+   One line each, no math homework: this is Balatro's joy at picture-book size. */
+const PAIRS=[
+  {a:"cat",b:"dog",      n:"Old Friends",   i:"🤝", t:"headStart",   d:"after a power fires, the paw meter keeps a head start"},
+  {a:"cat",b:"mouse",    n:"The Truce",     i:"🧀", t:"crumbCharge", d:"3-letter words add an extra paw charge"},
+  {a:"bunny",b:"turtle", n:"The Fair Race", i:"🏁", t:"startMoves",  d:"+2 moves at the start of every level"},
+  {a:"owl",b:"crow",     n:"Wise Flock",    i:"🌙", t:"skipJunkHard",d:"awkward letters almost never appear"},
+  {a:"fox",b:"fish",     n:"River Gold",    i:"🌊", t:"gold4",       d:"golden letters score ×4 instead of ×3"},
+  {a:"pig",b:"raccoon",  n:"Treasure Pals", i:"💎", t:"crateWish",   d:"gift crates also grant a 🌸 wish"},
+  {a:"goat",b:"lamb",    n:"Meadow Kin",    i:"🌼", t:"kindred3",    d:"creature words score ×3"},
+  {a:"spider",b:"cricket",n:"Night Music",  i:"🎶", t:"webChain",    d:"a webbed word also doubles your next cascade"},
+  {a:"bee",b:"ladybug",  n:"Garden Party",  i:"🎉", t:"actRain",     d:"every pet power also rains a helpful letter"},
+  {a:"dove",b:"swan",    n:"Grace Notes",   i:"🎼", t:"charmPlus",   d:"Sweet Song charms one extra word"},
+  {a:"duck",b:"heron",   n:"Pond Patrol",   i:"🐾", t:"movesPlus",   d:"move gifts give +1 more"},
+  {a:"deer",b:"bison",   n:"Herd Path",     i:"🌾", t:"rowScore",    d:"row-clearing powers also score +12"},
+];
+function pairOn(t){ const eq=UI.equipped().map(g=>g.w);
+  return PAIRS.some(p=>p.t===t && eq.includes(p.a) && eq.includes(p.b)); }
+function activePairs(){ const eq=UI.equipped().map(g=>g.w);
+  return PAIRS.filter(p=>eq.includes(p.a) && eq.includes(p.b)); }
+function pairFor(w){ return PAIRS.find(p=>p.a===w||p.b===w) || null; }
 function dailyWord(){
   const day=Math.floor(Date.now()/864e5);
   const list=GROVE.filter(g=>g.w.length>=4);
@@ -1418,7 +1440,11 @@ function makePiece(){
   if(shiftOK && roll<0.02)  return {letter:drawLetter(), kind:"shift"};
   if(roll<goldP)            return {letter:riggedLetter(), kind:"gold"};
   let l=riggedLetter();
-  if(Game && Game.hasPassive && S && Game.hasPassive("skipJunk") && "qzxjv".includes(l)) l=riggedLetter(); // 🧠 Clever Beak rerolls once
+  if(Game && Game.hasPassive && S && Game.hasPassive("skipJunk") && "qzxjv".includes(l)){
+    l=riggedLetter(); // 🧠 Clever Beak rerolls once
+    if(pairOn("skipJunkHard") && "qzxjv".includes(l)) l=riggedLetter(); // 🌙 Wise Flock: and again, and again
+    if(pairOn("skipJunkHard") && "qzxjv".includes(l)) l=riggedLetter();
+  }
   return {letter:l, kind:"normal"};
 }
 
@@ -1642,6 +1668,7 @@ const Game = {
     if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
     S.cur = makePiece(); S.next = makePiece();
     if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
+    if(pairOn("startMoves")) S.movesLeft+=2;            // 🏁 The Fair Race: bunny & turtle pace each other
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     $("breezepill").classList.remove("armed");
@@ -2117,13 +2144,13 @@ const Game = {
       case "wildHand": { if(S.cur) S.cur={letter:"★",kind:"wild"};
         if(boost && S.next) S.next={letter:"★",kind:"wild"};
         UI.piece(); UI.blossom(); Game.handPop(); break; }
-      case "charm": { S.charm=(S.charm||0)+fx.n*m;
+      case "charm": { S.charm=(S.charm||0)+fx.n*m+(pairOn("charmPlus")?1:0); // 🎼 Grace Notes
         UI.say("charm-sing", pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
         for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
           h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
           $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
         Snd.tone(1046,{dur:.3,type:"sine",gain:.07,verb:true}); break; }
-      case "moves": Game.addMoves(fx.n*m); break;
+      case "moves": Game.addMoves(fx.n*m+(pairOn("movesPlus")?1:0)); break; // 🐾 Pond Patrol
       case "wildOld": { const old=normals().sort((a,b)=>a.id.localeCompare?a.id.localeCompare(b.id):(a.id-b.id)).slice(0,fx.n);
         old.forEach(t=>{ t.kind="wild"; t.inner.className="tile wild thawpop"; t.inner.innerHTML=tileFace(t); });
         UI.blossom(); S.chain=1; await Game.resolve(old); break; }
@@ -2133,7 +2160,7 @@ const Game = {
         ts.forEach((t,i)=>{ t.letter=letters[i].l; t.kind=letters[i].k;
           t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
         UI.breeze(); S.chain=1; await Game.resolve(ts); break; }
-      case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); break;
+      case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m+(pairOn("movesPlus")?1:0)); break;
       case "crackAll": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
@@ -2160,11 +2187,13 @@ const Game = {
         await Game.settle(moved); break; }
       case "eatRow": { const ts=rowTiles(ROWS-1);
         for(const t of ts){ UI.shards(t.r,t.c,"#a8c9a0"); removeTile(t); }
+        if(pairOn("rowScore")){ S.levelScore+=12; UI.hud(); } // 🌾 Herd Path
         Snd.collapse(ts.length); await Game.settle(); break; }
       case "midRow": { const ts=rowTiles(ROWS-2);
         if(!ts.length){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
         for(const t of ts){ UI.shards(t.r,t.c,"#d8b077"); removeTile(t); }
+        if(pairOn("rowScore")){ S.levelScore+=12; UI.hud(); } // 🌾 Herd Path
         Snd.collapse(ts.length); await Game.settle(); break; }
       case "smashPatch": { const picks=[];
         for(let r=ROWS-2;r<ROWS;r++) for(let c=3;c<=4;c++){ const t=S.board[r][c]; if(t) picks.push(t); }
@@ -2258,6 +2287,17 @@ const Game = {
       case "refund4": case "crumb": case "freeStep": case "helpDeck": case "kindred": case "firstFree":
         break; // passives never reach here (filtered), but stay safe
     }
+    // 🎉 Garden Party: bee & ladybug sprinkle a helpful letter after EVERY power
+    if(pairOn("actRain") && !S.over && !S.won){
+      const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
+      if(open.length){ const p=rand(open);
+        const t=newTile(riggedLetter(),"normal",p.land,p.c,false);
+        t.el.style.transition="none"; t.el.style.transform=xy(-1.2,p.c); void t.el.offsetWidth;
+        t.el.style.transition="transform 240ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(p.land,p.c);
+        await wait(260); t.el.style.transition="";
+        S.chain=1; await Game.resolve([t]); }
+    }
+    if(pairOn("headStart")) S.petCharge=Math.max(S.petCharge||0,1); // 🤝 Old Friends never fully wind down
     S.petActing=false;
     UI.petMeter(); UI.all(); saveRun();
   },
@@ -2292,7 +2332,9 @@ const Game = {
     S.wordsMade=(S.wordsMade||0)+1;
     // every word charges your ACTIVE pets' powers (passives are always on)
     if(Game.petActives().length && !S.petActing){
-      S.petCharge=(S.petCharge||0)+1; UI.petMeter();
+      S.petCharge=(S.petCharge||0)+1;
+      if(word.cells.length===3 && pairOn("crumbCharge")) S.petCharge++; // 🧀 The Truce: cat & mouse split the crumbs
+      UI.petMeter();
       if(S.petCharge>=Game.petNeed()){ S.petCharge=0; S.petReady=true; UI.petMeter(); } }
     // the grove and the daily word must be EARNED: only words YOU made (chain 1 count).
     // A friend is UNLOCKED here but you MEET them (the ritual) at the start of the next round.
@@ -2459,7 +2501,8 @@ const Game = {
     for(const w of words){
       const len=w.cells.length;
       let pts=0;
-      w.cells.forEach(t=>{ let v = t.kind==="wild"?0:VAL[t.letter]; if(t.kind==="gold") v*=3; pts+=v; });
+      const goldX = pairOn("gold4") ? 4 : 3; // 🌊 River Gold: fox & fish gild deeper
+      w.cells.forEach(t=>{ let v = t.kind==="wild"?0:VAL[t.letter]; if(t.kind==="gold") v*=goldX; pts+=v; });
       // 5+ letter words are JACKPOTS: rare, hard, and they should pay like it.
       // a good 6-letter word will often clear the whole level — that's the chase.
       const lenMult = len<=4 ? (1+0.5*(len-3)) : (len-3)*2;   // 3→1, 4→1.5, 5→4, 6→6, 7→8, 8→10
@@ -2467,11 +2510,12 @@ const Game = {
       let charmed=false;
       if(S.charm>0){ pts*=2; S.charm--; charmed=true; }            // 💖 Sweet Song: this word sings double
       if(S.splash>0){ pts=Math.round(pts*1.5); S.splash--; }       // 💦 Playful Splash: +50%
-      if(S.web>0){ pts*=2; S.web--; Game.addMoves(1); }            // 🕸️ Web Wrap: ×2 AND the move comes back
+      if(S.web>0){ pts*=2; S.web--; Game.addMoves(1);
+        if(pairOn("webChain")) S.chainBoost=true; }                // 🕸️ Web Wrap (+🎶 Night Music: the web hums on)
       if(S.chainBoost && S.chain>=2){ pts*=2; S._chainBoostUsed=true; } // 🎻 Night Chorus: this cascade counts double
       if(S.flatB>0){ pts+=5; S.flatB--; }                          // 🍀 Lucky Spots: +5 a word
       if(len===3 && Game.hasPassive("crumb")) pts+=3;              // 🧀 Crumb Collector
-      if(GROVE_BY_WORD[w.word] && Game.hasPassive("kindred")) pts*=2; // 🐾 Kindred Call: creature words sing
+      if(GROVE_BY_WORD[w.word] && Game.hasPassive("kindred")) pts*=(pairOn("kindred3")?3:2); // 🐾 Kindred Call (🌼 Meadow Kin sings louder)
       if(len>=4 && S.chain===1 && Game.hasPassive("refund4") && !S._refunded){ S._refunded=true; Game.addMoves(1); } // 💨 Quickstep
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
@@ -2548,6 +2592,7 @@ const Game = {
           acted=true;
           removeTile(t);
           Game.cheer(Game.petNeed()); // a crate of treats — the paw meter fills at once
+          if(pairOn("crateWish")){ P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save(); UI.wishPill(); } // 💎 Treasure Pals
           Snd.gold(); buzz([15,25]);
         }
       }
@@ -2720,7 +2765,15 @@ const UI = {
       turn = nxt===g ? (togo<=0 ? "acting now!" : "acts in <b>"+togo+" word"+(togo>1?"s":"")+"</b>")
                      : "acts after "+nxt.e;
     }
-    UI.toast(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+(Game.petBoost(g)?" · ×2 with its same-home friend":"")+"</small>");
+    // best-friend line: brag when the duo is live, tease the hunt when it isn't
+    const pr=pairFor(g.w); let mate="";
+    if(pr){ const ow=pr.a===g.w?pr.b:pr.a; const og=GROVE_BY_WORD[ow];
+      const active=UI.equipped().some(x=>x.w===ow);
+      mate = active ? "<br><small>"+pr.i+" <b>"+pr.n+"</b> with "+og.e+" — "+pr.d+"</small>"
+        : P.grove[ow] ? "<br><small>💛 best friend: "+og.e+" — pair them for <b>"+pr.n+"</b></small>"
+        : "<br><small>💛 has a best friend out there somewhere…</small>";
+    }
+    UI.toast(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+(Game.petBoost(g)?" · ×2 with its same-home friend":"")+"</small>"+mate);
   },
   pillPop(id){
     const el=$(id);
@@ -2873,9 +2926,11 @@ const UI = {
     }
     const hint=$("gr-hint");
     if(hint){ const nxt=UI.nextSlotAt();
+      const duo=activePairs().map(p=>p.i+" "+p.n).join(" · ");
       hint.innerHTML = Object.keys(P.metGrove).length
         ? "tap a friend to add them to your party — <b>"+UI.equipped().length+" / "+slotsFor(P.level)+" slots</b>"
           +(nxt?" (next slot at <b>level "+nxt+"</b>)":"")+" · same-home friends make powers <b>×2</b>"
+          +(duo?" · <b>"+duo+"</b> active":" · some friends are <b>best friends</b> — pair them!")
         : "spell a creature's name to invite it home"; }
     UI.scene("scene-grove");
   },
@@ -2895,6 +2950,11 @@ const UI = {
       else UI.toast(GROVE_BY_WORD[w].e+" joins the party!");
       P.equip.push(w);
       Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
+      // ✨ a best-friend pair just formed? announce the bonus loudly
+      const formed=PAIRS.find(p=>(p.a===w||p.b===w) && P.equip.includes(p.a) && P.equip.includes(p.b));
+      if(formed){ const other=GROVE_BY_WORD[formed.a===w?formed.b:formed.a];
+        setTimeout(()=>{ UI.toast(formed.i+" <b>"+formed.n+"!</b><br>"+GROVE_BY_WORD[w].e+" & "+other.e+" — "+formed.d);
+          UI.confetti(); Snd.discover(); }, 700); }
     }
     save(); UI.visitor(); UI.groveShow();
   },
