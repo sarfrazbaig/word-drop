@@ -15,8 +15,8 @@
     --font-story:"Fraunces", Georgia, "Times New Roman", serif;   /* the book's voice */
     --font-ui:"Nunito", "Segoe UI", system-ui, sans-serif;        /* the friendly hand */
     --bg0:#b9aa96;            /* worn table behind the page */
-    --bg1:#f7efe0;            /* app: parchment */
-    --bg2:#efe2c9;            /* app: deeper page */
+    --bg1:#ddd8e6;            /* app: dusk air (cool, so nothing reads as stark white) */
+    --bg2:#f0e5d0;            /* app: warm parchment at the foot of the page */
     --surface:rgba(101,78,48,.07);
     --surface-border:rgba(101,78,48,.16);
     --ink:#3d3226; --dim:#9c8768;
@@ -107,7 +107,7 @@
     position:absolute; left:50%; top:50%; overflow:hidden;
     transform:translate(-50%,-50%);
     width:396px; height:800px;
-    background:linear-gradient(172deg,var(--bg1),var(--bg2));
+    background:linear-gradient(180deg,#c9c6dc 0%, var(--bg1) 26%, #e7ddcd 62%, var(--bg2) 100%);
     display:flex; flex-direction:column;
     border-radius:34px; border:1px solid rgba(121,92,55,.25);
     box-shadow:0 30px 70px -26px rgba(90,60,30,.6), 0 0 0 8px #4a3b28;
@@ -249,13 +249,12 @@
     84%{ transform:rotate(-8deg) } 92%{ transform:rotate(0) } }
   @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
   #home-content{ position:absolute; inset:0; z-index:2; }
-  #home-menu-btn, #home-book-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top)); z-index:4;
+  #home-menu-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top)); left:16px; z-index:4;
     width:46px; height:46px; border-radius:14px; font-size:22px; border:1.5px solid rgba(90,72,45,.3);
     background:radial-gradient(120% 120% at 40% 28%, #f4ead4, #d8c39c 68%, #b99f74); color:var(--ink);
     box-shadow:0 3px 0 #8a7048, 0 6px 12px rgba(40,35,60,.4), inset 0 2px 0 rgba(255,250,235,.7); }
-  #home-menu-btn:active, #home-book-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
-  #home-menu-btn{ left:16px; } #home-book-btn{ right:16px; position:absolute; }
-  #home-book-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
+  #home-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
+  #home-menu-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
     font-size:10px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
   #homelogo{ position:absolute; left:0; right:0; top:33%; transform:translateY(-50%); text-align:center; }
@@ -415,6 +414,15 @@
   .gracebubble .gbar{ position:absolute; left:0; bottom:0; height:3px; background:var(--gold);
     animation:gracebar 2.6s linear forwards; }
   @keyframes gracebar{ from{ width:100% } to{ width:0 } }
+  /* 🌱 a little word that took root — it waits one drop for you to grow it */
+  .tile.sprouting{ box-shadow:0 0 0 2px #86c99a, 0 0 16px rgba(134,201,154,.75) !important;
+    animation:sproutpulse 1.5s ease-in-out infinite; }
+  @keyframes sproutpulse{ 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.16) } }
+  .sproutflag{ position:absolute; z-index:58; pointer-events:none; white-space:nowrap;
+    background:rgba(255,253,246,.97); border:2px solid #86c99a; border-radius:999px; padding:3px 9px;
+    font-size:12px; font-weight:800; letter-spacing:.6px; color:#2e6b4c;
+    box-shadow:0 5px 14px rgba(40,80,55,.3); animation:bannerin .2s; }
+  .sproutflag.fade{ transition:opacity .4s, transform .4s; opacity:0; transform:translateY(-10px); }
   /* 🎆 the jackpot: a 5-6+ letter word erupts */
   .jackpotburst{ position:absolute; left:50%; top:34%; transform:translate(-50%,-50%); z-index:95;
     font-size:34px; font-weight:900; letter-spacing:3px; color:var(--gold-deep); white-space:nowrap;
@@ -924,8 +932,7 @@
       <span class="peek" id="peek-3" style="right:11%">🐶</span>
     </div>
     <div id="home-content">
-      <button id="home-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰</button>
-      <button id="home-book-btn" onclick="UI.groveShow()" title="the Book of Names">📖<span class="cnt" id="grove-badge">0</span></button>
+      <button id="home-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰<span class="cnt" id="grove-badge">0</span></button>
       <div id="homelogo">
         <div class="logo-tiles">
           <div class="tile">H<small>4</small></div><div class="tile">U<small>1</small></div>
@@ -1184,24 +1191,31 @@ function isMilestone(L){ return L%10===0; }
 /* Clean, round move counts (15 then 20 — never an odd 13). Difficulty rides the
    TARGET, which is what we tune per level; moves stay a familiar multiple of 5.
    Targets are multiples of 5 too, so nothing on screen looks arbitrary. */
+/* Retuned again after playtesters — including strong English speakers — called it
+   "super hard". A cozy word game must be winnable by pleasant play, not optimal play:
+   long words are the JACKPOT, never the requirement. */
 const EARLY=[ null,
   [15,15],  // L1 · gentle
-  [20,15],  // L2
-  [25,15],  // L3 · 🍃 breeze arrives
-  [25,15],  // L4 · spell CAT
-  [30,20],  // L5 · meet your first pet
-  [35,20],  // L6 · spell DOG
-  [40,20],  // L7 · two pets
-  [45,20],  // L8
+  [15,15],  // L2
+  [20,15],  // L3 · 🍃 breeze arrives
+  [20,15],  // L4 · spell CAT
+  [25,20],  // L5 · meet your first pet
+  [25,20],  // L6 · spell DOG
+  [30,20],  // L7 · two pets
+  [35,20],  // L8
 ];
 function TARGET(L){
   if(EARLY[L]) return EARLY[L][0];
-  const base = 45 + 12*Math.pow(L-8, 0.85);
+  const base = 35 + 6*Math.pow(L-8, 0.75);
   return Math.round(base*RHYTHM[(L-1)%5]/5)*5;   // always lands on a multiple of 5
 }
+/* The budget has to grow with the target. Holding it at 20 forever while the target
+   climbed was the real wall: a level-20 board produced 5-8 words in 20 drops and the
+   target wanted twelve. Moves rise in clean fives, slowly, so the board still fills up
+   and the choice of where to drop still matters. */
 function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
-  return 20;   // clean and constant after level 8 — the target carries the challenge
+  return L<=14 ? 20 : L<=24 ? 25 : 30;
 }
 function recipe(L){ // obstacles arrive slowly, one new kind at a time
   return {
@@ -1541,7 +1555,7 @@ function loadRun(){
 function newState(level){
   return { level, milestone:isMilestone(level), board:Array.from({length:ROWS},()=>Array(COLS).fill(null)),
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
-    drops:0, chain:1, maxChain:1, cascadeMax:1,
+    drops:0, chain:1, maxChain:1, cascadeMax:1, sprout:null,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
@@ -1705,9 +1719,10 @@ function scanLine(cellsLine){
   flush();
   return found;
 }
-/* words read like English: left→right and top→bottom. never backwards —
-   with swap/transmute/oracle for deliberate construction, backward clears
-   are illegible surprises that steal agency, not forgiveness. */
+/* Reading rules. Horizontal is left→right ONLY — a word reading backwards across a row
+   is an illegible surprise, not a reward. But COLUMNS read BOTH ways, because letters
+   stack upward as they fall: dropping C, A, T builds "CAT" bottom-up, and demanding the
+   player plan it in reverse was the single biggest reason nobody made long words. */
 function findWords(){
   const found=[], seen=new Set();
   const push=h=>{
@@ -1716,7 +1731,11 @@ function findWords(){
     seen.add(key); found.push(h);
   };
   for(let r=0;r<ROWS;r++) scanLine(S.board[r]).forEach(push);
-  for(let c=0;c<COLS;c++) scanLine(S.board.map(row=>row[c])).forEach(push);
+  for(let c=0;c<COLS;c++){
+    const col=S.board.map(row=>row[c]);
+    scanLine(col).forEach(push);                 // read down the column
+    scanLine([...col].reverse()).forEach(push);  // …and up it, the way you stacked it
+  }
   return found;
 }
 function wouldClear(piece, c){
@@ -1725,7 +1744,8 @@ function wouldClear(piece, c){
   let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
   const fake={ id:"fake", letter:piece.kind==="wild"?"?":piece.letter, kind:piece.kind==="wild"?"wild":"normal", r:land, c };
   S.board[land][c]=fake;
-  const words=[...scanLine(S.board[land]), ...scanLine(S.board.map(row=>row[c]))];
+  const col=S.board.map(row=>row[c]);
+  const words=[...scanLine(S.board[land]), ...scanLine(col), ...scanLine([...col].reverse())];
   S.board[land][c]=null;
   let best=null;
   for(const w of words) if(w.cells.includes(fake) && (!best || w.word.length>best.length)) best=w.word;
@@ -1766,15 +1786,17 @@ function riggedLetter(){
      Generosity is highest in the early levels and eases as the player finds their feet. */
   if(!S) return drawLetter();
   // generous much longer: the audit showed honest players starving from L4 on
-  let gen = S.level<=6 ? 1 : S.level<=10 ? 0.7 : S.level<=14 ? 0.45 : 0.3;
+  // generosity stays high far longer — the deck should keep offering you good letters,
+  // not quietly starve you at level 12 the way playtesters experienced.
+  let gen = S.level<=8 ? 1 : S.level<=14 ? 0.8 : S.level<=22 ? 0.62 : 0.5;
   if(Game && Game.hasPassive && Game.hasPassive("helpDeck")) gen=Math.min(1, gen+0.25); // 📐 Tiny Planner
   const best=helpfulByLength();
   // long words FIRST and most often — 3-letter pops got boring; 4+ is where the joy is
   const longs=Object.keys(best).filter(l=>best[l]>=4);
-  if(longs.length && Math.random()<0.58+0.28*gen) return rand(longs);              // finish a long word
+  if(longs.length && Math.random()<0.66+0.24*gen) return rand(longs);              // finish a long word
   const b=builderLetters();
-  if(b.length && Math.random()<0.48+0.26*gen) return rand(b);                      // grow a fragment toward a long word
-  if(Object.keys(best).length && Math.random()<0.14+0.24*gen) return rand(Object.keys(best)); // any completion (mostly 3s) — rarer now
+  if(b.length && Math.random()<0.56+0.24*gen) return rand(b);                      // grow a fragment toward a long word
+  if(Object.keys(best).length && Math.random()<0.30+0.30*gen) return rand(Object.keys(best)); // any completion at all
   return drawLetter();
 }
 
@@ -2041,7 +2063,9 @@ const Game = {
 
     S.cascadeMax=1; S.clearedThisDrop=false; S.lastAction=Date.now();
     S.chain=1;
-    await Game.resolve([t]);
+    // a word left rooting from last drop is now fair game again — either this tile just
+    // grew it into something bigger, or it blooms as the little word it always was
+    await Game.resolve([t, ...Game.wakeSprout()]);
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
@@ -2178,7 +2202,7 @@ const Game = {
     await wait(520);
     [a,b].forEach(x=>{ x.el.style.transition=""; });
     S.lastAction=Date.now();
-    await Game.toolResolve([a,b]); // little words bloom after a breath — with a 🌱 hold to keep building
+    await Game.toolResolve([a,b,...Game.wakeSprout()]); // little words bloom after a breath — with a 🌱 hold to keep building
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -2235,7 +2259,7 @@ const Game = {
     await wait(200);
     const fell=await Game.gravity();
     S.lastAction=Date.now();
-    await Game.toolResolve(fell); // same bloom-pause: tumbled little words wait a breath, holdable
+    await Game.toolResolve([...(fell||[]),...Game.wakeSprout()]); // same bloom-pause: tumbled little words wait a breath, holdable
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -2276,7 +2300,7 @@ const Game = {
     f.style.left=(mb.left-ar.left+mb.width/2-10)+"px"; f.style.top=(mb.top-ar.top)+"px";
     $("app").appendChild(f); setTimeout(()=>f.remove(),1000); },
   addMoves(n){ S.movesLeft+=n; UI.hud(); boardEl.classList.toggle("danger", S.movesLeft<=3); Game.movesFloat(n); },
-  async settle(changed){ const fell=await Game.gravity(); S.chain=1; await Game.resolve([...(changed||[]),...(fell||[])]); },
+  async settle(changed){ const fell=await Game.gravity(); S.chain=1; await Game.resolve([...(changed||[]),...(fell||[]),...Game.wakeSprout()]); },
   worstTiles(n){ // qzxjv first, then the priciest letters — the stuff that clogs a board
     const ts=Object.values(S.tiles).filter(t=>t.kind==="normal");
     return ts.sort((a,b)=>{
@@ -2630,6 +2654,44 @@ const Game = {
   /* THE BLOOM PAUSE — resolves the "COUP→COP betrayal" without a lock mechanic.
      A tool-formed little word always DOES something (older players read silence as a bug):
      it lights up and blooms after a breath. One friendly 🌱 bubble lets a builder hold it. */
+  /* 🌱 THE SPROUT — the fix for "everybody only ever makes three-letter words".
+     A four-letter word needs a three-letter run already standing on the board. But
+     resolve() popped every three-letter word the instant it formed, so the scaffolding
+     for a longer one could never exist: instrumenting level 16 found 4+ letter
+     completions available on 1 drop in 15, and every single word the board produced
+     was three letters. The game was eating its own foundations.
+     So: a little word that STILL HAS ROOM TO GROW takes root for one drop instead of
+     popping. Extend it and you get the big word and its jackpot; ignore it and it
+     blooms on your next drop with its points intact. Nothing is ever taken away —
+     only offered. */
+  canGrow(w){
+    if(S.movesLeft<=1) return false;               // on the last breath, take the points
+    const cells=w.cells, spots=[];
+    if(cells[0].c===cells[cells.length-1].c){      // a column: it can grow at either end
+      const c=cells[0].c, rs=cells.map(t=>t.r), top=Math.min(...rs), bot=Math.max(...rs);
+      if(top-1>=0 && !S.board[top-1][c]) spots.push(1);
+      if(bot+1<ROWS && !S.board[bot+1][c]) spots.push(1);
+    } else {                                       // a row: the gap must also be droppable-into
+      const r=cells[0].r, cs=cells.map(t=>t.c), lo=Math.min(...cs), hi=Math.max(...cs);
+      const open=c=>c>=0 && c<COLS && !S.board[r][c] && (r+1>=ROWS || S.board[r+1][c]);
+      if(open(lo-1)) spots.push(1);
+      if(open(hi+1)) spots.push(1);
+    }
+    if(!spots.length) return false;
+    for(const ch of "abcdefghijklmnopqrstuvwxyz")   // and a real word must be reachable
+      if(COMMON.has(ch+w.word) || COMMON.has(w.word+ch)) return true;
+    return false;
+  },
+  wakeSprout(){
+    if(!S.sprout) return [];
+    const cells=S.sprout.ids.map(id=>S.tiles[id]).filter(Boolean);
+    if(cells.length<S.sprout.ids.length){ S.sprout=null; return []; }  // it grew (or was plucked) — gone already
+    if(--S.sprout.life > 0) return [];                                 // still rooting: you get two drops, not one
+    cells.forEach(t=>t.inner.classList.remove("sprouting"));
+    S.sprout=null;
+    return cells;
+  },
+
   async toolResolve(focus){
     const words=findWords().filter(w=>w.cells.some(c=>focus.includes(c)));
     if(!words.length) return;
@@ -2675,6 +2737,21 @@ const Game = {
       words = words.filter(w=>w.cells.length>=minLen);
     }
     if(!words.length) return;
+    // 🌱 take root rather than pop — only on the honest first pass, never mid-cascade,
+    // never when two words landed at once (that's already a celebration of its own)
+    if(S.chain===1 && !S.sprout && words.length===1 && words[0].cells.length===3 && Game.canGrow(words[0])){
+      const w=words[0];
+      S.sprout = { ids:w.cells.map(t=>t.id), life:2 };
+      w.cells.forEach(t=>t.inner.classList.add("sprouting"));
+      // the queued tile was drawn before this word existed, so it is blind to it.
+      // redraw it now that the board has something worth finishing — otherwise the
+      // helpful letter arrives three drops late and the root has long since bloomed.
+      if(S.next && S.next.kind==="normal") S.next=makePiece();
+      Snd.tone(784,{dur:.16,type:"triangle",gain:.05,verb:true});
+      Snd.tone(1046,{dur:.22,type:"sine",gain:.04,when:.1,verb:true});
+      UI.sprout(w);
+      return;
+    }
     S.clearedThisDrop = true;
     if(S.chain>=2){
       const cb=document.createElement("div"); cb.className="chainburst";
@@ -2706,7 +2783,7 @@ const Game = {
         if(t.kind!=="wild" && "aeiou".includes(t.letter)) v+=vowelB; pts+=v; });
       // 5+ letter words are JACKPOTS: rare, hard, and they should pay like it.
       // a good 6-letter word will often clear the whole level — that's the chase.
-      const lenMult = len<=4 ? (1+0.5*(len-3)) : (len-3)*2;   // 3→1, 4→1.5, 5→4, 6→6, 7→8, 8→10
+      const lenMult = len<=4 ? (1.3+0.7*(len-3)) : (len-3)*2; // 3→1.3, 4→2, 5→4, 6→6, 7→8, 8→10
       pts = Math.round(pts * lenMult * S.chain * (twin?1.5:1));
       let charmed=false;
       if(S.charm>0){ pts*=2; S.charm--; charmed=true; }            // 💖 Sweet Song: this word sings double
@@ -2751,6 +2828,9 @@ const Game = {
     UI.hud();
     await wait(150);
     const clearedPos=[...allCells].map(t=>({r:t.r,c:t.c}));
+    // a rooted word that just got grown (or swept up in someone else's clear) is spent —
+    // forget it now so the very next little word is free to take root in its turn
+    if(S.sprout && [...allCells].some(t=>S.sprout.ids.includes(t.id))) S.sprout=null;
     allCells.forEach(t=>removeTile(t));
     Snd.collapse(allCells.size);
     await wait(220);
@@ -3397,6 +3477,16 @@ const UI = {
     const t=$("toast"); t.innerHTML=m;
     t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
     clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"), 2100);
+  },
+  sprout(w){ // a quiet flag over a word that took root — never a popup, never a wait
+    const cells=w.cells, mid=cells[Math.floor(cells.length/2)];
+    const f=document.createElement("div"); f.className="sproutflag";
+    f.textContent="🌱 "+w.word.toUpperCase()+" — grow it?";
+    f.style.left=Math.max(2, Math.min(mid.c*STEP-42, COLS*STEP-130))+"px";
+    f.style.top=Math.max(2,(mid.r*STEP)-30)+"px";
+    boardEl.appendChild(f);
+    setTimeout(()=>{ f.classList.add("fade"); setTimeout(()=>f.remove(),450); }, 1600);
+    UI.say("sprout","🌱 It <b>took root</b> — add a letter to either end for a bigger word. Leave it and it blooms anyway.", 2);
   },
   say(key, msg, times){ // teach loudly, then trust the player: instructional messages
     // show center-stage the first couple of times, then go quiet — glow/sound carries it.
