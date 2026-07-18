@@ -575,6 +575,15 @@
     inset 0 0 0 1.5px rgba(255,200,90,var(--pawring,0)); }
   #petbar.pulse{ animation:pawpulse .5s; }
   @keyframes pawpulse{ 40%{ transform:scale(1.03); } }
+  /* the paw meter, made LITERAL: one paw per word, sitting on the shelf's left edge.
+     The old meter was a glow on the shelf's border — nobody read a border as a meter,
+     and the level-5 lesson needs something it can point an arrow at. */
+  #pawpips{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:2px; align-items:center; }
+  #pawpips .pip{ font-size:13px; line-height:1; filter:grayscale(1) opacity(.3); transition:filter .3s, transform .3s; }
+  #pawpips .pip.fill{ filter:none; transform:scale(1.15); }
+  #pawpips.ready .pip{ filter:none; animation:pipready .6s ease-in-out infinite; }
+  @keyframes pipready{ 0%,100%{ transform:scale(1.1) } 50%{ transform:scale(1.35) rotate(-8deg) } }
   .petcompanion.excited{ animation:petexcited .55s ease-in-out infinite !important; }
   @keyframes petexcited{ 0%,100%{ transform:translateY(0) rotate(0) } 25%{ transform:translateY(-4px) rotate(-6deg) }
     50%{ transform:translateY(0) rotate(5deg) } 75%{ transform:translateY(-3px) rotate(-4deg) } }
@@ -1044,6 +1053,7 @@
       <span class="pill" id="quest"></span>
     </div>
     <div id="petbar">
+      <span id="pawpips" title="every word you spell fills a paw — full paws, and a friend acts"></span>
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
       <span class="petcompanion" id="pet-0" onclick="UI.petInfo(0)"></span>
       <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
@@ -1271,8 +1281,8 @@ const EARLY=[ null,
   [5,15],   // L1 · 🎓 lesson: the drop — one word wins it
   [15,15],  // L2 · 🎓 lesson: the breeze (TEN + GLOW clear it)
   [15,15],  // L3 · 🎓 lesson: the hold, then free play (lesson pays 8 — one more word wins)
-  [20,15],  // L4 · first real level — a friend is coming
-  [25,20],  // L5 · the CAT arrives (a gift) and works its first level
+  [30,15],  // L4 · spell CAT — the round ends the moment it wakes (30 is the safety net)
+  [25,20],  // L5 · CAT's ritual + the Book, then the shelf & paw-meter lesson
   [25,20],  // L6 · spell DOG
   [30,20],  // L7 · two pets
   [35,20],  // L8
@@ -1762,19 +1772,24 @@ const FT = {
       S.cur={letter:"n",kind:"normal"}; S.next={letter:"s",kind:"normal"};
       S.guide={lesson:3, allowCol:4, mustHold:true};
       if(!(P.pow.swap>0)){ P.pow.swap=1; save(); } // the free-play stretch should have a breeze to try
-    } else if(level===5 && !P.grove.cat){
-      // the FIRST friend is a GIFT — the ritual, the Book, and the powers are all
-      // taught on a creature the player already owns. Spelling names starts at DOG.
-      P.grove.cat=Date.now(); save();
+    } else if(level===5 && P.grove.cat && Object.keys(P.metGrove).length<=1){
+      // the cat was SPELLED at level 4 and wakes here — after its ritual (and the
+      // Book's first page), this lesson shows where friends live: the shelf, the
+      // locked seats, and the paw meter that calls them onto the board.
+      S.guide={lesson:5, deferred:true}; // launches after the meet ritual closes
     }
   },
 
-  run(){ // called from beginLevel — drives the lesson as a linear script
+  run(force){ // called from beginLevel — drives the lesson as a linear script
     const g=S.guide; if(!g || g.running) return;
+    // a deferred lesson waits for its cue (the meet ritual closing) — unless there is
+    // no meet coming at all (a replayed level 5), in which case it starts right away
+    if(g.deferred && !force && Object.keys(P.grove).some(w=>GROVE_BY_WORD[w] && !P.metGrove[w])) return;
     g.running=true;
     if(g.lesson===1) FT.lesson1();
     else if(g.lesson===2) FT.lesson2();
     else if(g.lesson===3) FT.lesson3();
+    else if(g.lesson===5) FT.lesson5();
   },
   async lesson1(){
     await FT.callout("#currentwrap", "this is your <b>letter</b><br><small>tap a column and it drops there</small>");
@@ -1844,6 +1859,17 @@ const FT = {
     FT.note("the board is yours — clear "+S.target+" with drops, breezes, holds 🌿");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null; // training wheels off
+  },
+  async lesson5(){ // the cat is awake — show where friends LIVE: shelf, seats, paw meter
+    if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points — no lesson to give
+    $("toast").classList.remove("on");             // the Book toast has had its moment
+    const seat=UI.equipped().findIndex(g=>g.w==="cat");
+    await FT.callout("#pet-"+(seat<0?0:seat), "🐱 <b>CAT walks with you now</b><br><small>your party lives on this shelf — tap a friend anytime to see its power</small>", "below");
+    await FT.callout("#pet-2", "🔒 <b>more seats open as you journey</b><br><small>every friend you wake can join the walk</small>", "below");
+    await FT.callout("#pawpips", "every word fills a 🐾<br><small>when the paws are full, CAT steps onto the board and turns a letter <b>golden</b> ✨</small>", "below");
+    FT.note("spell words — watch the paws fill 🐾");
+    setTimeout(()=>FT.clearNote(), 4200);
+    S.guide=null;
   },
 };
 function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy to spell
@@ -2114,9 +2140,10 @@ const Game = {
       }
     };
     convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
-    // DOG at level 6 is the FIRST self-discovery — the cat arrives as a gift at 5,
-    // so by the time the game asks you to spell a name, you know why you'd want to.
-    S.tutorWord = (level===6 && !P.grove.dog) ? "dog" : null;
+    // CAT at level 4 is the FIRST discovery, spelled like every one after it — the
+    // rule "spell a name, meet them next round" is only a rule if it never has an
+    // exception. (DOG at 6 stays for now; the later pets are a design pass to come.)
+    S.tutorWord = (level===4 && !P.grove.cat) ? "cat" : (level===6 && !P.grove.dog) ? "dog" : null;
     if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
     S.cur = makePiece(); S.next = makePiece();
     if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
@@ -2150,7 +2177,7 @@ const Game = {
     else ob.style.display="none";
     const iv=$("iv-visitor");
     if(S.guide){ iv.style.display="block";
-      iv.innerHTML="🎓 <b>lesson "+S.guide.lesson+"</b> · "+({1:"the drop",2:"the breeze",3:"the hold"})[S.guide.lesson]; }
+      iv.innerHTML="🎓 <b>lesson "+S.guide.lesson+"</b> · "+({1:"the drop",2:"the breeze",3:"the hold",5:"your first friend"})[S.guide.lesson]; }
     else if(S.tutorWord){ iv.style.display="block"; iv.innerHTML=GROVE_BY_WORD[S.tutorWord].e+" spell <b>"+S.tutorWord.toUpperCase()+"</b> to meet a friend"; }
     else iv.style.display="none";
     $("ov-unlock").classList.remove("active"); $("ov-intro").classList.remove("active");
@@ -2190,6 +2217,8 @@ const Game = {
     // find more" finally means something — this is where discovery is taught
     if(Object.keys(P.metGrove).length===1)
       setTimeout(()=>UI.say("book-intro","📖 CAT has a page in the <b>Book of Names</b> now. every creature here hides in a word — <b>spell a true name</b> and it wakes. 49 more to find!", 1), 1700);
+    // …and once the Book has spoken, the shelf lesson takes the stage
+    if(S && S.guide && S.guide.deferred) setTimeout(()=>FT.run(true), 5200);
     setTimeout(()=>{ if(!Game.showPendingMeet()){ if(S){ S.busy=false; S.lastAction=Date.now(); } Game.showPendingTip(); } }, 900);
   },
   showPendingMeet(){ // meet any friend you unlocked last round — the ritual explains what pets do
@@ -2212,10 +2241,7 @@ const Game = {
       const hand=document.createElement("div"); hand.className="coach"; hand.textContent="👇";
       $("boardwrap").appendChild(hand);
     }
-    if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins
-    // level 4's whisper: a friend is coming — so the level-5 ritual lands as a promise kept
-    else if(S.level===4 && !P.grove.cat)
-      setTimeout(()=>UI.say("pets-tease","🐾 something is stirring in the wood… finish this level and you'll meet your <b>first friend</b>", 1), 600);
+    if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins (deferred ones wait for their cue)
     saveRun();
     setTimeout(()=>{ if(!Game.showPendingMeet()) Game.showPendingTip(); }, 450); // meet new friends, then explain tiles
   },
@@ -2863,6 +2889,10 @@ const Game = {
         UI.toast(Object.keys(P.metGrove).length ? "✨ "+g.w.toUpperCase()+" remembers its name!"
           : "✨ "+g.w.toUpperCase()+" remembers its name! It wakes next round");
         Game.cheer(2);
+        // level 4 exists to teach exactly one thing: spell a name, meet them NEXT round.
+        // The moment the cat wakes, the round is over — the lesson has no second act,
+        // and "next round" arrives while the words still hang in the air.
+        if(S.level===4 && g.w==="cat"){ S.levelScore=Math.max(S.levelScore,S.target); UI.hud(); }
       }
       const day=Math.floor(Date.now()/864e5);
       if(word.word===dailyWord() && P.dailyWordDay!==day){
@@ -3328,6 +3358,13 @@ const UI = {
       bar.style.setProperty("--pawalpha",(frac*0.75).toFixed(2));
       bar.style.setProperty("--pawring",(frac*0.9).toFixed(2));
       bar.title="the shelf glows as your pets charge up — they act every "+need+" words · same-home friends: powers ×2";
+      // the literal meter: one 🐾 per word needed, filling as you spell
+      const pp=$("pawpips");
+      if(Game.petActives().length){
+        if(pp.childElementCount!==need){ pp.innerHTML=""; for(let i=0;i<need;i++){ const s=document.createElement("span"); s.className="pip"; s.textContent="🐾"; pp.appendChild(s); } }
+        [...pp.children].forEach((s,i)=>s.classList.toggle("fill", S.petReady || i<t));
+        pp.classList.toggle("ready", !!S.petReady);
+      } else pp.innerHTML="";
       // one word away (or ready): the pets can barely contain themselves
       const excited = S.petReady || t>=need-1;
       const eq=UI.equipped(), actives=Game.petActives();
