@@ -175,7 +175,10 @@
   #toast{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%) scale(.6); opacity:0;
     background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:13px 22px;
     font-size:16px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
-    max-width:84%; box-shadow:0 14px 34px rgba(90,60,30,.4); z-index:300; pointer-events:none;
+    /* a flex parent was shrinking this to min-content, so announcements wrapped every
+       two or three words and read like a ransom note. Let it take its natural width. */
+    width:max-content; max-width:84%;
+    box-shadow:0 14px 34px rgba(90,60,30,.4); z-index:300; pointer-events:none;
     transition:opacity .22s, transform .25s cubic-bezier(.3,1.4,.5,1); }
   #toast.on{ opacity:1; transform:translate(-50%,-50%) scale(1); }
 
@@ -427,7 +430,7 @@
   .jackpotburst{ position:absolute; left:50%; top:34%; transform:translate(-50%,-50%); z-index:95;
     font-size:34px; font-weight:900; letter-spacing:3px; color:var(--gold-deep); white-space:nowrap;
     text-shadow:0 2px 0 #fff, 0 4px 0 rgba(255,255,255,.7), 0 10px 30px rgba(255,190,40,.8);
-    pointer-events:none; animation:jackpotin 1.7s cubic-bezier(.3,1.4,.5,1) forwards; }
+    pointer-events:none; animation:jackpotin 2.4s cubic-bezier(.3,1.4,.5,1) forwards; }
   @keyframes jackpotin{ 0%{ transform:translate(-50%,-50%) scale(.2) rotate(-6deg); opacity:0 }
     18%{ transform:translate(-50%,-50%) scale(1.25) rotate(2deg); opacity:1 }
     32%{ transform:translate(-50%,-50%) scale(1) rotate(0) } 80%{ opacity:1 }
@@ -596,6 +599,21 @@
     animation:petsayup 1.6s ease-out forwards; }
   @keyframes petsayup{ 0%{ opacity:0; transform:translate(-50%,6px) scale(.7) } 15%{ opacity:1; transform:translate(-50%,0) scale(1) }
     80%{ opacity:1 } 100%{ opacity:0; transform:translate(-50%,-14px) } }
+  /* ---- a friend LEAVES THE SHELF and comes onto the board to work ----
+     Powers used to happen to the board while the pets watched from their seats, so
+     nobody could tell who had done what. Now the one whose turn it is hops out, lands
+     on the tiles, does the thing where you can see it, and hops home. */
+  .petsprite{ position:absolute; z-index:88; font-size:32px; line-height:1; pointer-events:none;
+    transform:translate(-50%,-50%); filter:drop-shadow(0 5px 7px rgba(30,20,10,.45));
+    transition:left .42s cubic-bezier(.34,1.3,.5,1), top .42s cubic-bezier(.34,1.3,.5,1), font-size .3s; }
+  .petsprite.landed{ font-size:46px; animation:petwork .55s ease-in-out infinite; }
+  @keyframes petwork{ 0%,100%{ transform:translate(-50%,-50%) rotate(-7deg) scale(1) }
+    50%{ transform:translate(-50%,-64%) rotate(7deg) scale(1.09) } }
+  .petplate{ position:absolute; z-index:89; white-space:nowrap; pointer-events:none;
+    transform:translate(-50%,0); background:#fffdf6; border:2px solid var(--gold); border-radius:999px;
+    padding:4px 11px; font-size:13px; font-weight:900; letter-spacing:.4px; color:var(--gold-deep);
+    box-shadow:0 6px 16px rgba(90,60,30,.4); animation:platein .3s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes platein{ from{ opacity:0; transform:translate(-50%,8px) scale(.6) } }
   .petcompanion:nth-of-type(2){ animation-delay:.9s; } .petcompanion:nth-of-type(3){ animation-delay:1.7s; }
   .petcompanion:nth-of-type(4){ animation-delay:2.4s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
@@ -708,10 +726,14 @@
   .wordbanner.done{ color:var(--ink); border-color:var(--accent); }
   .wordbanner.fade{ transition:opacity .4s, transform .4s; opacity:0; transform:translateX(-50%) translateY(-16px); }
   @keyframes bannerin{ from{ transform:translateX(-50%) scale(.5); opacity:0 } }
+  /* Announcements used to come and go faster than anyone could read them — DOUBLE WORD
+     was on screen for nine tenths of a second. They hold now. Note the CSS duration is
+     the real clock: extending only the removal timer leaves an invisible element. */
   .chainburst{ position:absolute; left:50%; top:36%; transform:translate(-50%,-50%); font-size:36px; font-weight:900; z-index:30;
-    color:var(--gold-deep); text-shadow:0 2px 0 rgba(255,255,255,.85), 0 6px 18px rgba(201,138,16,.5); pointer-events:none; animation:chainb .9s forwards; white-space:nowrap; }
-  @keyframes chainb{ 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(1.25); opacity:1 }
-    70%{ opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1.05) translateY(-20px); opacity:0 } }
+    color:var(--gold-deep); text-shadow:0 2px 0 rgba(255,255,255,.85), 0 6px 18px rgba(201,138,16,.5); pointer-events:none; animation:chainb 1.6s forwards; white-space:nowrap; }
+  @keyframes chainb{ 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 17%{ transform:translate(-50%,-50%) scale(1.25); opacity:1 }
+    28%{ transform:translate(-50%,-50%) scale(1); opacity:1 }
+    84%{ opacity:1; transform:translate(-50%,-50%) scale(1) } 100%{ transform:translate(-50%,-50%) scale(1.05) translateY(-20px); opacity:0 } }
   .shard{ position:absolute; width:7px; height:7px; border-radius:2px; z-index:15; pointer-events:none;
     animation:shardfly .55s ease-out forwards; }
   @keyframes shardfly{ to{ transform:translate(var(--dx),var(--dy)) rotate(220deg) scale(.2); opacity:0 } }
@@ -786,7 +808,7 @@
     60%{ transform:translateX(60%) translateY(-16px) } 80%{ transform:translateX(80%) translateY(0) rotate(-8deg) }
     100%{ transform:translateX(112%) translateY(-10px); opacity:0 } }
   .lvlbanner{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); z-index:90; font-size:40px; font-weight:900;
-    color:var(--gold-deep); text-shadow:0 2px 0 rgba(255,255,255,.9), 0 8px 22px rgba(201,138,16,.5); pointer-events:none; animation:lvlbn 1.6s forwards; white-space:nowrap; }
+    color:var(--gold-deep); text-shadow:0 2px 0 rgba(255,255,255,.9), 0 8px 22px rgba(201,138,16,.5); pointer-events:none; animation:lvlbn 2.3s forwards; white-space:nowrap; }
   @keyframes lvlbn{ 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 20%{ transform:translate(-50%,-50%) scale(1.2); opacity:1 }
     80%{ opacity:1; transform:translate(-50%,-50%) scale(1) } 100%{ opacity:0; transform:translate(-50%,-90%) scale(1) } }
 
@@ -1521,7 +1543,11 @@ function load(){
 let P = load();
 function save(){ try{ localStorage.setItem("worddrop_v3",JSON.stringify(P)); }catch(e){} }
 function saveRun(){
-  if(!S || S.over){ P.run=null; save(); return; }
+  // A FINISHED level has no run to resume — won counts as finished just as much as lost.
+  // Only clearing on `over` left the winning board saved, so if the app closed between
+  // the win and the level counter ticking over, you resumed a cleared level with its
+  // score already banked and won it again on the first drop.
+  if(!S || S.over || S.won){ P.run=null; save(); return; }
   P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
@@ -1956,9 +1982,15 @@ const Game = {
     saveRun();
     setTimeout(()=>{ if(!Game.showPendingMeet()) Game.showPendingTip(); }, 450); // meet new friends, then explain tiles
   },
-  showPendingTip(){ // first time you meet a special tile, explain it
+  showPendingTip(){ // first time you meet a special tile — or earn a tool — explain it
     if(!S || S.busy || S.over || S.won) return;
     const order=[];
+    // TOOLS FIRST. The breeze and the wish were introducing themselves on a 700ms timer
+    // fired from inside resolve() — where S.busy stays true for whole seconds — so the
+    // check never passed and neither tool ever explained itself to anybody. Players had
+    // two buttons they'd never been told how to earn or use. They queue like tiles now.
+    if((P.pow.swap||0)>0) order.push("breeze");
+    if((P.pow.wild||0)>0) order.push("wish");
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
     for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
@@ -2152,7 +2184,7 @@ const Game = {
     P.pow.swap=Math.min(pairOn("cap4")?4:3,(P.pow.swap||0)+1); save(); // 🌰 Nest & Stash holds more
     UI.breezePill(); UI.pillPop("breezepill");
     Snd.tone(880,{dur:.08,type:"triangle",gain:.05});
-    if(!P.seenTip.breeze){ setTimeout(()=>{ if(S && !S.busy) UI.tileTip("breeze"); }, 700); }
+    // the explanation is queued, not raced — see Game.showPendingTip
   },
   armBreeze(){
     if(!S || S.busy || S.over || S.won) return;
@@ -2214,7 +2246,7 @@ const Game = {
     P.pow.wild=Math.min(pairOn("cap4")?4:3,(P.pow.wild||0)+1); save(); // 🌰 Nest & Stash holds more
     UI.wishPill(); UI.pillPop("wishbtn");
     Snd.tone(1046,{dur:.08,type:"sine",gain:.05});
-    if(!P.seenTip.wish){ setTimeout(()=>{ if(S && !S.busy) UI.tileTip("wish"); }, 700); }
+    // the explanation is queued, not raced — see Game.showPendingTip
   },
   openWish(){
     if(!S || S.busy || S.over || S.won) return;
@@ -2322,13 +2354,12 @@ const Game = {
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
     UI.say("abil-"+pet.fx.t, pet.e+" "+pet.pn+"! "+pet.pi+(boost?" ×2":""), 2);
-    // and ALWAYS a little shout above the pet itself — every act stays attributable
-    const ar=$("app").getBoundingClientRect(), pr=el.getBoundingClientRect();
-    const sayEl=document.createElement("div"); sayEl.className="petsay";
-    sayEl.textContent=pet.pi+" "+pet.pn+"!"+(boost?" ×2":"");
-    sayEl.style.left=(pr.left-ar.left+pr.width/2)+"px"; sayEl.style.top=(pr.top-ar.top-30)+"px";
-    $("app").appendChild(sayEl); setTimeout(()=>sayEl.remove(),1650);
-    await wait(420);
+    // THE FRIEND COMES OUT. It hops from its seat onto the board, stands where it is
+    // about to work, names its power there, and walks back when it's done — so a power
+    // is something a creature you collected DOES, not something that happens to you.
+    const visit = await UI.petVisit(pet, Game.petTarget(pet.fx));
+    if(boost && visit){ const p=document.querySelector(".petplate"); if(p) p.innerHTML+=" <b>×2</b>"; }
+    await wait(300);
     const fx=pet.fx, m=boost?2:1;
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
     const cols=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0; for(let r=0;r<8;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
@@ -2520,8 +2551,20 @@ const Game = {
     // 🛶 River Games: frog & otter play on — a bonus paw charge
     if(pairOn("riverCharge") && (pet.w==="frog"||pet.w==="otter")) S.petCharge=(S.petCharge||0)+1;
     if(pairOn("headStart")) S.petCharge=Math.max(S.petCharge||0,1); // 🤝 Old Friends never fully wind down
+    if(visit) await visit.home();                                   // back to its seat, job done
     S.petActing=false;
     UI.petMeter(); UI.all(); saveRun();
+  },
+  petTarget(fx){ // where should this friend stand while it works? somewhere that makes sense
+    const ts=Object.values(S.tiles);
+    const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
+    const t=(/stone|rock|crack|boulder/i.test(fx.t) && pick(ts.filter(x=>x.kind==="stone")))
+         || (/ice|thaw|frost|melt/i.test(fx.t)     && pick(ts.filter(x=>x.kind==="ice")))
+         || (/gold/i.test(fx.t)                    && pick(ts.filter(x=>x.kind==="normal")))
+         || pick(ts.filter(x=>x.kind==="normal"))
+         || pick(ts);
+    // an empty board still deserves a landing spot — stand on the floor, centre stage
+    return t ? {r:t.r,c:t.c} : {r:ROWS-1,c:Math.floor(COLS/2)};
   },
   async petAlign(minLen){ // find two tiles whose swap makes a word of minLen+ — and weave it
     const ts=Object.values(S.tiles).filter(t=>t.kind==="normal"||t.kind==="gold");
@@ -2577,7 +2620,7 @@ const Game = {
         P.dailyWordDay=day;
         Snd.levelUp(); UI.confetti(); buzz([40,60,40,90]);
         const b=document.createElement("div"); b.className="lvlbanner"; b.textContent="📅 ✨ "+word.word.toUpperCase()+" ✨";
-        $("app").appendChild(b); setTimeout(()=>b.remove(),1650);
+        $("app").appendChild(b); setTimeout(()=>b.remove(),2350);
         Game.cheer(Game.petNeed()); // the daily word fills the paw meter outright
       }
     }
@@ -2634,7 +2677,7 @@ const Game = {
     const title = len>=8 ? "MYTHICAL!" : len>=7 ? "LEGENDARY!" : len>=6 ? "SPECTACULAR!" : "SPLENDID!";
     Snd.fanfare(); buzz([40,60,40,60,140]);
     const jb=document.createElement("div"); jb.className="jackpotburst"; jb.textContent=title;
-    $("boardwrap").appendChild(jb); setTimeout(()=>jb.remove(),1700);
+    $("boardwrap").appendChild(jb); setTimeout(()=>jb.remove(),2400);
     const fl=document.createElement("div"); fl.className="goldflash";
     $("app").appendChild(fl); setTimeout(()=>fl.remove(),900);
     UI.confetti(); setTimeout(()=>UI.confetti(),350); if(len>=6) setTimeout(()=>UI.confetti(),700);
@@ -2666,6 +2709,11 @@ const Game = {
      only offered. */
   canGrow(w){
     if(S.movesLeft<=1) return false;               // on the last breath, take the points
+    // A TRUE NAME ANSWERS AT ONCE. If we let CAT take root, a player who then grew it
+    // into CATS would clear a fine word and never meet the cat at all — and on the
+    // levels that ask you to spell one, the whole lesson would silently fail.
+    if(GROVE_BY_WORD[w.word] && !P.grove[w.word]) return false;
+    if(S.tutorWord===w.word) return false;
     const cells=w.cells, spots=[];
     if(cells[0].c===cells[cells.length-1].c){      // a column: it can grow at either end
       const c=cells[0].c, rs=cells.map(t=>t.r), top=Math.min(...rs), bot=Math.max(...rs);
@@ -2756,7 +2804,7 @@ const Game = {
     if(S.chain>=2){
       const cb=document.createElement("div"); cb.className="chainburst";
       cb.textContent="CHAIN ×"+S.chain+"!";
-      $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),950);
+      $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),1650);
       Snd.chainBig(S.chain); buzz([30,40,30,80]);
       if(S.chain>=3) UI.confetti();
       await wait(400);
@@ -2766,7 +2814,7 @@ const Game = {
     if(twin){
       const cb=document.createElement("div"); cb.className="chainburst";
       cb.textContent = words.length>=3 ? "TRIPLE WORD!" : "DOUBLE WORD!";
-      $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),950);
+      $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),1650);
       Snd.chainBig(2); UI.confetti(); buzz([30,40,30,80]);
       Game.cheer(1); // the pets love a clever move
       await wait(400);
@@ -2818,7 +2866,10 @@ const Game = {
       if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌸
       else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
       Game.recordWord(w, pts, S.chain);
-      await wait(700);
+      // THE announcement of this game — the word you made and what it paid — used to sit
+      // for 700ms and vanish. Nobody could read it, and the bigger the word the more
+      // there was to miss. It holds long enough to land now, longer for the big ones.
+      await wait(len>=5 ? 1700 : len>=4 ? 1350 : 1100);
       banner.classList.add("fade"); setTimeout(()=>banner.remove(),450);
     }
     S.maxChain=Math.max(S.maxChain,S.chain);
@@ -2872,15 +2923,32 @@ const Game = {
           Snd.thaw(); buzz(10);
         } else if(t.kind==="crate"){
           acted=true;
+          const cr=t.r, cc=t.c;
           removeTile(t);
-          Game.cheer(Game.petNeed()); // a crate of treats — the paw meter fills at once
-          if(pairOn("crateWish")){ P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save(); UI.wishPill(); } // 💎 Treasure Pals
-          Snd.gold(); buzz([15,25]);
+          await Game.openCrate(cr,cc);
         }
       }
     }
     if(acted){ UI.hud(); await wait(340); }
     return thawed;
+  },
+
+  /* A gift used to do exactly one thing, and that thing was invisible: fill the paw
+     meter. Players popped it, watched nothing happen, and concluded the pig's entire
+     power was pointless — they were right. A gift has to GIVE, and it has to say so. */
+  async openCrate(r,c){
+    const got=[];
+    S.levelScore+=15; got.push("<b>+15</b>");
+    if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
+    if((P.pow.wild||0)<3){ Game.earnWish();  got.push("🌸 a wish"); }
+    if(got.length<3){ Game.addMoves(3); got.push("<b>+3 moves</b>"); }   // never a dud
+    if(pairOn("crateWish")){ P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save(); UI.wishPill(); } // 💎 Treasure Pals
+    Game.cheer(Game.petNeed());                                          // and the pets get their treat
+    UI.shards(r,c,"#ffd54f"); UI.confetti();
+    Snd.gold(); Snd.levelUp(); buzz([15,25,15,45]);
+    UI.toast("🎁 the gift bursts open!<br>"+got.join(" · ")+"<br><small>🐾 your friends are ready</small>");
+    UI.hud();
+    await wait(620);
   },
 
   async rain(count){
@@ -3473,10 +3541,54 @@ const UI = {
       boardEl.appendChild(dl); g._label=dl;
     }
   },
-  toast(m){ // a centered, unmissable announcement — same API, real presence
+  toast(m, hold){ // a centered, unmissable announcement — same API, real presence
     const t=$("toast"); t.innerHTML=m;
     t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
-    clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"), 2100);
+    // 2.1s flat was a guess, and the longer announcements — a gift bursting, a pet's
+    // power, a best-friend pair — were gone before anyone could finish reading them.
+    // Time it to the words instead, and let callers hold the really big ones longer.
+    const words=m.replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
+    const ms=hold || Math.min(7000, Math.max(2400, 1400+words*300));
+    clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"), ms);
+  },
+  /* Send a friend out onto the board. Returns a handle whose .home() walks it back —
+     the caller runs its power in between, so the pet is standing there while it works
+     and there is never any doubt about who did it. */
+  async petVisit(pet, cell){
+    const eq=UI.equipped(); let i=eq.indexOf(pet); if(i<0) i=0;
+    const seat=$("pet-"+i); if(!seat) return null;
+    const app=$("app"), ar=app.getBoundingClientRect(), sr=seat.getBoundingClientRect(), br=boardEl.getBoundingClientRect();
+    if(!sr.width || !br.width) return null;
+    const x0=sr.left-ar.left+sr.width/2, y0=sr.top-ar.top+sr.height/2;
+    const sp=document.createElement("div"); sp.className="petsprite"; sp.textContent=pet.e;
+    sp.style.left=x0+"px"; sp.style.top=y0+"px";
+    app.appendChild(sp);
+    const k=br.width/(COLS*STEP-GAP);                       // the board is scaled to fit
+    const x1=br.left-ar.left+(cell.c*STEP+CELL/2)*k;
+    const y1=br.top -ar.top +(cell.r*STEP+CELL/2)*k;
+    await wait(40);
+    sp.style.left=x1+"px"; sp.style.top=y1+"px";
+    Snd.tone(660,{dur:.1,type:"triangle",gain:.06,verb:true});
+    await wait(430);
+    sp.classList.add("landed");
+    const plate=document.createElement("div"); plate.className="petplate";
+    plate.innerHTML=pet.pi+" <b>"+pet.pn+"</b>";
+    plate.style.left=Math.max(58,Math.min(x1, ar.width-58))+"px";
+    plate.style.top=Math.max(4,y1-46)+"px";
+    app.appendChild(plate);
+    Snd.tone(990,{dur:.14,type:"sine",gain:.06,verb:true}); buzz([18,25]);
+    const shown=Date.now();
+    return { async home(){
+      // a power like Golden Paw finishes instantly, and the friend was hopping home
+      // 300ms after arriving — long enough to see a blur, not long enough to read WHO.
+      // Whatever the power costs, the name plate stays up long enough to be read.
+      const dwell=1500-(Date.now()-shown); if(dwell>0) await wait(dwell);
+      plate.remove();
+      sp.classList.remove("landed");
+      sp.style.left=x0+"px"; sp.style.top=y0+"px";
+      Snd.tone(560,{dur:.09,type:"triangle",gain:.05,verb:true});
+      await wait(430); sp.remove();
+    } };
   },
   sprout(w){ // a quiet flag over a word that took root — never a popup, never a wait
     const cells=w.cells, mid=cells[Math.floor(cells.length/2)];
