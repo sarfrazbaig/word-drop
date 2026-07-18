@@ -436,15 +436,6 @@
   .gracebubble .gbar{ position:absolute; left:0; bottom:0; height:3px; background:var(--gold);
     animation:gracebar 2.6s linear forwards; }
   @keyframes gracebar{ from{ width:100% } to{ width:0 } }
-  /* 🌱 a little word that took root — it waits one drop for you to grow it */
-  .tile.sprouting{ box-shadow:0 0 0 2px #86c99a, 0 0 16px rgba(134,201,154,.75) !important;
-    animation:sproutpulse 1.5s ease-in-out infinite; }
-  @keyframes sproutpulse{ 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.16) } }
-  .sproutflag{ position:absolute; z-index:58; pointer-events:none; white-space:nowrap;
-    background:rgba(255,253,246,.97); border:2px solid #86c99a; border-radius:999px; padding:3px 9px;
-    font-size:12px; font-weight:800; letter-spacing:.6px; color:#2e6b4c;
-    box-shadow:0 5px 14px rgba(40,80,55,.3); animation:bannerin .2s; }
-  .sproutflag.fade{ transition:opacity .4s, transform .4s; opacity:0; transform:translateY(-10px); }
   /* 🎆 the jackpot: a 5-6+ letter word erupts */
   .jackpotburst{ position:absolute; left:50%; top:34%; transform:translate(-50%,-50%); z-index:95;
     font-size:34px; font-weight:900; letter-spacing:3px; color:var(--gold-deep); white-space:nowrap;
@@ -1590,7 +1581,7 @@ function saveRun(){
   // the win and the level counter ticking over, you resumed a cleared level with its
   // score already banked and won it again on the first drop.
   if(!S || S.over || S.won){ P.run=null; save(); return; }
-  P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0}:null)),
+  P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0,h:t.heldWord||""}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
     maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, charm:S.charm||0 };
@@ -1610,6 +1601,7 @@ function loadRun(){
       if(!cell) return;
       const t=newTile(cell.l,cell.k,ri,ci);
       if(cell.x){ t.cracks=cell.x; t.inner.classList.add("cracked"); }
+      if(cell.h) t.heldWord=cell.h; // a spent word stays spent across a reload
     }));
     S.busy=false; // resumed runs skip the intro card, so unfreeze directly
     S.lastAction=Date.now();
@@ -1623,7 +1615,7 @@ function loadRun(){
 function newState(level){
   return { level, milestone:isMilestone(level), board:Array.from({length:ROWS},()=>Array(COLS).fill(null)),
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
-    drops:0, chain:1, maxChain:1, cascadeMax:1, sprout:null,
+    drops:0, chain:1, maxChain:1, cascadeMax:1, playerMove:false,
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
@@ -2137,9 +2129,9 @@ const Game = {
 
     S.cascadeMax=1; S.clearedThisDrop=false; S.lastAction=Date.now();
     S.chain=1;
-    // a word left rooting from last drop is now fair game again — either this tile just
-    // grew it into something bigger, or it blooms as the little word it always was
-    await Game.resolve([t, ...Game.wakeSprout()]);
+    S.playerMove=true;                    // this resolve is YOURS — the grace applies
+    await Game.resolve([t]);
+    S.playerMove=false;
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
@@ -2276,7 +2268,7 @@ const Game = {
     await wait(520);
     [a,b].forEach(x=>{ x.el.style.transition=""; });
     S.lastAction=Date.now();
-    await Game.toolResolve([a,b,...Game.wakeSprout()]); // little words bloom after a breath — with a 🌱 hold to keep building
+    await Game.toolResolve([a,b]); // the grace applies — tap 🌱 hold to keep building
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -2333,7 +2325,7 @@ const Game = {
     await wait(200);
     const fell=await Game.gravity();
     S.lastAction=Date.now();
-    await Game.toolResolve([...(fell||[]),...Game.wakeSprout()]); // same bloom-pause: tumbled little words wait a breath, holdable
+    await Game.toolResolve(fell||[]); // the grace applies here too — tumbled words wait a breath
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
     UI.all(); saveRun();
@@ -2374,7 +2366,7 @@ const Game = {
     f.style.left=(mb.left-ar.left+mb.width/2-10)+"px"; f.style.top=(mb.top-ar.top)+"px";
     $("app").appendChild(f); setTimeout(()=>f.remove(),1000); },
   addMoves(n){ S.movesLeft+=n; UI.hud(); boardEl.classList.toggle("danger", S.movesLeft<=3); Game.movesFloat(n); },
-  async settle(changed){ const fell=await Game.gravity(); S.chain=1; await Game.resolve([...(changed||[]),...(fell||[]),...Game.wakeSprout()]); },
+  async settle(changed){ const fell=await Game.gravity(); S.chain=1; await Game.resolve([...(changed||[]),...(fell||[])]); },
   worstTiles(n){ // qzxjv first, then the priciest letters — the stuff that clogs a board
     const ts=Object.values(S.tiles).filter(t=>t.kind==="normal");
     return ts.sort((a,b)=>{
@@ -2383,7 +2375,8 @@ const Game = {
       return VAL[b.letter]-VAL[a.letter];
     }).slice(0,n);
   },
-  retype(t,l){ t.letter=l; t.inner.innerHTML=t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
+  retype(t,l){ t.letter=l; delete t.heldWord; // a new letter is a new tile — old spends don't apply
+    t.inner.innerHTML=t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
     t.inner.classList.add("thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); },
   handPop(){ const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); } },
 
@@ -2616,7 +2609,8 @@ const Game = {
       if(a.letter===b.letter) continue;
       S.board[a.r][a.c]=b; S.board[b.r][b.c]=a;
       const ar0=a.r,ac0=a.c; a.r=b.r; a.c=b.c; b.r=ar0; b.c=ac0;
-      const hit=findWords().find(w=>w.cells.length>=minLen && (w.cells.includes(a)||w.cells.includes(b)));
+      const hit=findWords().find(w=>w.cells.length>=minLen && (w.cells.includes(a)||w.cells.includes(b))
+        && !w.cells.every(c=>c.heldWord===w.word)); // never weave toward a word the player already spent
       if(hit){
         // keep the board state and animate the weave
         [a,b].forEach(x=>{ x.el.style.transition="transform .5s cubic-bezier(.4,.05,.35,1)"; });
@@ -2712,7 +2706,9 @@ const Game = {
     });
     await wait(shifts.length*110+620);
     S.chain=1;
-    await Game.resolve();
+    // only words the SHIFTERS changed may clear — an unfocused resolve would also pop
+    // held words sitting quietly elsewhere on the board, and held words are a promise
+    await Game.resolve(shifts);
   },
 
   async jackpot(len){ // 🎆 a 5-6+ letter word is the rarest feat in the game — pay it like a slot machine
@@ -2736,59 +2732,19 @@ const Game = {
     await wait(900);
   },
 
-  /* THE BLOOM PAUSE — resolves the "COUP→COP betrayal" without a lock mechanic.
-     A tool-formed little word always DOES something (older players read silence as a bug):
-     it lights up and blooms after a breath. One friendly 🌱 bubble lets a builder hold it. */
-  /* 🌱 THE SPROUT — the fix for "everybody only ever makes three-letter words".
-     A four-letter word needs a three-letter run already standing on the board. But
-     resolve() popped every three-letter word the instant it formed, so the scaffolding
-     for a longer one could never exist: instrumenting level 16 found 4+ letter
-     completions available on 1 drop in 15, and every single word the board produced
-     was three letters. The game was eating its own foundations.
-     So: a little word that STILL HAS ROOM TO GROW takes root for one drop instead of
-     popping. Extend it and you get the big word and its jackpot; ignore it and it
-     blooms on your next drop with its points intact. Nothing is ever taken away —
-     only offered. */
-  canGrow(w){
-    if(S.movesLeft<=1) return false;               // on the last breath, take the points
-    // A TRUE NAME ANSWERS AT ONCE. If we let CAT take root, a player who then grew it
-    // into CATS would clear a fine word and never meet the cat at all — and on the
-    // levels that ask you to spell one, the whole lesson would silently fail.
-    if(GROVE_BY_WORD[w.word] && !P.grove[w.word]) return false;
-    if(S.tutorWord===w.word) return false;
-    const cells=w.cells, spots=[];
-    if(cells[0].c===cells[cells.length-1].c){      // a column: it can grow at either end
-      const c=cells[0].c, rs=cells.map(t=>t.r), top=Math.min(...rs), bot=Math.max(...rs);
-      if(top-1>=0 && !S.board[top-1][c]) spots.push(1);
-      if(bot+1<ROWS && !S.board[bot+1][c]) spots.push(1);
-    } else {                                       // a row: the gap must also be droppable-into
-      const r=cells[0].r, cs=cells.map(t=>t.c), lo=Math.min(...cs), hi=Math.max(...cs);
-      const open=c=>c>=0 && c<COLS && !S.board[r][c] && (r+1>=ROWS || S.board[r+1][c]);
-      if(open(lo-1)) spots.push(1);
-      if(open(hi+1)) spots.push(1);
-    }
-    if(!spots.length) return false;
-    for(const ch of "abcdefghijklmnopqrstuvwxyz")   // and a real word must be reachable
-      if(COMMON.has(ch+w.word) || COMMON.has(w.word+ch)) return true;
-    return false;
-  },
-  wakeSprout(){
-    if(!S.sprout) return [];
-    const cells=S.sprout.ids.map(id=>S.tiles[id]).filter(Boolean);
-    if(cells.length<S.sprout.ids.length){ S.sprout=null; return []; }  // it grew (or was plucked) — gone already
-    if(--S.sprout.life > 0) return [];                                 // still rooting: you get two drops, not one
-    cells.forEach(t=>t.inner.classList.remove("sprouting"));
-    S.sprout=null;
-    return cells;
-  },
-
-  async toolResolve(focus){
-    const words=findWords().filter(w=>w.cells.some(c=>focus.includes(c)));
-    if(!words.length) return;
-    if(words.some(w=>w.cells.length>=4)){ S.chain=1; await Game.resolve(focus); return; } // big words are always deliberate
+  /* 🌱 THE GRACE — one rule for every word you make. This replaces TWO overlapping
+     systems (a bloom-pause that only tools got, and a sprout that only lone 3-letter
+     words got) that players could not tell apart. Now, dead simple: any word YOU
+     form — by drop or by tool — lights up and waits a breath. Tap 🌱 hold and the
+     board keeps it for you to build bigger. Do nothing and it blooms, points and
+     all. Tap the board and it blooms right now — patience is never taxed.
+     Three things never pause, each because pausing would break a promise:
+     cascades (they are the game paying you), an undiscovered true name (the
+     creature must wake — held, CAT could become CATS and the cat never met),
+     and your last move (holding it would be a loss you didn't choose). */
+  async grace(words){
     const cells=[...new Set(words.flatMap(w=>w.cells))];
     cells.forEach(t=>t.inner.classList.add("lit"));
-    // the bubble sits just above the word
     const mid=cells[Math.floor(cells.length/2)];
     const b=document.createElement("div"); b.className="gracebubble";
     b.innerHTML='<span class="gw">'+words.map(w=>w.word.toUpperCase()).join(" · ")+'</span>'
@@ -2797,50 +2753,54 @@ const Game = {
     b.style.top=Math.max(4,(mid.r*STEP)-52)+"px";
     boardEl.appendChild(b);
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
-    let held=false;
+    UI.say("grace", "🌱 every word waits a breath — tap <b>hold</b> to keep it and grow it bigger", 2);
+    let held=false, skip=false;
     b.querySelector(".ghold").onclick=e=>{ e.stopPropagation(); held=true; };
     ["pointerdown","pointerup"].forEach(ev=>b.addEventListener(ev,e=>e.stopPropagation()));
-    for(let i=0;i<26 && !held;i++) await wait(100); // ~2.6s to decide; doing nothing = it blooms
+    const hurry=()=>{ skip=true; };
+    boardEl.addEventListener("pointerdown", hurry);
+    for(let i=0;i<26 && !held && !skip;i++) await wait(100); // ~2.6s to decide
+    boardEl.removeEventListener("pointerdown", hurry);
     b.remove();
-    if(held){
-      cells.forEach(t=>t.inner.classList.remove("lit"));
-      UI.say("hold-saved", "🌱 saved — build it into something bigger!");
-      Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
-      return;
-    }
     cells.forEach(t=>t.inner.classList.remove("lit"));
-    S.chain=1;
-    await Game.resolve(focus);
+    if(held){
+      // HOLDING SPENDS THE WORD. The letters stay, but as plain material — each tile
+      // remembers the word it was held as, and that exact word can never resolve from
+      // those exact tiles again. Without this, a held WIT re-cleared against the
+      // player's will the moment a cascade jostled it (they were saving it for WITH,
+      // made BOX nearby, and watched both pop as a "double word"). Only a BIGGER word
+      // that includes an extra tile can cash these letters in now. No glow, no marker:
+      // the player was told they're normal letters, so they must look like it too.
+      words.forEach(w=>w.cells.forEach(t=>{ if(S.tiles[t.id]) t.heldWord=w.word; }));
+      UI.say("hold-saved", "🌱 saved — these letters only bloom in a bigger word now");
+      Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
+      // the queued tile was drawn before this word existed and is blind to it —
+      // redraw it so the deck can offer a letter that finishes what you kept
+      if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
+    }
+    return held;
   },
 
-  async resolve(focus, minLen){
+  async toolResolve(focus){ S.playerMove=true; S.chain=1; try{ await Game.resolve(focus); } finally{ S.playerMove=false; } },
+
+  async resolve(focus){
     let words = findWords();
     // AUTHORED clears: every pass only clears words involving tiles that just changed —
-    // the tile you placed or moved, then (in cascades) tiles that fell, rained in, or
-    // thawed. The game must never "spell words for you" out of static leftovers.
+    // the tile you placed or moved, then (in cascades) tiles that fell or thawed.
+    // The game must never "spell words for you" out of static leftovers.
     if(focus && focus.length){
       words = words.filter(w=>w.cells.some(c=>focus.includes(c)));
     }
-    // TOOL moves are for BUILDING: the breeze must never pop a little word out from
-    // under the big one you're setting up (the COUP→COP betrayal). minLen guards that.
-    if(minLen && S.chain===1){
-      words = words.filter(w=>w.cells.length>=minLen);
-    }
+    // a held word is SPENT: if every one of its tiles was held as exactly this word,
+    // it may never resolve again — not from a cascade jostling it, not from a shifter,
+    // not from re-forming after a tumble. An extra tile makes it a new, bigger word.
+    words = words.filter(w=>!w.cells.every(c=>c.heldWord===w.word));
     if(!words.length) return;
-    // 🌱 take root rather than pop — only on the honest first pass, never mid-cascade,
-    // never when two words landed at once (that's already a celebration of its own)
-    if(S.chain===1 && !S.sprout && words.length===1 && words[0].cells.length===3 && Game.canGrow(words[0])){
-      const w=words[0];
-      S.sprout = { ids:w.cells.map(t=>t.id), life:2 };
-      w.cells.forEach(t=>t.inner.classList.add("sprouting"));
-      // the queued tile was drawn before this word existed, so it is blind to it.
-      // redraw it now that the board has something worth finishing — otherwise the
-      // helpful letter arrives three drops late and the root has long since bloomed.
-      if(S.next && S.next.kind==="normal") S.next=makePiece();
-      Snd.tone(784,{dur:.16,type:"triangle",gain:.05,verb:true});
-      Snd.tone(1046,{dur:.22,type:"sine",gain:.04,when:.1,verb:true});
-      UI.sprout(w);
-      return;
+    // the grace: every word the player makes waits a breath (see Game.grace above)
+    if(S.chain===1 && S.playerMove){
+      const urgent = S.movesLeft<=0
+        || words.some(w=>(GROVE_BY_WORD[w.word] && !P.grove[w.word]) || S.tutorWord===w.word);
+      if(!urgent && await Game.grace(words)) return;   // held — the board keeps it
     }
     S.clearedThisDrop = true;
     if(S.chain>=2){
@@ -2921,20 +2881,19 @@ const Game = {
     UI.hud();
     await wait(150);
     const clearedPos=[...allCells].map(t=>({r:t.r,c:t.c}));
-    // a rooted word that just got grown (or swept up in someone else's clear) is spent —
-    // forget it now so the very next little word is free to take root in its turn
-    if(S.sprout && [...allCells].some(t=>S.sprout.ids.includes(t.id))) S.sprout=null;
     allCells.forEach(t=>removeTile(t));
     Snd.collapse(allCells.size);
     await wait(220);
     const thawed = await Game.hitNeighbors(clearedPos);
     const fell = await Game.gravity();
-    // one honest rain tile: cascade potential, never a gift
-    const rained = await Game.rain(1);
+    // NO rain tile here. The sky used to drop one random letter after every clear —
+    // "cascade potential" on paper, but players had a build in mind and the stray
+    // letter kept landing in the middle of it. The board only holds what YOU placed
+    // and what fell; nothing arrives that you didn't cause.
     S.chain++;
     Snd.riser(S.chain);
     await wait(430);
-    await Game.resolve([...(thawed||[]), ...(fell||[]), ...(rained||[])]);
+    await Game.resolve([...(thawed||[]), ...(fell||[])]);
   },
 
   async hitNeighbors(cells){ // clearing beside stone cracks it, beside ice thaws it, beside a crate pops it
@@ -2993,28 +2952,6 @@ const Game = {
     await wait(620);
   },
 
-  async rain(count){
-    const added=[];
-    for(let i=0;i<count;i++){
-      const open=[];
-      for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
-      if(!open.length) return added;
-      const p=open[Math.floor(Math.random()*open.length)];
-      const t=newTile(drawLetter(),"normal",p.land,p.c,false);
-      added.push(t);
-      t.el.style.transition="none"; t.el.style.transform=xy(-1.2,p.c); void t.el.offsetWidth;
-      const ms=70+p.land*32;
-      t.el.style.transition="transform "+ms+"ms cubic-bezier(.55,0,.85,.55)";
-      t.el.style.transform=xy(p.land,p.c);
-      Snd.tone(520+Math.random()*260,{dur:.06,type:"triangle",gain:.045});
-      await wait(ms);
-      t.el.style.transition="";
-      t.inner.classList.add("landsquash"); setTimeout(()=>t.inner.classList.remove("landsquash"),400);
-      UI.dust(p.land,p.c);
-    }
-    await wait(160);
-    return added;
-  },
 
   async gravity(){
     let moved=false; const movedTiles=[];
@@ -3652,16 +3589,6 @@ const UI = {
       await wait(430); sp.remove();
     } };
   },
-  sprout(w){ // a quiet flag over a word that took root — never a popup, never a wait
-    const cells=w.cells, mid=cells[Math.floor(cells.length/2)];
-    const f=document.createElement("div"); f.className="sproutflag";
-    f.textContent="🌱 "+w.word.toUpperCase()+" — grow it?";
-    f.style.left=Math.max(2, Math.min(mid.c*STEP-42, COLS*STEP-130))+"px";
-    f.style.top=Math.max(2,(mid.r*STEP)-30)+"px";
-    boardEl.appendChild(f);
-    setTimeout(()=>{ f.classList.add("fade"); setTimeout(()=>f.remove(),450); }, 1600);
-    UI.say("sprout","🌱 It <b>took root</b> — add a letter to either end for a bigger word. Leave it and it blooms anyway.", 2);
-  },
   say(key, msg, times){ // teach loudly, then trust the player: instructional messages
     // show center-stage the first couple of times, then go quiet — glow/sound carries it.
     P.said=P.said||{};
@@ -3670,7 +3597,7 @@ const UI = {
     UI.toast(msg);
   },
   TIPS:{
-    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. A little word blooms after a breath — tap <b>🌱 hold</b> if you're building something bigger."},
+    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. Every word waits a breath before it blooms — tap <b>🌱 hold</b> to keep building."},
     wish:  {i:"🌸", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌸 button beside your letters and <b>choose any letter</b> — it becomes your next tile."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
