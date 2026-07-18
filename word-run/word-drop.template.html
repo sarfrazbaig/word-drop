@@ -2223,8 +2223,14 @@ const Game = {
   },
   showPendingMeet(){ // meet any friend you unlocked last round — the ritual explains what pets do
     if(!S || S.over || S.won) return false;
-    const pending = Object.keys(P.grove).filter(w=>GROVE_BY_WORD[w] && !P.metGrove[w])
+    let pending = Object.keys(P.grove).filter(w=>GROVE_BY_WORD[w] && !P.metGrove[w])
       .sort((a,b)=>(P.grove[a]||0)-(P.grove[b]||0));
+    // the CAT is always the first meeting, and nobody else meets before round 5 is
+    // done — a lucky early spell (BAT at level 2) waits its turn so the taught arc
+    // (spell CAT → ritual → Book → shelf lesson) is the same for every player. From
+    // level 6 the queue opens and the latecomers get their rituals back to back,
+    // identical to the cat's — deferred, never diminished.
+    if(P.level<6) pending = pending.filter(w=>w==="cat");
     // an unknown word must NEVER freeze the level — release it and move on
     Object.keys(P.grove).forEach(w=>{ if(!GROVE_BY_WORD[w]){ delete P.grove[w]; save(); } });
     if(!pending.length) return false;
@@ -2884,11 +2890,19 @@ const Game = {
         P.grove[g.w]=Date.now();
         S.newGrove.push(g.w);
         if(S.tutorWord===g.w) S.tutorWord=null; // guided word found — clear the prompt
-        Snd.discover(); UI.confetti(); buzz([30,50,40]);
-        // say "meet them next round" only the very first time — after that the ritual speaks for itself
-        UI.toast(Object.keys(P.metGrove).length ? "✨ "+g.w.toUpperCase()+" remembers its name!"
-          : "✨ "+g.w.toUpperCase()+" remembers its name! It wakes next round");
-        Game.cheer(2);
+        // A lucky discovery BEFORE the pet system exists (rounds 1-4, anything but the
+        // cat) is captured in perfect silence — no chime, no toast, no confetti. The
+        // player hasn't been told creatures live in words yet, so there is nothing to
+        // announce. The name waits in the Book, and its ritual — identical to the
+        // cat's — plays after round 5, when "you discovered BAT" finally means something.
+        const quiet = g.w!=="cat" && S.level<5;
+        if(!quiet){
+          Snd.discover(); UI.confetti(); buzz([30,50,40]);
+          // say "meet them next round" only the very first time — after that the ritual speaks for itself
+          UI.toast(Object.keys(P.metGrove).length ? "✨ "+g.w.toUpperCase()+" remembers its name!"
+            : "✨ "+g.w.toUpperCase()+" remembers its name! It wakes next round");
+          Game.cheer(2);
+        }
         // level 4 exists to teach exactly one thing: spell a name, meet them NEXT round.
         // The moment the cat wakes, the round is over — the lesson has no second act,
         // and "next round" arrives while the words still hang in the air.
@@ -3428,7 +3442,9 @@ const UI = {
     // title already says the target fell. A loss keeps the gap visible: "58 / 75".
     $("ev-score").textContent = won ? S.levelScore : S.levelScore + " / " + S.target;
     $("ev-word").textContent = S.bestWord||"—";
-    const found = S.newGrove.map(w=>GROVE_BY_WORD[w].e);
+    // silent early discoveries stay silent here too — their reveal is the post-round-5
+    // ritual, not a stray emoji on a win card the player can't ask questions of
+    const found = S.newGrove.filter(w=>w==="cat"||S.level>=5).map(w=>GROVE_BY_WORD[w].e);
     if(won){
       $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ");
     } else { // a loss should feel like your friends rooting for you, not a cold verdict
