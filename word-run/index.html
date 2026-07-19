@@ -1455,26 +1455,40 @@ const Snd = {
   },
   // a slow, cozy lofi-ish chord bed — soft warm pads through the reverb, one chord every 4.4s
   CHORDS:[ [130.8,164.8,196.0], [146.8,174.6,220.0], [110.0,164.8,220.0], [123.5,146.8,196.0] ], // C · Dm-ish · Am · G, low & mellow
+  // 🎭 the ceremony bed: same instrument, darker room — minor chords a register down,
+  // no birdsong, and a soft heartbeat under it. Tense enough to feel the code
+  // waiting to be cracked; never tense enough to stop being Hushwood.
+  CEREMONY_CHORDS:[ [110.0,130.8,164.8], [87.3,130.8,164.8], [82.4,123.5,164.8], [110.0,130.8,155.6] ], // Am · F · Em · Am(b6)
+  mode:"normal",
   _chord:0,
   startMusic(){
     clearInterval(this.musicTimer);
     const play=()=>{
       if(!this.on||!this.ctx) return;
-      const ch=this.CHORDS[this._chord%this.CHORDS.length]; this._chord++;
+      const cer=this.mode==="ceremony";
+      const set=cer?this.CEREMONY_CHORDS:this.CHORDS;
+      const ch=set[this._chord%set.length]; this._chord++;
       ch.forEach((f,i)=>{
         // soft triangle pad, slow attack, long release, gentle detune for warmth
         const c=this.ctx, t0=c.currentTime;
         const o=c.createOscillator(), g=c.createGain(), lp=c.createBiquadFilter();
         o.type="triangle"; o.frequency.value=f*(1+(Math.random()*0.006-0.003));
-        lp.type="lowpass"; lp.frequency.value=900;
+        lp.type="lowpass"; lp.frequency.value=cer?640:900;      // the dark keeps its lid on
         g.gain.setValueAtTime(0.0001,t0);
         g.gain.exponentialRampToValueAtTime(0.02,t0+0.9);      // slow swell
         g.gain.exponentialRampToValueAtTime(0.0001,t0+4.2);    // long fade
         o.connect(lp); lp.connect(g); g.connect(this.master); g.connect(this.wet);
         o.start(t0); o.stop(t0+4.4);
       });
-      // a soft high sparkle note occasionally, like birdsong
-      if(Math.random()<0.5) this.tone(this.PENTA[6+Math.floor(Math.random()*4)],{dur:.5,type:"sine",gain:.02,when:1+Math.random(),verb:true});
+      if(cer){
+        // the heartbeat: a soft double thump, and once in a while one high lone note
+        this.tone(58,{dur:.16,type:"sine",gain:.09,when:1.1});
+        this.tone(55,{dur:.2,type:"sine",gain:.07,when:1.42});
+        if(Math.random()<0.3) this.tone(this.PENTA[9+Math.floor(Math.random()*2)],{dur:.9,type:"sine",gain:.014,when:2.4+Math.random(),verb:true});
+      } else {
+        // a soft high sparkle note occasionally, like birdsong
+        if(Math.random()<0.5) this.tone(this.PENTA[6+Math.floor(Math.random()*4)],{dur:.5,type:"sine",gain:.02,when:1+Math.random(),verb:true});
+      }
     };
     play();
     this.musicTimer=setInterval(play, 4400);
@@ -1565,60 +1579,65 @@ const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
    if nothing calls for two levels. Early callings are things natural play trips over
    (the Balatro shower); late ones are a deliberate chase. */
 const CALLINGS={
-  /* TIER 1 — the shower: ~4 friends in the first 10 levels, tripped over by natural play */
+  /* ORDERED BY THE DIFFICULTY OF THE NAME ITSELF (computed against the dictionary):
+     a prefix that is a valid word forces a HOLD on the build path — CHICK costs two
+     (chi→chic), so the humble chick is the FINAL legend of the wood. Clean 3-letter
+     names shower early; multi-hold names guard the deep game. The law of the wood:
+     if lucky they crack it, else the hint shop will (one day) sell a lantern. */
+  /* TIER 1 — the shower: clean names, trivial callings, ~4 friends in 10 levels */
   cat:     {t:"school",   n:1,  c:"finish the lessons of the wood",           s:"🐾 something <b>purrs</b> beyond the lesson…"},
   dog:     {t:"act",      n:1,  c:"watch a friend use its power",             s:"🐾 something wants to <b>fetch</b> too…"},
-  chick:   {t:"twin",     n:1,  c:"clear a DOUBLE WORD",                      s:"🥚 something peeps at your <b>twin words</b>…"},
-  robin:   {t:"word4",    n:3,  c:"clear 3 four-letter words",                s:"🎶 something sings back at your morning words…"},
-  mouse:   {t:"word3",    n:8,  c:"clear 8 little words",                     s:"🧀 something is collecting your <b>crumbs</b>…"},
   owl:     {t:"hold",     n:2,  c:"hold 2 words with 🌱",                     s:"🌙 something admires your <b>patience</b>…"},
-  /* TIER 2 — the walk: one friend every 2-3 levels through the first rings */
-  ladybug: {t:"chain",    n:2,  c:"set off 2 chain reactions",                s:"🍀 something landed on your <b>lucky</b> chain…"},
-  bee:     {t:"words",    n:25, c:"clear 25 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
+  bee:     {t:"words",    n:12, c:"clear 12 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
+  fox:     {t:"gold",     n:4,  c:"clear 4 golden letters",                   s:"✨ something is following your <b>gilded trail</b>…"},
+  bat:     {t:"upword",   n:1,  c:"clear a word that reads UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
+  /* TIER 2 — the walk: clean 3-4 letter names, moderate callings */
+  pig:     {t:"pluck",    n:2,  c:"pluck 2 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
   moth:    {t:"star",     n:2,  c:"use 2 ⭐ fallen stars in words",           s:"🌌 something is drawn to your <b>starlight</b>…"},
-  bunny:   {t:"daily",    n:1,  c:"spell the day´s whispered word (see 📖)",  s:"🥕 something heard you catch the <b>daily whisper</b>…"},
-  fox:     {t:"gold",     n:6,  c:"clear 6 golden letters",                   s:"✨ something is following your <b>gilded trail</b>…"},
-  hare:    {t:"word4",    n:12, c:"clear 12 four-letter words",               s:"💨 something is racing your <b>quick</b> words…"},
-  bat:     {t:"upword",   n:2,  c:"clear 2 words that read UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
+  hare:    {t:"word4",    n:8,  c:"clear 8 four-letter words",                s:"💨 something is racing your <b>quick</b> words…"},
   crow:    {t:"qzxjv",    n:2,  c:"clear 2 words using Q, Z, X, J or V",      s:"⚫ something clever admires your <b>rare letters</b>…"},
   dove:    {t:"jackpot",  n:2,  c:"clear 2 five-letter words",                s:"🕊️ something cooed at your <b>long, lovely words</b>…"},
   frog:    {t:"regionwin1",n:3, c:"win 3 times at the Listening Pond",        s:"🪷 something is croaking your name at the <b>pond</b>…"},
-  pig:     {t:"pluck",    n:2,  c:"pluck 2 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
-  worm:    {t:"breeze",   n:10, c:"use 10 breezes",                           s:"🌱 something felt you <b>stirring the soil</b>…"},
+  worm:    {t:"breeze",   n:8,  c:"use 8 breezes",                            s:"🌱 something felt you <b>stirring the soil</b>…"},
   duck:    {t:"closewin", n:1,  c:"win with 2 or fewer moves left",           s:"🌊 something flapped in on your <b>second wind</b>…"},
-  squirrel:{t:"hold",     n:8,  c:"hold 8 words with 🌱",                     s:"🌰 something envies your <b>stash</b>…"},
-  /* TIER 3 — the climb: earned across rings two and three */
-  cricket: {t:"chain3",   n:2,  c:"set off 2 triple chains",                  s:"🎻 something joined your <b>night chorus</b>…"},
-  beetle:  {t:"stone",    n:8,  c:"smash 8 mossy stones",                     s:"🪨 something heard the <b>knocking</b>…"},
-  hawk:    {t:"chain",    n:8,  c:"set off 8 chain reactions",                s:"🎯 something sharp-eyed watches your <b>cascades</b>…"},
-  goose:   {t:"gold",     n:20, c:"clear 20 golden letters",                  s:"🥚 something golden waddles toward your <b>treasure</b>…"},
-  swan:    {t:"star",     n:8,  c:"use 8 ⭐ fallen stars",                    s:"🤍 something graceful glides toward your <b>stars</b>…"},
-  snail:   {t:"win",      n:15, c:"win 15 levels",                            s:"🐌 something slow and sure has been <b>following you</b>…"},
-  heron:   {t:"bigwin",   n:3,  c:"win 3 times with 10+ moves to spare",      s:"🪶 something admires your <b>patient hunt</b>…"},
-  wolf:    {t:"qzxjv",    n:8,  c:"clear 8 words with rare letters",          s:"🌕 something howled back at your <b>wild letters</b>…"},
-  otter:   {t:"ice",      n:8,  c:"thaw 8 frozen letters",                    s:"💧 something splashed in your <b>thawed waters</b>…"},
-  fish:    {t:"regionwin1",n:8, c:"win 8 times at the Listening Pond",        s:"🫧 something shimmers below the <b>pond</b>…"},
-  snake:   {t:"wish",     n:10, c:"transform your letter with 10 🌟 wishes",  s:"🐍 something admires how you <b>shed letters</b>…"},
-  deer:    {t:"star3",    n:8,  c:"earn 8 ⭐⭐⭐ wins",                       s:"🦌 something gentle grazes near your <b>quiet wins</b>…"},
-  seal:    {t:"twin",     n:8,  c:"clear 8 DOUBLE WORDs",                     s:"⚪ something claps for your <b>playful doubles</b>…"},
+  mouse:   {t:"word3",    n:12, c:"clear 12 little words",                    s:"🧀 something is collecting your <b>crumbs</b>…"},
+  swan:    {t:"star",     n:5,  c:"use 5 ⭐ fallen stars",                    s:"🤍 something graceful glides toward your <b>stars</b>…"},
+  wolf:    {t:"qzxjv",    n:6,  c:"clear 6 words with rare letters",          s:"🌕 something howled back at your <b>wild letters</b>…"},
+  fish:    {t:"regionwin1",n:6, c:"win 6 times at the Listening Pond",        s:"🫧 something shimmers below the <b>pond</b>…"},
+  lamb:    {t:"word4",    n:20, c:"clear 20 four-letter words",               s:"☁️ something soft follows your <b>steady words</b>…"},
+  crab:    {t:"breeze",   n:20, c:"use 20 breezes",                           s:"🌊 something sidles along your <b>sideways winds</b>…"},
+  /* TIER 3 — the climb: clean longer names and the gentlest 1-hold names */
+  snail:   {t:"win",      n:12, c:"win 12 levels",                            s:"🐌 something slow and sure has been <b>following you</b>…"},
+  otter:   {t:"ice",      n:6,  c:"thaw 6 frozen letters",                    s:"💧 something splashed in your <b>thawed waters</b>…"},
+  snake:   {t:"wish",     n:8,  c:"transform your letter with 8 🌟 wishes",   s:"🐍 something admires how you <b>shed letters</b>…"},
+  bear:    {t:"word5",    n:8,  c:"clear 8 five-letter words",                s:"🍯 something big smelled your <b>feast of words</b>…"},
+  goat:    {t:"friends",  n:18, c:"wake 18 friends",                          s:"🐐 something calls to its <b>kindred</b> — you…"},
+  pony:    {t:"win",      n:25, c:"win 25 levels",                            s:"🐴 something gallops alongside your <b>long journey</b>…"},
+  skunk:   {t:"qzxjv",    n:14, c:"clear 14 words with rare letters",         s:"💨 something respects how you <b>clear the room</b>…"},
+  bison:   {t:"act",      n:40, c:"watch friends use their powers 40 times",  s:"🦬 something thunders in step with your <b>herd</b>…"},
   lizard:  {t:"regionwin2",n:6, c:"win 6 times in the Amber Thicket",         s:"🍂 something is sunbathing in the <b>amber light</b>…"},
-  boar:    {t:"stone",    n:16, c:"smash 16 mossy stones",                    s:"💢 something charges toward the <b>rubble</b>…"},
-  /* TIER 4 — the legends: only the long road (or, one day, a price tag) wakes these */
-  fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
-  moose:   {t:"word6",    n:3,  c:"clear 3 six-letter words",                 s:"🌲 something MIGHTY bows to your <b>great words</b>…"},
-  badger:  {t:"pluck",    n:15, c:"pluck 15 letters off the board",           s:"🕳️ something respects a fellow <b>digger</b>…"},
-  lamb:    {t:"word4",    n:40, c:"clear 40 four-letter words",               s:"☁️ something soft follows your <b>steady words</b>…"},
-  crab:    {t:"breeze",   n:30, c:"use 30 breezes",                           s:"🌊 something sidles along your <b>sideways winds</b>…"},
   turtle:  {t:"win",      n:30, c:"win 30 levels",                            s:"🛡️ something steady has walked <b>every step</b> with you…"},
-  bear:    {t:"word5",    n:12, c:"clear 12 five-letter words",               s:"🍯 something big smelled your <b>feast of words</b>…"},
-  spider:  {t:"jackpot",  n:10, c:"clear 10 five-letter words",               s:"🕸️ something is weaving beside your <b>long words</b>…"},
-  ant:     {t:"words",    n:400,c:"clear 400 words",                          s:"🐜 something industrious salutes your <b>work</b>…"},
-  goat:    {t:"friends",  n:25, c:"wake 25 friends",                          s:"🐐 something calls to its <b>kindred</b> — you…"},
-  raccoon: {t:"crate",    n:10, c:"burst open 10 gift crates",                s:"🗑️ something heard you <b>rummaging</b>…"},
-  skunk:   {t:"qzxjv",    n:20, c:"clear 20 words with rare letters",         s:"💨 something respects how you <b>clear the room</b>…"},
-  pony:    {t:"win",      n:45, c:"win 45 levels",                            s:"🐴 something gallops alongside your <b>long journey</b>…"},
-  beaver:  {t:"hold",     n:30, c:"hold 30 words with 🌱",                    s:"🪵 something is impressed by your <b>building</b>…"},
-  bison:   {t:"act",      n:60, c:"watch friends use their powers 60 times",  s:"🦬 something thunders in step with your <b>herd</b>…"},
+  spider:  {t:"jackpot",  n:8,  c:"clear 8 five-letter words",                s:"🕸️ something is weaving beside your <b>long words</b>…"},
+  beaver:  {t:"hold",     n:24, c:"hold 24 words with 🌱",                    s:"🪵 something is impressed by your <b>building</b>…"},
+  hawk:    {t:"chain",    n:6,  c:"set off 6 chain reactions",                s:"🎯 something sharp-eyed watches your <b>cascades</b>…"},
+  deer:    {t:"star3",    n:6,  c:"earn 6 ⭐⭐⭐ wins",                       s:"🦌 something gentle grazes near your <b>quiet wins</b>…"},
+  seal:    {t:"twin",     n:6,  c:"clear 6 DOUBLE WORDs",                     s:"⚪ something claps for your <b>playful doubles</b>…"},
+  /* TIER 4 — the legends: long names, hidden-word names, and the true grinds */
+  boar:    {t:"stone",    n:12, c:"smash 12 mossy stones",                    s:"💢 something charges toward the <b>rubble</b>…"},
+  robin:   {t:"word4",    n:30, c:"clear 30 four-letter words",               s:"🎶 something sings back at your morning words…"},
+  bunny:   {t:"daily",    n:3,  c:"spell the whispered word on 3 days",       s:"🥕 something heard you catch the <b>daily whisper</b>…"},
+  goose:   {t:"gold",     n:25, c:"clear 25 golden letters",                  s:"🥚 something golden waddles toward your <b>treasure</b>…"},
+  moose:   {t:"word6",    n:3,  c:"clear 3 six-letter words",                 s:"🌲 something MIGHTY bows to your <b>great words</b>…"},
+  fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
+  ant:     {t:"words",    n:300,c:"clear 300 words",                          s:"🐜 something industrious salutes your <b>work</b>…"},
+  raccoon: {t:"crate",    n:8,  c:"burst open 8 gift crates",                 s:"🗑️ something heard you <b>rummaging</b>…"},
+  squirrel:{t:"hold",     n:30, c:"hold 30 words with 🌱",                    s:"🌰 something envies your <b>stash</b>…"},
+  cricket: {t:"chain3",   n:3,  c:"set off 3 triple chains",                  s:"🎻 something joined your <b>night chorus</b>…"},
+  heron:   {t:"bigwin",   n:4,  c:"win 4 times with 10+ moves to spare",      s:"🪶 something admires your <b>patient hunt</b>…"},
+  beetle:  {t:"stone",    n:20, c:"smash 20 mossy stones",                    s:"🪨 something heard the <b>knocking</b>…"},
+  badger:  {t:"pluck",    n:12, c:"pluck 12 letters off the board",           s:"🕳️ something respects a fellow <b>digger</b>…"},
+  ladybug: {t:"chain",    n:15, c:"set off 15 chain reactions",               s:"🍀 something landed on your <b>lucky</b> chain…"},
+  chick:   {t:"twin",     n:12, c:"clear 12 DOUBLE WORDs",                    s:"🥚 something peeps at your <b>twin words</b>…"},
 };
 // every creature MUST have a calling — a roster edit that forgets one gets a gentle default
 GROVE.forEach(g=>{ if(!CALLINGS[g.w]) CALLINGS[g.w]={t:"words",n:40,c:"clear forty words",s:"🐾 something has been watching your words…"}; });
@@ -1764,6 +1783,7 @@ function loadRun(){
     applyBiome(S.level);
     // a resumed ceremony wears its robes again: violet board, silhouette in the corner
     boardEl.classList.toggle("ceremony", !!S.tutorWord);
+    Snd.mode = S.tutorWord ? "ceremony" : "normal";
     if(S.tutorWord && !document.getElementById("namer")){
       const n=document.createElement("div"); n.id="namer"; n.className="sil";
       n.textContent=GROVE_BY_WORD[S.tutorWord].e;
@@ -1795,9 +1815,35 @@ function drawLetter(){
   if(Game && Game.hasPassive && Game.hasPassive("vowelDeck") && Math.random()<0.3) return rand(["a","e","i","o","u"]); // 🎶 Morning Chorus
   return FREQ[Math.floor(Math.random()*FREQ.length)];
 }
-function tutorPrefill(word, dug){ // GUARANTEED guidance: build level ground, set the opening letters on it
-  const head=word.slice(0,-1).split(""); // "ca" for cat, "chic" for chick
-  const L=head.length+1;                 // fragment + the completion slot
+function tutorAlive(){ // is the guest still spellable? checks the LONGEST surviving prefix
+  const w=S.tutorWord; if(!w) return true;
+  if(P.level<=6){ // school: the full head + finisher must be one drop away
+    const last=w.slice(-1);
+    for(let c=0;c<COLS;c++){ if(wouldClear({letter:last,kind:"normal"},c)===w) return true; }
+    return false;
+  }
+  const K=Math.min(3, Math.ceil((w.length-1)/2));
+  // any contiguous prefix run of at least the anchor, with room for the whole name,
+  // counts as alive — including runs the player has grown themselves
+  for(let j=w.length-1;j>=K;j--){
+    const pre=w.slice(0,j);
+    for(let r=0;r<ROWS;r++) for(let c=0;c+w.length-1<COLS;c++){
+      let ok=true;
+      for(let i=0;i<j;i++){ const t=S.board[r][c+i];
+        if(!t || t.letter!==pre[i] || t.kind==="stone" || t.kind==="ice"){ ok=false; break; } }
+      if(ok) return true;
+    }
+  }
+  return false;
+}
+function tutorPrefill(word, dug){ // stage the guest's ANCHOR: level ground + a foothold of letters
+  // School (levels 1-6) lays out everything but the last letter — idiot-proof.
+  // After school the ceremony stages only an ANCHOR (1-3 letters): the player must
+  // figure the name and BUILD the rest, holding the little words that form along the
+  // way. If they crack it, glory; if not, the letdown — and one day, the hint shop.
+  const K = P.level<=6 ? word.length-1 : Math.min(3, Math.ceil((word.length-1)/2));
+  const head=word.slice(0,K).split("");
+  const L=word.length;                   // reserve room for the WHOLE name to grow rightward
   const landAt=c=>{ let r=ROWS-1; while(r>=0 && S.board[r][c]) r--; return r; };
   // rank every start column by how much filler it needs to become level ground
   const starts=[];
@@ -2316,10 +2362,11 @@ const Game = {
     S.cur = makePiece(); S.next = makePiece();
     if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
     if(pairOn("startMoves")) S.movesLeft+=2;            // 🏁 The Fair Race: bunny & turtle pace each other
-    if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
+    if(S.tutorWord && P.level<=6){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     FT.setup(level); // lessons 1-3 restage the board entirely; level 5 arms the shelf lesson
     // 🎭 a naming level wears the ceremony: the board itself holds its breath
     boardEl.classList.toggle("ceremony", !!S.tutorWord);
+    Snd.mode = S.tutorWord ? "ceremony" : "normal";   // the music leans in with it
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     $("breezepill").classList.remove("armed");
     $("wishbtn").classList.remove("armed");
@@ -2455,6 +2502,7 @@ const Game = {
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
   nextLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(P.level); },
   goHome(){
+    Snd.mode="normal";   // the home meadow never carries the ceremony's weight
     if(S && !S.over && !S.won) saveRun();
     $("ov-end").classList.remove("active"); $("ov-intro").classList.remove("active");
     UI.scene("scene-home"); UI.home();
@@ -2561,14 +2609,10 @@ const Game = {
     // 🎭 a name was spelled: the silhouette takes center stage, the wood holds its
     // breath, and the reveal runs into the meet ritual — SAME round, no cliffhanger
     if(S.pendingReveal){ const rg=S.pendingReveal; S.pendingReveal=null; await Game.reveal(rg); }
-    // the KEEPER: long names are fragile — an ordinary clear can eat the staged
-    // fragment (CHIC became "chi"+"kin" soup and the guest was unspellable for three
-    // levels). If the completion no longer exists anywhere, quietly stage it again.
-    if(S.tutorWord && !S.over && !S.won){
-      const last=S.tutorWord.slice(-1);
-      let alive=false; for(let c=0;c<COLS;c++){ if(wouldClear({letter:last,kind:"normal"},c)===S.tutorWord){ alive=true; break; } }
-      if(!alive) tutorPrefill(S.tutorWord);
-    }
+    // the KEEPER: if every trace of the guest's anchor has been eaten by ordinary
+    // clears, quietly stage a fresh one. It never rebuilds the player's progress —
+    // only the foothold. The WORK stays theirs.
+    if(S.tutorWord && !S.over && !S.won && !tutorAlive()) tutorPrefill(S.tutorWord);
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
@@ -2843,6 +2887,7 @@ const Game = {
     if(!S.tutorWord && boardEl.classList.contains("ceremony")){
       boardEl.classList.remove("ceremony");
       boardEl.classList.add("flash"); setTimeout(()=>boardEl.classList.remove("flash"),400);
+      Snd.mode="normal";   // the heartbeat lets go
     }
     Snd.discover(); UI.confetti(); buzz([30,50,30,50,90]);
     await wait(1600);
