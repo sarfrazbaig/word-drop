@@ -1659,6 +1659,26 @@ const CALLINGS={
 // every creature MUST have a calling — a roster edit that forgets one gets a gentle default
 GROVE.forEach(g=>{ if(!CALLINGS[g.w]) CALLINGS[g.w]={t:"words",n:40,c:"clear forty words",s:"🐾 something has been watching your words…"}; });
 const CALLING_ORDER=Object.keys(CALLINGS);
+/* ============ LEVEL GOALS — what a round asks of you ============
+   The hush (points) is the baseline; obstacle goals make obstacles the WIN CONDITION,
+   Candy-Crush style: melt every ice, smash every stone, or lose the round. Each type
+   introduces itself SOLO at an authored level, then joins a slow rotation. */
+const GOALS={
+  hush:   {i:"🎯", n:"still the hush"},
+  thaw:   {i:"🧊", n:"melt every ice",    seed:"ice",   base:3},
+  boulder:{i:"🪨", n:"smash every stone", seed:"stone", base:3},
+  harvest:{i:"✨", n:"harvest the gold",  seed:"gold",  base:4},
+  unravel:{i:"🎁", n:"open every gift",   seed:"crate", base:2},
+};
+function goalFor(L){
+  // authored solo introductions, then one obstacle-goal level per 5-beat cycle
+  if(L===15) return "thaw";
+  if(L===20) return "boulder";
+  if(L===32) return "unravel";
+  if(L===38) return "harvest";
+  if(L>20 && L%5===3) return ["thaw","boulder","unravel","harvest"][Math.floor(L/7)%4];
+  return "hush";
+}
 /* ============ BEST FRIENDS — simple, named pair synergies ============
    Put both halves of a duo on duty together and their bonus switches on.
    One line each, no math homework: this is Balatro's joy at picture-book size. */
@@ -1779,7 +1799,8 @@ function saveRun(){
   P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0,h:t.heldWord||""}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
-    maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, charm:S.charm||0 };
+    maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, charm:S.charm||0,
+    goal:S.goal };
   save();
 }
 function loadRun(){
@@ -1791,7 +1812,8 @@ function loadRun(){
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
       maxChain:r.maxChain||1, newGrove:(r.newGrove||[]).filter(w=>GROVE_BY_WORD[w]), cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
-      petCharge:r.petCharge||0, petTurn:r.petTurn||0, charm:r.charm||0 });
+      petCharge:r.petCharge||0, petTurn:r.petTurn||0, charm:r.charm||0,
+      goal:r.goal||{t:"hush",need:0,have:0} });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
       if(!cell) return;
       const t=newTile(cell.l,cell.k,ri,ci);
@@ -1820,6 +1842,7 @@ function newState(level){
   return { level, milestone:isMilestone(level), board:Array.from({length:ROWS},()=>Array(COLS).fill(null)),
     tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1, playerMove:false, guide:null,
+    goal:{t:"hush",need:0,have:0},
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
@@ -2383,6 +2406,25 @@ const Game = {
       }
     };
     convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
+    // the round's ASK: ceremonies keep the hush (their contract is the name); other
+    // levels may ask for obstacles instead — and the board seeds enough to ask fairly
+    S.goal={t:"hush",need:0,have:0};
+    if(!(P.summon && !P.grove[P.summon]) && !(level===4 && !P.grove.cat)){
+      const gt=goalFor(level);
+      if(gt!=="hush"){
+        const G=GOALS[gt];
+        const need=Math.min(7, G.base+Math.floor(level/25));
+        const pool2=Object.values(S.tiles).filter(t=>t.kind==="normal");
+        let seeded=Object.values(S.tiles).filter(t=>t.kind===G.seed).length;
+        while(seeded<need && pool2.length){
+          const t=pool2.splice(Math.floor(Math.random()*pool2.length),1)[0];
+          t.kind=G.seed; t.cracks=0;
+          t.inner.className="tile "+G.seed; t.inner.innerHTML=tileFace(t);
+          seeded++;
+        }
+        S.goal={t:gt, need:seeded, have:0};
+      }
+    }
     // a met calling becomes a NAMING LEVEL: the summoned creature hides in the corner
     // of the board and its name hides in the letters. One guest per level, drawn from
     // the queue in calling order. The cat's summons comes from the school itself.
@@ -2414,7 +2456,7 @@ const Game = {
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
     const ring=Math.floor((level-1)/25)+1; // each 25 levels = one ring deeper into the wood
     $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
-    $("iv-target").textContent = S.target;
+    $("iv-target").textContent = (S.goal&&S.goal.t!=="hush") ? GOALS[S.goal.t].i+" "+S.goal.need : S.target;
     $("iv-moves").textContent = S.movesLeft;
     const ob=$("iv-obstacles");
     const parts=[];
@@ -2512,6 +2554,9 @@ const Game = {
       $("boardwrap").appendChild(hand);
     }
     if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins (deferred ones wait for their cue)
+    // a goal type introduces itself ONCE, full-page, before its first round is played
+    if(S.goal && S.goal.t!=="hush" && !P.seenTip["goal-"+S.goal.t])
+      setTimeout(()=>UI.tileTip("goal-"+S.goal.t), 500);
     // the summoned creature waits in the corner of the board, a jiggling silhouette —
     // "who's that?" starts the moment the level does
     if(S.tutorWord && !$("namer")){
@@ -2674,7 +2719,10 @@ const Game = {
     if($("ov-meet").classList.contains("active")) return; // the ritual owns the stage — closeMeet re-checks
     // THE CEREMONY CONTRACT: beat the level AND speak the name. Points alone cannot
     // close a naming round — the hush holds until the guest is named.
-    if(S.levelScore >= S.target){
+    if(S.goal && S.goal.t!=="hush"){
+      // an obstacle round asks ONLY for its obstacles — clear them all and it ends
+      if(S.goal.have>=S.goal.need){ Game.winLevel(); return; }
+    } else if(S.levelScore >= S.target){
       if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
       else { Game.winLevel(); return; }
     }
@@ -2982,6 +3030,13 @@ const Game = {
     // ceremony a second time (caught live by the user).
     UI._meetWord=g.w; S.busy=true;
     UI.discover(g);
+  },
+
+  goalTick(t){ // one step of the round's ask, whichever kind it is
+    if(!S || !S.goal || S.goal.t!==t) return;
+    S.goal.have=Math.min(S.goal.need, S.goal.have+1);
+    UI.hud();
+    if(S.goal.have>=S.goal.need) Snd.tone(1046,{dur:.25,type:"sine",gain:.07,verb:true});
   },
 
   /* ---- 🟠 AMBER — earned in drops, spent on small mercies ---- */
@@ -3612,7 +3667,7 @@ const Game = {
       if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌟
       else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
       const goldN=w.cells.filter(t=>t.kind==="gold").length;
-      if(goldN) Game.tallyEv("gold",goldN);
+      if(goldN){ Game.tallyEv("gold",goldN); for(let gi=0;gi<goldN;gi++) Game.goalTick("harvest"); }
       if(w.cells.some(t=>t.kind==="wild")) Game.tallyEv("star");
       if(w.dir==="up") Game.tallyEv("upword");
       Game.recordWord(w, pts, S.chain);
@@ -3656,7 +3711,7 @@ const Game = {
         if(t.kind==="stone"){
           acted=true;
           t.cracks=(t.cracks||0)+1;
-          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("stone"); Game.amber(2); }
+          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("stone"); Game.amber(2); Game.goalTick("boulder"); }
           else {
             t.inner.classList.add("cracked");
             t.inner.classList.add("jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
@@ -3665,7 +3720,7 @@ const Game = {
           buzz(15);
         } else if(t.kind==="ice"){
           acted=true;
-          t.kind="normal"; thawed.push(t); Game.tallyEv("ice"); Game.amber(2);
+          t.kind="normal"; thawed.push(t); Game.tallyEv("ice"); Game.amber(2); Game.goalTick("thaw");
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
@@ -3686,7 +3741,7 @@ const Game = {
      meter. Players popped it, watched nothing happen, and concluded the pig's entire
      power was pointless — they were right. A gift has to GIVE, and it has to say so. */
   async openCrate(r,c){
-    Game.tallyEv("crate"); Game.amber(2);
+    Game.tallyEv("crate"); Game.amber(2); Game.goalTick("unravel");
     const got=[];
     S.levelScore+=15; got.push("<b>+15</b>");
     if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
@@ -3793,10 +3848,13 @@ const UI = {
     const m=$("movesbig");
     m.textContent=S.movesLeft;
     m.classList.toggle("low", S.movesLeft<=3 && !S.won);
-    const pct=Math.min(100, 100*S.levelScore/S.target);
+    const goalMode=S.goal && S.goal.t!=="hush";
+    const pct=goalMode ? Math.min(100,100*S.goal.have/Math.max(1,S.goal.need))
+                       : Math.min(100, 100*S.levelScore/S.target);
     $("goalfill").style.width=pct+"%";
-    $("goaltext").textContent=S.levelScore+" / "+S.target;
-    $("goalbar").classList.toggle("done", S.levelScore>=S.target);
+    $("goaltext").textContent=goalMode ? GOALS[S.goal.t].i+" "+S.goal.have+" / "+S.goal.need
+                                       : S.levelScore+" / "+S.target;
+    $("goalbar").classList.toggle("done", goalMode ? S.goal.have>=S.goal.need : S.levelScore>=S.target);
     const mist=document.getElementById("hushmist"); // every word thins the hush — visibly
     if(mist) mist.style.opacity=Math.max(0, 1-(pct/100)*1.25);
   },
@@ -3937,6 +3995,7 @@ const UI = {
     $("ev-title").innerHTML = won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>Level '+S.level+' clear!'
       : (S.tutorWord ? "A name went unspoken…"
+         : (S.goal&&S.goal.t!=="hush") ? (GOALS[S.goal.t].i+" "+(S.goal.need-S.goal.have)+" remained…")
          : S.levelScore>=S.target*0.85 ? "So close…" : "Out of moves");
     // a won card says just the score — "76 / 15" read like a broken fraction, and the
     // title already says the target fell. A loss keeps the gap visible: "58 / 75".
@@ -4390,6 +4449,10 @@ const UI = {
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
     crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open — <b>points, a 🍃 breeze, a 🌟 wish</b> — and your friends' paw meter fills at once."},
     shift: {i:"🌀", t:"A <b>restless tile</b> — it changes its letter every few drops. Catch it at the right moment!"},
+    "goal-thaw":   {i:"🧊", t:"A <b>THAW round</b>! The hush doesn\u0027t want points here — <b>melt every frozen letter</b> before your moves run out. Clear words BESIDE the ice to thaw it."},
+    "goal-boulder":{i:"🪨", t:"A <b>BOULDER round</b>! <b>Smash every mossy stone</b> to clear the level — clear words beside a stone twice and it crumbles."},
+    "goal-harvest":{i:"✨", t:"A <b>HARVEST round</b>! <b>Use every golden letter in a word</b> — the gold on the board is the goal, not the points."},
+    "goal-unravel":{i:"🎁", t:"An <b>UNRAVEL round</b>! <b>Burst every gift crate</b> — clear words beside them. The gifts inside are still yours."},
   },
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
     P.seenTip[kind]=true; save();
