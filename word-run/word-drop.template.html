@@ -403,26 +403,26 @@
   .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
   .toolbtn.pop{ animation:slotpop .6s; }
   .toolbtn.deny{ animation:denyshake .32s; }
-  /* the wish button: a white star on twilight violet — the user's first instinct,
-     finally done right. The violet never failed; the YELLOW EMOJI on it did. The ★
-     text glyph takes our silver, so the field and the star agree: night and light.
-     Gold now belongs to VALUE alone (golden letters, jackpots) — one meaning, one hue. */
-  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #ded4f2, #a795d4 62%, #7c6bb0);
-    box-shadow:0 4px 0 #57497e, 0 6px 12px rgba(70,55,130,.35), inset 0 2px 0 rgba(255,255,255,.55); }
-  .toolbtn.wish:active{ box-shadow:0 2px 0 #57497e, 0 4px 8px rgba(70,55,130,.35); }
-  .toolbtn.wish .cnt{ background:#57497e; color:#fff; }
+  /* the wish button: a white star on the ORIGINAL blossom pink. The pink was doing
+     quiet compositional work on the tray all along — the counterweight between the
+     green breeze and the wooden letters. Pink and the tile's twilight violet are
+     neighbouring hues, so button and board-star still read as one family of magic;
+     the tray keeps its warmth, the board keeps its night. */
+  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fdeef5, #f7cfe0 65%, #eeaac8); box-shadow:0 4px 0 #c07d9c, 0 6px 12px rgba(160,70,110,.3), inset 0 2px 0 rgba(255,255,255,.85); }
+  .toolbtn.wish:active{ box-shadow:0 2px 0 #c07d9c, 0 4px 8px rgba(160,70,110,.3); }
+  .toolbtn.wish .cnt{ background:#c2588a; color:#fff; }
   .toolbtn.wish .starglyph{ color:#fff; font-size:23px; line-height:1;
-    text-shadow:0 0 6px rgba(255,255,255,.95), 0 0 14px rgba(215,205,255,.85); }
+    text-shadow:0 0 5px rgba(255,255,255,.9), 0 1px 4px rgba(190,90,130,.85), 0 0 12px rgba(240,170,200,.8); }
   #wishbtn.armed{ transform:scale(1.1);
-    box-shadow:0 4px 0 #57497e, 0 0 22px rgba(215,205,255,.95), inset 0 2px 0 rgba(255,255,255,.55);
+    box-shadow:0 4px 0 #c07d9c, 0 0 22px rgba(240,150,190,.9), inset 0 2px 0 rgba(255,255,255,.85);
     animation:wisharm 1.4s ease-in-out infinite; }
-  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #57497e, 0 0 32px rgba(225,215,255,1), inset 0 2px 0 rgba(255,255,255,.55); } }
+  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #c07d9c, 0 0 32px rgba(240,150,190,1), inset 0 2px 0 rgba(255,255,255,.85); } }
   #breezepill.armed{ transform:scale(1.1);
     box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
   @keyframes breezearm{ 50%{ box-shadow:0 4px 0 #7aa886, 0 0 32px rgba(120,200,160,1), inset 0 2px 0 rgba(255,255,255,.8); } }
   /* the wish picker: a cozy grid of little letter tiles */
-  #wish-title{ font-size:18px; font-weight:900; color:var(--gold-deep); }
+  #wish-title{ font-size:18px; font-weight:900; color:#a94a76; }
   #wish-sub{ font-size:12px; color:var(--dim); margin-top:8px; }
   #wish-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-top:12px; }
   #wish-grid .tile{ position:relative; height:38px; font-size:17px; cursor:pointer; display:flex;
