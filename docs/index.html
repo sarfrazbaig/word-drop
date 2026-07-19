@@ -832,6 +832,33 @@
     background:repeating-conic-gradient(from 0deg, rgba(255,213,120,.5) 0 10deg, transparent 10deg 26deg);
     -webkit-mask:radial-gradient(circle, #000 30%, transparent 68%); mask:radial-gradient(circle, #000 30%, transparent 68%);
     border-radius:50%; animation:rayspin 18s linear infinite; pointer-events:none; }
+  /* 🎭 THE CEREMONY — a naming round is unmistakably OTHER: the sky drops to a deep
+     ceremonial violet and an aurora ring breathes around the board edge, and it stays
+     that way until the name is spoken. Then the flash, and the ordinary night returns. */
+  #board.ceremony{ background:linear-gradient(180deg,#221c40 0%, #35295c 48%, #4d3c78 100%) !important;
+    box-shadow:0 0 0 3px rgba(168,140,235,.55), 0 0 36px rgba(150,115,235,.5),
+      inset 0 0 70px rgba(80,60,140,.4), 0 22px 46px -16px rgba(25,22,48,.7);
+    animation:ceremonypulse 3s ease-in-out infinite; }
+  @keyframes ceremonypulse{ 50%{ box-shadow:0 0 0 3px rgba(190,165,255,.8), 0 0 54px rgba(170,140,255,.75),
+    inset 0 0 70px rgba(80,60,140,.4), 0 22px 46px -16px rgba(25,22,48,.7); } }
+  #board.ceremony #namer{ font-size:42px; }
+  .wt-b{ display:block; font-size:13px; font-weight:800; color:#ffe9a8; margin-top:3px; }
+  /* ---- WHO'S THAT? — the naming-level guest and its reveal ---- */
+  #namer{ position:absolute; left:10px; top:10px; z-index:40; font-size:34px; line-height:1;
+    animation:namerjig 1.6s ease-in-out infinite; pointer-events:none;
+    filter:brightness(0) opacity(.62) drop-shadow(0 0 7px rgba(255,255,255,.4)); }
+  @keyframes namerjig{ 0%,100%{ transform:rotate(-6deg) translateY(0) } 25%{ transform:rotate(5deg) translateY(-3px) }
+    55%{ transform:rotate(-4deg) translateY(1px) } 80%{ transform:rotate(6deg) translateY(-2px) } }
+  .sil{ filter:brightness(0) opacity(.62) drop-shadow(0 0 7px rgba(255,255,255,.4)); }
+  .whosthat{ position:absolute; left:50%; top:38%; transform:translate(-50%,-50%); z-index:95;
+    display:flex; flex-direction:column; align-items:center; gap:9px; pointer-events:none; animation:bannerin .3s; }
+  .whosthat.fade{ transition:opacity .35s; opacity:0; }
+  .whosthat .wt-e{ font-size:86px; line-height:1; transition:filter .5s; animation:wtbob 1s ease-in-out infinite; }
+  .whosthat .wt-e.sil{ filter:brightness(0) opacity(.72) drop-shadow(0 0 12px rgba(255,255,255,.55)); }
+  .whosthat .wt-q{ font-family:var(--font-story); font-size:17px; font-weight:750; color:#fff;
+    background:rgba(30,25,60,.72); border-radius:999px; padding:6px 16px; white-space:nowrap;
+    text-shadow:0 1px 2px rgba(0,0,0,.5); }
+  @keyframes wtbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
   .meetspark{ position:absolute; font-size:15px; pointer-events:none; animation:sparkpop 1.5s ease-out forwards; }
   @keyframes sparkpop{ 0%{ transform:scale(.2) translateY(4px); opacity:0 } 25%{ opacity:1; transform:scale(1.15) }
     100%{ transform:scale(.7) translateY(-26px); opacity:0 } }
@@ -973,6 +1000,11 @@
   .gcard.mystery .ge{ filter:brightness(0) saturate(0); opacity:.22; } /* the creature's SHAPE — character, not a leak */
   .gcard.mystery .gn{ color:var(--dim); font-weight:700; letter-spacing:.5px; font-size:10px; }
   .gcard.wiggle{ animation:denyshake .32s; }
+  .gcard .gcall{ display:block; font-size:8.5px; line-height:1.35; color:#7a6a4a; margin-top:4px;
+    background:rgba(240,169,46,.1); border:1px dashed rgba(201,138,16,.35); border-radius:8px; padding:3px 5px; }
+  .gcard .gcall b{ color:var(--gold-deep); }
+  .gcard .gcall.listening{ color:var(--accent-deep); background:rgba(125,216,125,.12);
+    border-color:rgba(90,160,90,.4); animation:pipready 1.2s ease-in-out infinite; }
   /* the friend sheet: one pet, told properly */
   #ov-pet .card{ text-align:center; }
   #pet-sheet-e{ font-size:74px; line-height:1.1; filter:drop-shadow(0 6px 8px rgba(0,0,0,.2)); animation:meethop 1.2s ease-in-out infinite; }
@@ -1523,6 +1555,74 @@ const GROVE = [
   {w:"bison",e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"},f:"charges through the middle row, politely"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
+/* ============ CALLINGS — how a creature notices you ============
+   Balatro's lesson, worn picture-book style: you don't find a creature, it finds YOU —
+   when you play the way it plays. Every calling is drawn from its own power (the
+   woodpecker-hearted beetle hears you crack stones; the bat hears a word echo UP a
+   column), so the chase teaches the very mechanic the friend will amplify.
+   Meeting a calling SUMMONS the naming level; the name is still always SPELLED.
+   The order of this object is also the pity order — the wood grows curious on its own
+   if nothing calls for two levels. Early callings are things natural play trips over
+   (the Balatro shower); late ones are a deliberate chase. */
+const CALLINGS={
+  /* TIER 1 — the shower: ~4 friends in the first 10 levels, tripped over by natural play */
+  cat:     {t:"school",   n:1,  c:"finish the lessons of the wood",           s:"🐾 something <b>purrs</b> beyond the lesson…"},
+  dog:     {t:"act",      n:1,  c:"watch a friend use its power",             s:"🐾 something wants to <b>fetch</b> too…"},
+  chick:   {t:"twin",     n:1,  c:"clear a DOUBLE WORD",                      s:"🥚 something peeps at your <b>twin words</b>…"},
+  robin:   {t:"word4",    n:3,  c:"clear 3 four-letter words",                s:"🎶 something sings back at your morning words…"},
+  mouse:   {t:"word3",    n:8,  c:"clear 8 little words",                     s:"🧀 something is collecting your <b>crumbs</b>…"},
+  owl:     {t:"hold",     n:2,  c:"hold 2 words with 🌱",                     s:"🌙 something admires your <b>patience</b>…"},
+  /* TIER 2 — the walk: one friend every 2-3 levels through the first rings */
+  ladybug: {t:"chain",    n:2,  c:"set off 2 chain reactions",                s:"🍀 something landed on your <b>lucky</b> chain…"},
+  bee:     {t:"words",    n:25, c:"clear 25 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
+  moth:    {t:"star",     n:2,  c:"use 2 ⭐ fallen stars in words",           s:"🌌 something is drawn to your <b>starlight</b>…"},
+  bunny:   {t:"daily",    n:1,  c:"spell the day´s whispered word (see 📖)",  s:"🥕 something heard you catch the <b>daily whisper</b>…"},
+  fox:     {t:"gold",     n:6,  c:"clear 6 golden letters",                   s:"✨ something is following your <b>gilded trail</b>…"},
+  hare:    {t:"word4",    n:12, c:"clear 12 four-letter words",               s:"💨 something is racing your <b>quick</b> words…"},
+  bat:     {t:"upword",   n:2,  c:"clear 2 words that read UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
+  crow:    {t:"qzxjv",    n:2,  c:"clear 2 words using Q, Z, X, J or V",      s:"⚫ something clever admires your <b>rare letters</b>…"},
+  dove:    {t:"jackpot",  n:2,  c:"clear 2 five-letter words",                s:"🕊️ something cooed at your <b>long, lovely words</b>…"},
+  frog:    {t:"regionwin1",n:3, c:"win 3 times at the Listening Pond",        s:"🪷 something is croaking your name at the <b>pond</b>…"},
+  pig:     {t:"pluck",    n:2,  c:"pluck 2 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
+  worm:    {t:"breeze",   n:10, c:"use 10 breezes",                           s:"🌱 something felt you <b>stirring the soil</b>…"},
+  duck:    {t:"closewin", n:1,  c:"win with 2 or fewer moves left",           s:"🌊 something flapped in on your <b>second wind</b>…"},
+  squirrel:{t:"hold",     n:8,  c:"hold 8 words with 🌱",                     s:"🌰 something envies your <b>stash</b>…"},
+  /* TIER 3 — the climb: earned across rings two and three */
+  cricket: {t:"chain3",   n:2,  c:"set off 2 triple chains",                  s:"🎻 something joined your <b>night chorus</b>…"},
+  beetle:  {t:"stone",    n:8,  c:"smash 8 mossy stones",                     s:"🪨 something heard the <b>knocking</b>…"},
+  hawk:    {t:"chain",    n:8,  c:"set off 8 chain reactions",                s:"🎯 something sharp-eyed watches your <b>cascades</b>…"},
+  goose:   {t:"gold",     n:20, c:"clear 20 golden letters",                  s:"🥚 something golden waddles toward your <b>treasure</b>…"},
+  swan:    {t:"star",     n:8,  c:"use 8 ⭐ fallen stars",                    s:"🤍 something graceful glides toward your <b>stars</b>…"},
+  snail:   {t:"win",      n:15, c:"win 15 levels",                            s:"🐌 something slow and sure has been <b>following you</b>…"},
+  heron:   {t:"bigwin",   n:3,  c:"win 3 times with 10+ moves to spare",      s:"🪶 something admires your <b>patient hunt</b>…"},
+  wolf:    {t:"qzxjv",    n:8,  c:"clear 8 words with rare letters",          s:"🌕 something howled back at your <b>wild letters</b>…"},
+  otter:   {t:"ice",      n:8,  c:"thaw 8 frozen letters",                    s:"💧 something splashed in your <b>thawed waters</b>…"},
+  fish:    {t:"regionwin1",n:8, c:"win 8 times at the Listening Pond",        s:"🫧 something shimmers below the <b>pond</b>…"},
+  snake:   {t:"wish",     n:10, c:"transform your letter with 10 🌟 wishes",  s:"🐍 something admires how you <b>shed letters</b>…"},
+  deer:    {t:"star3",    n:8,  c:"earn 8 ⭐⭐⭐ wins",                       s:"🦌 something gentle grazes near your <b>quiet wins</b>…"},
+  seal:    {t:"twin",     n:8,  c:"clear 8 DOUBLE WORDs",                     s:"⚪ something claps for your <b>playful doubles</b>…"},
+  lizard:  {t:"regionwin2",n:6, c:"win 6 times in the Amber Thicket",         s:"🍂 something is sunbathing in the <b>amber light</b>…"},
+  boar:    {t:"stone",    n:16, c:"smash 16 mossy stones",                    s:"💢 something charges toward the <b>rubble</b>…"},
+  /* TIER 4 — the legends: only the long road (or, one day, a price tag) wakes these */
+  fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
+  moose:   {t:"word6",    n:3,  c:"clear 3 six-letter words",                 s:"🌲 something MIGHTY bows to your <b>great words</b>…"},
+  badger:  {t:"pluck",    n:15, c:"pluck 15 letters off the board",           s:"🕳️ something respects a fellow <b>digger</b>…"},
+  lamb:    {t:"word4",    n:40, c:"clear 40 four-letter words",               s:"☁️ something soft follows your <b>steady words</b>…"},
+  crab:    {t:"breeze",   n:30, c:"use 30 breezes",                           s:"🌊 something sidles along your <b>sideways winds</b>…"},
+  turtle:  {t:"win",      n:30, c:"win 30 levels",                            s:"🛡️ something steady has walked <b>every step</b> with you…"},
+  bear:    {t:"word5",    n:12, c:"clear 12 five-letter words",               s:"🍯 something big smelled your <b>feast of words</b>…"},
+  spider:  {t:"jackpot",  n:10, c:"clear 10 five-letter words",               s:"🕸️ something is weaving beside your <b>long words</b>…"},
+  ant:     {t:"words",    n:400,c:"clear 400 words",                          s:"🐜 something industrious salutes your <b>work</b>…"},
+  goat:    {t:"friends",  n:25, c:"wake 25 friends",                          s:"🐐 something calls to its <b>kindred</b> — you…"},
+  raccoon: {t:"crate",    n:10, c:"burst open 10 gift crates",                s:"🗑️ something heard you <b>rummaging</b>…"},
+  skunk:   {t:"qzxjv",    n:20, c:"clear 20 words with rare letters",         s:"💨 something respects how you <b>clear the room</b>…"},
+  pony:    {t:"win",      n:45, c:"win 45 levels",                            s:"🐴 something gallops alongside your <b>long journey</b>…"},
+  beaver:  {t:"hold",     n:30, c:"hold 30 words with 🌱",                    s:"🪵 something is impressed by your <b>building</b>…"},
+  bison:   {t:"act",      n:60, c:"watch friends use their powers 60 times",  s:"🦬 something thunders in step with your <b>herd</b>…"},
+};
+// every creature MUST have a calling — a roster edit that forgets one gets a gentle default
+GROVE.forEach(g=>{ if(!CALLINGS[g.w]) CALLINGS[g.w]={t:"words",n:40,c:"clear forty words",s:"🐾 something has been watching your words…"}; });
+const CALLING_ORDER=Object.keys(CALLINGS);
 /* ============ BEST FRIENDS — simple, named pair synergies ============
    Put both halves of a duo on duty together and their bonus switches on.
    One line each, no math homework: this is Balatro's joy at picture-book size. */
@@ -1603,6 +1703,14 @@ function load(){
     out.metGrove = out.metGrove||{};
     out.said = out.said||{};
     out.groveMile = out.groveMile||{};
+    out.tally = out.tally||{};        // calling progress counters (stones cracked, words held…)
+    out.called = out.called||{};      // creatures whose calling is met — their name can wake
+    out.summonQ = out.summonQ||[];    // callings met, waiting for their naming level
+    out.summon = out.summon||null;    // the creature whose naming level is running/next
+    out.quietLvls = out.quietLvls||0; // levels since the last call/wake — pity at 2
+    // players who already have friends predate the callings — their friends' callings
+    // count as met, so nothing they own ever reads as un-earned
+    Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
     // MIGRATION: some creatures were renamed in updates (wasp→beetle, toad→chick,
     // mole→pig, newt→goat) — carry the friendship over. Anything unknown is gently
     // released: one orphaned word in an old save froze every level start.
@@ -1654,6 +1762,14 @@ function loadRun(){
     S.busy=false; // resumed runs skip the intro card, so unfreeze directly
     S.lastAction=Date.now();
     applyBiome(S.level);
+    // a resumed ceremony wears its robes again: violet board, silhouette in the corner
+    boardEl.classList.toggle("ceremony", !!S.tutorWord);
+    if(S.tutorWord && !document.getElementById("namer")){
+      const n=document.createElement("div"); n.id="namer"; n.className="sil";
+      n.textContent=GROVE_BY_WORD[S.tutorWord].e;
+      n.title="someone is hiding here — spell its name";
+      boardEl.appendChild(n);
+    }
     UI.all(); UI.visitor();
     return true;
   }catch(e){ P.run=null; save(); return false; }
@@ -1679,8 +1795,8 @@ function drawLetter(){
   if(Game && Game.hasPassive && Game.hasPassive("vowelDeck") && Math.random()<0.3) return rand(["a","e","i","o","u"]); // 🎶 Morning Chorus
   return FREQ[Math.floor(Math.random()*FREQ.length)];
 }
-function tutorPrefill(word){ // GUARANTEED guidance: build level ground, set the opening letters on it
-  const head=word.slice(0,-1).split(""); // "ca" for cat, "do" for dog
+function tutorPrefill(word, dug){ // GUARANTEED guidance: build level ground, set the opening letters on it
+  const head=word.slice(0,-1).split(""); // "ca" for cat, "chic" for chick
   const L=head.length+1;                 // fragment + the completion slot
   const landAt=c=>{ let r=ROWS-1; while(r>=0 && S.board[r][c]) r--; return r; };
   // rank every start column by how much filler it needs to become level ground
@@ -1693,16 +1809,45 @@ function tutorPrefill(word){ // GUARANTEED guidance: build level ground, set the
   }
   starts.sort((a,b)=>a.filler-b.filler || Math.abs(2-a.c)-Math.abs(2-b.c));
   for(const s of starts){
-    const added=[];
+    const added=[], headTiles=[];
     for(let i=0;i<L;i++){                               // raise short columns up to the target level
       let r=landAt(s.c+i);
       while(r>s.target){ added.push(newTile(drawLetter(),"normal",r,s.c+i)); r--; }
     }
-    head.forEach((l,i)=>added.push(newTile(l,"normal",s.target,s.c+i)));
-    if(findWords().length){ added.forEach(t=>removeTile(t)); continue; } // fillers made a word — next spot
-    return;
+    head.forEach((l,i)=>{ const t=newTile(l,"normal",s.target,s.c+i); added.push(t); headTiles.push(t); });
+    // reject only ACCIDENTAL words — ones leaking outside the staged head. A word living
+    // entirely INSIDE the head is fine and inert: "CHIC" contains "chi", and that single
+    // fact made CHICK unstageable forever (the real cause of the jammed ceremony).
+    // Authored-clears never fire on untouched tiles, so an inner word just sits there
+    // until the completion letter turns it into the guest's own name.
+    if(findWords().some(w=>!w.cells.every(t=>headTiles.includes(t)))){
+      added.forEach(t=>removeTile(t)); continue;
+    }
+    return true;
   }
-  // pathological board — the deck forcing (tutorLetter) still leads the player there
+  if(dug) return false;   // dug once already — surrender this attempt, the next drop retries
+  // OVERGROWN: no span can host the name, and with the ceremony contract a jammed
+  // guest means a guaranteed loss (the chick sat unspellable for THREE levels in
+  // simulation). So the keeper DIGS: pick the span with the fewest special tiles,
+  // shave plain letters off its column tops until there's room, and stage again.
+  // Only tops are taken — nothing mid-column, so no tile is ever left floating.
+  let bestc=-1, bestSpec=1e9;
+  for(let c=0; c+L-1<COLS; c++){
+    let spec=0;
+    for(let i=0;i<L;i++) for(let r=0;r<ROWS;r++){ const t=S.board[r][c+i]; if(t && t.kind!=="normal") spec++; }
+    if(spec<bestSpec){ bestSpec=spec; bestc=c; }
+  }
+  if(bestc<0) return false;
+  for(let i=0;i<L;i++){
+    const c=bestc+i; let guard=0;
+    while(guard++<ROWS && landAt(c)<2){
+      let top=0; while(top<ROWS && !S.board[top][c]) top++;
+      const t=S.board[top] && S.board[top][c];
+      if(!t || t.kind!=="normal") break;    // a stone/ice roof — this column keeps it
+      UI.shards(t.r,t.c,"#b9a8de"); removeTile(t);
+    }
+  }
+  return tutorPrefill(word, true);
 }
 /* =================== FTUE — the school of the wood ===================
    "Consider users are dumb — they don't even know how to use the phone."
@@ -1874,6 +2019,12 @@ const FT = {
     FT.note("the board is yours — clear "+S.target+" with drops, breezes, holds 🌿");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null; // training wheels off
+    // school is done — and something noticed. The cat's calling is the FTUE itself;
+    // its summons points straight at level 4, the first naming level.
+    if(!P.grove.cat && !P.called.cat){
+      P.called.cat=1; P.summon="cat"; save();
+      setTimeout(()=>UI.toast(CALLINGS.cat.s+"<br><small>next level, spell its name</small>", 4200), 4800);
+    }
   },
   async lesson5(){ // the cat is awake — show where friends LIVE: shelf, seats, paw meter
     if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points — no lesson to give
@@ -2021,11 +2172,11 @@ function findWords(){
     if(seen.has(key)) return;
     seen.add(key); found.push(h);
   };
-  for(let r=0;r<ROWS;r++) scanLine(S.board[r]).forEach(push);
+  for(let r=0;r<ROWS;r++) scanLine(S.board[r]).forEach(h=>{ h.dir="row"; push(h); });
   for(let c=0;c<COLS;c++){
     const col=S.board.map(row=>row[c]);
-    scanLine(col).forEach(push);                 // read down the column
-    scanLine([...col].reverse()).forEach(push);  // …and up it, the way you stacked it
+    scanLine(col).forEach(h=>{ h.dir="down"; push(h); });                 // read down the column
+    scanLine([...col].reverse()).forEach(h=>{ h.dir="up"; push(h); });    // …and up it, the way you stacked it
   }
   return found;
 }
@@ -2155,16 +2306,20 @@ const Game = {
       }
     };
     convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
-    // CAT at level 4 is the FIRST discovery, spelled like every one after it — the
-    // rule "spell a name, meet them next round" is only a rule if it never has an
-    // exception. (DOG at 6 stays for now; the later pets are a design pass to come.)
-    S.tutorWord = (level===4 && !P.grove.cat) ? "cat" : (level===6 && !P.grove.dog) ? "dog" : null;
+    // a met calling becomes a NAMING LEVEL: the summoned creature hides in the corner
+    // of the board and its name hides in the letters. One guest per level, drawn from
+    // the queue in calling order. The cat's summons comes from the school itself.
+    if(!P.summon && P.summonQ.length && P.metGrove.cat) P.summon=P.summonQ.shift();
+    S.tutorWord = (P.summon && !P.grove[P.summon]) ? P.summon
+                : (level===4 && !P.grove.cat) ? "cat" : null;   // school fallback, never missable
     if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
     S.cur = makePiece(); S.next = makePiece();
     if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
     if(pairOn("startMoves")) S.movesLeft+=2;            // 🏁 The Fair Race: bunny & turtle pace each other
     if(S.tutorWord){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
-    FT.setup(level); // lessons 1-3 restage the board entirely; level 5 gifts the cat
+    FT.setup(level); // lessons 1-3 restage the board entirely; level 5 arms the shelf lesson
+    // 🎭 a naming level wears the ceremony: the board itself holds its breath
+    boardEl.classList.toggle("ceremony", !!S.tutorWord);
     boardEl.classList.remove("danger"); // fresh level, fresh calm — no leftover low-moves glow
     $("breezepill").classList.remove("armed");
     $("wishbtn").classList.remove("armed");
@@ -2193,7 +2348,12 @@ const Game = {
     const iv=$("iv-visitor");
     if(S.guide){ iv.style.display="block";
       iv.innerHTML="🎓 <b>lesson "+S.guide.lesson+"</b> · "+({1:"the drop",2:"the breeze",3:"the hold",5:"your first friend"})[S.guide.lesson]; }
-    else if(S.tutorWord){ iv.style.display="block"; iv.innerHTML=GROVE_BY_WORD[S.tutorWord].e+" spell <b>"+S.tutorWord.toUpperCase()+"</b> to meet a friend"; }
+    else if(S.tutorWord){ iv.style.display="block";
+      // FTUE names are spelled out in full; after school, the guest keeps some mystery —
+      // a silhouette, the first letter, and blanks (the board's fragment gives the rest)
+      const tw=S.tutorWord, full=P.level<=6;
+      const disp = full ? tw.toUpperCase() : tw[0].toUpperCase()+"&thinsp;▁".repeat(tw.length-1);
+      iv.innerHTML='<span class="sil">'+GROVE_BY_WORD[tw].e+'</span> someone is hiding here — spell <b>'+disp+'</b>'; }
     else iv.style.display="none";
     $("ov-unlock").classList.remove("active"); $("ov-intro").classList.remove("active");
     // did the grove grow a new duty slot at this level? celebrate it BEFORE the level begins
@@ -2231,10 +2391,13 @@ const Game = {
     // the FIRST meeting opens the Book: now that you HAVE a friend, "spell names to
     // find more" finally means something — this is where discovery is taught
     if(Object.keys(P.metGrove).length===1)
-      setTimeout(()=>UI.say("book-intro","📖 CAT has a page in the <b>Book of Names</b> now. every creature here hides in a word — <b>spell a true name</b> and it wakes. 49 more to find!", 1), 1700);
+      setTimeout(()=>UI.say("book-intro","📖 CAT has a page in the <b>Book of Names</b> now. every creature has a <b>calling</b> — play its way and it draws near, then <b>spell its name</b>. the Book tells you how. 49 more are listening for you!", 1), 1700);
     // …and once the Book has spoken, the shelf lesson takes the stage
     if(S && S.guide && S.guide.deferred) setTimeout(()=>FT.run(true), 5200);
-    setTimeout(()=>{ if(!Game.showPendingMeet()){ if(S){ S.busy=false; S.lastAction=Date.now(); } Game.showPendingTip(); } }, 900);
+    setTimeout(()=>{ if(!Game.showPendingMeet()){ if(S){ S.busy=false; S.lastAction=Date.now(); } Game.showPendingTip();
+      Game.checkCallings();               // callings met before the cat now surface
+      if(S) Game.checkEnd();              // a win that waited for the ritual lands now
+    } }, 900);
   },
   showPendingMeet(){ // meet any friend you unlocked last round — the ritual explains what pets do
     if(!S || S.over || S.won) return false;
@@ -2263,12 +2426,21 @@ const Game = {
       $("boardwrap").appendChild(hand);
     }
     if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins (deferred ones wait for their cue)
+    // the summoned creature waits in the corner of the board, a jiggling silhouette —
+    // "who's that?" starts the moment the level does
+    if(S.tutorWord && !$("namer")){
+      const n=document.createElement("div"); n.id="namer"; n.className="sil";
+      n.textContent=GROVE_BY_WORD[S.tutorWord].e;
+      n.title="someone is hiding here — spell its name";
+      boardEl.appendChild(n);
+    }
     saveRun();
     setTimeout(()=>{ if(!Game.showPendingMeet()) Game.showPendingTip(); }, 450); // meet new friends, then explain tiles
   },
   showPendingTip(){ // first time you meet a special tile — or earn a tool — explain it
     if(!S || S.busy || S.over || S.won) return;
     if(S.guide) return; // a lesson explains things in its own voice — no tip cards mid-class
+    if($("ov-meet").classList.contains("active")) return; // never slide a tip under a ritual
     const order=[];
     // TOOLS FIRST. The breeze and the wish were introducing themselves on a 700ms timer
     // fired from inside resolve() — where S.busy stays true for whole seconds — so the
@@ -2386,6 +2558,17 @@ const Game = {
     S.playerMove=true;                    // this resolve is YOURS — the grace applies
     await Game.resolve([t]);
     S.playerMove=false;
+    // 🎭 a name was spelled: the silhouette takes center stage, the wood holds its
+    // breath, and the reveal runs into the meet ritual — SAME round, no cliffhanger
+    if(S.pendingReveal){ const rg=S.pendingReveal; S.pendingReveal=null; await Game.reveal(rg); }
+    // the KEEPER: long names are fragile — an ordinary clear can eat the staged
+    // fragment (CHIC became "chi"+"kin" soup and the guest was unspellable for three
+    // levels). If the completion no longer exists anywhere, quietly stage it again.
+    if(S.tutorWord && !S.over && !S.won){
+      const last=S.tutorWord.slice(-1);
+      let alive=false; for(let c=0;c<COLS;c++){ if(wouldClear({letter:last,kind:"normal"},c)===S.tutorWord){ alive=true; break; } }
+      if(!alive) tutorPrefill(S.tutorWord);
+    }
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
@@ -2405,7 +2588,13 @@ const Game = {
 
   checkEnd(){
     if(S.over || S.won) return;
-    if(S.levelScore >= S.target){ Game.winLevel(); return; }
+    if($("ov-meet").classList.contains("active")) return; // the ritual owns the stage — closeMeet re-checks
+    // THE CEREMONY CONTRACT: beat the level AND speak the name. Points alone cannot
+    // close a naming round — the hush holds until the guest is named.
+    if(S.levelScore >= S.target){
+      if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
+      else { Game.winLevel(); return; }
+    }
     if(S.movesLeft <= 0 || boardFull()){ Game.failLevel(); return; }
     if(S.movesLeft <= 3) Snd.danger();
     boardEl.classList.toggle("danger", S.movesLeft<=3);
@@ -2425,6 +2614,20 @@ const Game = {
     // level's 3★ stays earnable: clear with ~30% of your moves spare for gold.
     const mv=MOVES(S.level);
     S.stars = S.movesLeft>=Math.ceil(mv*0.30) ? 3 : S.movesLeft>=Math.ceil(mv*0.12) ? 2 : 1;
+    Game.tallyEv("win"); Game.tallyEv("regionwin"+biomeOf(S.level));
+    if(S.stars===3) Game.tallyEv("star3");
+    if(S.movesLeft>=10) Game.tallyEv("bigwin");
+    if(S.movesLeft<=2) Game.tallyEv("closewin");
+    // the pity floor: two quiet levels and the wood sends someone on its own
+    if(P.metGrove.cat){
+      if(S.newGrove.length || P.summon || P.summonQ.length) P.quietLvls=0;
+      else if(Object.keys(P.grove).length<10 && ++P.quietLvls>=2){
+        const next=CALLING_ORDER.find(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school");
+        if(next){ P.called[next]=1; P.summonQ.push(next); P.quietLvls=0;
+          setTimeout(()=>UI.toast("🌿 the wood has grown <b>curious</b> about you…<br><small>a name will hide in a coming level</small>", 4200), 1800); }
+      }
+      save();
+    }
     const bonus = S.movesLeft*5;
     if(bonus){
       for(let i=0;i<S.movesLeft;i++){
@@ -2527,6 +2730,7 @@ const Game = {
     [a,b].forEach(x=>{ x.el.style.transition=""; });
     S.lastAction=Date.now();
     FT.signal("swapped");
+    Game.tallyEv("breeze");
     await Game.toolResolve([a,b]); // the grace applies — tap 🌱 hold to keep building
     if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
     S.busy=false;
@@ -2591,6 +2795,7 @@ const Game = {
     S.busy=true;
     if(S.freePluck){ S.freePluck=false; }             // 🦡 Digger pays the bill
     else { P.pow.wild--; save(); UI.wishPill(); }
+    Game.tallyEv("pluck");
     UI.shards(t.r,t.c,"#e8c9a0"); removeTile(t); Snd.crack(true); buzz([15,30]);
     await wait(200);
     const fell=await Game.gravity();
@@ -2607,6 +2812,7 @@ const Game = {
     // blessing on your hand survives the wish that reshapes it.
     if(!(P.pow.wild>0)) { Game.closeWish(); return; }
     P.pow.wild--; save();
+    Game.tallyEv("wish");
     const kind = S.cur ? S.cur.kind : "normal";
     S.cur={letter:l, kind};
     Game.closeWish(); UI.wishPill(); UI.piece(); UI.hints(); UI.ghost(S.hoverCol);
@@ -2616,6 +2822,65 @@ const Game = {
     buzz([15,30]);
     UI.say("wish-grant", "🌟 "+l.toUpperCase()+" is yours"+(kind==="gold"?" — and still golden ✨":" — drop it anywhere"));
     S.lastAction=Date.now();
+  },
+
+  /* the WHO'S-THAT reveal: silhouette to center stage, a held breath, then the face —
+     and straight into the meet ritual, same round. closeMeet auto-equips and re-runs
+     checkEnd, so a level won by the naming word still wins right after the welcome. */
+  async reveal(g){
+    const nm=$("namer"); if(nm){ nm.style.transition="opacity .3s"; nm.style.opacity="0"; setTimeout(()=>nm.remove(),350); }
+    const big=document.createElement("div"); big.className="whosthat";
+    big.innerHTML='<div class="wt-e sil">'+g.e+'</div><div class="wt-q">who answers to <b>'+g.w.toUpperCase()+'</b>…?</div>';
+    boardEl.appendChild(big);
+    Snd.tone(392,{dur:.5,type:"sine",gain:.06,verb:true}); Snd.tone(523,{dur:.55,type:"sine",gain:.05,when:.4,verb:true});
+    buzz([15,25]);
+    await wait(1400);                                    // the whole wood holds its breath
+    big.querySelector(".wt-e").classList.remove("sil");
+    const bon=S._revealBonus||0; S._revealBonus=0;
+    big.querySelector(".wt-q").innerHTML="it's the <b>"+g.w.toUpperCase()+"</b>!"
+      +(bon?'<br><span class="wt-b">+'+bon+' ✨ the wood is grateful</span>':"");
+    // the name is spoken: the ceremony releases and the board wakes back into the night
+    if(!S.tutorWord && boardEl.classList.contains("ceremony")){
+      boardEl.classList.remove("ceremony");
+      boardEl.classList.add("flash"); setTimeout(()=>boardEl.classList.remove("flash"),400);
+    }
+    Snd.discover(); UI.confetti(); buzz([30,50,30,50,90]);
+    await wait(1600);
+    big.classList.add("fade");
+    await wait(350); big.remove();
+    // the ritual — through the SAME door showPendingMeet uses: _meetWord must be set,
+    // or closeMeet never marks the meeting and the pending sweep runs the whole
+    // ceremony a second time (caught live by the user).
+    UI._meetWord=g.w; S.busy=true;
+    UI.discover(g);
+  },
+
+  /* ---- CALLINGS: the wood is always listening ---- */
+  tallyEv(type, n){ // every notable act counts toward some creature's calling
+    if(!P || !P.tally) return;
+    P.tally[type]=(P.tally[type]||0)+(n||1);
+    Game.checkCallings();
+  },
+  checkCallings(){
+    // nothing calls before the cat is met — the pet system doesn't exist yet for
+    // this player, and a mystery toast about it would be noise, not wonder
+    if(!P.metGrove || !P.metGrove.cat) return;
+    // THE WINDOW: only the next three un-called creatures are listening at once.
+    // Tallies count for life, so credit is retroactive the moment a creature's turn
+    // comes — but summons arrive one at a time instead of 27 in a flood (measured!).
+    const win=CALLING_ORDER.filter(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school").slice(0,3);
+    for(const w of win){
+      const c=CALLINGS[w];
+      const have = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0);
+      if(have>=c.n){
+        P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; save();
+        // the summon keeps its secret: no name, no face — the reveal owns that moment
+        UI.toast(c.s+"<br><small>a name will hide in a coming level — spell it when it appears</small>", 4600);
+        Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true}); Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
+        return; // one summon at a time — never a toast pile; the next event re-checks
+      }
+    }
+    save();
   },
 
   cheer(n){ // rewards (crates, quests, daily word, cascades) excite your pets — extra paw charge
@@ -2658,6 +2923,7 @@ const Game = {
   async petAct(){
     const actives=Game.petActives(); if(!actives.length) return;
     const pet=actives[S.petTurn % actives.length]; S.petTurn++;
+    Game.tallyEv("act");
     const eq=UI.equipped(), boost=Game.petBoost(pet);
     S.petActing=true;
     const el=$("pet-"+eq.indexOf(pet)) || $("pet-0");
@@ -2906,6 +3172,10 @@ const Game = {
   recordWord(word, points, chain){
     FT.signal("wordCleared", word);
     P.stats.words++;
+    Game.tallyEv("words");
+    const wl=word.cells.length;
+    Game.tallyEv(wl>=6?"word6":"word"+wl);
+    if(/[qzxjv]/.test(word.word)) Game.tallyEv("qzxjv");
     S.wordsMade=(S.wordsMade||0)+1;
     // every word charges your ACTIVE pets' powers (passives are always on)
     if(Game.petActives().length && !S.petActing){
@@ -2916,32 +3186,43 @@ const Game = {
     // the grove and the daily word must be EARNED: only words YOU made (chain 1 count).
     // A friend is UNLOCKED here but you MEET them (the ritual) at the start of the next round.
     if(chain===1){
-      const g = GROVE_BY_WORD[word.word];
+      let g = GROVE_BY_WORD[word.word];   // let — the ceremony guest can claim the word below
+      // THE CEREMONY HEARS GENEROUSLY: any word CONTAINING the guest's name speaks
+      // it — CATS honours CAT (a real player spelled CATS and watched nothing happen).
+      // Organic wakes stay exact-match, so BEEF can never wake the bee.
+      const guest = S.tutorWord && !P.grove[S.tutorWord] && word.word.includes(S.tutorWord)
+        ? GROVE_BY_WORD[S.tutorWord] : null;
+      if(guest) g = guest;
       if(g && !P.grove[g.w]){
-        P.grove[g.w]=Date.now();
-        S.newGrove.push(g.w);
-        if(S.tutorWord===g.w) S.tutorWord=null; // guided word found — clear the prompt
-        // A lucky discovery BEFORE the pet system exists (rounds 1-4, anything but the
-        // cat) is captured in perfect silence — no chime, no toast, no confetti. The
-        // player hasn't been told creatures live in words yet, so there is nothing to
-        // announce. The name waits in the Book, and its ritual — identical to the
-        // cat's — plays after round 5, when "you discovered BAT" finally means something.
-        const quiet = g.w!=="cat" && S.level<5;
-        if(!quiet){
-          Snd.discover(); UI.confetti(); buzz([30,50,40]);
-          // say "meet them next round" only the very first time — after that the ritual speaks for itself
-          UI.toast(Object.keys(P.metGrove).length ? "✨ "+g.w.toUpperCase()+" remembers its name!"
-            : "✨ "+g.w.toUpperCase()+" remembers its name! It wakes next round");
+        // THE CALLING IS THE GATE. A name only wakes if the creature is listening —
+        // its calling met, or it is this round's ceremony guest.
+        const awake = !!guest || P.called[g.w];
+        if(awake){
+          P.grove[g.w]=Date.now();
+          S.newGrove.push(g.w);
+          if(guest){
+            S.tutorWord=null;
+            // the naming gift: the wood pays +5 a letter, so the ceremony funds the level
+            S._revealBonus=g.w.length*5;
+            S.levelScore+=S._revealBonus; UI.hud();
+          }
+          if(P.summon===g.w) P.summon=null;   // the summons is answered
+          P.quietLvls=0; save();
+          S.pendingReveal=g;                   // 🎭 who's-that — fires once this resolve settles
           Game.cheer(2);
+          // level 4's lesson has no second act: the moment the cat wakes, the round is won
+          if(S.level===4 && g.w==="cat"){ S.levelScore=Math.max(S.levelScore,S.target); UI.hud(); }
+          Game.checkCallings();                // the goat counts its kindred as the grove grows
+        } else if(P.metGrove.cat){
+          const c=CALLINGS[g.w];
+          const have=c.t==="friends"?Object.keys(P.grove).length:(P.tally[c.t]||0);
+          UI.say("stir-"+g.w, g.e+" you called the <b>"+g.w+"</b> — but it isn't awake.<br><small>wake it: "+c.c+" ("+Math.min(have,c.n)+"/"+c.n+")</small>", 2);
         }
-        // level 4 exists to teach exactly one thing: spell a name, meet them NEXT round.
-        // The moment the cat wakes, the round is over — the lesson has no second act,
-        // and "next round" arrives while the words still hang in the air.
-        if(S.level===4 && g.w==="cat"){ S.levelScore=Math.max(S.levelScore,S.target); UI.hud(); }
       }
       const day=Math.floor(Date.now()/864e5);
       if(word.word===dailyWord() && P.dailyWordDay!==day){
         P.dailyWordDay=day;
+        Game.tallyEv("daily");
         Snd.levelUp(); UI.confetti(); buzz([40,60,40,90]);
         const b=document.createElement("div"); b.className="lvlbanner"; b.textContent="📅 ✨ "+word.word.toUpperCase()+" ✨";
         $("app").appendChild(b); setTimeout(()=>b.remove(),2350);
@@ -2999,7 +3280,8 @@ const Game = {
     await Game.resolve(shifts);
   },
 
-  async jackpot(len){ // 🎆 a 5-6+ letter word is the rarest feat in the game — pay it like a slot machine
+  async jackpot(len){
+    Game.tallyEv("jackpot"); // 🎆 a 5-6+ letter word is the rarest feat in the game — pay it like a slot machine
     const title = len>=8 ? "MYTHICAL!" : len>=7 ? "LEGENDARY!" : len>=6 ? "SPECTACULAR!" : "SPLENDID!";
     Snd.fanfare(); buzz([40,60,40,60,140]);
     const jb=document.createElement("div"); jb.className="jackpotburst"; jb.textContent=title;
@@ -3064,6 +3346,7 @@ const Game = {
       // made BOX nearby, and watched both pop as a "double word"). Only a BIGGER word
       // that includes an extra tile can cash these letters in now. No glow, no marker:
       // the player was told they're normal letters, so they must look like it too.
+      Game.tallyEv("hold");
       words.forEach(w=>w.cells.forEach(t=>{ if(S.tiles[t.id]) t.heldWord=w.word; }));
       if(!S.guide) UI.say("hold-saved", "🌱 saved — these letters only bloom in a bigger word now");
       Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
@@ -3093,11 +3376,13 @@ const Game = {
     // the grace: every word the player makes waits a breath (see Game.grace above)
     if(S.chain===1 && S.playerMove && !(S.guide && S.guide.noGrace)){ // lesson 1 teaches the drop ALONE
       const urgent = S.movesLeft<=0
-        || words.some(w=>(GROVE_BY_WORD[w.word] && !P.grove[w.word]) || S.tutorWord===w.word);
+        || words.some(w=>(GROVE_BY_WORD[w.word] && !P.grove[w.word] && P.called[w.word])
+          || (S.tutorWord && !P.grove[S.tutorWord] && w.word.includes(S.tutorWord)));
       if(!urgent && await Game.grace(words)) return;   // held — the board keeps it
     }
     S.clearedThisDrop = true;
     if(S.chain>=2){
+      Game.tallyEv("chain"); if(S.chain>=3) Game.tallyEv("chain3");
       const cb=document.createElement("div"); cb.className="chainburst";
       cb.textContent="CHAIN ×"+S.chain+"!";
       $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),1650);
@@ -3108,6 +3393,7 @@ const Game = {
     // TWIN WORDS: one move clearing two+ words at once is a feat — celebrate it loudly
     const twin = words.length>=2;
     if(twin){
+      Game.tallyEv("twin");
       const cb=document.createElement("div"); cb.className="chainburst";
       cb.textContent = words.length>=3 ? "TRIPLE WORD!" : "DOUBLE WORD!";
       $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),1650);
@@ -3161,6 +3447,10 @@ const Game = {
       if(len>=5) await Game.jackpot(len);              // 🎆 the moment worth chasing
       if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌟
       else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
+      const goldN=w.cells.filter(t=>t.kind==="gold").length;
+      if(goldN) Game.tallyEv("gold",goldN);
+      if(w.cells.some(t=>t.kind==="wild")) Game.tallyEv("star");
+      if(w.dir==="up") Game.tallyEv("upword");
       Game.recordWord(w, pts, S.chain);
       // THE announcement of this game — the word you made and what it paid — used to sit
       // for 700ms and vanish. Nobody could read it, and the bigger the word the more
@@ -3202,7 +3492,7 @@ const Game = {
         if(t.kind==="stone"){
           acted=true;
           t.cracks=(t.cracks||0)+1;
-          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); }
+          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("stone"); }
           else {
             t.inner.classList.add("cracked");
             t.inner.classList.add("jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
@@ -3211,7 +3501,7 @@ const Game = {
           buzz(15);
         } else if(t.kind==="ice"){
           acted=true;
-          t.kind="normal"; thawed.push(t);
+          t.kind="normal"; thawed.push(t); Game.tallyEv("ice");
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
@@ -3232,6 +3522,7 @@ const Game = {
      meter. Players popped it, watched nothing happen, and concluded the pig's entire
      power was pointless — they were right. A gift has to GIVE, and it has to say so. */
   async openCrate(r,c){
+    Game.tallyEv("crate");
     const got=[];
     S.levelScore+=15; got.push("<b>+15</b>");
     if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
@@ -3363,11 +3654,15 @@ const UI = {
   },
   cozy(){
     const qe=$("quest");
-    if(S && S.tutorWord){ // rounds 1-2: guide the player to spell their first friend
+    if(S && S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord];
       qe.classList.remove("done");
-      qe.innerHTML = g.e+" spell <b>"+S.tutorWord.toUpperCase()+"</b>!";
-      qe.title="spell "+S.tutorWord.toUpperCase();
+      // school spells it out; after that the chip keeps the secret — a silhouette and
+      // blanks. Showing the word up here was killing the whole "who's that?" joy.
+      const full=P.level<=6;
+      qe.innerHTML = full ? g.e+" spell <b>"+S.tutorWord.toUpperCase()+"</b>!"
+        : '🎭 <span class="sil">'+g.e+'</span> <b>'+"▁".repeat(S.tutorWord.length)+'</b>';
+      qe.title = full ? "spell "+S.tutorWord.toUpperCase() : "a naming ceremony — find the hidden name";
     } else {
       const q=dailyQuest();
       qe.classList.toggle("done", P.questDone);
@@ -3468,7 +3763,8 @@ const UI = {
     // stars sit on their own line — inline they forced "Level 1 / clear!" to wrap mid-phrase
     $("ev-title").innerHTML = won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>Level '+S.level+' clear!'
-      : (S.levelScore>=S.target*0.85 ? "So close…" : "Out of moves");
+      : (S.tutorWord ? "A name went unspoken…"
+         : S.levelScore>=S.target*0.85 ? "So close…" : "Out of moves");
     // a won card says just the score — "76 / 15" read like a broken fraction, and the
     // title already says the target fell. A loss keeps the gap visible: "58 / 75".
     $("ev-score").textContent = won ? S.levelScore : S.levelScore + " / " + S.target;
@@ -3480,6 +3776,10 @@ const UI = {
       $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ");
     } else { // a loss should feel like your friends rooting for you, not a cold verdict
       const eq=UI.equipped(), gap=S.target-S.levelScore;
+      if(S.tutorWord){
+        $("ev-grove").innerHTML = '<span class="sil" style="font-size:34px">'+GROVE_BY_WORD[S.tutorWord].e+'</span><br>'
+          + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">it waited all night… its name is still hiding here — <b>try again</b></span>';
+      } else
       $("ev-grove").innerHTML = (eq.length?eq.map(g=>"<span>"+g.e+"</span>").join(" ")+"<br>":"")
         + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">'
         + (gap<=10 ? "only <b>"+gap+"</b> points to go — you nearly had it!"
@@ -3663,9 +3963,17 @@ const UI = {
           el.onclick=()=>UI.petSheet(g.w);
         } else {
           el.className="gcard mystery";
+          // the card IS the quest log: its calling, its progress, and — once it's
+          // listening — the drumroll that a naming level is coming
+          const c=CALLINGS[g.w]||{};
+          const have=c.t==="friends"?Object.keys(P.grove).length:(P.tally[c.t]||0);
+          const callLine = P.called[g.w]
+            ? '<span class="gcall listening">💫 it is LISTENING…<br>its name comes soon</span>'
+            : '<span class="gcall">'+ (c.c||"") +' <b>'+Math.min(have,c.n||1)+'/'+(c.n||1)+'</b></span>';
           el.innerHTML='<span class="ge">'+g.e+'</span><span class="mound"></span>'
             +'<span class="gn">a hushed friend</span>'
-            +'<span class="gp">its name has '+g.w.length+' letters</span>';
+            +'<span class="gp">its name has '+g.w.length+' letters</span>'
+            +callLine;
           el.onclick=()=>{ el.classList.remove("wiggle"); void el.offsetWidth; el.classList.add("wiggle");
             Snd.tone(520,{dur:.08,type:"triangle",gain:.05}); };
         }
