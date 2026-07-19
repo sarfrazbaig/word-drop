@@ -1958,7 +1958,7 @@ const FT = {
   signal(name,data){ const q=FT._w[name]; if(q && q.length){ FT._w[name]=[]; q.forEach(f=>f(data)); } },
   bit(el){ FT._bits.push(el); return el; },                    // everything spawned, so cleanup can't miss
   cleanup(){ FT._w={}; FT._bits.forEach(e=>e.remove()); FT._bits=[];
-    document.querySelectorAll(".ftue-scrim,.ftue-callout,.ftue-arrow,.ftue-note,.ftue-ring,.ftue-hand").forEach(e=>e.remove()); },
+    document.querySelectorAll(".ftue-scrim,.ftue-callout,.ftue-arrow,.ftue-note,.ftue-ring,.ftue-hand,.coach").forEach(e=>e.remove()); },
   appRect(){ return $("app").getBoundingClientRect(); },
   callout(el, html, side){ // a tap-through teaching bubble with an arrow at its target
     return new Promise(res=>{
@@ -2554,10 +2554,10 @@ const Game = {
     $("ov-intro").classList.remove("active");
     S.busy=false; S.lastAction=Date.now();
     Snd.init();
-    if(!P.coach && !S.guide){ // lessons bring their own hands
-      const hand=document.createElement("div"); hand.className="coach"; hand.textContent="👇";
-      $("boardwrap").appendChild(hand);
-    }
+    // (the old pre-school "generic coach hand" is gone: it lived on #boardwrap, which
+    // level changes never wipe, so it could survive and DOUBLE with the lesson's own
+    // hand. Lesson 1 teaches the drop now — nobody else needs a floating finger.)
+    document.querySelectorAll(".coach:not(.ftue-hand)").forEach(h=>h.remove());
     if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins (deferred ones wait for their cue)
     // a goal type introduces itself ONCE, full-page, before its first round is played
     if(S.goal && S.goal.t!=="hush" && !P.seenTip["goal-"+S.goal.t])
