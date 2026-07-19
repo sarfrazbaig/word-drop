@@ -2449,15 +2449,21 @@ const Game = {
     }
     UI.meetBloom(UI._meetCreature); buzz(20);
     UI.visitor(); // the new friend now sits by your letters
-    // the FIRST meeting opens the Book: now that you HAVE a friend, "spell names to
-    // find more" finally means something — this is where discovery is taught
-    if(Object.keys(P.metGrove).length===1)
-      setTimeout(()=>UI.say("book-intro","📖 CAT has a page in the <b>Book of Names</b> now. every creature has a <b>calling</b> — play its way and it draws near, then <b>spell its name</b>. the Book tells you how. 49 more are listening for you!", 1), 1700);
+    // the FIRST meeting opens the Book — announced through the ONE discipline every
+    // announcement follows now: its own card between the win and the clear modal.
+    // (As a timed toast it landed exactly on top of the level-clear CTA — caught live.)
+    if(Object.keys(P.metGrove).length===1 && !(P.said["book-intro"])){
+      P.said["book-intro"]=2;
+      P.annQ.push("📖 <b>"+(UI._lastWake||"🐾")+" "+Object.keys(P.metGrove)[0].toUpperCase()+"</b> has a page in the <b>Book of Names</b> now.<br>every creature has a <b>calling</b> — play its way and it draws near, then <b>spell its name</b>. the Book tells you how. <b>49 more</b> are listening for you!");
+      save();
+    }
     // …and once the Book has spoken, the shelf lesson takes the stage
     if(S && S.guide && S.guide.deferred) setTimeout(()=>FT.run(true), 5200);
-    setTimeout(()=>{ if(!Game.showPendingMeet()){ if(S){ S.busy=false; S.lastAction=Date.now(); } Game.showPendingTip();
+    setTimeout(()=>{ if(!Game.showPendingMeet()){ if(S){ S.busy=false; S.lastAction=Date.now(); }
       Game.checkCallings();               // callings met before the cat now surface
-      if(S) Game.checkEnd();              // a win that waited for the ritual lands now
+      if(S) Game.checkEnd();              // a win that waited for the ritual lands FIRST…
+      if(S && !S.won && !S.over) Game.showPendingTip(); // …and tips only if play continues —
+      // the old order stacked a tip card on top of the win sequence (caught live)
     } }, 900);
   },
   showPendingMeet(){ // meet any friend you unlocked last round — the ritual explains what pets do
@@ -2669,7 +2675,7 @@ const Game = {
   showAnnounce(cb){ // the "you achieved something…" beat: one quiet card, tap, then on
     const items=P.annQ.splice(0); save();
     $("un-burst").textContent="🐾";
-    $("un-title").textContent="Something stirred…";
+    $("un-title").textContent="The wood whispers…"; // fits a summons and a Book page alike
     $("un-body").innerHTML=items.join("<hr style='border:none;border-top:1px dashed rgba(150,120,70,.35);margin:8px 0'>");
     $("un-try").style.display="none";
     Game._annCb=cb;
