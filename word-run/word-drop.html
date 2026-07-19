@@ -832,6 +832,21 @@
     background:repeating-conic-gradient(from 0deg, rgba(255,213,120,.5) 0 10deg, transparent 10deg 26deg);
     -webkit-mask:radial-gradient(circle, #000 30%, transparent 68%); mask:radial-gradient(circle, #000 30%, transparent 68%);
     border-radius:50%; animation:rayspin 18s linear infinite; pointer-events:none; }
+  /* ---- amber: the wood's small thanks ---- */
+  #amberrow{ width:100%; display:flex; justify-content:flex-end; padding:0 2px; }
+  #amberchip b{ color:#c47a1e; font-variant-numeric:tabular-nums; }
+  #amberchip{ background:linear-gradient(180deg,#fff6e4,#ffe9c4); border-color:rgba(196,122,30,.35); }
+  .amberfloat{ position:absolute; z-index:95; font-size:14px; font-weight:900; color:#c47a1e; pointer-events:none;
+    text-shadow:0 1px 0 rgba(255,255,255,.8); animation:floatup 1.1s forwards; }
+  /* the goal pill lives UNDER the board now — and folds up once its job is done */
+  #goalrow{ margin-top:6px; }
+  #goalbar.done{ max-width:110px; opacity:.8; }
+  #goalbar{ transition:max-width .45s, opacity .45s; }
+  #hintbtn{ display:none; border:1.5px dashed rgba(122,107,176,.55); background:linear-gradient(180deg,#f6f0ff,#e6dcf7);
+    border-radius:999px; padding:5px 10px; font-size:11.5px; font-weight:800; color:#5c5290; cursor:pointer; white-space:nowrap; }
+  #hintbtn.on{ display:inline-block; }
+  #hintbtn:active{ transform:scale(.95); }
+  .toolbtn .cnt.price{ background:#c47a1e; color:#fff; font-size:9px; min-width:24px; }
   /* 🎭 THE CEREMONY — a naming round is unmistakably OTHER: the sky drops to a deep
      ceremonial violet and an aurora ring breathes around the board edge, and it stays
      that way until the name is spoken. Then the flash, and the ordinary night returns. */
@@ -1095,10 +1110,7 @@
       <span id="lvlchip" class="chip">LV <b id="h-level">1</b></span>
       <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
-    <div id="goalrow">
-      <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
-      <span class="pill" id="quest"></span>
-    </div>
+    <div id="amberrow"><span class="chip" id="amberchip" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span></div>
     <div id="petbar">
       <span id="pawpips" title="every word you spell fills a paw — full paws, and a friend acts"></span>
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
@@ -1111,6 +1123,11 @@
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
+    </div>
+    <div id="goalrow">
+      <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
+      <span class="pill" id="quest"></span>
+      <button id="hintbtn" onclick="Game.buyHint()" title="a lantern for the dark — reveals one letter of the hidden name">🏮 40🟠</button>
     </div>
     <div id="dock">
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
@@ -1728,6 +1745,7 @@ function load(){
     out.summon = out.summon||null;    // the creature whose naming level is running/next
     out.quietLvls = out.quietLvls||0; // levels since the last call/wake — pity at 3
     out.annQ = out.annQ||[];          // achievement announcements, shown in the WIN sequence only
+    out.amber = out.amber||0;         // 🟠 amber drops — cheap, cheerful, never power
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -2694,6 +2712,7 @@ const Game = {
       P.called.cat=1; P.summon="cat";
       P.annQ.push(CALLINGS.cat.s+"<br><small>meet them next round</small>"); save();
     }
+    Game.amber(10 + (S.stars||1)*5);                    // the wood pays for a finished level
     Game.tallyEv("win"); Game.tallyEv("regionwin"+biomeOf(S.level));
     if(S.stars===3) Game.tallyEv("star3");
     if(S.movesLeft>=10) Game.tallyEv("bigwin");
@@ -2737,9 +2756,13 @@ const Game = {
     UI.endCard(false);
   },
 
-  extraMoves(){ // once per level: the second chance (future rewarded-ad slot)
-    if(!S || S.revived) return;
-    S.revived=true; S.over=false;
+  extraMoves(){ // first one free (the future rewarded-ad slot); after that, 30🟠 each
+    if(!S) return;
+    if(S.revived){
+      if((P.amber||0)<30) return;
+      Game.amber(-30);
+    } else S.revived=true;
+    S.over=false;
     $("ov-end").classList.remove("active");
     S.movesLeft += 5;
     Snd.levelUp(); UI.confetti(); buzz([40,60,40]);
@@ -2774,10 +2797,13 @@ const Game = {
     }
     if(S.usingBreeze){ Game.disarmBreeze(); return; }
     if(!(P.pow.swap>0)){
-      const el=$("breezepill");
-      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-      setTimeout(()=>el.classList.remove("deny"),350);
-      Snd.reject(); buzz(30); return;
+      // an empty pocket with amber in it: one tap buys one — 20🟠, no menus
+      if((P.amber||0)>=20){ Game.amber(-20); P.pow.swap=1; save(); UI.breezePill();
+        UI.toast("−20 🟠 · a fresh 🍃 breeze!"); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
+      else{ const el=$("breezepill");
+        el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+        setTimeout(()=>el.classList.remove("deny"),350);
+        Snd.reject(); buzz(30); return; }
     }
     S.usingBreeze=true;
     $("breezepill").classList.remove("pillglow"); // the lesson's gleam is spent the moment it's used
@@ -2848,10 +2874,13 @@ const Game = {
     }
     if(S.usingBreeze) Game.disarmBreeze();
     if(!(P.pow.wild>0)){
-      const el=$("wishbtn");
-      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-      setTimeout(()=>el.classList.remove("deny"),350);
-      Snd.reject(); buzz(30); return;
+      // an empty pocket with amber in it: one tap buys one — 25🟠, no menus
+      if((P.amber||0)>=25){ Game.amber(-25); P.pow.wild=1; save(); UI.wishPill();
+        UI.toast("−25 🟠 · a fresh 🌟 wish!"); Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
+      else{ const el=$("wishbtn");
+        el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+        setTimeout(()=>el.classList.remove("deny"),350);
+        Snd.reject(); buzz(30); return; }
     }
     // a wish reshapes a LETTER — a hand with no letter to reshape politely refuses,
     // and no wish is spent learning that
@@ -2954,6 +2983,26 @@ const Game = {
     UI.discover(g);
   },
 
+  /* ---- 🟠 AMBER — earned in drops, spent on small mercies ---- */
+  amber(n, x, y){
+    if(!P) return; P.amber=Math.max(0,(P.amber||0)+n); save();
+    const el=$("amber-n"); if(el) el.textContent=P.amber;
+    if(n>0){ const f=document.createElement("div"); f.className="amberfloat"; f.textContent="+"+n+" 🟠";
+      const ar=$("app").getBoundingClientRect(), cr=$("amberchip").getBoundingClientRect();
+      f.style.left=(x!=null?x:(cr.left-ar.left))+"px"; f.style.top=(y!=null?y:(cr.top-ar.top+8))+"px";
+      $("app").appendChild(f); setTimeout(()=>f.remove(),1100); }
+  },
+  buyHint(){ // 🏮 a lantern: reveals the next letter of the hidden name
+    if(!S || !S.tutorWord) return;
+    if((P.amber||0)<40){ const el=$("hintbtn"); el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350); Snd.reject(); return; }
+    if((S.hintN||0)>=S.tutorWord.length-1) return;      // never sell the final letter
+    Game.amber(-40);
+    S.hintN=(S.hintN||0)+1;
+    Snd.gold(); buzz([15,30]);
+    UI.cozy();
+  },
+
   /* ---- CALLINGS: the wood is always listening ---- */
   tallyEv(type, n){ // every notable act counts toward some creature's calling
     if(!P || !P.tally) return;
@@ -2973,6 +3022,7 @@ const Game = {
       const have = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0);
       if(have>=c.n){
         P.called[w]=1; P.summonQ.push(w); P.quietLvls=0;
+        Game.amber(10);
         // NEVER announced mid-play — the player is busy playing. The summons waits
         // for the win sequence, its own quiet card before the level-clear modal.
         P.annQ.push(c.s+"<br><small>a name will hide in a coming level</small>"); save();
@@ -3307,6 +3357,7 @@ const Game = {
           }
           if(P.summon===g.w) P.summon=null;   // the summons is answered
           P.quietLvls=0; save();
+          Game.amber(25);                      // a name spoken is the richest moment there is
           S.pendingReveal=g;                   // 🎭 who's-that — fires once this resolve settles
           Game.cheer(2);
           // level 4's lesson has no second act: the moment the cat wakes, the round is won
@@ -3334,7 +3385,7 @@ const Game = {
       else if(q.type==="letters") P.questProgress+=word.cells.length;
       else if(q.type==="points") P.questProgress=Math.min(q.target,P.questProgress+points);
       else if(q.type==="long") P.questProgress += word.cells.length>=4 ? 1 : 0;
-      if(P.questProgress>=q.target){ P.questProgress=q.target; P.questDone=true; Game.cheer(Game.petNeed()); UI.pillPop("quest"); }
+      if(P.questProgress>=q.target){ P.questProgress=q.target; P.questDone=true; Game.cheer(Game.petNeed()); UI.pillPop("quest"); Game.amber(15); }
     }
     save();
     UI.cozy();
@@ -3591,7 +3642,7 @@ const Game = {
         if(t.kind==="stone"){
           acted=true;
           t.cracks=(t.cracks||0)+1;
-          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("stone"); }
+          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("stone"); Game.amber(2); }
           else {
             t.inner.classList.add("cracked");
             t.inner.classList.add("jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
@@ -3600,7 +3651,7 @@ const Game = {
           buzz(15);
         } else if(t.kind==="ice"){
           acted=true;
-          t.kind="normal"; thawed.push(t); Game.tallyEv("ice");
+          t.kind="normal"; thawed.push(t); Game.tallyEv("ice"); Game.amber(2);
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
@@ -3621,7 +3672,7 @@ const Game = {
      meter. Players popped it, watched nothing happen, and concluded the pig's entire
      power was pointless — they were right. A gift has to GIVE, and it has to say so. */
   async openCrate(r,c){
-    Game.tallyEv("crate");
+    Game.tallyEv("crate"); Game.amber(2);
     const got=[];
     S.levelScore+=15; got.push("<b>+15</b>");
     if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
@@ -3723,6 +3774,7 @@ const UI = {
     }
   },
   hud(){
+    const an=$("amber-n"); if(an) an.textContent=P.amber||0;
     $("h-level").textContent=S.level;
     const m=$("movesbig");
     m.textContent=S.movesLeft;
@@ -3759,10 +3811,14 @@ const UI = {
       // school spells it out; after that the chip keeps the secret — a silhouette and
       // blanks. Showing the word up here was killing the whole "who's that?" joy.
       const full=P.level<=6;
+      const hn=S.hintN||0;
+      const blanks=S.tutorWord.slice(0,hn).toUpperCase().split("").join(" ")+(hn?" ":"")+"▁".repeat(S.tutorWord.length-hn);
       qe.innerHTML = full ? g.e+" spell <b>"+S.tutorWord.toUpperCase()+"</b>!"
-        : '🎭 <span class="sil">'+g.e+'</span> <b>'+"▁".repeat(S.tutorWord.length)+'</b>';
+        : '🎭 <span class="sil">'+g.e+'</span> <b>'+blanks+'</b>';
       qe.title = full ? "spell "+S.tutorWord.toUpperCase() : "a naming ceremony — find the hidden name";
+      $("hintbtn").classList.toggle("on", !full && (S.hintN||0)<S.tutorWord.length-1);
     } else {
+      $("hintbtn").classList.remove("on");
       const q=dailyQuest();
       qe.classList.toggle("done", P.questDone);
       qe.innerHTML = P.questDone ? q.emoji+" ✓" : q.emoji+" <b>"+Math.min(q.target,P.questProgress)+"</b>/"+q.target;
@@ -3779,14 +3835,18 @@ const UI = {
   },
   breezePill(){ // the wind in your pocket: 3-letter words refill it (up to 3)
     const el=$("breezepill"); if(!el) return;
-    $("breeze-cnt").textContent = P.pow.swap||0;
-    el.classList.toggle("empty", !(P.pow.swap>0));
+    const bn=P.pow.swap||0;
+    $("breeze-cnt").textContent = bn>0 ? bn : "20🟠";
+    $("breeze-cnt").classList.toggle("price", bn<=0);
+    el.classList.toggle("empty", bn<=0);
     el.title="every 3-letter word earns a breeze · tap, then tap two tiles to swap them";
   },
   wishPill(){ // the star in your pocket: 4-letter words refill it (up to 3)
     const el=$("wishbtn"); if(!el) return;
-    $("wish-cnt").textContent = P.pow.wild||0;
-    el.classList.toggle("empty", !(P.pow.wild>0));
+    const wn=P.pow.wild||0;
+    $("wish-cnt").textContent = wn>0 ? wn : "25🟠";
+    $("wish-cnt").classList.toggle("price", wn<=0);
+    el.classList.toggle("empty", wn<=0);
     el.title="every 4-letter word earns a wish · tap to choose any letter for your next tile";
   },
   petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
@@ -3887,7 +3947,9 @@ const UI = {
     }
     $("btn-next").style.display = won ? "flex":"none";
     $("btn-retry").style.display = won ? "none":"flex";
-    $("btn-moves").style.display = (!won && !S.revived && S.levelScore>0 && !boardFull()) ? "flex":"none";
+    const canFree = !S.revived, canPaid = S.revived && (P.amber||0)>=30;
+    $("btn-moves").style.display = (!won && S.levelScore>0 && !boardFull() && (canFree||canPaid)) ? "flex":"none";
+    $("btn-moves").innerHTML = canFree ? "🪶 +5 moves" : "🪶 +5 moves · <b>30</b>🟠";
     $("ov-end").classList.add("active");
   },
   TUT:[
