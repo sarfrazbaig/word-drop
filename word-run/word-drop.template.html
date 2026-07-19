@@ -832,20 +832,27 @@
     background:repeating-conic-gradient(from 0deg, rgba(255,213,120,.5) 0 10deg, transparent 10deg 26deg);
     -webkit-mask:radial-gradient(circle, #000 30%, transparent 68%); mask:radial-gradient(circle, #000 30%, transparent 68%);
     border-radius:50%; animation:rayspin 18s linear infinite; pointer-events:none; }
-  /* ---- amber: the wood's small thanks ---- */
-  #amberrow{ width:100%; display:flex; justify-content:flex-end; padding:0 2px; }
+  /* ---- the GOAL STRIP: every ask of the round, in one glance, beside the coins ----
+     A round may ask several things (points, ice, a hidden name) — each is a segment
+     that ticks to ✓. Goals live UP here with the moves counter: that pair is the
+     player's whole decision context. The board's underside stays clear for play. */
+  #goalstrip{ width:100%; display:flex; align-items:center; gap:8px; padding:0 2px; }
+  #gs-goals{ flex:1; display:flex; align-items:center; gap:6px; min-width:0; }
+  .gseg{ position:relative; display:flex; align-items:center; gap:5px; overflow:hidden;
+    background:rgba(255,253,246,.85); border:1px solid rgba(121,92,55,.28); border-radius:999px;
+    padding:5px 12px; font-size:12.5px; font-weight:800; color:var(--ink); white-space:nowrap; }
+  .gseg b{ color:var(--gold-deep); font-variant-numeric:tabular-nums; }
+  .gseg .gsfill{ position:absolute; inset:0; z-index:0; background:linear-gradient(90deg,rgba(125,216,125,.35),rgba(240,169,46,.3));
+    transform-origin:left; transform:scaleX(0); transition:transform .4s; border-radius:999px; }
+  .gseg span, .gseg b{ position:relative; z-index:1; }
+  .gseg.metdone{ opacity:.75; }
+  .gseg.metdone::after{ content:"✓"; position:relative; z-index:1; color:var(--accent-deep); font-weight:900; margin-left:2px; }
+  .gseg.gname{ font-size:13px; letter-spacing:1px; }
+  #amberrow-retired{ display:none; }
   #amberchip b{ color:#c47a1e; font-variant-numeric:tabular-nums; }
   #amberchip{ background:linear-gradient(180deg,#fff6e4,#ffe9c4); border-color:rgba(196,122,30,.35); }
   .amberfloat{ position:absolute; z-index:95; font-size:14px; font-weight:900; color:#c47a1e; pointer-events:none;
     text-shadow:0 1px 0 rgba(255,255,255,.8); animation:floatup 1.1s forwards; }
-  /* the goal pill lives UNDER the board now — and folds up once its job is done */
-  #goalrow{ margin-top:6px; }
-  #goalbar.done{ max-width:110px; opacity:.8; }
-  #goalbar{ transition:max-width .45s, opacity .45s; }
-  #hintbtn{ display:none; border:1.5px dashed rgba(122,107,176,.55); background:linear-gradient(180deg,#f6f0ff,#e6dcf7);
-    border-radius:999px; padding:5px 10px; font-size:11.5px; font-weight:800; color:#5c5290; cursor:pointer; white-space:nowrap; }
-  #hintbtn.on{ display:inline-block; }
-  #hintbtn:active{ transform:scale(.95); }
   .toolbtn .cnt.price{ background:#c47a1e; color:#fff; font-size:9px; min-width:24px; }
   /* 🎭 THE CEREMONY — a naming round is unmistakably OTHER: the sky drops to a deep
      ceremonial violet and an aurora ring breathes around the board edge, and it stays
@@ -1110,7 +1117,10 @@
       <span id="lvlchip" class="chip">LV <b id="h-level">1</b></span>
       <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
-    <div id="amberrow"><span class="chip" id="amberchip" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span></div>
+    <div id="goalstrip">
+      <div id="gs-goals"></div>
+      <span class="chip" id="amberchip" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
+    </div>
     <div id="petbar">
       <span id="pawpips" title="every word you spell fills a paw — full paws, and a friend acts"></span>
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
@@ -1123,11 +1133,6 @@
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
-    </div>
-    <div id="goalrow">
-      <div id="goalbar"><div id="goalfill"></div><div id="goaltext">0 / 60</div><span class="star">⭐</span></div>
-      <span class="pill" id="quest"></span>
-      <button id="hintbtn" onclick="Game.buyHint()" title="a lantern for the dark — reveals one letter of the hidden name">🏮 40🟠</button>
     </div>
     <div id="dock">
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
@@ -3048,16 +3053,6 @@ const Game = {
       f.style.left=(x!=null?x:(cr.left-ar.left))+"px"; f.style.top=(y!=null?y:(cr.top-ar.top+8))+"px";
       $("app").appendChild(f); setTimeout(()=>f.remove(),1100); }
   },
-  buyHint(){ // 🏮 a lantern: reveals the next letter of the hidden name
-    if(!S || !S.tutorWord) return;
-    if((P.amber||0)<40){ const el=$("hintbtn"); el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-      setTimeout(()=>el.classList.remove("deny"),350); Snd.reject(); return; }
-    if((S.hintN||0)>=S.tutorWord.length-1) return;      // never sell the final letter
-    Game.amber(-40);
-    S.hintN=(S.hintN||0)+1;
-    Snd.gold(); buzz([15,30]);
-    UI.cozy();
-  },
 
   /* ---- CALLINGS: the wood is always listening ---- */
   tallyEv(type, n){ // every notable act counts toward some creature's calling
@@ -3848,15 +3843,30 @@ const UI = {
     const m=$("movesbig");
     m.textContent=S.movesLeft;
     m.classList.toggle("low", S.movesLeft<=3 && !S.won);
+    UI.goalStrip();
     const goalMode=S.goal && S.goal.t!=="hush";
     const pct=goalMode ? Math.min(100,100*S.goal.have/Math.max(1,S.goal.need))
                        : Math.min(100, 100*S.levelScore/S.target);
-    $("goalfill").style.width=pct+"%";
-    $("goaltext").textContent=goalMode ? GOALS[S.goal.t].i+" "+S.goal.have+" / "+S.goal.need
-                                       : S.levelScore+" / "+S.target;
-    $("goalbar").classList.toggle("done", goalMode ? S.goal.have>=S.goal.need : S.levelScore>=S.target);
     const mist=document.getElementById("hushmist"); // every word thins the hush — visibly
     if(mist) mist.style.opacity=Math.max(0, 1-(pct/100)*1.25);
+  },
+  goalStrip(){ // every ask of the round, one segment each — built to hold SEVERAL
+    const gs=$("gs-goals"); if(!gs || !S) return;
+    const segs=[];
+    const goalMode=S.goal && S.goal.t!=="hush";
+    if(goalMode){
+      const done=S.goal.have>=S.goal.need;
+      segs.push('<div class="gseg'+(done?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+(S.goal.have/Math.max(1,S.goal.need))+')"></div><span>'+GOALS[S.goal.t].i+'</span> <b>'+S.goal.have+'/'+S.goal.need+'</b></div>');
+    } else {
+      const done=S.levelScore>=S.target;
+      segs.push('<div class="gseg'+(done?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+Math.min(1,S.levelScore/Math.max(1,S.target))+')"></div><span>🎯</span> <b>'+S.levelScore+'/'+S.target+'</b></div>');
+    }
+    if(S.tutorWord){
+      const g=GROVE_BY_WORD[S.tutorWord], full=P.level<=6;
+      const nm=full ? S.tutorWord.toUpperCase() : "▁".repeat(S.tutorWord.length);
+      segs.push('<div class="gseg gname">🎭 <span class="sil">'+g.e+'</span> <b>'+nm+'</b></div>');
+    }
+    gs.innerHTML=segs.join("");
   },
   miniTile(t, size, font){
     const el=document.createElement("div");
@@ -3877,20 +3887,8 @@ const UI = {
   },
   cozy(){
     const qe=$("quest");
-    if(S && S.tutorWord){
-      const g=GROVE_BY_WORD[S.tutorWord];
-      qe.classList.remove("done");
-      // school spells it out; after that the chip keeps the secret — a silhouette and
-      // blanks. Showing the word up here was killing the whole "who's that?" joy.
-      const full=P.level<=6;
-      const hn=S.hintN||0;
-      const blanks=S.tutorWord.slice(0,hn).toUpperCase().split("").join(" ")+(hn?" ":"")+"▁".repeat(S.tutorWord.length-hn);
-      qe.innerHTML = full ? g.e+" spell <b>"+S.tutorWord.toUpperCase()+"</b>!"
-        : '🎭 <span class="sil">'+g.e+'</span> <b>'+blanks+'</b>';
-      qe.title = full ? "spell "+S.tutorWord.toUpperCase() : "a naming ceremony — find the hidden name";
-      $("hintbtn").classList.toggle("on", !full && (S.hintN||0)<S.tutorWord.length-1);
-    } else {
-      $("hintbtn").classList.remove("on");
+    if(!qe){ UI.goalStrip(); return; }   // the strip owns goal display now
+    if(false){
       const q=dailyQuest();
       qe.classList.toggle("done", P.questDone);
       qe.innerHTML = P.questDone ? q.emoji+" ✓" : q.emoji+" <b>"+Math.min(q.target,P.questProgress)+"</b>/"+q.target;
@@ -3986,7 +3984,7 @@ const UI = {
     UI.toast(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+(Game.petBoost(g)?" · ×2 with its same-home friend":"")+"</small>"+mate);
   },
   pillPop(id){
-    const el=$(id);
+    const el=$(id); if(!el) return;      // some pills have retired from the stage
     el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
     setTimeout(()=>el.classList.remove("pop"),500);
   },
