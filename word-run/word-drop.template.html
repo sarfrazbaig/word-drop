@@ -328,6 +328,22 @@
   .menu-item:active{ transform:scale(.98); }
   .menu-item span{ font-size:20px; } .menu-item em{ margin-left:auto; font-style:normal; font-size:11px; color:var(--dim); }
   #menu-foot{ margin-top:auto; text-align:center; font-family:var(--font-story); font-style:italic; font-size:11px; color:var(--dim); }
+  /* 🧿 the Keeper's Charm — a copyable save, because a browser's memory is a fickle thing */
+  #charm-box{ display:none; flex-direction:column; gap:8px; padding:10px 11px; border-radius:12px;
+    border:1px dashed rgba(101,78,48,.3); background:rgba(255,253,246,.7); }
+  #charm-box.open{ display:flex; }
+  .charm-note{ margin:0; font-family:var(--font-story); font-style:italic; font-size:11.5px; line-height:1.45; color:var(--dim); }
+  .charm-btns{ display:flex; gap:7px; }
+  .charm-btn{ flex:1; border:1px solid rgba(101,78,48,.2); border-radius:999px; padding:8px 6px;
+    font-family:var(--font-ui); font-size:11.5px; font-weight:800; color:var(--ink); cursor:pointer;
+    background:linear-gradient(180deg,#fffdf6,#f0e6cf); box-shadow:0 2px 4px rgba(90,60,30,.12); }
+  .charm-btn:active{ transform:scale(.97); }
+  .charm-btn.go{ display:none; background:linear-gradient(180deg,#e9f6e2,#cfe9c2); border-color:rgba(76,125,60,.35); color:#2f5e2a; }
+  .charm-btn.go.show{ display:block; }
+  #charm-in{ display:none; width:100%; height:64px; resize:none; border-radius:10px; border:1px solid rgba(101,78,48,.25);
+    background:#fffdf6; padding:7px 9px; font-family:monospace; font-size:10px; color:var(--ink); }
+  #charm-in.show{ display:block; }
+  #charm-msg{ font-family:var(--font-ui); font-size:11px; font-weight:700; line-height:1.4; color:var(--ink); min-height:0; }
 
   /* -------- first-run tutorial: four wordless-leaning slides -------- */
   #tut-slide{ min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
@@ -1123,6 +1139,17 @@
     <button class="menu-item" onclick="UI.statsShow()"><span>📊</span> Your journey</button>
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
     <button class="menu-item" id="menu-sound" onclick="Snd.toggle()"><span class="soundbtn">🔊</span> Sound <em id="menu-snd-state">on</em></button>
+    <button class="menu-item" onclick="UI.charmToggle()"><span>🧿</span> Keeper's charm <em>save &amp; restore</em></button>
+    <div id="charm-box">
+      <p class="charm-note">your whole wood, pressed into one small charm. keep it somewhere safe — it replants everything if this device ever forgets you.</p>
+      <div class="charm-btns">
+        <button class="charm-btn" onclick="UI.charmCopy()">🧿 copy my charm</button>
+        <button class="charm-btn" onclick="UI.charmPasteShow()">🌱 replant a charm</button>
+      </div>
+      <textarea id="charm-in" placeholder="paste a charm here…" spellcheck="false" autocomplete="off"></textarea>
+      <button class="charm-btn go" id="charm-plant" onclick="UI.charmPlant()">plant it</button>
+      <div id="charm-msg"></div>
+    </div>
     <div id="menu-foot">a cozy word storybook · v2</div>
   </aside>
 
@@ -2408,6 +2435,7 @@ const Game = {
     }
   },
   startLevel(level){
+    Game.track("level_start",{L:level});
     FT.cleanup(); // no lesson litter survives into a new level
     boardEl.innerHTML="";
     S = newState(level);
@@ -2795,6 +2823,7 @@ const Game = {
   },
   async winLevel(){
     S.won=true; S.busy=true;
+    Game.track("level_win",{L:S.level, moves_left:S.movesLeft, goal:S.goal?S.goal.t:"hush"});
     // stars scale with the level's OWN budget (not an absolute count), so a tight
     // level's 3★ stays earnable: clear with ~30% of your moves spare for gold.
     const mv=MOVES(S.level);
@@ -2842,6 +2871,7 @@ const Game = {
   },
 
   failLevel(){
+    Game.track("level_fail",{L:S.level, goal:S.goal?S.goal.t:"hush", ceremony:S.tutorWord||""});
     // a letdown at a ceremony is counted — after two, the wood starts lending letters
     if(S.tutorWord){ P.nameFails[S.tutorWord]=(P.nameFails[S.tutorWord]||0)+1; }
     S.over=true; P.run=null;
@@ -3092,6 +3122,20 @@ const Game = {
      force-quits, the review says "froze on me". The watchdog waits 15 quiet seconds —
      unless something interactive is legitimately on stage (a grace bubble waiting for
      a hold, a ritual card, a tip) — then releases the flag and heals the stage. */
+  /* ---- 📈 ANALYTICS STUB — every launch metric the store audit asked for, buffered
+     locally until a provider is chosen. Wiring one later is one line:
+     Game._sink = (name,props)=>realProvider.track(name,props);  */
+  track(name,props){
+    try{
+      const K="worddrop_ev1";
+      const q=JSON.parse(localStorage.getItem(K)||"[]");
+      q.push({t:Date.now(), n:name, p:props||{}});
+      while(q.length>300) q.shift();   // a ring, never a flood
+      localStorage.setItem(K,JSON.stringify(q));
+      if(Game._sink) Game._sink(name,props);
+    }catch(e){}
+  },
+
   watchdog(){
     setInterval(()=>{
       try{
@@ -3118,6 +3162,7 @@ const Game = {
   /* ---- 🟠 AMBER — earned in drops, spent on small mercies ---- */
   amber(n, x, y){
     if(!P) return; P.amber=Math.max(0,(P.amber||0)+n); save();
+    if(n<0) Game.track("amber_spend",{n:-n, L:S&&S.level, left:P.amber});
     const el=$("amber-n"); if(el) el.textContent=P.amber;
     if(n>0){ const f=document.createElement("div"); f.className="amberfloat"; f.textContent="+"+n+" 🟠";
       const ar=$("app").getBoundingClientRect(), cr=$("amberchip").getBoundingClientRect();
@@ -3486,6 +3531,7 @@ const Game = {
           P.grove[g.w]=Date.now();
           S.newGrove.push(g.w);
           delete P.nameFails[g.w];             // all is forgiven the moment it wakes
+          Game.track("wake",{w:g.w, L:S.level});
           if(guest){
             S.tutorWord=null;
             // the naming gift: the wood pays +5 a letter, so the ceremony funds the level
@@ -4572,6 +4618,56 @@ const UI = {
     "goal-harvest":{i:"✨", t:"A <b>HARVEST round</b>! <b>Use every golden letter in a word</b> — the gold on the board is the goal, not the points."},
     "goal-unravel":{i:"🎁", t:"An <b>UNRAVEL round</b>! <b>Burst every gift crate</b> — clear words beside them. The gifts inside are still yours."},
   },
+  /* ---- 🧿 KEEPER'S CHARM — export/restore. iOS quietly evicts a PWA's storage after
+     ~a week of neglect; until a real cloud save exists, the charm is the lifeboat.
+     Format: HW1.<checksum36>.<base64 of P> — the checksum catches half-pasted codes. */
+  _charmSum(raw){ let h=0; for(let i=0;i<raw.length;i++){ h=(h*31+raw.charCodeAt(i))>>>0; } return h.toString(36); },
+  charmCode(){ const raw=JSON.stringify(P); return "HW1."+UI._charmSum(raw)+"."+btoa(unescape(encodeURIComponent(raw))); },
+  charmParse(code){
+    try{
+      code=(code||"").trim();
+      if(!code.startsWith("HW1.")) return null;
+      const dot=code.indexOf(".",4); if(dot<0) return null;
+      const raw=decodeURIComponent(escape(atob(code.slice(dot+1))));
+      if(UI._charmSum(raw)!==code.slice(4,dot)) return null;
+      const p=JSON.parse(raw);
+      if(typeof p.level!=="number" || typeof p.grove!=="object" || p.grove===null) return null;
+      return p;
+    }catch(e){ return null; }
+  },
+  charmToggle(){
+    const b=$("charm-box"); b.classList.toggle("open");
+    $("charm-msg").textContent=""; $("charm-in").value=""; UI._charmArmed=null;
+    $("charm-in").classList.remove("show"); $("charm-plant").classList.remove("show");
+  },
+  async charmCopy(){
+    const code=UI.charmCode();
+    try{
+      await navigator.clipboard.writeText(code);
+      $("charm-msg").textContent="🧿 copied — tuck it somewhere safe (a note, an email to yourself, anywhere)";
+    }catch(e){ // no clipboard leave? show the code and let fingers do it
+      $("charm-in").classList.add("show"); $("charm-in").value=code; $("charm-in").select();
+      $("charm-msg").textContent="copy the code above and tuck it somewhere safe";
+    }
+  },
+  charmPasteShow(){
+    $("charm-in").classList.add("show"); $("charm-plant").classList.add("show");
+    $("charm-in").value=""; $("charm-in").focus(); $("charm-msg").textContent=""; UI._charmArmed=null;
+  },
+  charmPlant(){
+    const code=($("charm-in").value||"").trim();
+    const p=UI.charmParse(code);
+    if(!p){ $("charm-msg").textContent="🌫️ that charm doesn't take root — check it copied out whole, end to end"; UI._charmArmed=null; return; }
+    if(UI._charmArmed!==code){ // planting replaces a living wood — ask twice, plainly
+      UI._charmArmed=code;
+      $("charm-msg").innerHTML="⚠️ this replaces your current wood (Level "+P.level+" · "+Object.keys(P.grove||{}).length+
+        " friends) with <b>Level "+p.level+" · "+Object.keys(p.grove||{}).length+" friends</b>. tap <b>plant it</b> once more to be sure.";
+      return;
+    }
+    try{ localStorage.setItem("worddrop_v3", JSON.stringify(p)); }catch(e){}
+    location.reload(); // load() renormalizes everything on the way back up
+  },
+
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
     P.seenTip[kind]=true; save();
     const tip=UI.TIPS[kind]; if(!tip) return false;
