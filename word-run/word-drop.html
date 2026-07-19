@@ -1772,6 +1772,7 @@ function load(){
     out.annQ = out.annQ||[];          // achievement announcements, shown in the WIN sequence only
     out.amber = out.amber||0;         // 🟠 amber drops — cheap, cheerful, never power
     out.callBase = out.callBase||{};  // per-creature meter baselines (windowed callings)
+    out.nameFails = out.nameFails||{}; // ceremony letdowns per creature — the mercy counter
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -2562,6 +2563,10 @@ const Game = {
     // a goal type introduces itself ONCE, full-page, before its first round is played
     if(S.goal && S.goal.t!=="hush" && !P.seenTip["goal-"+S.goal.t])
       setTimeout(()=>UI.tileTip("goal-"+S.goal.t), 500);
+    // the mercy speaks once per pitied attempt: part of the name is glowing
+    if(S.tutorWord && P.level>6 && (P.nameFails[S.tutorWord]||0)>=2)
+      setTimeout(()=>UI.say("mercy-"+S.tutorWord+"-"+P.nameFails[S.tutorWord],
+        "🌿 the wood takes pity — <b>part of the name glows</b> above", 1), 900);
     // the summoned creature waits in the corner of the board, a jiggling silhouette —
     // "who's that?" starts the moment the level does
     if(S.tutorWord && !$("namer")){
@@ -2803,6 +2808,8 @@ const Game = {
   },
 
   failLevel(){
+    // a letdown at a ceremony is counted — after two, the wood starts lending letters
+    if(S.tutorWord){ P.nameFails[S.tutorWord]=(P.nameFails[S.tutorWord]||0)+1; }
     S.over=true; P.run=null;
     P.stats.bestChain=Math.max(P.stats.bestChain,S.maxChain);
     save();
@@ -3009,6 +3016,7 @@ const Game = {
      and straight into the meet ritual, same round. closeMeet auto-equips and re-runs
      checkEnd, so a level won by the naming word still wins right after the welcome. */
   async reveal(g){
+    S.lastAction=Date.now();
     const nm=$("namer"); if(nm){ nm.style.transition="opacity .3s"; nm.style.opacity="0"; setTimeout(()=>nm.remove(),350); }
     const big=document.createElement("div"); big.className="whosthat";
     big.innerHTML='<div class="wt-e sil">'+g.e+'</div><div class="wt-q">who answers to <b>'+g.w.toUpperCase()+'</b>…?</div>';
@@ -3042,6 +3050,35 @@ const Game = {
     S.goal.have=Math.min(S.goal.need, S.goal.have+1);
     UI.hud();
     if(S.goal.have>=S.goal.need) Snd.tone(1046,{dur:.25,type:"sine",gain:.07,verb:true});
+  },
+
+  /* ---- 🐕 THE WATCHDOG — a shipped game may NEVER soft-lock ----
+     Every board action runs on async chains gated by S.busy. One uncaught error in
+     the middle of one and the flag stays true forever: the board is dead, the player
+     force-quits, the review says "froze on me". The watchdog waits 15 quiet seconds —
+     unless something interactive is legitimately on stage (a grace bubble waiting for
+     a hold, a ritual card, a tip) — then releases the flag and heals the stage. */
+  watchdog(){
+    setInterval(()=>{
+      try{
+        if(!S || !S.busy || S.over || S.won) return;
+        if(Date.now()-(S.lastAction||0) < 15000) return;
+        const surface = document.querySelector(".overlay.active")
+          || document.querySelector(".gracebubble")
+          || document.querySelector(".ftue-scrim")
+          || $("tiptip").classList.contains("on");
+        if(surface) return;
+        console.warn("[hushwood] watchdog: releasing a stuck board");
+        S.busy=false; S.playerMove=false; S.pendingReveal=null;
+        S.usingBreeze=false; S.usingPluck=false;
+        if(S.swapSel){ try{ S.swapSel.inner.classList.remove("selswap"); }catch(e){} S.swapSel=null; }
+        $("breezepill").classList.remove("armed"); $("wishbtn").classList.remove("armed");
+        document.querySelectorAll(".whosthat").forEach(e=>e.remove());
+        S.lastAction=Date.now();
+        UI.all();
+        UI.toast("🌿 the wood untangles itself — carry on");
+      }catch(e){}
+    }, 5000);
   },
 
   /* ---- 🟠 AMBER — earned in drops, spent on small mercies ---- */
@@ -3136,6 +3173,7 @@ const Game = {
   async petAct(){
     const actives=Game.petActives(); if(!actives.length) return;
     const pet=actives[S.petTurn % actives.length]; S.petTurn++;
+    S.lastAction=Date.now();
     Game.tallyEv("act");
     const eq=UI.equipped(), boost=Game.petBoost(pet);
     S.petActing=true;
@@ -3413,6 +3451,7 @@ const Game = {
         if(awake){
           P.grove[g.w]=Date.now();
           S.newGrove.push(g.w);
+          delete P.nameFails[g.w];             // all is forgiven the moment it wakes
           if(guest){
             S.tutorWord=null;
             // the naming gift: the wood pays +5 a letter, so the ceremony funds the level
@@ -3618,6 +3657,7 @@ const Game = {
     const allCells = new Set();
     let gained=0;
     for(const w of words){
+      S.lastAction=Date.now();               // long cascades are alive, not stuck
       const len=w.cells.length;
       let pts=0;
       const goldX = pairOn("gold4") ? 4 : 3;                       // 🌊 River Gold: fox & fish gild deeper
@@ -3863,7 +3903,10 @@ const UI = {
     }
     if(S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord], full=P.level<=6;
-      const nm=full ? S.tutorWord.toUpperCase() : "▁".repeat(S.tutorWord.length);
+      // mercy: each letdown past the first glows one more letter, never the last
+      const w=S.tutorWord;
+      const shown=full ? w.length : Math.min(w.length-1, Math.max(0,(P.nameFails[w]||0)-1));
+      const nm=(w.slice(0,shown).toUpperCase()+"▁".repeat(w.length-shown)).split("").join(" ");
       segs.push('<div class="gseg gname">🎭 <span class="sil">'+g.e+'</span> <b>'+nm+'</b></div>');
     }
     gs.innerHTML=segs.join("");
@@ -4533,6 +4576,7 @@ setInterval(()=>{
 /* boot */
 fitApp();
 UI.home();
+Game.watchdog();
 document.querySelectorAll(".soundbtn").forEach(el=>el.textContent = P.sound?"🔊":"🔇");
 { const st=document.getElementById("menu-snd-state"); if(st) st.textContent=P.sound?"on":"off"; }
 Snd.on = P.sound;
