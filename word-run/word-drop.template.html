@@ -718,6 +718,24 @@
   .tile.ice::before{ content:"❄"; position:absolute; top:1px; left:4px; font-size:10px; color:rgba(30,90,140,.8); }
   .tile.crate{ background:linear-gradient(148deg,#e8c58a,#c99a55 55%,#9c6f33); font-size:22px!important;
     box-shadow:0 4px 0 #6b4a1e, 0 5px 8px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -3px 4px rgba(110,75,30,.5); }
+  /* ❄❄ DEEP FROST — winter twice over: the first word only sheds a layer */
+  .tile.frost{ background:linear-gradient(150deg,rgba(216,238,252,.98),rgba(148,196,230,.96) 45%,rgba(88,148,198,.95));
+    color:rgba(18,58,98,.55); text-shadow:0 1px 0 rgba(255,255,255,.75);
+    box-shadow:0 5px 0 #3f7ba4, 0 7px 12px rgba(30,90,140,.5), inset 0 0 0 2.5px rgba(255,255,255,.5),
+      inset 0 -5px 10px rgba(40,100,150,.55), inset 0 0 16px rgba(255,255,255,.55); }
+  .tile.frost::after{ content:"❄❄"; position:absolute; top:0; right:1px; font-size:10px; letter-spacing:-3px; color:rgba(255,255,255,.95); }
+  .tile.frost::before{ content:"❄"; position:absolute; bottom:1px; left:3px; font-size:10px; color:rgba(20,80,130,.8); }
+  /* 🌫️ MIST — the letter keeps its secret until a word clears beside it */
+  .tile.mist{ background:linear-gradient(150deg,#ddd8e6,#bcb5cc 55%,#968fa9); color:#5c5470; text-shadow:0 1px 0 rgba(255,255,255,.55);
+    box-shadow:0 5px 0 #6f6884, 0 7px 12px rgba(60,52,80,.35), inset 0 2px 0 rgba(255,255,255,.7), inset 0 -5px 8px rgba(90,80,110,.4); }
+  .tile.mist::after{ content:"🌫️"; position:absolute; top:-2px; right:0; font-size:12px; opacity:.9; }
+  /* 🌿 BRAMBLES — a green tangle strangling the letter; left alone, it SPREADS */
+  .tile.bramble{ background:radial-gradient(120% 120% at 40% 30%, #5d7a48, #40573a 55%, #2b3c27); color:transparent;
+    border-radius:40% 48% 44% 46%; font-size:22px!important;
+    box-shadow:0 5px 0 #1d2a1a, 0 7px 12px rgba(0,0,0,.45), inset 0 3px 4px rgba(190,220,150,.28), inset 0 -6px 8px rgba(0,0,0,.5); }
+  .tile.bramble::before{ content:"🌿"; position:absolute; top:-1px; left:1px; font-size:15px; opacity:.95;
+    background:none; width:auto; height:auto; border-radius:0; }
+  .tile.bramble::after{ content:"🌿"; position:absolute; bottom:-1px; right:0; font-size:12px; transform:scaleX(-1); opacity:.85; }
   .tile.thawpop{ animation:thawpop .55s; }
   @keyframes thawpop{ 40%{ transform:scale(1.18); filter:brightness(1.8) } }
   #iv-obstacles{ font-size:14px; color:var(--dim); letter-spacing:3px; }
@@ -1369,12 +1387,24 @@ function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
   return L<=14 ? 20 : L<=24 ? 25 : 30;
 }
-function recipe(L){ // obstacles arrive slowly, one new kind at a time
-  return {
-    stone: L>=11 ? Math.min(3, 1+Math.floor((L-11)/3)) : 0,   // 🪨 from level 11
-    crate: (L>=13 && L%3===0) ? 1 : 0,                        // 🎁 from level 13
-    ice:   L>=15 ? Math.min(3, 1+Math.floor((L-15)/4)) : 0,   // 🧊 from level 15
-  };
+function recipe(L){ // obstacles arrive slowly — and every newcomer debuts ALONE
+  const r={stone:0,crate:0,ice:0,frost:0,mist:0,bramble:0};
+  if(L===8)  { r.ice=2;     return r; }   // 🧊 meets you by itself…
+  if(L===12) { r.stone=2;   return r; }   // 🪨 …then the stone…
+  if(L===27) { r.frost=2;   return r; }   // ❄❄ …the deep frost…
+  if(L===51) { r.mist=2;    return r; }   // 🌫️ …the mist…
+  if(L===77) { r.bramble=2; return r; }   // 🌿 …and the brambles
+  r.ice     = L>=8  ? Math.min(3, 1+Math.floor((L-8)/4))   : 0;
+  r.stone   = L>=12 ? Math.min(3, 1+Math.floor((L-12)/3))  : 0;
+  r.crate   = (L>=13 && L%3===0) ? 1 : 0;
+  r.frost   = L>=27 ? Math.min(2, 1+Math.floor((L-27)/25)) : 0;
+  r.mist    = L>=51 ? Math.min(2, 1+Math.floor((L-51)/30)) : 0;
+  r.bramble = L>=77 ? 1 : 0;              // one seed is plenty — it spreads on its own
+  // a prefill holds ~18 tiles: cap the blockers at 6 so play stays possible.
+  // veterans step back first — but everyone present keeps at least one.
+  let total=r.ice+r.stone+r.frost+r.mist+r.bramble;
+  for(const k of ["ice","stone","frost","mist"]){ while(total>6 && r[k]>1){ r[k]--; total--; } }
+  return r;
 }
 
 /* =================== SOUND =================== */
@@ -1879,7 +1909,7 @@ function tutorAlive(){ // is the guest still spellable? checks the LONGEST survi
     for(let r=0;r<ROWS;r++) for(let c=0;c+w.length-1<COLS;c++){
       let ok=true;
       for(let i=0;i<j;i++){ const t=S.board[r][c+i];
-        if(!t || t.letter!==pre[i] || t.kind==="stone" || t.kind==="ice"){ ok=false; break; } }
+        if(!t || t.letter!==pre[i] || NONWORD.has(t.kind)){ ok=false; break; } }
       if(ok) return true;
     }
   }
@@ -2197,10 +2227,10 @@ function xy(r,c){ return "translate("+(c*STEP)+"px,"+(r*STEP)+"px)"; }
 function tileFace(t){
   if(t.kind==="bomb") return "🌰";              // acorn
   if(t.kind==="wild") return "★";              // the TEXT star — it takes our silver, emoji won't
-  if(t.kind==="stone") return "";               // the CSS renders the mossy rock
+  if(t.kind==="stone" || t.kind==="bramble") return ""; // the CSS renders rock and tangle
   if(t.kind==="crate") return "🎁";
-  const val = (t.kind==="ice") ? "<small>"+VAL[t.letter]+"</small>" : "<small>"+VAL[t.letter]+"</small>";
-  return t.letter.toUpperCase()+val;            // ice shows its letter (frosted) — you can see what to free
+  if(t.kind==="mist") return "?";               // the letter keeps its secret until the mist lifts
+  return t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>"; // ice & frost show the letter — you can see what to free
 }
 function makeTileEl(t){
   const outer=document.createElement("div");
@@ -2215,7 +2245,7 @@ function makeTileEl(t){
   boardEl.appendChild(outer);
   return {outer, inner:el};
 }
-const NONWORD = new Set(["bomb","stone","crate","ice"]); // these break words apart
+const NONWORD = new Set(["bomb","stone","crate","ice","frost","mist","bramble"]); // these break words apart
 function placeTile(t,r,c,instant){
   t.r=r; t.c=c;
   if(instant){ t.el.style.transition="none"; t.el.style.transform=xy(r,c); void t.el.offsetWidth; t.el.style.transition=""; }
@@ -2412,6 +2442,7 @@ const Game = {
       }
     };
     convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
+    convert("frost",rec.frost); convert("mist",rec.mist); convert("bramble",rec.bramble);
     // the round's ASK: ceremonies keep the hush (their contract is the name); other
     // levels may ask for obstacles instead — and the board seeds enough to ask fairly
     S.goal={t:"hush",need:0,have:0};
@@ -2469,6 +2500,9 @@ const Game = {
     if(rec.stone) parts.push("🪨×"+rec.stone);
     if(rec.ice) parts.push("🧊×"+rec.ice);
     if(rec.crate) parts.push("🎁×"+rec.crate);
+    if(rec.frost) parts.push("❄❄×"+rec.frost);
+    if(rec.mist) parts.push("🌫️×"+rec.mist);
+    if(rec.bramble) parts.push("🌿×"+rec.bramble);
     if(parts.length){ ob.style.display="block"; ob.textContent=parts.join("  "); }
     else ob.style.display="none";
     const iv=$("iv-visitor");
@@ -2590,7 +2624,7 @@ const Game = {
     if((P.pow.swap||0)>0) order.push("breeze");
     if((P.pow.wild||0)>0) order.push("wish");
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
-    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate") order.push(t.kind); }
+    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
@@ -2716,7 +2750,7 @@ const Game = {
     if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
     else { S.deadDrops++; if(S.deadDrops===2 && S.level<=2 && !S.guide) setTimeout(()=>UI.nudge(), 350); } // lessons coach themselves
     S.drops++;
-    if(S.drops % 3 === 0){ await Game.stirShifters(); }
+    if(S.drops % 3 === 0){ await Game.stirShifters(); await Game.brambleSpread(); }
     S.busy=false;
     UI.all();
     saveRun();
@@ -3342,7 +3376,7 @@ const Game = {
         for(const t of picks){ UI.shards(t.r,t.c,"#c9e29a"); removeTile(t); await wait(120); }
         if(pairOn("junkMove")) Game.addMoves(1); // 🦨 Stink & Swarm
         Snd.collapse(picks.length); await Game.settle(); break; }
-      case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice") || Game.worstTiles(1)[0];
+      case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble") || Game.worstTiles(1)[0];
         if(!cand){ Game.addMoves(2); break; }
         cand.kind="crate"; cand.inner.className="tile thawpop"; cand.inner.innerHTML=tileFace(cand);
         UI.shards(cand.r,cand.c,"#ffd54f"); Snd.gold(); break; }
@@ -3734,6 +3768,27 @@ const Game = {
     await Game.resolve([...(thawed||[]), ...(fell||[])]);
   },
 
+  async brambleSpread(){ // every 3rd drop the tangle reaches for ONE more letter — capped at 6
+    if(!S || S.over || S.won) return;
+    const brs=Object.values(S.tiles).filter(t=>t.kind==="bramble");
+    if(!brs.length || brs.length>=6) return;
+    const spots=[];
+    for(const b of brs) for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const r=b.r+d[0], c=b.c+d[1];
+      if(r<0||r>=ROWS||c<0||c>=COLS) continue;
+      const t=S.board[r][c];
+      if(t && t.kind==="normal" && !t.heldWord) spots.push(t); // specials and held words are safe
+    }
+    if(!spots.length) return;
+    const t=rand(spots);
+    t.kind="bramble"; t.cracks=0;
+    t.inner.className="tile bramble jostle"; t.inner.innerHTML=tileFace(t);
+    setTimeout(()=>t.inner.classList.remove("jostle"),260);
+    UI.shards(t.r,t.c,"#6f8a52");
+    Snd.tone(180,{dur:.14,type:"triangle",gain:.05,verb:true}); buzz(8);
+    await wait(220);
+  },
+
   async hitNeighbors(cells){ // clearing beside stone cracks it, beside ice thaws it, beside a crate pops it
     const seen=new Set(); let acted=false; const thawed=[];
     for(const p of cells){
@@ -3760,6 +3815,25 @@ const Game = {
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
           Snd.thaw(); buzz(10);
+        } else if(t.kind==="frost"){    // deep frost sheds a LAYER — ordinary ice remains
+          acted=true;
+          t.kind="ice"; t.cracks=0;
+          t.inner.className="tile ice thawpop"; t.inner.innerHTML=tileFace(t);
+          setTimeout(()=>t.inner.classList.remove("thawpop"),560);
+          UI.shards(t.r,t.c,"#e8f4fc");
+          Snd.crack(false); buzz(10);
+        } else if(t.kind==="mist"){     // the mist lifts — the letter shows its face
+          acted=true;
+          t.kind="normal"; thawed.push(t); Game.tallyEv("mist"); Game.amber(2);
+          t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
+          setTimeout(()=>t.inner.classList.remove("thawpop"),560);
+          UI.shards(t.r,t.c,"#c9c2d8");
+          Snd.thaw(); buzz(10);
+        } else if(t.kind==="bramble"){  // one clean cut and the tangle falls away
+          acted=true;
+          removeTile(t); S.levelScore+=5;
+          Snd.crack(true); Game.tallyEv("bramble"); Game.amber(2);
+          buzz(15);
         } else if(t.kind==="crate"){
           acted=true;
           const cr=t.r, cc=t.c;
@@ -4490,6 +4564,9 @@ const UI = {
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
     crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open — <b>points, a 🍃 breeze, a 🌟 wish</b> — and your friends' paw meter fills at once."},
     shift: {i:"🌀", t:"A <b>restless tile</b> — it changes its letter every few drops. Catch it at the right moment!"},
+    frost: {i:"❄️", t:"<b>Deep frost</b> — winter twice over. A word beside it sheds one layer; a <b>second</b> word sets the letter free."},
+    mist:  {i:"🌫️", t:"A <b>misted letter</b> hides its face — no word can use it while it hides. Clear a word beside it and the mist lifts."},
+    bramble:{i:"🌿", t:"<b>Brambles!</b> Every few drops the tangle reaches for another letter. Clear a word <b>right beside</b> a tangle to cut it away."},
     "goal-thaw":   {i:"🧊", t:"A <b>THAW round</b>! The hush doesn\u0027t want points here — <b>melt every frozen letter</b> before your moves run out. Clear words BESIDE the ice to thaw it."},
     "goal-boulder":{i:"🪨", t:"A <b>BOULDER round</b>! <b>Smash every mossy stone</b> to clear the level — clear words beside a stone twice and it crumbles."},
     "goal-harvest":{i:"✨", t:"A <b>HARVEST round</b>! <b>Use every golden letter in a word</b> — the gold on the board is the goal, not the points."},
