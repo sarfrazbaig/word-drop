@@ -1586,14 +1586,14 @@ const CALLINGS={
      if lucky they crack it, else the hint shop will (one day) sell a lantern. */
   /* TIER 1 — the shower: clean names, trivial callings, ~4 friends in 10 levels */
   cat:     {t:"school",   n:1,  c:"finish the lessons of the wood",           s:"🐾 something <b>purrs</b> beyond the lesson…"},
-  dog:     {t:"act",      n:1,  c:"watch a friend use its power",             s:"🐾 something wants to <b>fetch</b> too…"},
-  owl:     {t:"hold",     n:2,  c:"hold 2 words with 🌱",                     s:"🌙 something admires your <b>patience</b>…"},
-  bee:     {t:"words",    n:12, c:"clear 12 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
-  fox:     {t:"gold",     n:4,  c:"clear 4 golden letters",                   s:"✨ something is following your <b>gilded trail</b>…"},
-  bat:     {t:"upword",   n:1,  c:"clear a word that reads UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
+  dog:     {t:"act",      n:3,  c:"watch a friend use its power 3 times",     s:"🐾 something wants to <b>fetch</b> too…"},
+  owl:     {t:"hold",     n:4,  c:"hold 4 words with 🌱",                     s:"🌙 something admires your <b>patience</b>…"},
+  bee:     {t:"words",    n:35, c:"clear 35 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
+  fox:     {t:"gold",     n:8,  c:"clear 8 golden letters",                   s:"✨ something is following your <b>gilded trail</b>…"},
+  bat:     {t:"upword",   n:2,  c:"clear 2 words that read UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
   /* TIER 2 — the walk: clean 3-4 letter names, moderate callings */
-  pig:     {t:"pluck",    n:2,  c:"pluck 2 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
-  moth:    {t:"star",     n:2,  c:"use 2 ⭐ fallen stars in words",           s:"🌌 something is drawn to your <b>starlight</b>…"},
+  pig:     {t:"pluck",    n:3,  c:"pluck 3 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
+  moth:    {t:"star",     n:3,  c:"use 3 ⭐ fallen stars in words",           s:"🌌 something is drawn to your <b>starlight</b>…"},
   hare:    {t:"word4",    n:8,  c:"clear 8 four-letter words",                s:"💨 something is racing your <b>quick</b> words…"},
   crow:    {t:"qzxjv",    n:2,  c:"clear 2 words using Q, Z, X, J or V",      s:"⚫ something clever admires your <b>rare letters</b>…"},
   dove:    {t:"jackpot",  n:2,  c:"clear 2 five-letter words",                s:"🕊️ something cooed at your <b>long, lovely words</b>…"},
@@ -1726,7 +1726,8 @@ function load(){
     out.called = out.called||{};      // creatures whose calling is met — their name can wake
     out.summonQ = out.summonQ||[];    // callings met, waiting for their naming level
     out.summon = out.summon||null;    // the creature whose naming level is running/next
-    out.quietLvls = out.quietLvls||0; // levels since the last call/wake — pity at 2
+    out.quietLvls = out.quietLvls||0; // levels since the last call/wake — pity at 3
+    out.annQ = out.annQ||[];          // achievement announcements, shown in the WIN sequence only
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -1922,9 +1923,14 @@ const FT = {
       app.appendChild(scrim); app.appendChild(b);
       const cx=r.left-ar.left+r.width/2;
       b.style.left=Math.max(8,Math.min(cx-112, ar.width-232))+"px";
-      const above = side!=="below";
+      // NEVER off the stage: if the asked side has no room, flip to the other one
+      // (a "below" callout on the bottom tray was rendering half off-screen)
+      let above = side!=="below";
       const bh=b.offsetHeight;
-      b.style.top = above ? Math.max(8,(r.top-ar.top)-bh-24)+"px" : (r.bottom-ar.top+24)+"px";
+      if(!above && (r.bottom-ar.top)+24+bh > ar.height-8) above=true;
+      if(above && (r.top-ar.top)-bh-24 < 8) above=false;
+      b.style.top = above ? Math.max(8,(r.top-ar.top)-bh-24)+"px"
+        : Math.min(ar.height-bh-8,(r.bottom-ar.top+24))+"px";
       const arrow=FT.bit(document.createElement("div")); arrow.className="ftue-arrow";
       arrow.textContent = above ? "▼" : "▲";
       arrow.style.left=cx+"px";
@@ -1935,6 +1941,12 @@ const FT = {
       scrim.addEventListener("pointerdown",done,{once:true});
       b.addEventListener("pointerdown",done,{once:true});
     });
+  },
+  async waitTip(kind){ // a full-page tool card at lesson start: show it, wait until read
+    if(P.seenTip[kind]) return;                    // replays skip the reading
+    UI.tileTip(kind);
+    while($("tiptip").classList.contains("on")) await wait(150);
+    await wait(350);                               // one breath between the card and the lesson
   },
   note(html){ FT.clearNote(); const n=FT.bit(document.createElement("div")); n.className="ftue-note";
     n.innerHTML=html; $("boardwrap").appendChild(n); FT._note=n; },
@@ -2010,15 +2022,18 @@ const FT = {
   },
   async lesson2(){
     const g=S.guide;
-    await FT.callout("#breezepill", "you caught a 🍃 <b>breeze</b> last level!<br><small>every 3-letter word earns one — it can swap two letters. first, a word:</small>", "below");
+    // ONE idea at a time, and it opens with the FULL breeze page — read first, act after
+    await FT.waitTip("breeze");
     FT.hand(4);
     FT.note("drop the <b>T</b> — spell <b>TEN</b>");
     const gr=await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("words wait a breath — <b>tap the board</b> to bloom it now");
+    FT.note("the word pauses… then <b>blooms</b> (clears) by itself. tap the board to hurry it");
     await FT.wait("wordCleared");
     FT.clearNote();
-    g.allowCol=-1; // drops are done for this lesson — the breeze does the rest
+    await wait(900);                    // a clean breath — never two instructions at once
+    g.allowCol=-1;                      // drops are done for this lesson — the breeze does the rest
+    g.allowBreeze=true;                 // NOW the breeze answers — and only now
     $("breezepill").classList.add("pillglow");
     FT.note("now tap the 🍃 <b>breeze</b>");
     const pr=FT.ringEl($("breezepill"));
@@ -2030,28 +2045,31 @@ const FT = {
     FT.ringCell(ROWS-1,1); FT.ringCell(ROWS-1,2);
     await FT.wait("swapped");
     document.querySelectorAll(".ftue-ring").forEach(e=>e.remove());
-    FT.clearNote(); FT.note("a 4-letter word! 🌱 let it bloom on its own…");
+    FT.clearNote(); FT.note("a 4-letter word — it will bloom on its own. it also earned you a 🌟 <b>star</b>!");
     await FT.wait("wordCleared");
     FT.clearNote();
-    P.said.grace=2; P.seenTip.breeze=true; save(); // this lesson IS those explanations
+    P.said.grace=2; save();
     S.guide=null;
   },
   async lesson3(){
     const g=S.guide;
+    // the star's FULL page opens the level — they earned it with GLOW, now they read
+    // what it does before anything else happens
+    await FT.waitTip("wish");
     FT.hand(4);
     FT.note("spell <b>TEN</b> one more time");
     const gr=await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("this time tap 🌱 <b>hold</b> — keep the word!");
+    FT.note("tap 🌱 <b>HOLD</b> — holding <b>stops</b> the bloom and keeps the letters");
     const hb=gr.bubble.querySelector(".ghold"); if(hb) FT.ringEl(hb);
     await FT.wait("held");
     g.mustHold=false;
     document.querySelectorAll(".ftue-ring").forEach(e=>e.remove());
-    FT.clearNote(); FT.note("TEN is yours — now <b>grow it</b>: drop the <b>S</b>");
+    FT.clearNote(); FT.note("TEN is kept — now <b>grow it</b>: drop the <b>S</b>");
     g.allowCol=5; FT.hand(5);
     await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("your call — hold to keep growing, or let it bloom");
+    FT.note("your call — 🌱 hold to keep growing, or let it bloom");
     await FT.wait("wordCleared");
     FT.clearNote();
     // the lesson cleared the whole board — free play from BARE ground is the hardest
@@ -2064,13 +2082,7 @@ const FT = {
     }
     FT.note("the board is yours — clear "+S.target+" with drops, breezes, holds 🌿");
     setTimeout(()=>FT.clearNote(), 4200);
-    S.guide=null; // training wheels off
-    // school is done — and something noticed. The cat's calling is the FTUE itself;
-    // its summons points straight at level 4, the first naming level.
-    if(!P.grove.cat && !P.called.cat){
-      P.called.cat=1; P.summon="cat"; save();
-      setTimeout(()=>UI.toast(CALLINGS.cat.s+"<br><small>next level, spell its name</small>", 4200), 4800);
-    }
+    S.guide=null; // training wheels off — the purr waits for the WIN card, where it belongs
   },
   async lesson5(){ // the cat is awake — show where friends LIVE: shelf, seats, paw meter
     if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points — no lesson to give
@@ -2423,7 +2435,9 @@ const Game = {
   // important cards ignore taps for the first beat — long enough to register, never annoying.
   guard(key){ const t=Game._shownAt && Game._shownAt[key]; return t && (Date.now()-t)<700; },
   shown(key){ (Game._shownAt=Game._shownAt||{})[key]=Date.now(); },
-  closeUnlock(){ if(Game.guard("unlock")) return; Snd.init(); $("ov-unlock").classList.remove("active"); $("ov-intro").classList.add("active"); },
+  closeUnlock(){ if(Game.guard("unlock")) return; Snd.init(); $("ov-unlock").classList.remove("active");
+    if(Game._annCb){ const cb=Game._annCb; Game._annCb=null; cb(); return; } // announce card → its follow-up
+    $("ov-intro").classList.add("active"); },
   closeMeet(){
     if(Game.guard("meet")) return;
     Snd.init(); $("ov-meet").classList.remove("active");
@@ -2652,12 +2666,28 @@ const Game = {
     }
   },
 
+  showAnnounce(cb){ // the "you achieved something…" beat: one quiet card, tap, then on
+    const items=P.annQ.splice(0); save();
+    $("un-burst").textContent="🐾";
+    $("un-title").textContent="Something stirred…";
+    $("un-body").innerHTML=items.join("<hr style='border:none;border-top:1px dashed rgba(150,120,70,.35);margin:8px 0'>");
+    $("un-try").style.display="none";
+    Game._annCb=cb;
+    $("ov-unlock").classList.add("active"); Game.shown("unlock");
+    Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true}); Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
+  },
   async winLevel(){
     S.won=true; S.busy=true;
     // stars scale with the level's OWN budget (not an absolute count), so a tight
     // level's 3★ stays earnable: clear with ~30% of your moves spare for gold.
     const mv=MOVES(S.level);
     S.stars = S.movesLeft>=Math.ceil(mv*0.30) ? 3 : S.movesLeft>=Math.ceil(mv*0.12) ? 2 : 1;
+    // the cat's calling IS clearing level 3 — the achievement announces in the win
+    // sequence, never over something the player is reading mid-game
+    if(S.level===3 && !P.grove.cat && !P.called.cat){
+      P.called.cat=1; P.summon="cat";
+      P.annQ.push(CALLINGS.cat.s+"<br><small>meet them next round</small>"); save();
+    }
     Game.tallyEv("win"); Game.tallyEv("regionwin"+biomeOf(S.level));
     if(S.stars===3) Game.tallyEv("star3");
     if(S.movesLeft>=10) Game.tallyEv("bigwin");
@@ -2665,7 +2695,7 @@ const Game = {
     // the pity floor: two quiet levels and the wood sends someone on its own
     if(P.metGrove.cat){
       if(S.newGrove.length || P.summon || P.summonQ.length) P.quietLvls=0;
-      else if(Object.keys(P.grove).length<10 && ++P.quietLvls>=2){
+      else if(Object.keys(P.grove).length<10 && ++P.quietLvls>=3){
         const next=CALLING_ORDER.find(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school");
         if(next){ P.called[next]=1; P.summonQ.push(next); P.quietLvls=0;
           setTimeout(()=>UI.toast("🌿 the wood has grown <b>curious</b> about you…<br><small>a name will hide in a coming level</small>", 4200), 1800); }
@@ -2687,7 +2717,10 @@ const Game = {
     Snd.levelUp(); UI.confetti(); buzz([50,50,120]);
     if(S.milestone) setTimeout(()=>UI.confetti(), 400);
     await wait(500);
-    UI.endCard(true);
+    // achievements get their own quiet beat FIRST — "something stirred…" — and only
+    // then the level-clear modal. Nothing announces over play, nothing overlaps.
+    if(P.annQ && P.annQ.length) Game.showAnnounce(()=>UI.endCard(true));
+    else UI.endCard(true);
   },
 
   failLevel(){
@@ -2724,6 +2757,15 @@ const Game = {
   armBreeze(){
     if(!S || S.busy || S.over || S.won) return;
     Snd.init(); S.lastAction=Date.now();
+    // during a lesson the breeze answers ONLY when the lesson says so. A curious tap
+    // used to ARM it silently and then "drop the T" was impossible — a built-in fail
+    // state inside lesson 2 itself (caught by the user, playing).
+    if(S.guide && !S.guide.allowBreeze){
+      const el=$("breezepill");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); return;
+    }
     if(S.usingBreeze){ Game.disarmBreeze(); return; }
     if(!(P.pow.swap>0)){
       const el=$("breezepill");
@@ -2792,6 +2834,12 @@ const Game = {
   openWish(){
     if(!S || S.busy || S.over || S.won) return;
     Snd.init(); S.lastAction=Date.now();
+    if(S.guide){ // lessons own the stage — the star waits its turn
+      const el=$("wishbtn");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); return;
+    }
     if(S.usingBreeze) Game.disarmBreeze();
     if(!(P.pow.wild>0)){
       const el=$("wishbtn");
@@ -2918,11 +2966,11 @@ const Game = {
       const c=CALLINGS[w];
       const have = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0);
       if(have>=c.n){
-        P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; save();
-        // the summon keeps its secret: no name, no face — the reveal owns that moment
-        UI.toast(c.s+"<br><small>a name will hide in a coming level — spell it when it appears</small>", 4600);
-        Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true}); Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
-        return; // one summon at a time — never a toast pile; the next event re-checks
+        P.called[w]=1; P.summonQ.push(w); P.quietLvls=0;
+        // NEVER announced mid-play — the player is busy playing. The summons waits
+        // for the win sequence, its own quiet card before the level-clear modal.
+        P.annQ.push(c.s+"<br><small>a name will hide in a coming level</small>"); save();
+        return; // one summon at a time; the next event re-checks
       }
     }
     save();
@@ -3368,7 +3416,7 @@ const Game = {
     b.style.top=Math.max(4,(mid.r*STEP)-52)+"px";
     boardEl.appendChild(b);
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
-    if(!S.guide) UI.say("grace", "🌱 every word waits a breath — tap <b>hold</b> to keep it and grow it bigger", 2);
+    if(!S.guide) UI.say("grace", "words pause, then <b>bloom</b> (clear) on their own — tap 🌱 <b>HOLD</b> to stop one and keep its letters", 2);
     FT.signal("graceShown",{bubble:b,words});
     let held=false, skip=false;
     b.querySelector(".ghold").onclick=e=>{ e.stopPropagation(); held=true; };
@@ -4253,8 +4301,8 @@ const UI = {
     UI.toast(msg);
   },
   TIPS:{
-    breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. Every word waits a breath before it blooms — tap <b>🌱 hold</b> to keep building."},
-    wish:  {i:"🌟", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand <b>becomes it</b>. A golden letter stays golden ✨."},
+    breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3). Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
+    wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
