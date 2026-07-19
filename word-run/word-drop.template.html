@@ -1077,7 +1077,7 @@
       <div class="card" onclick="event.stopPropagation()">
         <div id="wish-title">🌸 Wish for a letter</div>
         <div id="wish-grid"></div>
-        <div id="wish-sub">it becomes your next tile</div>
+        <div id="wish-sub">your letter becomes it — drop it anywhere</div>
         <button id="wish-pluck" onclick="Game.armPluck(event)">🍂 …or pluck a letter OFF the board</button>
       </div>
     </div>
@@ -2536,6 +2536,11 @@ const Game = {
       setTimeout(()=>el.classList.remove("deny"),350);
       Snd.reject(); buzz(30); return;
     }
+    // a wish reshapes a LETTER — a hand with no letter to reshape politely refuses,
+    // and no wish is spent learning that
+    const k=S.cur && S.cur.kind;
+    if(k==="bomb"){ UI.toast("🌰 the acorn is already exactly what it wants to be"); Snd.reject(); return; }
+    if(k==="wild"){ UI.toast("🌸 that blossom is already <b>every</b> letter at once"); Snd.reject(); return; }
     const grid=$("wish-grid");
     if(!grid.children.length){
       "abcdefghijklmnopqrstuvwxyz".split("").forEach(l=>{
@@ -2544,6 +2549,12 @@ const Game = {
         grid.appendChild(t);
       });
     }
+    // the picker tells the truth about what you'll get: golden hand, golden choices
+    const gold = k==="gold";
+    [...grid.children].forEach(t=>t.classList.toggle("gold", gold));
+    $("wish-sub").innerHTML = gold ? "your <b>golden</b> letter becomes it — still golden ✨"
+      : k==="shift" ? "your restless letter becomes it — still restless 🌀"
+      : "your letter becomes it — drop it anywhere";
     $("ov-wish").classList.add("active");
     Snd.tone(780,{dur:.14,type:"sine",gain:.07,verb:true}); Snd.tone(1170,{dur:.1,type:"sine",gain:.05,when:.09,verb:true});
   },
@@ -2575,15 +2586,20 @@ const Game = {
     UI.all(); saveRun();
     Game.checkEnd();
   },
-  pickWish(l){ // the blossom grants it: your current tile becomes the letter you wished for
+  pickWish(l){ // the wish TRANSFORMS your current letter — it changes the LETTER, never the KIND.
+    // Players wishing while holding a golden tile were getting a plain one back — a
+    // downgrade sold as a gift. Gold stays gold, restless stays restless; a pet's
+    // blessing on your hand survives the wish that reshapes it.
     if(!(P.pow.wild>0)) { Game.closeWish(); return; }
     P.pow.wild--; save();
-    S.cur={letter:l, kind:"normal"};
+    const kind = S.cur ? S.cur.kind : "normal";
+    S.cur={letter:l, kind};
     Game.closeWish(); UI.wishPill(); UI.piece(); UI.hints(); UI.ghost(S.hoverCol);
     UI.blossom(); // petals drift as the wish arrives
     Snd.tone(1046,{dur:.16,type:"sine",gain:.07,verb:true}); Snd.tone(1568,{dur:.22,type:"sine",gain:.05,when:.1,verb:true});
+    if(kind==="gold") Snd.gold();
     buzz([15,30]);
-    UI.say("wish-grant", "🌸 "+l.toUpperCase()+" is yours — drop it anywhere");
+    UI.say("wish-grant", "🌸 "+l.toUpperCase()+" is yours"+(kind==="gold"?" — and still golden ✨":" — drop it anywhere"));
     S.lastAction=Date.now();
   },
 
@@ -3870,7 +3886,7 @@ const UI = {
   },
   TIPS:{
     breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. Every word waits a breath before it blooms — tap <b>🌱 hold</b> to keep building."},
-    wish:  {i:"🌸", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌸 button beside your letters and <b>choose any letter</b> — it becomes your next tile."},
+    wish:  {i:"🌸", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌸 button and <b>choose any letter</b> — the letter in your hand <b>becomes it</b>. A golden letter stays golden ✨."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
