@@ -403,20 +403,20 @@
   .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
   .toolbtn.pop{ animation:slotpop .6s; }
   .toolbtn.deny{ animation:denyshake .32s; }
-  /* the wish rides a shooting star now — dusk indigo with a starlit core, not garden pink */
-  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fff8dc, #cfc4ec 60%, #9b8cc9); box-shadow:0 4px 0 #6f639e, 0 6px 12px rgba(80,65,140,.35), inset 0 2px 0 rgba(255,255,255,.85); }
-  .toolbtn.wish:active{ box-shadow:0 2px 0 #6f639e, 0 4px 8px rgba(80,65,140,.35); }
-  .toolbtn.wish .cnt{ background:#7a6cb0; }
+  /* the wish rides a shooting star — CLEAN warm starlight, one hue, no indigo fighting it */
+  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fffdf0, #ffedb0 62%, #f4d178); box-shadow:0 4px 0 #c2a04e, 0 6px 12px rgba(150,110,30,.3), inset 0 2px 0 rgba(255,255,255,.9); }
+  .toolbtn.wish:active{ box-shadow:0 2px 0 #c2a04e, 0 4px 8px rgba(150,110,30,.3); }
+  .toolbtn.wish .cnt{ background:#a8862e; }
   #wishbtn.armed{ transform:scale(1.1);
-    box-shadow:0 4px 0 #6f639e, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.85);
+    box-shadow:0 4px 0 #c2a04e, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.9);
     animation:wisharm 1.4s ease-in-out infinite; }
-  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #6f639e, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.85); } }
+  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #c2a04e, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.9); } }
   #breezepill.armed{ transform:scale(1.1);
     box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
   @keyframes breezearm{ 50%{ box-shadow:0 4px 0 #7aa886, 0 0 32px rgba(120,200,160,1), inset 0 2px 0 rgba(255,255,255,.8); } }
   /* the wish picker: a cozy grid of little letter tiles */
-  #wish-title{ font-size:18px; font-weight:900; color:#5c5290; }
+  #wish-title{ font-size:18px; font-weight:900; color:var(--gold-deep); }
   #wish-sub{ font-size:12px; color:var(--dim); margin-top:8px; }
   #wish-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-top:12px; }
   #wish-grid .tile{ position:relative; height:38px; font-size:17px; cursor:pointer; display:flex;
@@ -677,12 +677,13 @@
     background:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.85) 48%, transparent 60%);
     background-size:250% 100%; animation:shimmer 2.4s linear infinite; }
   @keyframes shimmer{ from{ background-position:180% 0 } to{ background-position:-80% 0 } }
-  /* ⭐ STAR (wild) — a fallen star that can be any letter. The wild's internal letter
-     was already "★"; the face finally agrees with it. Night-sky indigo, starlight core. */
-  .tile.wild{ background:radial-gradient(circle at 50% 42%, #fff9e0 0 20%, #ffe27a 38%, #8a7ac0 78%, #5c5290 100%);
-    color:#3a2a00; text-shadow:0 1px 0 rgba(255,255,255,.6);
-    box-shadow:0 5px 0 #46407a, 0 7px 14px rgba(60,50,120,.45), 0 0 14px rgba(255,224,130,.55),
-      inset 0 2px 0 rgba(255,255,255,.8), inset 0 -5px 6px rgba(70,60,130,.4); }
+  /* ⭐ STAR (wild) — a fallen star that can be any letter. PURE warm starlight: the
+     board already carries the night, so the star carries only light — mixing indigo
+     into the tile made the gold look tarnished and the whole thing pasty. */
+  .tile.wild{ background:radial-gradient(circle at 50% 40%, #fffdf2 0 26%, #ffedaa 56%, #f3cf6e 100%);
+    color:#6b4e00; text-shadow:0 1px 0 rgba(255,255,255,.7);
+    box-shadow:0 5px 0 #c09a3e, 0 7px 12px rgba(140,100,20,.35), 0 0 18px rgba(255,238,150,.85),
+      inset 0 2px 0 rgba(255,255,255,.9), inset 0 -5px 6px rgba(200,160,60,.35); }
   /* 🌰 ACORN (bomb) */
   .tile.bomb{ background:linear-gradient(150deg,#b98a52,#8a5f30 50%,#5e3d1c); color:#ffe9c7; text-shadow:0 1px 2px #3a2408;
     box-shadow:0 5px 0 #3d2810, 0 7px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,235,200,.5), inset 0 -5px 6px rgba(50,30,10,.5); }
