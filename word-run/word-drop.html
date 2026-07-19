@@ -1746,6 +1746,7 @@ function load(){
     out.quietLvls = out.quietLvls||0; // levels since the last call/wake — pity at 3
     out.annQ = out.annQ||[];          // achievement announcements, shown in the WIN sequence only
     out.amber = out.amber||0;         // 🟠 amber drops — cheap, cheerful, never power
+    out.callBase = out.callBase||{};  // per-creature meter baselines (windowed callings)
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -3009,17 +3010,30 @@ const Game = {
     P.tally[type]=(P.tally[type]||0)+(n||1);
     Game.checkCallings();
   },
+  callProgress(w){ // the meter a calling shows — and the heart of 300-level pacing.
+    // Tier 1 (the first six) counts for LIFE: the early shower must feel instant.
+    // Tiers 2+ count FROM THE MOMENT THE CREATURE STARTS LISTENING (window entry) —
+    // otherwise a level-60 player's lifetime tallies pre-complete every late calling
+    // and all fifty friends arrive by level 65 (the math said so).
+    const c=CALLINGS[w];
+    const raw = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0);
+    if(CALLING_ORDER.indexOf(w)<6) return {have:Math.min(raw,c.n), n:c.n};
+    const base=P.callBase[w];
+    return {have: base==null ? 0 : Math.min(Math.max(0,raw-base),c.n), n:c.n};
+  },
   checkCallings(){
     // nothing calls before the cat is met — the pet system doesn't exist yet for
     // this player, and a mystery toast about it would be noise, not wonder
     if(!P.metGrove || !P.metGrove.cat) return;
     // THE WINDOW: only the next three un-called creatures are listening at once.
-    // Tallies count for life, so credit is retroactive the moment a creature's turn
-    // comes — but summons arrive one at a time instead of 27 in a flood (measured!).
     const win=CALLING_ORDER.filter(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school").slice(0,3);
     for(const w of win){
       const c=CALLINGS[w];
-      const have = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0);
+      // entering the window starts the creature's own clock
+      if(CALLING_ORDER.indexOf(w)>=6 && P.callBase[w]==null){
+        P.callBase[w] = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0); save();
+      }
+      const have = Game.callProgress(w).have;
       if(have>=c.n){
         P.called[w]=1; P.summonQ.push(w); P.quietLvls=0;
         Game.amber(10);
@@ -3365,8 +3379,8 @@ const Game = {
           Game.checkCallings();                // the goat counts its kindred as the grove grows
         } else if(P.metGrove.cat){
           const c=CALLINGS[g.w];
-          const have=c.t==="friends"?Object.keys(P.grove).length:(P.tally[c.t]||0);
-          UI.say("stir-"+g.w, g.e+" you called the <b>"+g.w+"</b> — but it isn't awake.<br><small>wake it: "+c.c+" ("+Math.min(have,c.n)+"/"+c.n+")</small>", 2);
+          const pr=Game.callProgress(g.w);
+          UI.say("stir-"+g.w, g.e+" you called the <b>"+g.w+"</b> — but it isn't awake.<br><small>wake it: "+c.c+" ("+pr.have+"/"+pr.n+")</small>", 2);
         }
       }
       const day=Math.floor(Date.now()/864e5);
@@ -4127,10 +4141,10 @@ const UI = {
           // the card IS the quest log: its calling, its progress, and — once it's
           // listening — the drumroll that a naming level is coming
           const c=CALLINGS[g.w]||{};
-          const have=c.t==="friends"?Object.keys(P.grove).length:(P.tally[c.t]||0);
+          const pr=Game.callProgress(g.w);
           const callLine = P.called[g.w]
             ? '<span class="gcall listening">💫 it is LISTENING…<br>its name comes soon</span>'
-            : '<span class="gcall">'+ (c.c||"") +' <b>'+Math.min(have,c.n||1)+'/'+(c.n||1)+'</b></span>';
+            : '<span class="gcall">'+ (c.c||"") +' <b>'+pr.have+'/'+pr.n+'</b></span>';
           el.innerHTML='<span class="ge">'+g.e+'</span><span class="mound"></span>'
             +'<span class="gn">a hushed friend</span>'
             +'<span class="gp">its name has '+g.w.length+' letters</span>'
