@@ -403,16 +403,18 @@
   .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
   .toolbtn.pop{ animation:slotpop .6s; }
   .toolbtn.deny{ animation:denyshake .32s; }
-  /* the wish button: soft twilight violet, and a CLEAN 🌟 on it — the old 🌠 glyph
-     carries its own black night-square baked into the emoji art, which no button
-     colour can rescue. A bright star on quiet violet: contrast without the fight. */
-  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #f6f0ff, #d8cbf2 62%, #b09ade); box-shadow:0 4px 0 #8672b3, 0 6px 12px rgba(100,80,160,.3), inset 0 2px 0 rgba(255,255,255,.9); }
-  .toolbtn.wish:active{ box-shadow:0 2px 0 #8672b3, 0 4px 8px rgba(100,80,160,.3); }
-  .toolbtn.wish .cnt{ background:#8a76b8; }
+  /* the wish button follows the breeze's law: tone on tone. The leaf is green on a
+     green field, so the star is gold on a warm gold field — plus a faint starlight
+     ring so it reads STAR, not just another golden thing. (The violet experiment
+     put a warm icon on a cool field, and the two argued.) */
+  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fffbe8, #ffeeb4 62%, #f6d67c);
+    box-shadow:0 4px 0 #c9a44e, 0 6px 12px rgba(150,110,30,.3), 0 0 10px rgba(255,224,130,.45), inset 0 2px 0 rgba(255,255,255,.9); }
+  .toolbtn.wish:active{ box-shadow:0 2px 0 #c9a44e, 0 4px 8px rgba(150,110,30,.3); }
+  .toolbtn.wish .cnt{ background:#b08a2e; }
   #wishbtn.armed{ transform:scale(1.1);
-    box-shadow:0 4px 0 #8672b3, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.9);
+    box-shadow:0 4px 0 #c9a44e, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.9);
     animation:wisharm 1.4s ease-in-out infinite; }
-  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #8672b3, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.9); } }
+  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #c9a44e, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.9); } }
   #breezepill.armed{ transform:scale(1.1);
     box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
