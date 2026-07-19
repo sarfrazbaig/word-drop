@@ -403,14 +403,16 @@
   .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
   .toolbtn.pop{ animation:slotpop .6s; }
   .toolbtn.deny{ animation:denyshake .32s; }
-  /* the wish rides a shooting star — CLEAN warm starlight, one hue, no indigo fighting it */
-  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fffdf0, #ffedb0 62%, #f4d178); box-shadow:0 4px 0 #c2a04e, 0 6px 12px rgba(150,110,30,.3), inset 0 2px 0 rgba(255,255,255,.9); }
-  .toolbtn.wish:active{ box-shadow:0 2px 0 #c2a04e, 0 4px 8px rgba(150,110,30,.3); }
-  .toolbtn.wish .cnt{ background:#a8862e; }
+  /* the wish button: soft twilight violet, and a CLEAN 🌟 on it — the old 🌠 glyph
+     carries its own black night-square baked into the emoji art, which no button
+     colour can rescue. A bright star on quiet violet: contrast without the fight. */
+  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #f6f0ff, #d8cbf2 62%, #b09ade); box-shadow:0 4px 0 #8672b3, 0 6px 12px rgba(100,80,160,.3), inset 0 2px 0 rgba(255,255,255,.9); }
+  .toolbtn.wish:active{ box-shadow:0 2px 0 #8672b3, 0 4px 8px rgba(100,80,160,.3); }
+  .toolbtn.wish .cnt{ background:#8a76b8; }
   #wishbtn.armed{ transform:scale(1.1);
-    box-shadow:0 4px 0 #c2a04e, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.9);
+    box-shadow:0 4px 0 #8672b3, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.9);
     animation:wisharm 1.4s ease-in-out infinite; }
-  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #c2a04e, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.9); } }
+  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #8672b3, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.9); } }
   #breezepill.armed{ transform:scale(1.1);
     box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
@@ -1074,13 +1076,13 @@
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
-      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()">🌠<span class="cnt" id="wish-cnt">0</span></button>
+      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()">🌟<span class="cnt" id="wish-cnt">0</span></button>
     </div>
 
-    <!-- 🌠 WISH: wish on a star for the letter you need -->
+    <!-- 🌟 WISH: wish on a star for the letter you need -->
     <div class="overlay" id="ov-wish" onclick="Game.closeWish()">
       <div class="card" onclick="event.stopPropagation()">
-        <div id="wish-title">🌠 Wish on a star</div>
+        <div id="wish-title">🌟 Wish on a star</div>
         <div id="wish-grid"></div>
         <div id="wish-sub">your letter becomes it — drop it anywhere</div>
         <button id="wish-pluck" onclick="Game.armPluck(event)">🍂 …or pluck a letter OFF the board</button>
@@ -1522,7 +1524,7 @@ const PAIRS=[
   {a:"bunny",b:"turtle", n:"The Fair Race", i:"🏁", t:"startMoves",  d:"+2 moves at the start of every level"},
   {a:"owl",b:"crow",     n:"Wise Flock",    i:"🌙", t:"skipJunkHard",d:"awkward letters almost never appear"},
   {a:"fox",b:"fish",     n:"River Gold",    i:"🌊", t:"gold4",       d:"golden letters score ×4 instead of ×3"},
-  {a:"pig",b:"raccoon",  n:"Treasure Pals", i:"💎", t:"crateWish",   d:"gift crates also grant a 🌠 wish"},
+  {a:"pig",b:"raccoon",  n:"Treasure Pals", i:"💎", t:"crateWish",   d:"gift crates also grant a 🌟 wish"},
   {a:"goat",b:"lamb",    n:"Meadow Kin",    i:"🌼", t:"kindred3",    d:"creature words score ×3"},
   {a:"spider",b:"cricket",n:"Night Music",  i:"🎶", t:"webChain",    d:"a webbed word also doubles your next cascade"},
   {a:"bee",b:"ladybug",  n:"Garden Party",  i:"🎉", t:"actRain",     d:"every pet power also rains a helpful letter"},
@@ -2402,7 +2404,7 @@ const Game = {
     // players kept dying with charged tools they'd forgotten — one gentle reminder per level
     if(S.movesLeft<=4 && !S.toolNudged && (P.pow.swap>0 || P.pow.wild>0)){
       S.toolNudged=true;
-      const which = P.pow.swap>0 && P.pow.wild>0 ? "🍃 a breeze or a 🌠 wish" : P.pow.swap>0 ? "🍃 a breeze" : "🌠 a wish";
+      const which = P.pow.swap>0 && P.pow.wild>0 ? "🍃 a breeze or a 🌟 wish" : P.pow.swap>0 ? "🍃 a breeze" : "🌟 a wish";
       UI.toast("psst — you still have "+which+"!");
       [P.pow.swap>0&&"breezepill", P.pow.wild>0&&"wishbtn"].filter(Boolean).forEach(id=>{
         const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
@@ -2604,7 +2606,7 @@ const Game = {
     Snd.tone(1046,{dur:.16,type:"sine",gain:.07,verb:true}); Snd.tone(1568,{dur:.22,type:"sine",gain:.05,when:.1,verb:true});
     if(kind==="gold") Snd.gold();
     buzz([15,30]);
-    UI.say("wish-grant", "🌠 "+l.toUpperCase()+" is yours"+(kind==="gold"?" — and still golden ✨":" — drop it anywhere"));
+    UI.say("wish-grant", "🌟 "+l.toUpperCase()+" is yours"+(kind==="gold"?" — and still golden ✨":" — drop it anywhere"));
     S.lastAction=Date.now();
   },
 
@@ -3149,7 +3151,7 @@ const Game = {
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
       if(len>=5) await Game.jackpot(len);              // 🎆 the moment worth chasing
-      if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌠
+      if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌟
       else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
       Game.recordWord(w, pts, S.chain);
       // THE announcement of this game — the word you made and what it paid — used to sit
@@ -3225,7 +3227,7 @@ const Game = {
     const got=[];
     S.levelScore+=15; got.push("<b>+15</b>");
     if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
-    if((P.pow.wild||0)<3){ Game.earnWish();  got.push("🌠 a wish"); }
+    if((P.pow.wild||0)<3){ Game.earnWish();  got.push("🌟 a wish"); }
     if(got.length<3){ Game.addMoves(3); got.push("<b>+3 moves</b>"); }   // never a dud
     if(pairOn("crateWish")){ P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save(); UI.wishPill(); } // 💎 Treasure Pals
     Game.cheer(Game.petNeed());                                          // and the pets get their treat
@@ -3295,7 +3297,7 @@ const UI = {
       const q=dailyQuest();
       // the quest is a promise of a reward — show the goal, the progress, and the prize,
       // not a bare grey whisper that reads like placeholder text
-      const rw = q.reward==="wild" ? "🌠 a wish" : "🌰 an acorn";
+      const rw = q.reward==="wild" ? "🌟 a wish" : "🌰 an acorn";
       $("hm-quest").innerHTML = P.questDone
         ? '<span>'+q.emoji+' <b>quest done ✓</b></span><em>'+rw+' earned</em>'
         : '<span>'+q.emoji+' today: <b>'+q.text+'</b></span><em>'+Math.min(P.questProgress||0,q.target)+'/'+q.target+' done · earns '+rw+'</em>';
@@ -3891,11 +3893,11 @@ const UI = {
   },
   TIPS:{
     breeze:{i:"🍃", t:"You caught a <b>breeze</b>! Every 3-letter word earns one. Tap the 🍃 button beside your letters, then tap <b>two tiles</b> to swap them. Every word waits a breath before it blooms — tap <b>🌱 hold</b> to keep building."},
-    wish:  {i:"🌠", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌠 button and <b>choose any letter</b> — the letter in your hand <b>becomes it</b>. A golden letter stays golden ✨."},
+    wish:  {i:"🌟", t:"You earned a <b>wish</b>! Every 4-letter word grants one. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand <b>becomes it</b>. A golden letter stays golden ✨."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
-    crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open — <b>points, a 🍃 breeze, a 🌠 wish</b> — and your friends' paw meter fills at once."},
+    crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open — <b>points, a 🍃 breeze, a 🌟 wish</b> — and your friends' paw meter fills at once."},
     shift: {i:"🌀", t:"A <b>restless tile</b> — it changes its letter every few drops. Catch it at the right moment!"},
   },
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
