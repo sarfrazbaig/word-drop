@@ -403,18 +403,20 @@
   .toolbtn.empty{ opacity:.4; filter:grayscale(.4); }
   .toolbtn.pop{ animation:slotpop .6s; }
   .toolbtn.deny{ animation:denyshake .32s; }
-  /* the wish button follows the breeze's law: tone on tone. The leaf is green on a
-     green field, so the star is gold on a warm gold field — plus a faint starlight
-     ring so it reads STAR, not just another golden thing. (The violet experiment
-     put a warm icon on a cool field, and the two argued.) */
-  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #fffbe8, #ffeeb4 62%, #f6d67c);
-    box-shadow:0 4px 0 #c9a44e, 0 6px 12px rgba(150,110,30,.3), 0 0 10px rgba(255,224,130,.45), inset 0 2px 0 rgba(255,255,255,.9); }
-  .toolbtn.wish:active{ box-shadow:0 2px 0 #c9a44e, 0 4px 8px rgba(150,110,30,.3); }
-  .toolbtn.wish .cnt{ background:#b08a2e; }
+  /* the wish button: a white star on twilight violet — the user's first instinct,
+     finally done right. The violet never failed; the YELLOW EMOJI on it did. The ★
+     text glyph takes our silver, so the field and the star agree: night and light.
+     Gold now belongs to VALUE alone (golden letters, jackpots) — one meaning, one hue. */
+  .toolbtn.wish{ background:radial-gradient(120% 120% at 40% 30%, #ded4f2, #a795d4 62%, #7c6bb0);
+    box-shadow:0 4px 0 #57497e, 0 6px 12px rgba(70,55,130,.35), inset 0 2px 0 rgba(255,255,255,.55); }
+  .toolbtn.wish:active{ box-shadow:0 2px 0 #57497e, 0 4px 8px rgba(70,55,130,.35); }
+  .toolbtn.wish .cnt{ background:#57497e; color:#fff; }
+  .toolbtn.wish .starglyph{ color:#fff; font-size:23px; line-height:1;
+    text-shadow:0 0 6px rgba(255,255,255,.95), 0 0 14px rgba(215,205,255,.85); }
   #wishbtn.armed{ transform:scale(1.1);
-    box-shadow:0 4px 0 #c9a44e, 0 0 22px rgba(255,224,130,.9), inset 0 2px 0 rgba(255,255,255,.9);
+    box-shadow:0 4px 0 #57497e, 0 0 22px rgba(215,205,255,.95), inset 0 2px 0 rgba(255,255,255,.55);
     animation:wisharm 1.4s ease-in-out infinite; }
-  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #c9a44e, 0 0 32px rgba(255,224,130,1), inset 0 2px 0 rgba(255,255,255,.9); } }
+  @keyframes wisharm{ 50%{ box-shadow:0 4px 0 #57497e, 0 0 32px rgba(225,215,255,1), inset 0 2px 0 rgba(255,255,255,.55); } }
   #breezepill.armed{ transform:scale(1.1);
     box-shadow:0 4px 0 #7aa886, 0 0 22px rgba(120,200,160,.9), inset 0 2px 0 rgba(255,255,255,.8);
     animation:breezearm 1.4s ease-in-out infinite; }
@@ -681,13 +683,14 @@
     background:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.85) 48%, transparent 60%);
     background-size:250% 100%; animation:shimmer 2.4s linear infinite; }
   @keyframes shimmer{ from{ background-position:180% 0 } to{ background-position:-80% 0 } }
-  /* ⭐ STAR (wild) — a fallen star that can be any letter. PURE warm starlight: the
-     board already carries the night, so the star carries only light — mixing indigo
-     into the tile made the gold look tarnished and the whole thing pasty. */
-  .tile.wild{ background:radial-gradient(circle at 50% 40%, #fffdf2 0 26%, #ffedaa 56%, #f3cf6e 100%);
-    color:#6b4e00; text-shadow:0 1px 0 rgba(255,255,255,.7);
-    box-shadow:0 5px 0 #c09a3e, 0 7px 12px rgba(140,100,20,.35), 0 0 18px rgba(255,238,150,.85),
-      inset 0 2px 0 rgba(255,255,255,.9), inset 0 -5px 6px rgba(200,160,60,.35); }
+  /* ★ STAR (wild) — a piece of the night sky fallen onto the board. SILVER-WHITE on
+     twilight violet: gold on this board means VALUE (golden letters, jackpots), and a
+     third gold surface drowned it. Real starlight is white — and the ★ text glyph,
+     unlike any emoji, takes whatever colour we give it. */
+  .tile.wild{ background:radial-gradient(circle at 50% 38%, #b9aede 0 18%, #8d7fc0 55%, #5a4f8a 100%);
+    color:#fff; font-size:26px!important; text-shadow:0 0 7px rgba(255,255,255,.95), 0 0 16px rgba(210,200,255,.8);
+    box-shadow:0 5px 0 #453c6e, 0 7px 12px rgba(50,40,100,.4), 0 0 14px rgba(200,188,255,.55),
+      inset 0 2px 0 rgba(255,255,255,.5), inset 0 -5px 6px rgba(60,50,110,.45); }
   /* 🌰 ACORN (bomb) */
   .tile.bomb{ background:linear-gradient(150deg,#b98a52,#8a5f30 50%,#5e3d1c); color:#ffe9c7; text-shadow:0 1px 2px #3a2408;
     box-shadow:0 5px 0 #3d2810, 0 7px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,235,200,.5), inset 0 -5px 6px rgba(50,30,10,.5); }
@@ -840,6 +843,7 @@
   #meet-line{ font-size:14px; color:var(--dim); margin-top:2px; }
   #meet-count{ font-size:12px; color:var(--gold-deep); font-weight:700; margin-top:6px; }
   .petal{ position:absolute; font-size:18px; z-index:70; pointer-events:none; animation:petalfall linear forwards; }
+  .petal.starfall{ color:#fff; text-shadow:0 0 7px rgba(255,255,255,.9), 0 0 15px rgba(205,195,255,.75); }
   @keyframes petalfall{ 0%{ transform:translateY(-20px) rotate(0); opacity:0 } 12%{ opacity:1 }
     100%{ transform:translateY(var(--fall)) rotate(320deg); opacity:0 } }
   /* a soft, slow gust of warm light drifting across — not a hard sweep */
@@ -1078,7 +1082,7 @@
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
-      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()">🌟<span class="cnt" id="wish-cnt">0</span></button>
+      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()"><span class="starglyph">★</span><span class="cnt" id="wish-cnt">0</span></button>
     </div>
 
     <!-- 🌟 WISH: wish on a star for the letter you need -->
@@ -1933,7 +1937,7 @@ boardEl.style.height = (ROWS*STEP-GAP)+"px";
 function xy(r,c){ return "translate("+(c*STEP)+"px,"+(r*STEP)+"px)"; }
 function tileFace(t){
   if(t.kind==="bomb") return "🌰";              // acorn
-  if(t.kind==="wild") return "⭐";              // a fallen star — any letter it likes
+  if(t.kind==="wild") return "★";              // the TEXT star — it takes our silver, emoji won't
   if(t.kind==="stone") return "";               // the CSS renders the mossy rock
   if(t.kind==="crate") return "🎁";
   const val = (t.kind==="ice") ? "<small>"+VAL[t.letter]+"</small>" : "<small>"+VAL[t.letter]+"</small>";
@@ -3573,9 +3577,9 @@ const UI = {
       boardEl.appendChild(l); setTimeout(()=>l.remove(),3200); }
     Snd.wind ? Snd.wind() : Snd.whoosh();
   },
-  stardrift(){ // starlight drifts down over the board when a star settles
-    for(let i=0;i<14;i++){ const p=document.createElement("div"); p.className="petal";
-      p.textContent=["✨","⭐","🌟"][i%3];
+  stardrift(){ // SILVER starlight drifts down — text glyphs so the white takes
+    for(let i=0;i<14;i++){ const p=document.createElement("div"); p.className="petal starfall";
+      p.textContent=["★","✦","✧"][i%3];
       p.style.left=Math.random()*100+"%"; p.style.top="0";
       p.style.setProperty("--fall",(boardEl.clientHeight*0.85+Math.random()*30)+"px");
       p.style.animationDuration=(1.1+Math.random()*0.7)+"s"; p.style.animationDelay=(Math.random()*0.4)+"s";
