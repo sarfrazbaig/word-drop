@@ -344,6 +344,11 @@
     background:#fffdf6; padding:7px 9px; font-family:monospace; font-size:10px; color:var(--ink); }
   #charm-in.show{ display:block; }
   #charm-msg{ font-family:var(--font-ui); font-size:11px; font-weight:700; line-height:1.4; color:var(--ink); min-height:0; }
+  /* 🔧 the keeper's toolbox — dev-only, opened by a secret knock */
+  #dbg-title{ font-family:var(--font-story); font-weight:800; font-size:19px; color:var(--ink); }
+  #dbg-state{ font-size:12px; color:var(--dim); font-weight:700; margin:2px 0 8px; }
+  #dbg-rows{ display:grid; grid-template-columns:1fr 1fr; gap:7px; width:100%; margin-bottom:9px; }
+  #dbg-rows .charm-btn{ padding:10px 6px; }
 
   /* -------- first-run tutorial: four wordless-leaning slides -------- */
   #tut-slide{ min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
@@ -1129,6 +1134,24 @@
     </div>
   </div>
 
+  <!-- 🔧 KEEPER'S TOOLBOX — a hidden dev drawer. Seven quick taps on the LV chip. -->
+  <div class="overlay" id="ov-debug">
+    <div class="card">
+      <div style="font-size:30px">🔧</div>
+      <div id="dbg-title">the keeper's toolbox</div>
+      <div id="dbg-state"></div>
+      <div id="dbg-rows">
+        <button class="charm-btn" onclick="UI.dbgSkip(1)">⏭ next level</button>
+        <button class="charm-btn" onclick="UI.dbgSkip(10)">⏩ +10 levels</button>
+        <button class="charm-btn" onclick="UI.dbgSkip(-1)">⏮ back one</button>
+        <button class="charm-btn" onclick="UI.dbgAmber()">🟠 +100 amber</button>
+        <button class="charm-btn" onclick="UI.dbgSkip(0)">↻ replay level</button>
+        <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑 wipe save</button>
+      </div>
+      <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
+    </div>
+  </div>
+
   <!-- ============ SLIDE MENU ============ -->
   <div id="menu-scrim" onclick="UI.menuToggle(false)"></div>
   <aside id="menu-panel">
@@ -1159,7 +1182,7 @@
       <button class="iconbtn sm" onclick="Game.goHome()">🏠</button>
       <button class="iconbtn sm" id="btn-restart" onclick="Game.restartBtn()">↻</button>
       <div id="movesbox"><div id="movesbig">15</div><div id="moveslabel">moves</div></div>
-      <span id="lvlchip" class="chip">LV <b id="h-level">1</b></span>
+      <span id="lvlchip" class="chip" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
       <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
     </div>
     <div id="goalstrip">
@@ -4666,6 +4689,34 @@ const UI = {
     }
     try{ localStorage.setItem("worddrop_v3", JSON.stringify(p)); }catch(e){}
     location.reload(); // load() renormalizes everything on the way back up
+  },
+
+  /* ---- 🔧 KEEPER'S TOOLBOX — dev drawer behind seven quick taps on the LV chip.
+     Nothing here is discoverable by accident; nothing here is load-bearing. ---- */
+  dbgTap(){
+    const now=Date.now();
+    UI._dbgT = (UI._dbgT && now-UI._dbgT.t<900) ? {n:UI._dbgT.n+1, t:now} : {n:1, t:now};
+    if(UI._dbgT.n>=7){ UI._dbgT=null; UI.dbgShow(); }
+  },
+  dbgShow(){
+    UI._dbgWipeArmed=false;
+    $("dbg-wipe").textContent="🗑 wipe save";
+    $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
+    $("ov-debug").classList.add("active");
+  },
+  dbgClose(){ $("ov-debug").classList.remove("active"); },
+  dbgSkip(n){ // jump the road: n=0 replays, negatives walk back, never below 1
+    P.level=Math.max(1,(P.level||1)+n); P.run=null; save();
+    UI.dbgClose();
+    Game.startLevel(P.level); UI.scene("scene-game");
+  },
+  dbgAmber(){
+    Game.amber(100);
+    $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
+  },
+  dbgWipe(){ // destructive — ask twice even in a dev drawer
+    if(!UI._dbgWipeArmed){ UI._dbgWipeArmed=true; $("dbg-wipe").textContent="⚠️ really? tap again"; return; }
+    localStorage.clear(); location.reload();
   },
 
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
