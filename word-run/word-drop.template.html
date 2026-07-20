@@ -963,6 +963,37 @@
     30%{ transform:translate(-50%,-50%) scale(1) } 80%{ opacity:1 } 100%{ transform:translate(-50%,-80%) scale(.9); opacity:0 } }
   /* ---- meet a new friend ritual ---- */
   #ov-meet{ background:none; overflow:hidden; z-index:170; }
+  /* ── THE FINALE: the one time the wood's dusk lifts to dawn ── */
+  #ov-finale{ background:rgba(20,16,32,.4); }
+  #ov-finale.active{ display:flex; }
+  #fin-sky{ position:absolute; inset:0; z-index:-2;
+    background:linear-gradient(180deg,#f6d98a 0%,#f0b98a 34%,#e79f97 60%,#c98fb0 100%);
+    animation:finDawn 2.4s ease both; }
+  @keyframes finDawn{ from{ opacity:0; filter:brightness(.6); } to{ opacity:1; filter:brightness(1); } }
+  #fin-bow{ position:absolute; left:50%; top:58%; width:150%; aspect-ratio:1; transform:translate(-50%,0);
+    border-radius:50%; z-index:-1; opacity:.55;
+    background:radial-gradient(circle at 50% 100%, transparent 60%,
+      rgba(255,120,120,.5) 61%, rgba(255,190,90,.5) 64%, rgba(150,210,120,.5) 67%,
+      rgba(120,180,240,.5) 70%, rgba(180,140,230,.5) 73%, transparent 74%);
+    animation:finBow 3s ease .5s both; }
+  @keyframes finBow{ from{ transform:translate(-50%,40px); opacity:0; } to{ transform:translate(-50%,0); opacity:.55; } }
+  #fin-grove{ position:absolute; left:0; right:0; top:12%; display:flex; flex-wrap:wrap;
+    justify-content:center; gap:5px 8px; padding:0 26px; max-width:420px; margin:0 auto;
+    font-size:23px; line-height:1.1; z-index:0; }
+  #fin-grove span{ opacity:0; animation:finPop .5s ease both; }
+  @keyframes finPop{ from{ opacity:0; transform:scale(.3) translateY(6px); } to{ opacity:1; transform:none; } }
+  #fin-card{ margin-top:auto; margin-bottom:9%; text-align:center; background:rgba(255,251,242,.94);
+    max-width:330px; animation:finRise .8s ease 1.6s both; }
+  @keyframes finRise{ from{ opacity:0; transform:translateY(24px); } to{ opacity:1; transform:none; } }
+  #fin-kick{ font-size:12px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+    color:var(--accent-deep); }
+  #fin-title{ font-family:var(--font-title,serif); font-size:27px; font-weight:700; color:var(--ink);
+    margin:4px 0 8px; }
+  #fin-body{ font-size:14.5px; line-height:1.6; color:var(--ink); }
+  #fin-body b{ color:var(--gold-deep,#b87a15); }
+  @media (prefers-reduced-motion: reduce){
+    #fin-sky,#fin-bow,#fin-grove span,#fin-card{ animation-duration:.01ms !important; } }
+
   #meet-sky{ position:absolute; inset:0 0 34% 0; background:linear-gradient(180deg,#514f82 0%,#8579a6 48%,#cf9f7e 100%); }
   /* the one moment light returns to the wood: the moon itself warms and brightens.
      it stays a MOON — the dusk is one continuous evening even when it smiles. */
@@ -1311,6 +1342,7 @@
         <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑️ wipe save</button>
         <button class="charm-btn" id="dbg-shop" onclick="UI.dbgShop()">💳 test payments</button>
         <button class="charm-btn" id="dbg-ads" onclick="UI.dbgAds()">🎬 test ads</button>
+        <button class="charm-btn" id="dbg-finale" onclick="UI.dbgFinale()">🌈 test finale</button>
         <button class="charm-btn" id="dbg-tele" onclick="UI.dbgTele()">📡 telemetry</button>
       </div>
       <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
@@ -1466,6 +1498,19 @@
       <div id="meet-line">has come to live in your grove 🌳</div>
       <div id="meet-count"></div>
       <div id="iv-tap">TAP TO WELCOME</div>
+    </div>
+  </div>
+
+  <!-- THE HUSH LIFTS — shown once, when the fiftieth name is home -->
+  <div class="overlay" id="ov-finale">
+    <div id="fin-sky"></div>
+    <div id="fin-bow"></div>
+    <div id="fin-grove"></div>
+    <div class="card" id="fin-card">
+      <div id="fin-kick">the wood is awake</div>
+      <div id="fin-title">The hush is over</div>
+      <div id="fin-body"></div>
+      <button class="charm-btn go show" id="fin-go" onclick="Game.finaleClose()">walk the waking wood</button>
     </div>
   </div>
 
@@ -2161,7 +2206,7 @@ function dailyQuest(){
 /* =================== PERSISTENCE (v2: level-based) =================== */
 let S = null;
 function load(){
-  const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"",
+  const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"", finale:0,
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
     questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, grove:{}, metGrove:{}, equip:[], run:null };
@@ -3001,7 +3046,11 @@ const Game = {
       P.metGrove[UI._meetWord]=Date.now();
       UI._lastWake=GROVE_BY_WORD[UI._meetWord] ? GROVE_BY_WORD[UI._meetWord].e : null; // greet them on the home cover
       if((P.equip||[]).length<slotsFor(P.level) && !P.equip.includes(UI._meetWord)) P.equip.push(UI._meetWord); // new friends join the party while there's room
+      const complete = Object.keys(P.metGrove).length >= GROVE.length && !P.finale;
+      if(complete){ P.finale=Date.now(); }
       save(); UI._meetWord=null;
+      if(complete){ UI.meetBloom(UI._meetCreature);
+        setTimeout(()=>Game.finale(), 1400); return; }   // the wood wakes, after the last is welcomed
     }
     UI.meetBloom(UI._meetCreature); buzz(20);
     UI.visitor(); // the new friend now sits by your letters
@@ -3021,6 +3070,32 @@ const Game = {
       if(S && !S.won && !S.over) Game.showPendingTip(); // …and tips only if play continues —
       // the old order stacked a tip card on top of the win sequence (caught live)
     } }, 900);
+  },
+  finale(){
+    // gather every name that came home, in the order the wood learned them
+    const woken = Object.keys(P.metGrove).sort((a,b)=>(P.metGrove[a]||0)-(P.metGrove[b]||0));
+    const grove = woken.map(w=>GROVE_BY_WORD[w] ? GROVE_BY_WORD[w].e : "🐾");
+    $("fin-grove").innerHTML = grove.map((e,i)=>
+      '<span style="animation-delay:'+(0.4+i*0.045).toFixed(2)+'s">'+e+'</span>').join("");
+    $("fin-body").innerHTML =
+      "Fifty names, spoken back into the world.<br>The wood is loud with them now &mdash; "
+      + "and the quiet that swallowed this place is <b>gone</b>.<br><br>"
+      + "<b>You</b> are the one who remembered. The wood will not forget it.";
+    Game.track("finale",{ names:woken.length, level:P.level, streak:P.streak||0 });
+    if(S){ S.busy=true; }                          // hold the board under the moment
+    $("ov-finale").classList.add("active");
+    Snd.levelUp();
+    // a soft rising flourish as the light returns — built from tones that actually exist
+    [523,659,784,1047].forEach((f,i)=> setTimeout(()=>{ try{ Snd.tone(f,{dur:.5,type:"sine",gain:.06,verb:true}); }catch(e){} }, 700+i*180));
+    UI.confetti && setTimeout(()=>UI.confetti(), 1700);
+    buzz([40,60,40,120]);
+  },
+  finaleClose(){
+    $("ov-finale").classList.remove("active");
+    if(S){ S.busy=false; S.lastAction=Date.now();
+      Game.checkCallings(); Game.checkEnd(); if(!S.won && !S.over) Game.showPendingTip(); }
+    else { UI.home && UI.home(); }
+    save();
   },
   showPendingMeet(){ // meet any friend you unlocked last round — the ritual explains what pets do
     if(!S || S.over || S.won) return false;
@@ -5400,6 +5475,11 @@ const UI = {
     Shop.render();
   },
   dbgTele(){ Tele.flush(); UI.toast(Tele.status().replace(/\n/g,"<br>")); },
+  dbgFinale(){   // fill the grove and lift the hush — for testing the ending only
+    GROVE.forEach(g=>{ P.grove[g.w]=P.grove[g.w]||Date.now(); P.metGrove[g.w]=P.metGrove[g.w]||Date.now(); });
+    P.finale=0; save(); UI.closeToolbox && UI.closeToolbox();
+    Game.finale();
+  },
   dbgAds(){ // session-only test reel: rewarded flows end-to-end, no real network
     Ads.provider = Ads.provider ? null : Ads.DEV;
     $("dbg-ads").textContent = Ads.provider ? "🎬 test ads ON" : "🎬 test ads";
