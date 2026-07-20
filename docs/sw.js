@@ -4,7 +4,7 @@
 // each deploy, never installs a new worker, and never clears the old cache — so a
 // playtester can sit on a stale build while you push fixes they never receive. A changed
 // stamp makes the file differ, which triggers install → activate → old caches deleted.
-const CACHE = "hushwood-20260720135704";
+const CACHE = "hushwood-20260720152010";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {

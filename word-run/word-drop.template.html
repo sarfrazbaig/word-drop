@@ -5535,10 +5535,18 @@ const Tele = {
   },
   _tap(e){
     const hit=e.target.closest("button,[onclick],.tile,.gcard,.menu-item,.shoprow,.charm-btn,.toolbtn,.iconbtn,.chip,a,textarea,input");
-    const label=hit? (hit.id||hit.getAttribute("aria-label")||(hit.textContent||"").trim()||"").slice(0,44) : "";
+    // THE BOARD IS NOT DEAD SPACE. Dropping a letter is handled by a pointerup listener
+    // on #board itself — no button, no onclick — so closest() found nothing and the most
+    // common action in the whole game was logged as a FAILED tap. Every drop showed up as
+    // a dead_tap, and the rage detector fired on ordinary play: the one signal meant to
+    // find broken UI was drowning in the sound of the game working perfectly.
+    const onBoard = !hit && !!e.target.closest("#board");
+    const label=hit? (hit.id||hit.getAttribute("aria-label")||(hit.textContent||"").trim()||"").slice(0,44)
+      : (onBoard ? "drop" : "");
     const sel=hit? (hit.tagName.toLowerCase()+(hit.id?"#"+hit.id:"")
-      +(typeof hit.className==="string"&&hit.className.trim()?"."+hit.className.trim().split(/\s+/)[0]:"")) : "none";
-    const x=Math.round(e.clientX), y=Math.round(e.clientY), dead=!hit;
+      +(typeof hit.className==="string"&&hit.className.trim()?"."+hit.className.trim().split(/\s+/)[0]:""))
+      : (onBoard ? "board" : "none");
+    const x=Math.round(e.clientX), y=Math.round(e.clientY), dead=!hit && !onBoard;
     this.log("tap",{ sel, label, x, y, dead });
     if(dead) this.log("dead_tap",{ x, y });
     // rage: 3+ taps within 700ms and ~45px — the classic "why isn't this working" tell
