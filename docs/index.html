@@ -344,6 +344,12 @@
     background:#fffdf6; padding:7px 9px; font-family:monospace; font-size:10px; color:var(--ink); }
   #charm-in.show{ display:block; }
   #charm-msg{ font-family:var(--font-ui); font-size:12px; font-weight:700; line-height:1.45; color:var(--ink); min-height:0; }
+  /* 🎬 the picture-show's three doors */
+  #homegift{ position:absolute; right:20%; bottom:26px; font-size:30px; cursor:pointer; display:none;
+    filter:drop-shadow(0 3px 6px rgba(60,30,0,.4)); animation:peekbob 2.2s ease-in-out infinite; z-index:3; }
+  #homegift.on{ display:block; }
+  #homegift:active{ transform:scale(.92); }
+  #ev-blessed{ font-size:12px; font-weight:800; color:var(--gold-deep); }
   /* 🟠 the Trading Post */
   #shop-title{ font-family:var(--font-story); font-weight:800; font-size:21px; color:var(--ink); }
   #shop-sub{ font-size:12.5px; color:var(--dim); line-height:1.5; margin:2px 0 8px; }
@@ -1148,6 +1154,7 @@
     <div id="hill-near">
       <span class="sprout" style="left:24%">🌿</span>
       <span class="sprout" style="right:28%">🌱</span>
+      <span id="homegift" onclick="Ads.dailyGift()" title="the wood left something for you">🎁</span>
       <span class="peek" id="peek-0" style="left:12%">🐱</span>
       <span class="peek" id="peek-1" style="left:33%">🐰</span>
       <span class="peek" id="peek-2" style="right:31%">🦌</span>
@@ -1182,6 +1189,7 @@
         <button class="charm-btn" onclick="UI.dbgSkip(0)">↻ replay level</button>
         <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑 wipe save</button>
         <button class="charm-btn" id="dbg-shop" onclick="UI.dbgShop()">💳 test payments</button>
+        <button class="charm-btn" id="dbg-ads" onclick="UI.dbgAds()">🎬 test ads</button>
       </div>
       <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
     </div>
@@ -1359,6 +1367,8 @@
       <div id="ev-grove"></div>
       <div class="buttons">
         <button class="btn-primary btn-gold" id="btn-moves" onclick="Game.extraMoves()">🪶 +5 moves</button>
+        <button class="btn-primary btn-gold" id="btn-double" style="display:none" onclick="Game.doubleThanks()">🎬 double the wood's thanks</button>
+        <div id="ev-blessed" style="display:none">🕯️ blessed — the wood's thanks came doubled</div>
         <button class="btn-primary" id="btn-next" onclick="Game.nextLevel()">▶ Next level</button>
         <button class="btn-primary btn-ghost" id="btn-retry" onclick="Game.retryLevel()">↻ Retry</button>
       </div>
@@ -1904,9 +1914,53 @@ const SHOP_ITEMS=[
   {sku:"amber_s", i:"🟠", n:"a handful of amber",    amber:200,  price:"$1.99"},
   {sku:"amber_m", i:"💰", n:"a pouch of amber",      amber:550,  price:"$4.99", best:true},
   {sku:"amber_l", i:"🏺", n:"a jar of amber",        amber:1200, price:"$9.99"},
+  {sku:"blessing",i:"🕯️", n:"the keeper's blessing", price:"$6.99", once:true,
+   d:"every gift opens freely — rescues, doubled thanks, the daily chest"},
 ];
+/* ============ 🎬 THE PICTURE-SHOW — rewarded ads, and nothing else ============
+   The brand rule, in code: no interstitials, no banners, ever. Every placement is
+   something the player ASKS for. Ads.provider is null until AdMob (or kin) is wired
+   at packaging time — one object with show(placement) that resolves when the reward
+   is EARNED. Unwired, every placement simply doesn't appear. The toolbox's 🎬
+   toggle mounts a test reel so the flows can be rehearsed end-to-end. */
+const Ads={
+  provider:null,
+  DEV:{ name:"dev-reel", async show(p){ await wait(600); return {watched:true}; } },
+  ready(){ return !!Ads.provider; },
+  async show(placement){
+    Game.track("ad_start",{p:placement});
+    try{
+      await Ads.provider.show(placement);
+      Game.track("ad_complete",{p:placement});
+      return true;
+    }catch(e){
+      Game.track("ad_fail",{p:placement});
+      UI.toast("🌫️ the picture-show flickered out — <b>nothing was lost</b>");
+      return false;
+    }
+  },
+  giftRefresh(){ // the wood's daily chest: only shown when it can actually open
+    const g=$("homegift"); if(!g) return;
+    const today=Math.floor(Date.now()/864e5);
+    g.classList.toggle("on", (Ads.ready()||Shop.blessed()) && P.tut && P.giftDay!==today);
+  },
+  async dailyGift(){
+    const today=Math.floor(Date.now()/864e5);
+    if(P.giftDay===today || (!Ads.ready() && !Shop.blessed())) return;
+    if(!Shop.blessed()){ const ok=await Ads.show("gift"); if(!ok) return; }
+    P.giftDay=today;
+    Game.amber(20);
+    P.pow.swap=Math.min(4,(P.pow.swap||0)+1);
+    save();
+    Snd.levelUp(); UI.confetti(); buzz([30,50]);
+    UI.toast("🎁 the wood left you <b>20🟠</b> and a 🍃 breeze");
+    Ads.giftRefresh();
+  },
+};
+
 const Shop={
   provider:null,
+  blessed(){ return !!(P && P.purchases && P.purchases.blessing); },
   DEV:{ name:"dev-test", async purchase(it){ await wait(450); return {test:true}; }, async restore(){ return []; } },
   open(){
     if(S && S.guide) return;                    // lessons keep their focus
@@ -1921,7 +1975,7 @@ const Shop={
       return '<button class="shoprow'+(it.best?" best":"")+(owned?" owned":"")+'" onclick="Shop.buy(\''+it.sku+'\')">'
         +'<span class="si">'+it.i+'</span>'
         +'<span class="sn">'+it.n+(it.best?'<em class="besttag">best value</em>':'')+(it.once?'<em class="oncetag">once</em>':'')
-        +'<small>'+(it.amber?"🟠 "+it.amber:"")+(it.extras?"  +  🍃×"+it.extras.swap+"  🌟×"+it.extras.wild:"")+'</small></span>'
+        +'<small>'+(it.d ? it.d : (it.amber?"🟠 "+it.amber:"")+(it.extras?"  +  🍃×"+it.extras.swap+"  🌟×"+it.extras.wild:""))+'</small></span>'
         +'<span class="sp">'+(owned?"yours ✓":it.price)+'</span></button>';
     }).join("");
     $("shop-note").innerHTML = Shop.provider
@@ -2007,6 +2061,7 @@ function load(){
     out.callBase = out.callBase||{};  // per-creature meter baselines (windowed callings)
     out.nameFails = out.nameFails||{}; // ceremony letdowns per creature — the mercy counter
     out.purchases = out.purchases||{}; // once-items owned (receipts belong to the store layer)
+    out.giftDay = out.giftDay||0;      // the wood's daily chest — one opening a day
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -3017,6 +3072,16 @@ const Game = {
     $("ov-unlock").classList.add("active"); Game.shown("unlock");
     Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true}); Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
   },
+  async doubleThanks(){ // one tap, one reel, the same thanks again — then the button retires
+    if(!S || !S._winAmber) return;
+    const dbl=$("btn-double"); dbl.disabled=true;
+    const ok=await Ads.show("double");
+    if(!ok){ dbl.disabled=false; return; }
+    Game.amber(S._winAmber); S._winAmber=0;
+    dbl.style.display="none";
+    UI.toast("🌟 the wood's thanks, doubled");
+  },
+
   async winLevel(){
     S.won=true; S.busy=true;
     Game.track("level_win",{L:S.level, moves_left:S.movesLeft, goal:S.goal?S.goal.t:"hush"});
@@ -3030,7 +3095,8 @@ const Game = {
       P.called.cat=1; P.summon="cat";
       P.annQ.push(CALLINGS.cat.s+"<br><small>meet them next round</small>"); save();
     }
-    Game.amber(10 + (S.stars||1)*5);                    // the wood pays for a finished level
+    S._winAmber = 10 + (S.stars||1)*5;                  // the wood pays for a finished level
+    Game.amber(S._winAmber + (Shop.blessed() ? S._winAmber : 0));  // 🕯️ blessed pay comes doubled
     Game.tallyEv("win"); Game.tallyEv("regionwin"+biomeOf(S.level));
     if(S.stars===3) Game.tallyEv("star3");
     if(S.movesLeft>=10) Game.tallyEv("bigwin");
@@ -3077,12 +3143,17 @@ const Game = {
     UI.endCard(false);
   },
 
-  extraMoves(){ // first one free (the future rewarded-ad slot); after that, 30🟠 each
+  async extraMoves(){ // the rescue: watch once (post-FTUE), then 30🟠 each
     if(!S) return;
     if(S.revived){
       if((P.amber||0)<30) return;
       Game.amber(-30);
-    } else S.revived=true;
+    } else {
+      if(Ads.ready() && !Shop.blessed() && P.level>=8){
+        const ok=await Ads.show("revive"); if(!ok) return;
+      }
+      S.revived=true;
+    }
     S.over=false;
     $("ov-end").classList.remove("active");
     S.movesLeft += 5;
@@ -4204,6 +4275,7 @@ const UI = {
     if(id==="scene-game") fitBoard();
   },
   home(){
+    Ads.giftRefresh(); // the wood's daily chest shows itself only when it can open
     // the cover takes on the region you're walking — same evening, different air
     const hb=biomeOf(P.level), sh=$("scene-home");
     ["hb1","hb2","hb3","hb4"].forEach(c=>sh.classList.remove(c));
@@ -4446,7 +4518,16 @@ const UI = {
     $("btn-retry").style.display = won ? "none":"flex";
     const canFree = !S.revived, canPaid = S.revived && (P.amber||0)>=30;
     $("btn-moves").style.display = (!won && S.levelScore>0 && !boardFull() && (canFree||canPaid)) ? "flex":"none";
-    $("btn-moves").innerHTML = canFree ? "🪶 +5 moves" : "🪶 +5 moves · <b>30</b>🟠";
+    $("btn-moves").innerHTML = canFree
+      ? (Ads.ready() && !Shop.blessed() && P.level>=8 ? "🎬 watch · +5 moves" : "🪶 +5 moves")
+      : "🪶 +5 moves · <b>30</b>🟠";
+    // 🎬 PLACEMENT 2: the win doubler — appears only after the win is already banked
+    const dbl=$("btn-double");
+    if(won && Ads.ready() && !Shop.blessed() && P.level>=8 && S._winAmber){
+      dbl.style.display="flex"; dbl.disabled=false;
+      dbl.innerHTML="🎬 double the wood's thanks · +"+S._winAmber+"🟠";
+    } else dbl.style.display="none";
+    $("ev-blessed").style.display = (won && Shop.blessed()) ? "block" : "none";
     $("ov-end").classList.add("active");
   },
   TUT:[
@@ -4967,6 +5048,12 @@ const UI = {
     $("dbg-shop").textContent = Shop.provider ? "💳 test pay ON" : "💳 test payments";
     UI.toast(Shop.provider ? "💳 test payments <b>on</b> — no real money moves" : "💳 test payments off");
     Shop.render();
+  },
+  dbgAds(){ // session-only test reel: rewarded flows end-to-end, no real network
+    Ads.provider = Ads.provider ? null : Ads.DEV;
+    $("dbg-ads").textContent = Ads.provider ? "🎬 test ads ON" : "🎬 test ads";
+    UI.toast(Ads.provider ? "🎬 test ads <b>on</b> — a pretend reel, instantly watched" : "🎬 test ads off");
+    Ads.giftRefresh();
   },
   dbgWipe(){ // destructive — ask twice even in a dev drawer
     if(!UI._dbgWipeArmed){ UI._dbgWipeArmed=true; $("dbg-wipe").textContent="⚠️ really? tap again"; return; }
