@@ -4034,7 +4034,24 @@ const Game = {
 
   async toolResolve(focus){ S.playerMove=true; S.chain=1; try{ await Game.resolve(focus); } finally{ S.playerMove=false; } },
 
+  /* THE RITUAL IS OWED, WHATEVER SPELLED IT. A name can be completed by a drop, a
+     breeze swap, a pluck, a pet's power, a restless tile, or a cascade off thawing ice —
+     but for a long time only drop() ever cashed in S.pendingReveal. Every other route
+     woke the creature silently and it turned up as a Book page a round later (a tester
+     spelled MOTH with their last hand and never met it). The debt is settled HERE, at
+     the outermost resolve, so no present or future path can forget it. */
   async resolve(focus){
+    S._rdepth=(S._rdepth||0)+1;
+    try{ await Game._resolve(focus); }
+    finally{
+      S._rdepth--;
+      if(S._rdepth===0 && S.pendingReveal){          // cascades finish first, then the ceremony
+        const rg=S.pendingReveal; S.pendingReveal=null;
+        await Game.reveal(rg);
+      }
+    }
+  },
+  async _resolve(focus){
     let words = findWords();
     // AUTHORED clears: every pass only clears words involving tiles that just changed —
     // the tile you placed or moved, then (in cascades) tiles that fell or thawed.
