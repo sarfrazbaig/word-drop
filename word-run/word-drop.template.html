@@ -19,7 +19,7 @@
     --bg2:#f0e5d0;            /* app: warm parchment at the foot of the page */
     --surface:rgba(101,78,48,.07);
     --surface-border:rgba(101,78,48,.16);
-    --ink:#3d3226; --dim:#9c8768;
+    --ink:#3d3226; --dim:#7d6849;
     --accent:#6f9e63; --accent-deep:#4c7a46;
     --hush:#8b93c7; --hush-deep:#5d6494;   /* the colour of the quiet */
     --gold:#e8b64c; --gold-deep:#bd8619;
@@ -140,7 +140,7 @@
     background:var(--surface); border:1px solid var(--surface-border); text-decoration:none; color:var(--ink); }
   .iconbtn:active{ transform:scale(.92); }
   .iconbtn .cnt{ position:absolute; bottom:-3px; right:-3px; background:var(--accent); color:#0e2210;
-    font-size:10px; font-weight:800; min-width:17px; height:17px; border-radius:9px;
+    font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; padding:0 3px; }
   .armed-danger{ background:rgba(226,101,79,.25)!important; border-color:var(--danger)!important; color:var(--danger)!important; animation:dangerarm 1.1s infinite; }
   @keyframes dangerarm{ 50%{ box-shadow:0 0 12px rgba(255,107,107,.6); transform:scale(1.08); } }
@@ -270,7 +270,7 @@
     box-shadow:0 3px 0 #8a7048, 0 6px 12px rgba(40,35,60,.4), inset 0 2px 0 rgba(255,250,235,.7); }
   #home-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
   #home-menu-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
-    font-size:10px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
+    font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
   #homelogo{ position:absolute; left:0; right:0; top:33%; transform:translateY(-50%); text-align:center; }
   #homelogo::before{ content:""; position:absolute; inset:-26px -30px; z-index:-1;
@@ -321,18 +321,18 @@
   #hm-quest-row{ font-size:12.5px; color:var(--ink); }
   #hm-quest{ display:flex; flex-direction:column; gap:2px; }
   #hm-quest b{ color:var(--gold-deep); font-weight:800; }
-  #hm-quest em{ font-style:normal; color:var(--dim); font-size:11px; }
+  #hm-quest em{ font-style:normal; color:var(--dim); font-size:12px; }
   .menu-item{ display:flex; align-items:center; gap:11px; font-family:var(--font-ui); font-size:14px; font-weight:700;
     color:var(--ink); text-align:left; border:1px solid rgba(101,78,48,.16); border-radius:12px; padding:12px 13px;
     background:linear-gradient(180deg,#fffdf6,#f5ecd8); box-shadow:0 2px 5px rgba(90,60,30,.12); }
   .menu-item:active{ transform:scale(.98); }
-  .menu-item span{ font-size:20px; } .menu-item em{ margin-left:auto; font-style:normal; font-size:11px; color:var(--dim); }
+  .menu-item span{ font-size:20px; } .menu-item em{ margin-left:auto; font-style:normal; font-size:12px; color:var(--dim); }
   #menu-foot{ margin-top:auto; text-align:center; font-family:var(--font-story); font-style:italic; font-size:11px; color:var(--dim); }
   /* 🧿 the Keeper's Charm — a copyable save, because a browser's memory is a fickle thing */
   #charm-box{ display:none; flex-direction:column; gap:8px; padding:10px 11px; border-radius:12px;
     border:1px dashed rgba(101,78,48,.3); background:rgba(255,253,246,.7); }
   #charm-box.open{ display:flex; }
-  .charm-note{ margin:0; font-family:var(--font-story); font-style:italic; font-size:11.5px; line-height:1.45; color:var(--dim); }
+  .charm-note{ margin:0; font-family:var(--font-story); font-style:italic; font-size:12.5px; line-height:1.5; color:var(--dim); }
   .charm-btns{ display:flex; gap:7px; }
   .charm-btn{ flex:1; border:1px solid rgba(101,78,48,.2); border-radius:999px; padding:8px 6px;
     font-family:var(--font-ui); font-size:11.5px; font-weight:800; color:var(--ink); cursor:pointer;
@@ -343,7 +343,7 @@
   #charm-in{ display:none; width:100%; height:64px; resize:none; border-radius:10px; border:1px solid rgba(101,78,48,.25);
     background:#fffdf6; padding:7px 9px; font-family:monospace; font-size:10px; color:var(--ink); }
   #charm-in.show{ display:block; }
-  #charm-msg{ font-family:var(--font-ui); font-size:11px; font-weight:700; line-height:1.4; color:var(--ink); min-height:0; }
+  #charm-msg{ font-family:var(--font-ui); font-size:12px; font-weight:700; line-height:1.45; color:var(--ink); min-height:0; }
   /* 🔧 the keeper's toolbox — dev-only, opened by a secret knock */
   #dbg-title{ font-family:var(--font-story); font-weight:800; font-size:19px; color:var(--ink); }
   #dbg-state{ font-size:12px; color:var(--dim); font-weight:700; margin:2px 0 8px; }
@@ -354,7 +354,7 @@
   #tut-slide{ min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
   #tut-slide .big{ font-size:40px; }
   #tut-slide .tut-goals{ display:flex; gap:26px; }
-  #tut-slide .tut-goals span{ display:flex; flex-direction:column; align-items:center; font-size:11px; color:var(--dim);
+  #tut-slide .tut-goals span{ display:flex; flex-direction:column; align-items:center; font-size:12px; color:var(--dim);
     letter-spacing:1px; text-transform:uppercase; gap:1px; }
   #tut-slide .tut-goals b{ font-size:30px; color:var(--ink); font-variant-numeric:tabular-nums; }
   #tut-slide .demo{ display:flex; gap:5px; }
@@ -519,7 +519,7 @@
   #dock{ width:100%; display:flex; align-items:flex-end; justify-content:center; gap:10px;
     background:var(--surface); border:1px solid var(--surface-border);
     border-radius:var(--r-xl); padding:10px 12px 12px; z-index:2; box-shadow:var(--shadow-panel); }
-  .slotlabel{ display:block; text-align:center; font-size:9px; letter-spacing:1.5px;
+  .slotlabel{ display:block; text-align:center; font-size:10px; letter-spacing:1.5px;
     text-transform:uppercase; color:var(--dim); margin-bottom:3px; }
   #currentwrap{ animation:curbob 2.4s ease-in-out infinite; }
   @keyframes curbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
@@ -535,7 +535,7 @@
     border:1.5px dashed rgba(121,92,55,.35); display:flex; align-items:center; justify-content:center;
     font-size:20px; font-weight:800; position:relative; cursor:pointer; opacity:.55;
     transition:transform .15s, box-shadow .15s; }
-  .pslot .req{ position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:8px;
+  .pslot .req{ position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:9.5px;
     font-weight:800; color:var(--dim); letter-spacing:.5px; }
   .pslot.has .req{ display:none; }
   .pslot.locked{ opacity:.4; cursor:default; filter:grayscale(.6); }
@@ -557,7 +557,7 @@
     box-shadow:0 4px 0 #6fa347, 0 5px 7px rgba(0,0,0,.25), inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 -3px 4px rgba(90,140,50,.3); }
   .pslot.armed{ box-shadow:0 0 16px rgba(255,213,79,.75), 0 4px 0 #b3a685!important; transform:scale(1.12) translateY(-3px); }
   .pslot .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold); color:#3a2a00;
-    font-size:10px; font-weight:800; min-width:17px; height:17px; border-radius:9px;
+    font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.4); }
   .pslot.pop{ animation:slotpop .45s; }
   .pslot.deny{ animation:denyshake .32s; }
@@ -906,7 +906,7 @@
   #amberchip{ background:linear-gradient(180deg,#fff6e4,#ffe9c4); border-color:rgba(196,122,30,.35); }
   .amberfloat{ position:absolute; z-index:95; font-size:14px; font-weight:900; color:#c47a1e; pointer-events:none;
     text-shadow:0 1px 0 rgba(255,255,255,.8); animation:floatup 1.1s forwards; }
-  .toolbtn .cnt.price{ background:#c47a1e; color:#fff; font-size:9px; min-width:24px; }
+  .toolbtn .cnt.price{ background:#c47a1e; color:#fff; font-size:10.5px; min-width:27px; }
   /* 🎭 THE CEREMONY — a naming round is unmistakably OTHER: the sky drops to a deep
      ceremonial violet and an aurora ring breathes around the board edge, and it stays
      that way until the name is spoken. Then the flash, and the ordinary night returns. */
@@ -1039,7 +1039,7 @@
   .gpartypet:nth-child(2) .pe{ animation-delay:.8s } .gpartypet:nth-child(3) .pe{ animation-delay:1.6s }
   .gpartypet:nth-child(4) .pe{ animation-delay:2.4s }
   .gpartypet small{ font-size:10px; font-weight:800; color:var(--ink); letter-spacing:.5px; }
-  .gpartypet .pw{ font-size:9px; color:var(--dim); }
+  .gpartypet .pw{ font-size:10px; color:var(--dim); }
   .gpartypet.gseat .pe{ animation:none; font-size:30px; }
   .gpartypet.gseat small{ color:var(--dim); font-weight:700; }
   .gparty .note{ margin-top:7px; font-size:10.5px; color:var(--dim); }
@@ -1063,8 +1063,8 @@
   .gcard .ge{ display:block; font-size:37px; line-height:1.15; filter:drop-shadow(0 3px 3px rgba(40,60,25,.3)); }
   .gcard .mound{ display:block; width:70%; height:7px; margin:-4px auto 5px; border-radius:50%;
     background:radial-gradient(50% 100% at 50% 0, var(--grass), transparent 75%); opacity:.7; }
-  .gcard .gn{ display:block; font-size:11px; font-weight:900; letter-spacing:1px; color:var(--ink); }
-  .gcard .gp{ display:block; font-size:9px; color:var(--dim); margin-top:2px; }
+  .gcard .gn{ display:block; font-size:12px; font-weight:900; letter-spacing:1px; color:var(--ink); }
+  .gcard .gp{ display:block; font-size:10px; color:var(--dim); margin-top:2px; }
   .gcard .gd{ display:block; font-size:8.5px; color:rgba(140,115,80,.75); margin-top:3px; }
   .gcard .ribbon{ position:absolute; top:-6px; left:50%; transform:translateX(-50%); font-size:8px; font-weight:900;
     letter-spacing:1px; color:#5a3410; background:linear-gradient(180deg,#ffd54f,#f0a92e); border-radius:999px;
@@ -1073,9 +1073,9 @@
   .gcard .gmate.lit{ opacity:1; filter:none; }
   .gcard.mystery{ background:linear-gradient(180deg,#fbf7ec,#f3ecd8); border-style:dashed; cursor:default; }
   .gcard.mystery .ge{ filter:brightness(0) saturate(0); opacity:.22; } /* the creature's SHAPE — character, not a leak */
-  .gcard.mystery .gn{ color:var(--dim); font-weight:700; letter-spacing:.5px; font-size:10px; }
+  .gcard.mystery .gn{ color:var(--dim); font-weight:700; letter-spacing:.5px; font-size:11px; }
   .gcard.wiggle{ animation:denyshake .32s; }
-  .gcard .gcall{ display:block; font-size:8.5px; line-height:1.35; color:#7a6a4a; margin-top:4px;
+  .gcard .gcall{ display:block; font-size:10.5px; line-height:1.35; color:#6b5a3d; margin-top:4px;
     background:rgba(240,169,46,.1); border:1px dashed rgba(201,138,16,.35); border-radius:8px; padding:3px 5px; }
   .gcard .gcall b{ color:var(--gold-deep); }
   .gcard .gcall.listening{ color:var(--accent-deep); background:rgba(125,216,125,.12);
@@ -1101,7 +1101,7 @@
     box-shadow:0 2px 5px rgba(90,60,30,.18), inset 0 1.5px 0 rgba(255,255,255,.85); }
   .swpet:active{ transform:scale(.94); }
   .swpet .se{ font-size:26px; line-height:1; }
-  .swpet small{ font-size:9px; font-weight:800; color:var(--ink); }
+  .swpet small{ font-size:10px; font-weight:800; color:var(--ink); }
   #pet-sheet-swap .swcancel{ margin-top:9px; border:none; background:none; font-size:11px; color:var(--dim);
     text-decoration:underline; cursor:pointer; }
   .statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -1187,7 +1187,7 @@
       <button class="charm-btn go" id="charm-plant" onclick="UI.charmPlant()">plant it</button>
       <div id="charm-msg"></div>
     </div>
-    <div id="menu-foot">a cozy word storybook · v2</div>
+    <div id="menu-foot">Hushwood · a storybook of true names</div>
   </aside>
 
   <!-- ============ GAME ============ -->
@@ -1307,7 +1307,7 @@
       <div id="iv-level">LEVEL 1</div>
       <div id="iv-goals">
         <div>🎯 target<b id="iv-target">60</b></div>
-        <div>🔻 moves<b id="iv-moves">15</b></div>
+        <div>👣 moves<b id="iv-moves">15</b></div>
       </div>
       <div id="iv-obstacles" style="display:none"></div>
       <div id="iv-visitor" style="display:none"></div>
@@ -2498,7 +2498,7 @@ const Game = {
       Game.restart1Ask=0; b.classList.remove("armed-danger");
       P.level=1; P.run=null; save();
       UI.statsHide(); UI.home();
-      UI.toast("Back to level 1 ✓");
+      UI.toast("🌱 back to level 1 — a fresh path");
       Snd.tone(392,{dur:.2,type:"triangle",gain:.1}); buzz(25);
     } else {
       Game.restart1Ask=Date.now(); b.classList.add("armed-danger");
@@ -2985,7 +2985,7 @@ const Game = {
   share(){
     const txt="🌲 Hushwood — LV "+S.level+" · "+S.levelScore+" pts · 👑 best word "+(S.bestWord||"—")+"\nplay: sarfrazbaig.github.io/word-drop";
     if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
-    else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.toast("Copied!"); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.toast("copied ✓"); }
   },
 
   /* ---- the BREEZE: the player's own hands-on tool. pets act on their own; the wind is YOURS. ---- */
@@ -3170,14 +3170,17 @@ const Game = {
     S.lastAction=Date.now();
     const nm=$("namer"); if(nm){ nm.style.transition="opacity .3s"; nm.style.opacity="0"; setTimeout(()=>nm.remove(),350); }
     const big=document.createElement("div"); big.className="whosthat";
-    big.innerHTML='<div class="wt-e sil">'+g.e+'</div><div class="wt-q">who answers to <b>'+g.w.toUpperCase()+'</b>…?</div>';
+    // the player JUST spelled the name — repeating it here made the reveal answer its
+    // own question ("who answers to BAT? …the BAT"). The question builds the hush;
+    // the name lands exactly once, at the face, where it reads as an introduction.
+    big.innerHTML='<div class="wt-e sil">'+g.e+'</div><div class="wt-q">the name is spoken… <b>something stirs</b></div>';
     boardEl.appendChild(big);
     Snd.tone(392,{dur:.5,type:"sine",gain:.06,verb:true}); Snd.tone(523,{dur:.55,type:"sine",gain:.05,when:.4,verb:true});
     buzz([15,25]);
     await wait(1400);                                    // the whole wood holds its breath
     big.querySelector(".wt-e").classList.remove("sil");
     const bon=S._revealBonus||0; S._revealBonus=0;
-    big.querySelector(".wt-q").innerHTML="it's the <b>"+g.w.toUpperCase()+"</b>!"
+    big.querySelector(".wt-q").innerHTML="the <b>"+g.w.toUpperCase()+"</b> heard its true name!"
       +(bon?'<br><span class="wt-b">+'+bon+' ✨ the wood is grateful</span>':"");
     // the name is spoken: the ceremony releases and the board wakes back into the night
     if(!S.tutorWord && boardEl.classList.contains("ceremony")){
@@ -3640,7 +3643,7 @@ const Game = {
         } else if(P.metGrove.cat){
           const c=CALLINGS[g.w];
           const pr=Game.callProgress(g.w);
-          UI.say("stir-"+g.w, g.e+" you called the <b>"+g.w+"</b> — but it isn't awake.<br><small>wake it: "+c.c+" ("+pr.have+"/"+pr.n+")</small>", 2);
+          UI.say("stir-"+g.w, "🌫️ <b>"+g.w.toUpperCase()+"</b> is a true name — but nothing answers yet.<br><small>wake it: "+c.c+" ("+pr.have+"/"+pr.n+")</small>", 2);
         }
       }
       const day=Math.floor(Date.now()/864e5);
@@ -4270,7 +4273,7 @@ const UI = {
     if(!g){ // an empty or locked seat still answers when tapped
       if(!S) return;
       const slots=slotsFor(P.level);
-      if(slot<slots) UI.say("seat-open", "🐾 an open seat — spell more creatures to fill it!", 3);
+      if(slot<slots) UI.say("seat-open", "🐾 an open seat — wake more friends to fill it!", 3);
       else UI.toast("🔒 this seat unlocks at <b>level "+UI.SLOT_LV[slot]+"</b>");
       Snd.tone(520,{dur:.08,type:"triangle",gain:.05});
       return;
@@ -4340,7 +4343,7 @@ const UI = {
   TUT:[
     '<div class="big">🌲</div><p>A hush fell over the wood —<br>and the creatures forgot their names.</p><small>only loose letters drift where its voice used to be</small>',
     '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>You are the <b>Namekeeper</b>.<br>Weave letters into words ✨</p><small>words read left → right across a row, and either way up a column</small>',
-    '<div class="tut-goals"><span>🎯<b>'+TARGET(1)+'</b>target</span><span>🔻<b>'+MOVES(1)+'</b>moves</span></div><p>Every word thins the hush.<br>Clear it before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
+    '<div class="tut-goals"><span>🎯<b>'+TARGET(1)+'</b>target</span><span>👣<b>'+MOVES(1)+'</b>moves</span></div><p>Every word thins the hush.<br>Clear it before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
     '<div class="big">🦊🦉🐝</div><p>Spell a creature\'s <b>true name</b><br>and it remembers itself — and joins you.</p><small>50 friends to wake · every one has its OWN power</small>',
   ],
   _tut:0,
@@ -4593,7 +4596,7 @@ const UI = {
     else {
       if(P.equip.length>=max){ // never surprise-swap: the sheet's picker owns full-party trades
         const nxt=UI.nextSlotAt();
-        UI.toast("the party is full ("+max+(nxt?" until level "+nxt:"")+") — pick who rests first 💤");
+        UI.toast("all "+max+" seats are taken — pick who rests first 💤"+(nxt?"<br><small>another seat opens at level "+nxt+"</small>":""));
         return;
       }
       UI.toast(GROVE_BY_WORD[w].e+" joins the party!");
