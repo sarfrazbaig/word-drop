@@ -2470,22 +2470,30 @@ const FT = {
     S.guide=null;
   },
 };
+/* THE DECK MUST NOT STUTTER. Both steered paths below used to re-run the same
+   deterministic pick every drop: tutorLetter walked d,o,g in fixed order and returned
+   the first that fit, and mercy re-chose from the same tiny candidate set — so a player
+   hunting a name got dealt G G G G, or a lone Q over and over. Whenever there is a
+   choice, never deal the same letter twice running. */
+function noRepeat(cands, last){
+  const alt=cands.filter(l=>l!==last);
+  return alt.length ? alt : cands;
+}
 function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy to spell
   const w=S.tutorWord; if(!w) return null;
-  // count how many of the word's letters are already on the board (rough)
-  const need=w.split("");
-  // prefer the letter that completes the word if it's one drop away, else any word letter
+  const need=[...new Set(w.split(""))];
   const best=helpfulByLength();
-  for(const l of need){ if(best[l]) return l; } // a needed letter completes something now
-  // otherwise seed the word's letters onto the board
-  return rand(need);
+  // letters that complete something NOW, else any letter the word still wants
+  const useful=need.filter(l=>best[l]);
+  const pool=noRepeat(useful.length?useful:need, S._lastDealt);
+  return rand(pool);
 }
 function makePiece(){
   // gently paced: no special tiles in the early levels — one new idea at a time.
   // The steer is SCHOOL-ONLY: past level 6 the ceremony deck is stone-normal. Feeding
   // the name's letters to grown players spammed the same letter over and over — the
   // wood gives one foothold on the board and nothing else; powers do the rest.
-  if(S && S.tutorWord && P.level<=6 && Math.random()<0.8){ const l=tutorLetter(); if(l) return {letter:l, kind:"normal"}; }
+  if(S && S.tutorWord && P.level<=6 && Math.random()<0.8){ const l=tutorLetter(); if(l){ S._lastDealt=l; return {letter:l, kind:"normal"}; } }
   // MERCY is deterministic, not a dice roll: after two wordless drops the deck ALWAYS
   // deals a completion if one exists. And in the ENDGAME (few moves left) even ONE dead
   // drop triggers it — a drought on your last moves is what quietly loses winnable levels.
@@ -2493,10 +2501,11 @@ function makePiece(){
   if(mercy){
     const best=helpfulByLength(); const ks=Object.keys(best);
     if(ks.length){ const longs=ks.filter(l=>best[l]>=4);
-      return {letter:rand(longs.length?longs:ks), kind:"normal"}; }
+      const L=rand(noRepeat(longs.length?longs:ks, S._lastDealt));
+      S._lastDealt=L; return {letter:L, kind:"normal"}; }
     // no completion exists (a scattered board) — force a BUILDER so one appears next drop.
     const b=builderLetters();
-    if(b.length) return {letter:rand(b), kind:"normal"};
+    if(b.length){ const L=rand(noRepeat(b, S._lastDealt)); S._lastDealt=L; return {letter:L, kind:"normal"}; }
     // still nothing makeable in a real drought — a star falls in to rescue you.
     // it matches ANY letter, so beside almost any pair it completes a word. skill-proof.
     if(S.deadDrops>=3 || S.movesLeft<=5) return {letter:"★", kind:"wild"};
