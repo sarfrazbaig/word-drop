@@ -3352,7 +3352,9 @@ const Game = {
     S.usingBreeze=true;
     $("breezepill").classList.remove("pillglow"); // the lesson's gleam is spent the moment it's used
     $("breezepill").classList.add("armed");
-    if(!S.guide) UI.say("arm-breeze", "🍃 tap two tiles — the wind will swap them");
+    // no prompt here: lesson 2 gives the breeze a full page AND walks the player through
+    // a swap. Repeating the instruction every time they arm it afterwards is nagging
+    // someone who already knows — the armed pill and the ghost cursor say it fine.
     Snd.tone(620,{dur:.14,type:"sine",gain:.07,verb:true}); Snd.tone(930,{dur:.1,type:"sine",gain:.05,when:.09,verb:true});
     UI.ghost(-1);
     FT.signal("breezeArmed");
