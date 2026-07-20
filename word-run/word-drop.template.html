@@ -1183,12 +1183,12 @@
       <div id="dbg-title">the keeper's toolbox</div>
       <div id="dbg-state"></div>
       <div id="dbg-rows">
-        <button class="charm-btn" onclick="UI.dbgSkip(1)">⏭ next level</button>
+        <button class="charm-btn" onclick="UI.dbgSkip(1)">⏭️ next level</button>
         <button class="charm-btn" onclick="UI.dbgSkip(10)">⏩ +10 levels</button>
-        <button class="charm-btn" onclick="UI.dbgSkip(-1)">⏮ back one</button>
+        <button class="charm-btn" onclick="UI.dbgSkip(-1)">⏮️ back one</button>
         <button class="charm-btn" onclick="UI.dbgAmber()">🟠 +100 amber</button>
         <button class="charm-btn" onclick="UI.dbgSkip(0)">↻ replay level</button>
-        <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑 wipe save</button>
+        <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑️ wipe save</button>
         <button class="charm-btn" id="dbg-shop" onclick="UI.dbgShop()">💳 test payments</button>
         <button class="charm-btn" id="dbg-ads" onclick="UI.dbgAds()">🎬 test ads</button>
       </div>
@@ -1386,9 +1386,9 @@
       <div class="statgrid">
         <div class="stat">⭐<b id="st-level">1</b><small>level</small></div>
         <div class="stat">🏁<b id="st-wins">0</b><small>levels won</small></div>
-        <div class="stat">🗣<b id="st-words">0</b><small>words spelled</small></div>
+        <div class="stat">🗣️<b id="st-words">0</b><small>words spelled</small></div>
         <div class="stat">🔥<b id="st-streak">0</b><small>day streak</small></div>
-        <div class="stat">⛓<b id="st-chain">×1</b><small>best chain</small></div>
+        <div class="stat">⛓️<b id="st-chain">×1</b><small>best chain</small></div>
         <div class="stat">👑<b id="st-word" style="font-size:14px">—</b><small>best word</small></div>
       </div>
       <button class="btn-primary" onclick="UI.statsHide()">✓</button>
@@ -1691,7 +1691,7 @@ const GROVE = [
   // in the air
   {w:"bee",e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
   {w:"moth",e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
-  {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
+  {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁️",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
   {w:"crow",e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
   {w:"dove",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
   {w:"robin",e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"},f:"wakes the vowels up every morning"},
@@ -5071,7 +5071,7 @@ const UI = {
   },
   dbgShow(){
     UI._dbgWipeArmed=false;
-    $("dbg-wipe").textContent="🗑 wipe save";
+    $("dbg-wipe").textContent="🗑️ wipe save";
     $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
     $("ov-debug").classList.add("active");
   },
