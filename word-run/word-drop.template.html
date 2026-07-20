@@ -333,6 +333,11 @@
     background:linear-gradient(180deg,#fffdf6,#f5ecd8); box-shadow:0 2px 5px rgba(90,60,30,.12); }
   .menu-item:active{ transform:scale(.98); }
   .menu-item span{ font-size:20px; } .menu-item em{ margin-left:auto; font-style:normal; font-size:12px; color:var(--dim); }
+  .menu-item.danger{ border-color:rgba(178,88,58,.35); color:#a04a32; }
+  .menu-item.danger em{ color:#b5765f; }
+  .menu-item.danger.armed{ background:linear-gradient(180deg,#ffe7de,#f6cbbb);
+    border-color:#c9603f; color:#8c3418; }
+  .menu-item.danger.armed em{ color:#8c3418; font-weight:800; }
   #menu-foot{ margin-top:auto; text-align:center; font-family:var(--font-story); font-style:italic; font-size:11px; color:var(--dim); }
   /* 🧿 the Keeper's Charm — a copyable save, because a browser's memory is a fickle thing */
   #charm-box{ display:none; flex-direction:column; gap:8px; padding:10px 11px; border-radius:12px;
@@ -1273,7 +1278,7 @@
     <div id="menu-head"><span>Hushwood</span><button id="menu-close" onclick="UI.menuToggle(false)" aria-label="close">✕</button></div>
     <div class="menu-stat"><span>🔥 day streak</span><b id="hm-streak">0</b></div>
     <div class="menu-stat" id="hm-quest-row"><span id="hm-quest">🌤️ today's quest</span></div>
-    <button class="menu-item" onclick="UI.groveShow()"><span>📖</span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
+    <button class="menu-item" onclick="UI.groveShow()"><span>📔</span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
     <button class="menu-item" onclick="UI.statsShow()"><span>📊</span> Your journey</button>
     <button class="menu-item" onclick="Shop.open()"><span>🟠</span> The Trading Post <em>amber &amp; bundles</em></button>
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
@@ -1289,6 +1294,7 @@
       <button class="charm-btn go" id="charm-plant" onclick="UI.charmPlant()">plant it</button>
       <div id="charm-msg"></div>
     </div>
+    <button class="menu-item danger" id="menu-wipe" onclick="UI.wipeAll()"><span id="menu-wipe-i">🍂</span> Start the wood anew <em id="menu-wipe-lbl">wipes everything</em></button>
     <div id="menu-foot">Hushwood · a storybook of true names</div>
   </aside>
 
@@ -1303,7 +1309,7 @@
     </div>
     <div id="goalstrip">
       <div id="gs-goals"></div>
-      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names">📖</button>
+      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names">📔</button>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
     </div>
     <div id="petbar">
@@ -1343,7 +1349,7 @@
     <div id="grovenav">
       <button class="iconbtn sm" onclick="UI.scene('scene-home')">←</button>
       <span id="grove-title">The Book of Names</span>
-      <span class="chip">📖 <b id="gr-count">0/50</b> <em class="chiplbl">names</em></span>
+      <span class="chip">📔 <b id="gr-count">0/50</b> <em class="chiplbl">names</em></span>
       <span class="chip" title="one whispered word each day — spell it for a full paw meter">📅 <b id="gr-daily">?</b></span>
     </div>
     <div id="grovefield"></div>
@@ -2887,7 +2893,7 @@ const Game = {
       $("un-title").textContent=SLOT_MSG[slots].t;
       $("un-body").textContent=SLOT_MSG[slots].b;
       $("un-try").style.display="block";
-      $("un-try").innerHTML='<b>Open the Book of Names 📖</b><br>tap a friend to add them to your party';
+      $("un-try").innerHTML='<b>Open the Book of Names 📔</b><br>tap a friend to add them to your party';
       $("ov-unlock").classList.add("active"); Game.shown("unlock");
       Snd.levelUp(); UI.confetti(); buzz([40,60,120]);
     } else {
@@ -2917,7 +2923,7 @@ const Game = {
     // (As a timed toast it landed exactly on top of the level-clear CTA — caught live.)
     if(Object.keys(P.metGrove).length===1 && !(P.said["book-intro"])){
       P.said["book-intro"]=2;
-      P.annQ.push("📖 <b>"+(UI._lastWake||"🐾")+" "+Object.keys(P.metGrove)[0].toUpperCase()+"</b> has a page in the <b>Book of Names</b> now.<br>every creature has a <b>calling</b> — play its way and it draws near, then <b>spell its name</b>. the Book tells you how. <b>49 more</b> are listening for you!");
+      P.annQ.push("📔 <b>"+(UI._lastWake||"🐾")+" "+Object.keys(P.metGrove)[0].toUpperCase()+"</b> has a page in the <b>Book of Names</b> now.<br>every creature has a <b>calling</b> — play its way and it draws near, then <b>spell its name</b>. the Book tells you how. <b>49 more</b> are listening for you!");
       save();
     }
     // …and once the Book has spoken, the shelf lesson takes the stage
@@ -4673,6 +4679,31 @@ const UI = {
     $("tut-dots").innerHTML=UI.TUT.map((_,d)=>'<i class="'+(d===i?"on":"")+'"></i>').join("");
     $("tut-next").textContent = i===UI.TUT.length-1 ? (UI._tutReplay ? "Got it ✓" : "Play ▶") : "Next";
     $("ov-tut").classList.add("active"); Game.shown("tut");
+  },
+  wipeAll(){ // every level, every friend, every coin — gone. So: ask twice, plainly.
+    const b=$("menu-wipe"), lbl=$("menu-wipe-lbl"), ic=$("menu-wipe-i");
+    if(!UI._wipeArmed){
+      UI._wipeArmed=true;
+      b.classList.add("armed"); ic.textContent="⚠️";
+      lbl.textContent="tap again — this cannot be undone";
+      Snd.reject();
+      clearTimeout(UI._wipeT);
+      UI._wipeT=setTimeout(()=>{ UI._wipeArmed=false; b.classList.remove("armed");
+        ic.textContent="🍂"; lbl.textContent="wipes everything"; }, 6000);
+      return;
+    }
+    clearTimeout(UI._wipeT); UI._wipeArmed=false;
+    try{ Game.track("wipe_all",{ L:P.level, friends:Object.keys(P.grove||{}).length }); Tele.flush(true); }catch(e){}
+    // a playtester keeps their NAME through a restart — a second run is still their run,
+    // and the notes should still say who they belong to.
+    const keepName=(P&&P.teleName)||"", keepSeen=!!(P&&P.teleSeen);
+    try{
+      localStorage.removeItem("worddrop_v3");
+      localStorage.removeItem("worddrop_v2");
+      localStorage.removeItem("worddrop_ev1");
+      if(keepName||keepSeen) localStorage.setItem("worddrop_v3", JSON.stringify({teleName:keepName, teleSeen:keepSeen}));
+    }catch(e){}
+    location.reload();
   },
   tutReplay(){ // re-read the rules any time, without touching your progress
     Snd.init(); UI.menuToggle(false); UI._tutReplay=true; UI.tutShow(0);
