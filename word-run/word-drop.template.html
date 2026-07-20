@@ -2408,10 +2408,20 @@ const FT = {
   note(html){ FT.clearNote(); const n=FT.bit(document.createElement("div")); n.className="ftue-note";
     n.innerHTML=html; boardEl.appendChild(n); FT._note=n; },  // on the board, clear of the HUD
   clearNote(){ if(FT._note){ FT._note.remove(); FT._note=null; } },
+  /* THE FINGER POINTS AT THE PLACE, NOT AT THE SKY. It used to sit at the top of the
+     board whatever the column held, so on a board with one gap near the floor it hung
+     dangling in mid-air, five rows from anything. It finds the cell the tile will
+     actually land in and hovers just above it — and the idle bob dips it into the empty
+     slot, which is the whole point of pointing. */
   hand(col){ FT.clearHand(); if(col==null) return;
     const h=FT.bit(document.createElement("div")); h.className="coach ftue-hand"; h.textContent="👇";
-    h.style.left=(col*STEP+CELL/2)+"px"; h.style.top="6px";
-    boardEl.appendChild(h); FT._hand=h; },
+    boardEl.appendChild(h);
+    let land=ROWS-1; while(land>=0 && S.board[land] && S.board[land][col]) land--;
+    if(land<0) land=0;                                   // a full column: sit at the top
+    const hh=h.offsetHeight||58;
+    h.style.left=(col*STEP+CELL/2)+"px";
+    h.style.top=Math.max(2, land*STEP - hh + 4)+"px";    // fingertip at the cell's lip
+    FT._hand=h; },
   clearHand(){ if(FT._hand){ FT._hand.remove(); FT._hand=null; } },
   ringCell(r,c){ const g=FT.bit(document.createElement("div")); g.className="ftue-ring";
     g.style.left=(c*STEP-4)+"px"; g.style.top=(r*STEP-4)+"px";
