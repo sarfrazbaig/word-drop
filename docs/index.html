@@ -3315,7 +3315,10 @@ const Game = {
   },
 
   failLevel(){
-    Game.track("level_fail",{L:S.level, goal:S.goal?S.goal.t:"hush", ceremony:S.tutorWord||""});
+    Game.track("level_fail",{ L:S.level, goal:S.goal?S.goal.t:"hush", ceremony:S.tutorWord||"",
+      why: S.movesLeft<=0 ? "out_of_moves" : "board_full",
+      short: Math.max(0, S.target-S.levelScore), target:S.target, got:S.levelScore,
+      words:S.wordsMade||0, amber:(typeof P!=="undefined"?P.amber:0)||0 });
     // a letdown at a ceremony is counted — after two, the wood starts lending letters
     if(S.tutorWord){ P.nameFails[S.tutorWord]=(P.nameFails[S.tutorWord]||0)+1; }
     S.over=true; P.run=null;
@@ -3982,6 +3985,8 @@ const Game = {
 
   recordWord(word, points, chain){
     FT.signal("wordCleared", word);
+    Game.track("word_made", { w:word.word, n:word.cells.length, pts:points,
+      chain, by: S.petActing ? "pet" : "player", L:S.level });
     P.stats.words++;
     Game.tallyEv("words");
     const wl=word.cells.length;
@@ -5421,14 +5426,20 @@ const UI = {
     $("tiptip").querySelector(".ti").textContent=tip.i;
     $("tiptip").querySelector(".tt").innerHTML=tip.t;
     $("tiptip").classList.add("on"); Game.shown("tip");
+    Game.track("tip_shown",{ kind, L:S.level });
+    UI._tipAt=Date.now();
     clearTimeout(UI._tipT);
-    UI._tipT=setTimeout(()=>$("tiptip").classList.remove("on"), 7000); // reads in ~4s; leaves before it's in the way
+    UI._tipT=setTimeout(()=>{ $("tiptip").classList.remove("on");
+      Game.track("tip_gone",{ kind, how:"timeout", ms:Date.now()-(UI._tipAt||Date.now()) }); }, 7000); // reads in ~4s; leaves before it's in the way
     Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
     return true;
   },
   // note: this must NOT touch S.busy any more. Tips no longer set it, so clearing it here
   // would release a board that something else (a resolve, a ceremony) is legitimately holding.
-  hideTip(){ if(Game.guard("tip")) return; clearTimeout(UI._tipT); $("tiptip").classList.remove("on"); },
+  hideTip(){ if(Game.guard("tip")) return;
+    if($("tiptip").classList.contains("on"))
+      Game.track("tip_gone",{ how:"tapped", ms:Date.now()-(UI._tipAt||Date.now()) });
+    clearTimeout(UI._tipT); $("tiptip").classList.remove("on"); },
   confetti(){
     const colors=["#7dd87d","#ffd54f","#4fc3f7","#ff8a5c","#b388ff"];
     for(let i=0;i<24;i++){ const c=document.createElement("div"); c.className="confetti";
@@ -5540,7 +5551,8 @@ const Tele = {
     let lv=0, mv=null, guide=null, goal=null;
     try{ if(S){ lv=S.level; mv=S.movesLeft; guide=S.guide?S.guide.lesson:null; goal=S.goal?S.goal.t:null; } }catch(e){}
     if(!lv && typeof P!=="undefined") lv=P.level||0;
-    return { sc, ov, lv, mv, g:guide, goal };
+    const ms = this.t0 ? Date.now()-this.t0 : 0;   // rides the context column the sheet already writes
+    return { sc, ov, lv, mv, g:guide, goal, ms };
   },
   log(n, props, kind){
     const e={ t:Date.now(), sid:this.sid, pid:this.pid, who:this.who(), q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
