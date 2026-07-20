@@ -3154,6 +3154,14 @@ const Game = {
       n.title="someone is hiding here — spell its name";
       boardEl.appendChild(n);
     }
+    // TEACH THE HOARDER, ONCE. The moment-of-need nudge only reaches a player in trouble; a
+    // comfortable one can bank amber for hours never knowing it spends. The first time it has
+    // grown genuinely useful, on a calm level start, say so once — then never again.
+    if(!P.amberTaught && P.level>=5 && (P.amber||0)>=45 && !S.guide && !S.tutorWord){
+      P.amberTaught=1; save();
+      setTimeout(()=>{ if(S && !S.busy && !S.over && !S.won && !$("ov-meet").classList.contains("active"))
+        UI.say("amber-teach","🟠 your amber isn't just for show — when a 🍃 breeze or 🌟 wish runs dry, <b>tap it</b> and amber buys a fresh one", 4); }, 1400);
+    }
     saveRun();
     setTimeout(()=>{ if(!Game.showPendingMeet()) Game.showPendingTip(); }, 450); // meet new friends, then explain tiles
   },
@@ -3325,12 +3333,27 @@ const Game = {
     if(S.movesLeft <= 3) Snd.danger();
     boardEl.classList.toggle("danger", S.movesLeft<=3);
     // players kept dying with charged tools they'd forgotten — one gentle reminder per level
-    if(S.movesLeft<=4 && !S.toolNudged && (P.pow.swap>0 || P.pow.wild>0)){
-      S.toolNudged=true;
-      const which = P.pow.swap>0 && P.pow.wild>0 ? "🍃 a breeze or a 🌟 wish" : P.pow.swap>0 ? "🍃 a breeze" : "🌟 a wish";
-      UI.toast("psst — you still have "+which+"!");
-      [P.pow.swap>0&&"breezepill", P.pow.wild>0&&"wishbtn"].filter(Boolean).forEach(id=>{
-        const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
+    if(S.movesLeft<=4 && !S.toolNudged){
+      const freeBreeze = P.pow.swap>0, freeWish = P.pow.wild>0;
+      if(freeBreeze || freeWish){
+        S.toolNudged=true;
+        const which = freeBreeze && freeWish ? "🍃 a breeze or a 🌟 wish" : freeBreeze ? "🍃 a breeze" : "🌟 a wish";
+        UI.toast("psst — you still have "+which+"!");
+        [freeBreeze&&"breezepill", freeWish&&"wishbtn"].filter(Boolean).forEach(id=>{
+          const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
+      } else if((P.amber||0)>=20){
+        // THE MOMENT AMBER MATTERS. Free tools are gone, moves are running out, and there is
+        // amber in your pocket — exactly when spending it feels worth it, and exactly where a
+        // hoarder never learns they can. (A tester reached level 13 sitting on 279 amber,
+        // having never spent one.) Tapping an empty pill already buys one for amber, so we
+        // point straight at it — no menu, one tap.
+        S.toolNudged=true;
+        const canWish = (P.amber||0)>=25;
+        UI.toast("🟠 your amber buys help — a fresh 🍃 breeze"+(canWish?" or 🌟 wish":"")+", just <b>tap it</b>");
+        ["breezepill", canWish && "wishbtn"].filter(Boolean).forEach(id=>{
+          const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
+        Game.track("amber_nudge",{ amber:P.amber, L:S.level });
+      }
     }
   },
 
