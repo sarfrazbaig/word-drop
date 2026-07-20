@@ -1038,6 +1038,11 @@
   #iv-goals div{ font-size:13px; color:var(--dim); }
   #iv-goals b{ display:block; font-size:30px; color:var(--ink); font-variant-numeric:tabular-nums; }
   #iv-tap{ font-size:12px; font-weight:800; color:var(--accent-deep); letter-spacing:2px; animation:tapblink 1.4s infinite; }
+  .wt-tap{ margin-top:12px; font-size:12px; font-weight:800; letter-spacing:2px; color:#ffe9a8;
+    text-transform:uppercase; animation:tapblink 1.4s infinite; }
+  #toast.tapwait{ pointer-events:auto; cursor:pointer; }  /* ID specificity beats #toast{pointer-events:none} */
+  .toast-tap{ margin-top:8px; font-size:11px; font-weight:800; letter-spacing:2px; color:var(--gold-deep);
+    text-transform:uppercase; animation:tapblink 1.4s infinite; }
   @keyframes tapblink{ 50%{ opacity:.45 } }
   #ov-end .buttons{ display:flex; flex-direction:column; gap:var(--sp2); }
   #ov-end .minirow{ display:flex; gap:10px; justify-content:center; }
@@ -3372,7 +3377,8 @@ const Game = {
     big.querySelector(".wt-e").classList.remove("sil");
     const bon=S._revealBonus||0; S._revealBonus=0;
     big.querySelector(".wt-q").innerHTML="the <b>"+g.w.toUpperCase()+"</b> heard its true name!"
-      +(bon?'<br><span class="wt-b">+'+bon+' ✨ the wood is grateful</span>':"");
+      +(bon?'<br><span class="wt-b">+'+bon+' ✨ the wood is grateful</span>':"")
+      +'<div class="wt-tap">tap to continue</div>';
     // the name is spoken: the ceremony releases and the board wakes back into the night
     if(!S.tutorWord && boardEl.classList.contains("ceremony")){
       boardEl.classList.remove("ceremony");
@@ -3380,7 +3386,7 @@ const Game = {
       Snd.mode="normal";   // the heartbeat lets go
     }
     Snd.discover(); UI.confetti(); buzz([30,50,30,50,90]);
-    await wait(1600);
+    await UI.waitTap(big, 12000);   // a creature waking is a moment — hold it until they tap
     big.classList.add("fade");
     await wait(350); big.remove();
     // the ritual — through the SAME door showPendingMeet uses: _meetWord must be set,
@@ -4711,7 +4717,7 @@ const UI = {
     P.groveMile=P.groveMile||{};
     UI.GROVE_MILES.forEach(mi=>{ if(found>=mi.n && !P.groveMile[mi.n]){
       P.groveMile[mi.n]=true; save();
-      setTimeout(()=>{ UI.confetti(); Snd.levelUp(); UI.toast(mi.i+" <b>"+mi.t+"</b>"); }, 500); } });
+      setTimeout(()=>{ UI.confetti(); Snd.levelUp(); UI.toast(mi.i+" <b>"+mi.t+"</b>", "tap"); }, 500); } });
     // ---- the album: sky then ground, every friend a trophy card ----
     const section=(title, list)=>{
       const sec=document.createElement("div"); sec.className="gsection";
@@ -4801,7 +4807,7 @@ const UI = {
     Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
     const formed=PAIRS.find(p=>(p.a===inW||p.b===inW) && P.equip.includes(p.a) && P.equip.includes(p.b));
     if(formed){ const other=GROVE_BY_WORD[formed.a===inW?formed.b:formed.a];
-      setTimeout(()=>{ UI.toast(formed.i+" <b>"+formed.n+"!</b><br>"+GROVE_BY_WORD[inW].e+" & "+other.e+" — "+formed.d);
+      setTimeout(()=>{ UI.toast(formed.i+" <b>"+formed.n+"!</b><br>"+GROVE_BY_WORD[inW].e+" & "+other.e+" — "+formed.d, "tap");
         UI.confetti(); Snd.discover(); }, 900); }
     $("pet-sheet-swap").classList.remove("on");
     UI.visitor(); UI.groveShow(); UI.petSheet(inW);
@@ -4825,7 +4831,7 @@ const UI = {
       // ✨ a best-friend pair just formed? announce the bonus loudly
       const formed=PAIRS.find(p=>(p.a===w||p.b===w) && P.equip.includes(p.a) && P.equip.includes(p.b));
       if(formed){ const other=GROVE_BY_WORD[formed.a===w?formed.b:formed.a];
-        setTimeout(()=>{ UI.toast(formed.i+" <b>"+formed.n+"!</b><br>"+GROVE_BY_WORD[w].e+" & "+other.e+" — "+formed.d);
+        setTimeout(()=>{ UI.toast(formed.i+" <b>"+formed.n+"!</b><br>"+GROVE_BY_WORD[w].e+" & "+other.e+" — "+formed.d, "tap");
           UI.confetti(); Snd.discover(); }, 700); }
     }
     save(); UI.visitor(); UI.groveShow();
@@ -4920,6 +4926,20 @@ const UI = {
       boardEl.appendChild(dl); g._label=dl;
     }
   },
+  waitTap(el, fallbackMs){ // pause a story beat until the player taps — never a soft-lock
+    return new Promise(res=>{
+      let done=false;
+      const finish=()=>{ if(done) return; done=true; clearTimeout(fb);
+        boardEl.removeEventListener("click", finish, true);
+        if(el) el.removeEventListener("click", finish, true);
+        res(); };
+      const fb=setTimeout(finish, fallbackMs||12000);
+      // ignore the first 450ms so the very tap that spelled the name can't skip the reveal
+      setTimeout(()=>{ if(done) return;
+        boardEl.addEventListener("click", finish, true);
+        if(el) el.addEventListener("click", finish, true); }, 450);
+    });
+  },
   toast(m, hold){ // announcements take TURNS now — the next used to clobber the last mid-read
     UI._tq=UI._tq||[];
     if(UI._tq.length>=4) UI._tq.shift();      // a flood keeps only its freshest four
@@ -4935,17 +4955,27 @@ const UI = {
     }
     UI._tShowing=true;
     const {m, hold}=q.shift();
-    const t=$("toast"); t.innerHTML=m;
-    t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
-    // timed to the words: short notes leave quickly, long ones hold to be read
-    const words=m.replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
-    const ms=hold || Math.min(7000, Math.max(2200, 1200+words*300));
-    clearTimeout(t._h);
-    t._h=setTimeout(()=>{ t.classList.remove("on"); setTimeout(()=>UI._tNext(), 280); }, ms);
+    const t=$("toast");
+    const sticky = hold==="tap";       // a reward/story beat waits for a tap
+    t.innerHTML = m + (sticky?'<div class="toast-tap">tap to continue</div>':"");
+    t.classList.remove("on","tapwait"); void t.offsetWidth; t.classList.add("on");
+    clearTimeout(t._h); t.onclick=null;
+    const advance=()=>{ clearTimeout(t._h); t.onclick=null;
+      t.classList.remove("on","tapwait"); setTimeout(()=>UI._tNext(), 280); };
+    if(sticky){
+      t.classList.add("tapwait");
+      setTimeout(()=>{ if(t.classList.contains("tapwait")) t.onclick=advance; }, 400); // spam-guard
+      t._h=setTimeout(advance, 12000);          // a reward should never hang the game
+    } else {
+      // timed to the words: short notes leave quickly, long ones hold to be read
+      const words=m.replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
+      const ms=(typeof hold==="number"?hold:0) || Math.min(7000, Math.max(2200, 1200+words*300));
+      t._h=setTimeout(advance, ms);
+    }
   },
   toastClear(){ // a new level starts with a quiet stage — stale notes don't follow you in
     UI._tq=[]; UI._tShowing=false;
-    const t=$("toast"); clearTimeout(t._h); t.classList.remove("on");
+    const t=$("toast"); clearTimeout(t._h); t.onclick=null; t.classList.remove("on","tapwait");
   },
   /* Send a friend out onto the board. Returns a handle whose .home() walks it back —
      the caller runs its power in between, so the pet is standing there while it works
