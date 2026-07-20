@@ -757,6 +757,20 @@
   .tile.bramble::before{ content:"🌿"; position:absolute; top:-1px; left:1px; font-size:15px; opacity:.95;
     background:none; width:auto; height:auto; border-radius:0; }
   .tile.bramble::after{ content:"🌿"; position:absolute; bottom:-1px; right:0; font-size:12px; transform:scaleX(-1); opacity:.85; }
+  /* 🪵 ROOT — a stubborn knot: cut it once and it heals unless you finish the job */
+  .tile.root{ background:radial-gradient(120% 120% at 40% 30%, #9a7a52, #6e5436 55%, #48351f); font-size:20px!important;
+    border-radius:46% 42% 48% 44%;
+    box-shadow:0 5px 0 #2c2011, 0 7px 12px rgba(0,0,0,.45), inset 0 3px 4px rgba(240,210,160,.3), inset 0 -6px 8px rgba(0,0,0,.5); }
+  .tile.root.cracked{ filter:saturate(.75) brightness(.85); }
+  .tile.root.cracked::after{ content:""; position:absolute; inset:18% 28% 22% 24%; pointer-events:none;
+    background:linear-gradient(115deg, transparent 45%, rgba(40,24,8,.7) 47% 50%, transparent 52%); }
+  /* 🌑 SHROUD — a gloom that halves the joy of every word beside it */
+  .tile.shroud{ background:radial-gradient(120% 120% at 40% 30%, #4c4460, #362f48 55%, #241f33); font-size:19px!important;
+    box-shadow:0 5px 0 #16121f, 0 7px 12px rgba(0,0,0,.5), inset 0 2px 3px rgba(190,175,220,.22), inset 0 -6px 8px rgba(0,0,0,.55); }
+  .tile.shroud.cracked{ opacity:.72; filter:brightness(1.25); }
+  /* 🐛 PEST — a restless little guest that trades seats with your letters */
+  .tile.pest{ background:linear-gradient(148deg,#dfe9c0,#b8cc90 55%,#8ca75f); font-size:20px!important;
+    box-shadow:0 5px 0 #55703a, 0 7px 12px rgba(40,60,20,.4), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -4px 6px rgba(70,95,40,.45); }
   .tile.thawpop{ animation:thawpop .55s; }
   @keyframes thawpop{ 40%{ transform:scale(1.18); filter:brightness(1.8) } }
   #iv-obstacles{ font-size:14px; color:var(--dim); letter-spacing:3px; }
@@ -1443,17 +1457,27 @@ function recipe(L){ // obstacles arrive slowly — and every newcomer debuts ALO
   if(L===12) { r.stone=2;   return r; }   // 🪨 …then the stone…
   if(L===27) { r.frost=2;   return r; }   // ❄❄ …the deep frost…
   if(L===51) { r.mist=2;    return r; }   // 🌫️ …the mist…
-  if(L===77) { r.bramble=2; return r; }   // 🌿 …and the brambles
+  if(L===77) { r.bramble=2; return r; }   // 🌿 …the brambles…
+  if(L===102){ r.root=2;    return r; }   // 🪵 …the stubborn root…
+  if(L===127){ r.shroud=2;  return r; }   // 🌑 …the shroud…
+  if(L===141){ r.pest=2;    return r; }   // 🐛 …and at last, the pest
   r.ice     = L>=8  ? Math.min(3, 1+Math.floor((L-8)/4))   : 0;
   r.stone   = L>=12 ? Math.min(3, 1+Math.floor((L-12)/3))  : 0;
   r.crate   = (L>=13 && L%3===0) ? 1 : 0;
   r.frost   = L>=27 ? Math.min(2, 1+Math.floor((L-27)/25)) : 0;
   r.mist    = L>=51 ? Math.min(2, 1+Math.floor((L-51)/30)) : 0;
   r.bramble = L>=77 ? 1 : 0;              // one seed is plenty — it spreads on its own
+  r.root    = L>=102 ? 1 : 0;
+  r.shroud  = L>=127 ? 1 : 0;
+  r.pest    = L>=141 ? 1 : 0;
   // a prefill holds ~18 tiles: cap the blockers at 6 so play stays possible.
-  // veterans step back first — but everyone present keeps at least one.
-  let total=r.ice+r.stone+r.frost+r.mist+r.bramble;
-  for(const k of ["ice","stone","frost","mist"]){ while(total>6 && r[k]>1){ r[k]--; total--; } }
+  // veterans step back first — and the trim order rotates each ring, so different
+  // stretches of the wood drop different troubles instead of always the same ones.
+  const age=["ice","stone","frost","mist","bramble","root","shroud"];
+  const rot=Math.floor(L/25)%age.length;
+  const order=age.slice(rot).concat(age.slice(0,rot));
+  let total=r.ice+r.stone+r.frost+r.mist+r.bramble+r.root+r.shroud+r.pest;
+  for(const k of order){ while(total>6 && r[k]>0){ r[k]--; total--; } }
   return r;
 }
 
@@ -1754,14 +1778,35 @@ const GOALS={
   boulder:{i:"🪨", n:"smash every stone", seed:"stone", base:3},
   harvest:{i:"✨", n:"harvest the gold",  seed:"gold",  base:4},
   unravel:{i:"🎁", n:"open every gift",   seed:"crate", base:2},
+  lift:   {i:"🌫️", n:"lift the mist",     seed:"mist",  base:3},
+  // cut counts DEEDS, not pieces: seed a few tangles and the spread supplies the rest
+  cut:    {i:"🌿", n:"cut the tangles",   seed:"bramble", base:5, fixedSeed:3, slowScale:50},
+  long:   {i:"🏔️", n:"speak long words",  base:3},
+  star:   {i:"⭐", n:"walk the star course", seed:"wild", base:3},
+  gauntlet:{i:"👑", n:"the crown trial"},
 };
 function goalFor(L){
-  // authored solo introductions, then one obstacle-goal level per 5-beat cycle
+  // authored solo introductions, then one obstacle-goal level per 5-beat cycle.
+  // every new goal debuts a few levels after its obstacle does — meet the trouble
+  // first, then be asked about it.
   if(L===15) return "thaw";
   if(L===20) return "boulder";
   if(L===32) return "unravel";
   if(L===38) return "harvest";
-  if(L>20 && L%5===3) return ["thaw","boulder","unravel","harvest"][Math.floor(L/7)%4];
+  if(L===54) return "lift";      // mist arrived at 51
+  if(L===58) return "long";
+  if(L===79) return "cut";       // brambles arrived at 77
+  if(L===84) return "star";
+  if(L===107) return "gauntlet"; // 👑 the first crown trial
+  if(L>110 && L%20===13) return "gauntlet";  // then one crown per twenty levels
+  if(L>20 && L%5===3){
+    const pool=["thaw","boulder","unravel","harvest"];
+    if(L>54) pool.push("lift");
+    if(L>58) pool.push("long");
+    if(L>79) pool.push("cut");
+    if(L>84) pool.push("star");
+    return pool[Math.floor(L/7)%pool.length];
+  }
   return "hush";
 }
 /* ============ BEST FRIENDS — simple, named pair synergies ============
@@ -1882,11 +1927,11 @@ function saveRun(){
   if(!S || S.over || S.won){ P.run=null; save(); return; }
   // a lesson can't be resumed mid-script — restarting the level replays it cleanly
   if(S.guide){ P.run=null; save(); return; }
-  P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0,h:t.heldWord||""}:null)),
+  P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0,h:t.heldWord||"",d:t.cutDrop||0}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
     maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, charm:S.charm||0,
-    goal:S.goal };
+    goal:S.goal, goal2:S.goal2||null };
   save();
 }
 function loadRun(){
@@ -1899,11 +1944,12 @@ function loadRun(){
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
       maxChain:r.maxChain||1, newGrove:(r.newGrove||[]).filter(w=>GROVE_BY_WORD[w]), cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
       petCharge:r.petCharge||0, petTurn:r.petTurn||0, charm:r.charm||0,
-      goal:r.goal||{t:"hush",need:0,have:0} });
+      goal:r.goal||{t:"hush",need:0,have:0}, goal2:r.goal2||null });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
       if(!cell) return;
       const t=newTile(cell.l,cell.k,ri,ci);
       if(cell.x){ t.cracks=cell.x; t.inner.classList.add("cracked"); }
+      if(cell.d) t.cutDrop=cell.d;
       if(cell.h) t.heldWord=cell.h; // a spent word stays spent across a reload
     }));
     S.busy=false; // resumed runs skip the intro card, so unfreeze directly
@@ -2279,6 +2325,9 @@ function tileFace(t){
   if(t.kind==="wild") return "★";              // the TEXT star — it takes our silver, emoji won't
   if(t.kind==="stone" || t.kind==="bramble") return ""; // the CSS renders rock and tangle
   if(t.kind==="crate") return "🎁";
+  if(t.kind==="root") return "🪵";
+  if(t.kind==="shroud") return "🌑";
+  if(t.kind==="pest") return "🐛";
   if(t.kind==="mist") return "?";               // the letter keeps its secret until the mist lifts
   return t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>"; // ice & frost show the letter — you can see what to free
 }
@@ -2295,7 +2344,7 @@ function makeTileEl(t){
   boardEl.appendChild(outer);
   return {outer, inner:el};
 }
-const NONWORD = new Set(["bomb","stone","crate","ice","frost","mist","bramble"]); // these break words apart
+const NONWORD = new Set(["bomb","stone","crate","ice","frost","mist","bramble","root","shroud","pest"]); // these break words apart
 function placeTile(t,r,c,instant){
   t.r=r; t.c=c;
   if(instant){ t.el.style.transition="none"; t.el.style.transform=xy(r,c); void t.el.offsetWidth; t.el.style.transition=""; }
@@ -2494,23 +2543,33 @@ const Game = {
     };
     convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
     convert("frost",rec.frost); convert("mist",rec.mist); convert("bramble",rec.bramble);
+    convert("root",rec.root); convert("shroud",rec.shroud); convert("pest",rec.pest);
     // the round's ASK: ceremonies keep the hush (their contract is the name); other
     // levels may ask for obstacles instead — and the board seeds enough to ask fairly
-    S.goal={t:"hush",need:0,have:0};
+    S.goal={t:"hush",need:0,have:0}; S.goal2=null;
+    const seedGoal=(gt,cap)=>{ // seed a goal's pieces and return its ask
+      const G=GOALS[gt];
+      const need=Math.min(cap||7, G.base+Math.floor(level/(G.slowScale||25)));
+      if(!G.seed) return {t:gt, need:Math.min(cap||6, G.base+Math.floor(level/40)), have:0}; // 🏔️ deeds only
+      const pool2=Object.values(S.tiles).filter(t=>t.kind==="normal");
+      const seedN=G.fixedSeed || need;
+      let seeded=Object.values(S.tiles).filter(t=>t.kind===G.seed).length;
+      while(seeded<seedN && pool2.length){
+        const t=pool2.splice(Math.floor(Math.random()*pool2.length),1)[0];
+        t.kind=G.seed; t.cracks=0;
+        t.inner.className="tile "+G.seed; t.inner.innerHTML=tileFace(t);
+        seeded++;
+      }
+      // hunt-goals count deeds (the spread supplies them); piece-goals count what's seeded
+      return {t:gt, need: G.fixedSeed ? need : seeded, have:0};
+    };
     if(!(P.summon && !P.grove[P.summon]) && !(level===4 && !P.grove.cat)){
       const gt=goalFor(level);
-      if(gt!=="hush"){
-        const G=GOALS[gt];
-        const need=Math.min(7, G.base+Math.floor(level/25));
-        const pool2=Object.values(S.tiles).filter(t=>t.kind==="normal");
-        let seeded=Object.values(S.tiles).filter(t=>t.kind===G.seed).length;
-        while(seeded<need && pool2.length){
-          const t=pool2.splice(Math.floor(Math.random()*pool2.length),1)[0];
-          t.kind=G.seed; t.cracks=0;
-          t.inner.className="tile "+G.seed; t.inner.innerHTML=tileFace(t);
-          seeded++;
-        }
-        S.goal={t:gt, need:seeded, have:0};
+      if(gt==="gauntlet"){ // 👑 two asks at once, each cut down to size
+        const gp=["thaw","boulder","harvest","unravel"], gi=Math.floor(level/13);
+        S.goal=seedGoal(gp[gi%4],4); S.goal2=seedGoal(gp[(gi+1)%4],4);
+      } else if(gt!=="hush"){
+        S.goal=seedGoal(gt);
       }
     }
     // a met calling becomes a NAMING LEVEL: the summoned creature hides in the corner
@@ -2544,7 +2603,8 @@ const Game = {
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
     const ring=Math.floor((level-1)/25)+1; // each 25 levels = one ring deeper into the wood
     $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
-    $("iv-target").textContent = (S.goal&&S.goal.t!=="hush") ? GOALS[S.goal.t].i+" "+S.goal.need : S.target;
+    $("iv-target").textContent = (S.goal&&S.goal.t!=="hush")
+      ? GOALS[S.goal.t].i+" "+S.goal.need+(S.goal2 ? "  "+GOALS[S.goal2.t].i+" "+S.goal2.need : "") : S.target;
     $("iv-moves").textContent = S.movesLeft;
     const ob=$("iv-obstacles");
     const parts=[];
@@ -2554,6 +2614,9 @@ const Game = {
     if(rec.frost) parts.push("❄❄×"+rec.frost);
     if(rec.mist) parts.push("🌫️×"+rec.mist);
     if(rec.bramble) parts.push("🌿×"+rec.bramble);
+    if(rec.root) parts.push("🪵×"+rec.root);
+    if(rec.shroud) parts.push("🌑×"+rec.shroud);
+    if(rec.pest) parts.push("🐛×"+rec.pest);
     if(parts.length){ ob.style.display="block"; ob.textContent=parts.join("  "); }
     else ob.style.display="none";
     const iv=$("iv-visitor");
@@ -2675,7 +2738,7 @@ const Game = {
     if((P.pow.swap||0)>0) order.push("breeze");
     if((P.pow.wild||0)>0) order.push("wish");
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
-    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble") order.push(t.kind); }
+    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
@@ -2802,6 +2865,7 @@ const Game = {
     else { S.deadDrops++; if(S.deadDrops===2 && S.level<=2 && !S.guide) setTimeout(()=>UI.nudge(), 350); } // lessons coach themselves
     S.drops++;
     if(S.drops % 3 === 0){ await Game.stirShifters(); await Game.brambleSpread(); }
+    await Game.woodTick();
     S.busy=false;
     UI.all();
     saveRun();
@@ -2815,8 +2879,8 @@ const Game = {
     // THE CEREMONY CONTRACT: beat the level AND speak the name. Points alone cannot
     // close a naming round — the hush holds until the guest is named.
     if(S.goal && S.goal.t!=="hush"){
-      // an obstacle round asks ONLY for its obstacles — clear them all and it ends
-      if(S.goal.have>=S.goal.need){ Game.winLevel(); return; }
+      // an obstacle round asks ONLY for its obstacles — a 👑 gauntlet asks for BOTH lists
+      if(S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need)){ Game.winLevel(); return; }
     } else if(S.levelScore >= S.target){
       if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
       else { Game.winLevel(); return; }
@@ -3132,11 +3196,15 @@ const Game = {
     UI.discover(g);
   },
 
-  goalTick(t){ // one step of the round's ask, whichever kind it is
-    if(!S || !S.goal || S.goal.t!==t) return;
-    S.goal.have=Math.min(S.goal.need, S.goal.have+1);
-    UI.hud();
-    if(S.goal.have>=S.goal.need) Snd.tone(1046,{dur:.25,type:"sine",gain:.07,verb:true});
+  goalTick(t){ // one step of the round's ask — a gauntlet listens on both channels
+    if(!S) return;
+    let hit=false;
+    for(const g of [S.goal,S.goal2]){
+      if(!g || g.t!==t || g.have>=g.need) continue;
+      g.have=Math.min(g.need, g.have+1); hit=true;
+      if(g.have>=g.need) Snd.tone(1046,{dur:.25,type:"sine",gain:.07,verb:true});
+    }
+    if(hit) UI.hud();
   },
 
   /* ---- 🐕 THE WATCHDOG — a shipped game may NEVER soft-lock ----
@@ -3444,7 +3512,7 @@ const Game = {
         for(const t of picks){ UI.shards(t.r,t.c,"#c9e29a"); removeTile(t); await wait(120); }
         if(pairOn("junkMove")) Game.addMoves(1); // 🦨 Stink & Swarm
         Snd.collapse(picks.length); await Game.settle(); break; }
-      case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble") || Game.worstTiles(1)[0];
+      case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") || Game.worstTiles(1)[0];
         if(!cand){ Game.addMoves(2); break; }
         cand.kind="crate"; cand.inner.className="tile thawpop"; cand.inner.innerHTML=tileFace(cand);
         UI.shards(cand.r,cand.c,"#ffd54f"); Snd.gold(); break; }
@@ -3783,6 +3851,10 @@ const Game = {
       if(GROVE_BY_WORD[w.word] && Game.hasPassive("kindred")) pts*=(pairOn("kindred3")?3:2); // 🐾 Kindred Call (🌼 Meadow Kin sings louder)
       if(len>=(pairOn("refund3")?3:4) && S.chain===1 && Game.hasPassive("refund4") && !S._refunded){ S._refunded=true; Game.addMoves(1); } // 💨 Quickstep (🌪️ The Chase widens it)
       if(len>=5 && S.chain===1 && pairOn("zoomies")) Game.addMoves(2); // 💫 Zoomies: big words, big energy
+      // 🌑 a shroud dims every word cleared in its shadow — half the joy, rounded up
+      if(w.cells.some(t=>[[1,0],[-1,0],[0,1],[0,-1]].some(d=>{
+        const n=(S.board[t.r+d[0]]||[])[t.c+d[1]]; return n && n.kind==="shroud"; })))
+        pts=Math.ceil(pts/2);
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
       banner.style.fontSize = Math.min(16+len*2, 28)+"px";
@@ -3806,7 +3878,9 @@ const Game = {
       else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
       const goldN=w.cells.filter(t=>t.kind==="gold").length;
       if(goldN){ Game.tallyEv("gold",goldN); for(let gi=0;gi<goldN;gi++) Game.goalTick("harvest"); }
-      if(w.cells.some(t=>t.kind==="wild")) Game.tallyEv("star");
+      const wildN=w.cells.filter(t=>t.kind==="wild").length;
+      if(wildN){ Game.tallyEv("star"); for(let wi=0;wi<wildN;wi++) Game.goalTick("star"); }
+      if(len>=4) Game.goalTick("long");                       // 🏔️ the long trial hears you
       if(w.dir==="up") Game.tallyEv("upword");
       Game.recordWord(w, pts, S.chain);
       // THE announcement of this game — the word you made and what it paid — used to sit
@@ -3835,6 +3909,37 @@ const Game = {
     Snd.riser(S.chain);
     await wait(430);
     await Game.resolve([...(thawed||[]), ...(fell||[])]);
+  },
+
+  async woodTick(){ // the wood's own small moves, once per drop
+    if(!S || S.over || S.won) return;
+    // 🪵 a cut root left alone for 3 drops closes its wound
+    for(const t of Object.values(S.tiles)){
+      if(t.kind==="root" && t.cracks>=1 && S.drops-(t.cutDrop||0)>=3){
+        t.cracks=0; delete t.cutDrop;
+        t.inner.classList.remove("cracked");
+        t.inner.classList.add("jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),260);
+        UI.shards(t.r,t.c,"#8a6a44");
+        Snd.tone(240,{dur:.16,type:"triangle",gain:.05,verb:true});
+      }
+    }
+    // 🐛 every 3rd drop, each pest trades seats with a neighboring letter
+    if(S.drops % 3 === 0){
+      let hopped=false;
+      for(const p of Object.values(S.tiles).filter(t=>t.kind==="pest")){
+        const ns=[[1,0],[-1,0],[0,1],[0,-1]].map(d=>(S.board[p.r+d[0]]||[])[p.c+d[1]])
+          .filter(n=>n && n.kind==="normal" && !n.heldWord);  // held words are safe seats
+        const n=rand(ns); if(!n) continue;
+        const pr=p.r, pc=p.c;
+        S.board[pr][pc]=n; S.board[n.r][n.c]=p;
+        p.r=n.r; p.c=n.c; n.r=pr; n.c=pc;
+        placeTile(p,p.r,p.c); placeTile(n,n.r,n.c);
+        p.inner.classList.add("jostle"); n.inner.classList.add("jostle");
+        setTimeout(()=>{ p.inner.classList.remove("jostle"); n.inner.classList.remove("jostle"); },260);
+        Snd.tone(520,{dur:.1,type:"triangle",gain:.05}); hopped=true;
+      }
+      if(hopped) await wait(240);
+    }
   },
 
   async brambleSpread(){ // every 3rd drop the tangle reaches for ONE more letter — capped at 6
@@ -3884,6 +3989,23 @@ const Game = {
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
           Snd.thaw(); buzz(10);
+        } else if(t.kind==="root"){     // cut once it heals, cut twice it yields
+          acted=true;
+          if(t.cracks>=1){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("root"); Game.amber(2); }
+          else { t.cracks=1; t.cutDrop=S.drops;
+            t.inner.classList.add("cracked","jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
+            Snd.crack(false); }
+          buzz(15);
+        } else if(t.kind==="shroud"){   // the gloom thins once, lifts the second time
+          acted=true;
+          t.cracks=(t.cracks||0)+1;
+          if(t.cracks>=2){ removeTile(t); Snd.thaw(); Game.tallyEv("shroud"); Game.amber(2); }
+          else { t.inner.classList.add("cracked","jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220); Snd.crack(false); }
+          buzz(10);
+        } else if(t.kind==="pest"){     // one clean swat
+          acted=true;
+          removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("pest"); Game.amber(2);
+          buzz(15);
         } else if(t.kind==="frost"){    // deep frost sheds a LAYER — ordinary ice remains
           acted=true;
           t.kind="ice"; t.cracks=0;
@@ -3893,7 +4015,7 @@ const Game = {
           Snd.crack(false); buzz(10);
         } else if(t.kind==="mist"){     // the mist lifts — the letter shows its face
           acted=true;
-          t.kind="normal"; thawed.push(t); Game.tallyEv("mist"); Game.amber(2);
+          t.kind="normal"; thawed.push(t); Game.tallyEv("mist"); Game.amber(2); Game.goalTick("lift");
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#c9c2d8");
@@ -3901,7 +4023,7 @@ const Game = {
         } else if(t.kind==="bramble"){  // one clean cut and the tangle falls away
           acted=true;
           removeTile(t); S.levelScore+=5;
-          Snd.crack(true); Game.tallyEv("bramble"); Game.amber(2);
+          Snd.crack(true); Game.tallyEv("bramble"); Game.amber(2); Game.goalTick("cut");
           buzz(15);
         } else if(t.kind==="crate"){
           acted=true;
@@ -4044,6 +4166,10 @@ const UI = {
       const done=S.levelScore>=S.target;
       segs.push('<div class="gseg'+(done?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+Math.min(1,S.levelScore/Math.max(1,S.target))+')"></div><span>🎯</span> <b>'+S.levelScore+'/'+S.target+'</b></div>');
     }
+    if(S.goal2){
+      const d2=S.goal2.have>=S.goal2.need;
+      segs.push('<div class="gseg'+(d2?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+(S.goal2.have/Math.max(1,S.goal2.need))+')"></div><span>'+GOALS[S.goal2.t].i+'</span> <b>'+S.goal2.have+'/'+S.goal2.need+'</b></div>');
+    }
     if(S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord], full=P.level<=6;
       // mercy: each letdown past the first glows one more letter, never the last
@@ -4179,7 +4305,9 @@ const UI = {
     $("ev-title").innerHTML = won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>Level '+S.level+' clear!'
       : (S.tutorWord ? "A name went unspoken…"
-         : (S.goal&&S.goal.t!=="hush") ? (GOALS[S.goal.t].i+" "+(S.goal.need-S.goal.have)+" remained…")
+         : (S.goal&&S.goal.t!=="hush") ? ((S.goal.have<S.goal.need
+             ? GOALS[S.goal.t].i+" "+(S.goal.need-S.goal.have)
+             : GOALS[S.goal2.t].i+" "+(S.goal2.need-S.goal2.have))+" remained…")
          : S.levelScore>=S.target*0.85 ? "So close…" : "Out of moves");
     // a won card says just the score — "76 / 15" read like a broken fraction, and the
     // title already says the target fell. A loss keeps the gap visible: "58 / 75".
@@ -4636,10 +4764,18 @@ const UI = {
     frost: {i:"❄️", t:"<b>Deep frost</b> — winter twice over. A word beside it sheds one layer; a <b>second</b> word sets the letter free."},
     mist:  {i:"🌫️", t:"A <b>misted letter</b> hides its face — no word can use it while it hides. Clear a word beside it and the mist lifts."},
     bramble:{i:"🌿", t:"<b>Brambles!</b> Every few drops the tangle reaches for another letter. Clear a word <b>right beside</b> a tangle to cut it away."},
+    root:  {i:"🪵", t:"A <b>stubborn root</b>! One word beside it cuts it — but left alone for three drops, <b>it heals whole</b>. Cut it twice, quickly."},
+    shroud:{i:"🌑", t:"A <b>shroud</b> dims the wood — words cleared <b>beside it score half</b>. Two words beside it lift the gloom for good."},
+    pest:  {i:"🐛", t:"A <b>little pest</b>! Every few drops it trades places with one of your letters. One word cleared <b>right beside it</b> shoos it off."},
     "goal-thaw":   {i:"🧊", t:"A <b>THAW round</b>! The hush doesn\u0027t want points here — <b>melt every frozen letter</b> before your moves run out. Clear words BESIDE the ice to thaw it."},
     "goal-boulder":{i:"🪨", t:"A <b>BOULDER round</b>! <b>Smash every mossy stone</b> to clear the level — clear words beside a stone twice and it crumbles."},
     "goal-harvest":{i:"✨", t:"A <b>HARVEST round</b>! <b>Use every golden letter in a word</b> — the gold on the board is the goal, not the points."},
     "goal-unravel":{i:"🎁", t:"An <b>UNRAVEL round</b>! <b>Burst every gift crate</b> — clear words beside them. The gifts inside are still yours."},
+    "goal-lift":   {i:"🌫️", t:"A <b>MIST round</b>! The hush wants no points here — <b>lift every misted letter</b>. Clear words BESIDE the fog until no letter hides."},
+    "goal-cut":    {i:"🌿", t:"A <b>TANGLE round</b>! The brambles keep growing — <b>cut the asked number of tangles</b> before your moves run out. Clear words right beside them."},
+    "goal-long":   {i:"🏔️", t:"A <b>LONG TRIAL</b>! Only <b>words of 4 letters or more</b> count toward this round. Build tall, speak long."},
+    "goal-star":   {i:"⭐", t:"A <b>STAR COURSE</b>! Fallen stars rest on the board — <b>use every ⭐ in a word</b>. A star becomes any letter you need it to be."},
+    "goal-gauntlet":{i:"👑", t:"A <b>CROWN TRIAL</b>! The wood asks <b>two things at once</b>. Finish BOTH asks on the strip to clear the round."},
   },
   /* ---- 🧿 KEEPER'S CHARM — export/restore. iOS quietly evicts a PWA's storage after
      ~a week of neglect; until a real cloud save exists, the charm is the lifeboat.
