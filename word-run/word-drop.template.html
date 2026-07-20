@@ -1209,9 +1209,23 @@
     font-size:16px; font-weight:900; color:var(--dim); line-height:1; padding:0; }
   .cardx:active{ transform:scale(.92); }
   .overlay .card{ position:relative; }
-  .bookchip{ cursor:pointer; border:none; background:none; font-size:22px; line-height:1;
-    padding:2px 8px; min-height:32px; filter:drop-shadow(0 2px 2px rgba(70,50,25,.4));
-    transition:transform .12s, filter .12s; }
+  .bookchip{ cursor:pointer; border:none; background:none; line-height:1;
+    padding:2px 8px; min-height:32px; display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 2px 2px rgba(70,50,25,.4)); transition:transform .12s, filter .12s; }
+  .bookicon{ width:23px; height:23px; display:block; }
+  .menubook{ width:21px; height:21px; }
+  /* the sheen: a slow light travelling across the cover so the Book catches the eye every
+     minute and a half or so — long enough apart to read as "special", never as a nag. */
+  .bookwrap{ position:relative; display:block; width:23px; height:23px; overflow:hidden; border-radius:5px; }
+  .booksheen{ position:absolute; top:-20%; bottom:-20%; left:0; width:55%; pointer-events:none;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.9), transparent);
+    transform:translateX(-160%) skewX(-18deg); opacity:0;
+    animation:booksheen 90s linear infinite; }
+  @keyframes booksheen{
+    0%{ transform:translateX(-160%) skewX(-18deg); opacity:0 }
+    0.4%{ opacity:.95 }
+    2.2%{ transform:translateX(190%) skewX(-18deg); opacity:0 }
+    100%{ transform:translateX(190%) skewX(-18deg); opacity:0 } }
   .bookchip:active{ transform:translateY(1px) scale(.94); filter:drop-shadow(0 1px 1px rgba(70,50,25,.32)); }
 </style>
 
@@ -1307,7 +1321,7 @@
     <div id="menu-head"><span>Hushwood</span><button id="menu-close" onclick="UI.menuToggle(false)" aria-label="close">✕</button></div>
     <div class="menu-stat"><span>🔥 day streak</span><b id="hm-streak">0</b></div>
     <div class="menu-stat" id="hm-quest-row"><span id="hm-quest">🌤️ today's quest</span></div>
-    <button class="menu-item" onclick="UI.groveShow()"><span>📔</span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
+    <button class="menu-item" onclick="UI.groveShow()"><span><svg class="bookicon menubook" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg></span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
     <button class="menu-item" onclick="UI.statsShow()"><span>📊</span> Your journey</button>
     <button class="menu-item" onclick="Shop.open()"><span>🟠</span> The Trading Post <em>amber &amp; bundles</em></button>
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
@@ -1338,7 +1352,7 @@
     </div>
     <div id="goalstrip">
       <div id="gs-goals"></div>
-      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names">📔</button>
+      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names"><span class="bookwrap"><svg class="bookicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg><i class="booksheen"></i></span></button>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
     </div>
     <div id="petbar">
