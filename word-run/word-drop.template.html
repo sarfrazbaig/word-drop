@@ -509,6 +509,8 @@
     z-index:70; display:flex; align-items:center; justify-content:center;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:4px;
     box-shadow:0 6px 16px rgba(90,60,30,.42); animation:bannerin .2s; overflow:hidden; }
+  .gracebubble .gwait{ display:flex; align-items:center; padding:0 16px; min-height:32px;
+    font-size:12.5px; font-weight:800; letter-spacing:.3px; color:var(--gold-deep); }
   .gracebubble .ghold{ flex:none; border:none; border-radius:999px; padding:0 15px;
     min-width:92px; min-height:32px; font-size:12.5px; font-weight:900; letter-spacing:.4px;
     background:linear-gradient(148deg,#e3f7ee,#c2ebd6); color:#2e6b4c; cursor:pointer;
@@ -926,7 +928,11 @@
   /* the coach's line WRAPS now — it was a one-line pill that clipped every long
      sentence to an ellipsis ("a four-letter word and it also…" vanished mid-thought).
      A centered rounded card holds two lines comfortably; short lines still read as a pill. */
-  .ftue-note{ position:absolute; left:50%; top:-14px; transform:translateX(-50%); z-index:88;
+  /* It hangs INSIDE the board now, below the pointing hand. It used to sit at -14px —
+     above the board's top edge — and in the early lessons there is no pet bar yet, so it
+     landed hard against the goal/📖/🟠 row and read as part of the HUD. Down here the top
+     rows are empty sky during a lesson, so it crowds nothing. */
+  .ftue-note{ position:absolute; left:50%; top:92px; transform:translateX(-50%); z-index:88;
     box-sizing:border-box; width:88%; max-width:340px;   /* explicit width — a centered absolute
       box with only left:50% shrink-fits to half the board and wraps into a skinny column */
     background:#fffdf6; border:2px solid var(--gold); border-radius:16px; padding:7px 15px;
@@ -2342,6 +2348,9 @@ const FT = {
   _w:{}, _bits:[],
   wait(name){ return new Promise(res=>{ (FT._w[name]=FT._w[name]||[]).push(res); }); },
   signal(name,data){ const q=FT._w[name]; if(q && q.length){ FT._w[name]=[]; q.forEach(f=>f(data)); } },
+  // some beats are genuinely the player's call — end them on whichever choice they make
+  waitAny(...names){ return new Promise(res=>{ let done=false;
+    names.forEach(n=>{ (FT._w[n]=FT._w[n]||[]).push(d=>{ if(!done){ done=true; res({sig:n,data:d}); } }); }); }); },
   bit(el){ FT._bits.push(el); return el; },                    // everything spawned, so cleanup can't miss
   cleanup(){ FT._w={}; FT._bits.forEach(e=>e.remove()); FT._bits=[];
     document.querySelectorAll(".ftue-scrim,.ftue-callout,.ftue-arrow,.ftue-note,.ftue-ring,.ftue-hand,.coach").forEach(e=>e.remove()); },
@@ -2397,7 +2406,7 @@ const FT = {
     await wait(350);                               // one breath between the card and the lesson
   },
   note(html){ FT.clearNote(); const n=FT.bit(document.createElement("div")); n.className="ftue-note";
-    n.innerHTML=html; $("boardwrap").appendChild(n); FT._note=n; },
+    n.innerHTML=html; boardEl.appendChild(n); FT._note=n; },  // on the board, clear of the HUD
   clearNote(){ if(FT._note){ FT._note.remove(); FT._note=null; } },
   hand(col){ FT.clearHand(); if(col==null) return;
     const h=FT.bit(document.createElement("div")); h.className="coach ftue-hand"; h.textContent="👇";
@@ -2431,7 +2440,7 @@ const FT = {
       newTile("l","normal",ROWS-1,2); newTile("w","normal",ROWS-1,3);
       newTile("e","normal",ROWS-1,5); newTile("n","normal",ROWS-1,6);
       S.cur={letter:"t",kind:"normal"}; S.next=makePiece();
-      S.guide={lesson:2, allowCol:4};
+      S.guide={lesson:2, allowCol:4, noHold:true};  // lesson 2 waits for blooms — no hold to trap it
     } else if(level===3){
       Object.values(S.tiles).slice().forEach(t=>removeTile(t));
       newTile("t","normal",ROWS-1,2); newTile("e","normal",ROWS-1,3);
@@ -2518,7 +2527,7 @@ const FT = {
     await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
     FT.note("your call — 🌱 hold to keep growing, or let it bloom");
-    await FT.wait("wordCleared");
+    await FT.waitAny("wordCleared","held");   // it said "your call" — so honour either one
     FT.clearNote();
     // the lesson cleared the whole board — free play from BARE ground is the hardest
     // state in the game (nothing to complete). Seed level ground like every real level.
@@ -4086,15 +4095,17 @@ const Game = {
       bx.style.height=((r1-r0)*STEP+CELL+8)+"px";
       boardEl.appendChild(bx); return bx;
     });
+    const noHold = !!(S.guide && S.guide.noHold);   // a lesson beat that must end in a bloom
     const b=document.createElement("div"); b.className="gracebubble";
-    b.innerHTML='<button class="ghold">🌱 HOLD</button><i class="gbar"></i>';
+    b.innerHTML=(noHold ? '<span class="gwait">🌸 blooming…</span>'
+                        : '<button class="ghold">🌱 HOLD</button>')+'<i class="gbar"></i>';
     $("dock").appendChild(b);   // a pill above the tray — same place, every single time.
     // the word itself is named by the glow on the board, not repeated down here.
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
     if(!S.guide) UI.say("grace", "words pause, then <b>bloom</b> (clear) on their own — tap 🌱 <b>HOLD</b> to stop one and keep its letters", 2);
     FT.signal("graceShown",{bubble:b,words});
     let held=false, skip=false;
-    b.querySelector(".ghold").onclick=e=>{ e.stopPropagation(); held=true; };
+    { const hb=b.querySelector(".ghold"); if(hb) hb.onclick=e=>{ e.stopPropagation(); held=true; }; }
     ["pointerdown","pointerup"].forEach(ev=>b.addEventListener(ev,e=>e.stopPropagation()));
     const hurry=()=>{ skip=true; };
     // lesson 3's teaching beat: the word waits for the 🌱 tap itself — no clock, no
