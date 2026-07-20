@@ -3600,10 +3600,13 @@ const Game = {
       try{
         if(!S || !S.busy || S.over || S.won) return;
         if(Date.now()-(S.lastAction||0) < 15000) return;
+        // tiptip is deliberately NOT in this list. It used to be, and that was the whole
+        // problem: a tip both froze the board and told the watchdog to stand down, so the
+        // one thing that could have rescued the player was disqualified by the thing that
+        // trapped them. Tips no longer block anything, so they are no excuse to stay stuck.
         const surface = document.querySelector(".overlay.active")
           || document.querySelector(".gracebubble")
-          || document.querySelector(".ftue-scrim")
-          || $("tiptip").classList.contains("on");
+          || document.querySelector(".ftue-scrim");
         if(surface) return;
         console.warn("[hushwood] watchdog: releasing a stuck board");
         S.busy=false; S.playerMove=false; S.pendingReveal=null;
@@ -5403,17 +5406,29 @@ const UI = {
     localStorage.clear(); location.reload();
   },
 
+  // A TIP IS INFORMATION, NOT A GATE.
+  // This used to set S.busy — and drop() opens with a SILENT `if(busy) return`, so every
+  // tap on a board that still looked completely live did nothing: no shake, no sound, no
+  // word. Worse, the stall watchdog counted an open tip as a legitimate surface and stood
+  // down, so the one safety net declined to help. A tester spent ~40 taps and two rage
+  // bursts on level 13 hammering a board that had quietly stopped listening, went to the
+  // home screen, came back, and found it still dead. The card is small and centred; the
+  // board around it stays reachable. So the tip now floats over a PLAYABLE board and
+  // retires on its own — nothing it does can ever cost someone the game again.
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
     P.seenTip[kind]=true; save();
     const tip=UI.TIPS[kind]; if(!tip) return false;
-    S.busy=true;
     $("tiptip").querySelector(".ti").textContent=tip.i;
     $("tiptip").querySelector(".tt").innerHTML=tip.t;
     $("tiptip").classList.add("on"); Game.shown("tip");
+    clearTimeout(UI._tipT);
+    UI._tipT=setTimeout(()=>$("tiptip").classList.remove("on"), 7000); // reads in ~4s; leaves before it's in the way
     Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
     return true;
   },
-  hideTip(){ if(Game.guard("tip")) return; $("tiptip").classList.remove("on"); if(S){ S.busy=false; S.lastAction=Date.now(); } },
+  // note: this must NOT touch S.busy any more. Tips no longer set it, so clearing it here
+  // would release a board that something else (a resolve, a ceremony) is legitimately holding.
+  hideTip(){ if(Game.guard("tip")) return; clearTimeout(UI._tipT); $("tiptip").classList.remove("on"); },
   confetti(){
     const colors=["#7dd87d","#ffd54f","#4fc3f7","#ff8a5c","#b388ff"];
     for(let i=0;i<24;i++){ const c=document.createElement("div"); c.className="confetti";
