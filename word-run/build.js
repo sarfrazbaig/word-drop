@@ -35,19 +35,19 @@ const subsAt = n => subsLines.slice(0, n).map(l => l.split(" ")[0])
 const subs = subsAt(30000);
 // obscure/foreign/abbreviation/interjection short words — these are the ones that felt
 // like the game cheating when they popped. Everything else short stays in.
-const SHORT_JUNK = new Set(("sal hah yah umm ava kat deb nan lam goa guv yum tis ops pow dex tad tsk loo ole "+
-  "bah ere yin tao cee lea hag hup hae kip cox wen eta ami ifs fay git taj jag fez lei naw tux cor bey rin "+
-  "tam tat tor gob rad hun coz sha yeh ich lux bop hap maw hes tod pia bel lax bot yip bub tau ell pap zee "+
-  "dal zed dag luv baa dun nim sos mun ems hao wat pol yon sou yuk lum mor rem fro ria lev vee nos wiz roc "+
+const SHORT_JUNK = new Set(("sal hah yah umm ava kat deb nan lam goa guv tis ops dex tsk ole "+
+  "bah ere yin tao cee lea hup hae kip cox wen eta ami ifs fay taj jag lei naw cor bey rin "+
+  "tam tat tor gob rad hun coz sha yeh ich lux bop hap maw hes tod pia bel yip bub tau ell pap zee "+
+  "dal zed dag luv baa dun nim sos mun ems hao wat pol yon sou yuk lum mor rem fro ria lev vee nos roc "+
   "mir hep lis rei arf oxy ama sae reb fer gan jus nae oft nom yow noo lac ged uns nog mis als bod pom gul "+
-  "wop zit sei ora lar oot nee ani zig aga ade ait alp amu ana bant bize cru dei eft eld emu ers gie gju "+
-  "hoc ide ilk jee kae kea kex kip koa lek lin lop lur mho mna nim nur oba obi oca ose oud pht pyx qat "+
-  "rax reh rho ria rya sab sax sei sri suq syn tav taw tef teg tho thy tid til tod tui tup twa ules uta "+
-  "vac vau vig vim vug wab wae wha wis wot wud wye xis yag yay yeh yid yin yob yod zax zek zin zoa").split(/\s+/));
+  "wop sei ora lar oot nee ani zig aga ade ait alp amu ana bant bize cru dei eft eld ers gie gju "+
+  "hoc ide jee kae kea kex kip koa lek lin lop lur mho mna nim nur oba obi oca ose oud pht pyx qat "+
+  "rax reh rho ria rya sab sax sei sri suq syn tav taw tef teg tho tid til tod tui tup twa ules uta "+
+  "vac vau vig vug wab wae wha wis wot wud wye xis yag yay yeh yid yin yob yod zax zek zin zoa").split(/\s+/));
 // family filter: this is a cozy game that auto-celebrates words with chimes and
 // confetti — crude words must never get the fanfare (playtest cleared "ASS" with applause).
 const CRUDE = new Set(("ass arse anal anus boob boobs butt clit cock cum dick dildo fag fart hell homo jerk "+
-  "kink milf nude oral orgy penis pee piss poo poop porn pube rape scat semen sex sexy shag shit slut smut "+
+  "kink milf nude oral orgy penis pee piss poo poop porn pube rape scat semen sex sexy sshit slut smut "+
   "tit tits turd twat vagina wank whore damn crap cunt hoe").split(" "));
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
 // every grove creature must stay spellable no matter how the frequency lists shift —

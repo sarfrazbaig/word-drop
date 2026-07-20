@@ -353,6 +353,10 @@
   /* 📡 playtest notice */
   #tele-title{ font-family:var(--font-story); font-weight:800; font-size:21px; color:var(--ink); }
   #tele-body{ font-size:13.5px; line-height:1.55; color:var(--dim); margin:4px 2px 4px; }
+  #tele-name{ box-sizing:border-box; width:100%; text-align:center; border-radius:12px;
+    border:1.5px solid rgba(101,78,48,.3); background:#fffdf6; padding:10px 12px; margin-bottom:2px;
+    font-family:var(--font-ui); font-size:15px; font-weight:700; color:var(--ink); }
+  #tele-name:focus{ outline:none; border-color:var(--accent); }
   /* 🟠 the Trading Post */
   #shop-title{ font-family:var(--font-story); font-weight:800; font-size:21px; color:var(--ink); }
   #shop-sub{ font-size:12.5px; color:var(--dim); line-height:1.5; margin:2px 0 8px; }
@@ -1195,9 +1199,11 @@
       <div style="font-size:34px">🌿</div>
       <div id="tele-title">welcome, playtester!</div>
       <div id="tele-body">this is an early build shared for feedback. as you play, your taps and
-        progress are noted <b>anonymously</b> — no name, no account, no personal data — just what
-        helps find the rough edges. thank you for wandering the wood with us. 💛</div>
-      <button class="btn-primary" onclick="P.teleSeen=true; save(); Tele.log('tele_ok'); document.getElementById('ov-tele').classList.remove('active');">let's play ▶</button>
+        progress are noted so we can find the rough edges — nothing else, and nothing personal.
+        pop your name below so we know whose notes are whose. 💛</div>
+      <input id="tele-name" type="text" maxlength="24" autocomplete="off" spellcheck="false"
+        placeholder="your name (optional)" aria-label="your name">
+      <button class="btn-primary" onclick="Tele.setName(document.getElementById('tele-name').value); P.teleSeen=true; save(); Tele.log('tele_ok',{named:!!(P.teleName||'').trim()}); document.getElementById('ov-tele').classList.remove('active');">let's play ▶</button>
     </div>
   </div>
 
@@ -2090,6 +2096,7 @@ function load(){
     out.purchases = out.purchases||{}; // once-items owned (receipts belong to the store layer)
     out.giftDay = out.giftDay||0;      // the wood's daily chest — one opening a day
     out.teleSeen = out.teleSeen||false; // the playtest notice has been shown
+    out.teleName = out.teleName||"";     // whose playtest notes these are (they typed it)
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -2744,6 +2751,12 @@ const Game = {
     // the round's ASK: ceremonies keep the hush (their contract is the name); other
     // levels may ask for obstacles instead — and the board seeds enough to ask fairly
     S.goal={t:"hush",need:0,have:0}; S.goal2=null;
+    // ONE ROUND, ONE CHALLENGE. The summons must be drawn BEFORE the goal is chosen:
+    // it used to be pulled afterwards, so a round could seed "melt every ice" and THEN
+    // discover it also had a guest to name — and clearing the ice won the level without
+    // the name ever being spoken. The queue is emptied first now, so the goal block
+    // below sees the ceremony and stands aside.
+    if(!P.summon && P.summonQ.length && P.metGrove.cat) P.summon=P.summonQ.shift();
     const seedGoal=(gt,cap)=>{ // seed a goal's pieces and return its ask
       const G=GOALS[gt];
       const need=Math.min(cap||7, G.base+Math.floor(level/(G.slowScale||25)));
@@ -2770,9 +2783,8 @@ const Game = {
       }
     }
     // a met calling becomes a NAMING LEVEL: the summoned creature hides in the corner
-    // of the board and its name hides in the letters. One guest per level, drawn from
-    // the queue in calling order. The cat's summons comes from the school itself.
-    if(!P.summon && P.summonQ.length && P.metGrove.cat) P.summon=P.summonQ.shift();
+    // of the board and its name hides in the letters. One guest per level — the queue
+    // was already drawn above, before the goal was chosen.
     S.tutorWord = (P.summon && !P.grove[P.summon]) ? P.summon
                 : (level===4 && !P.grove.cat) ? "cat" : null;   // school fallback, never missable
     if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
@@ -3076,8 +3088,13 @@ const Game = {
     // THE CEREMONY CONTRACT: beat the level AND speak the name. Points alone cannot
     // close a naming round — the hush holds until the guest is named.
     if(S.goal && S.goal.t!=="hush"){
-      // an obstacle round asks ONLY for its obstacles — a 👑 gauntlet asks for BOTH lists
-      if(S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need)){ Game.winLevel(); return; }
+      // an obstacle round asks ONLY for its obstacles — a 👑 gauntlet asks for BOTH lists.
+      // THE NAME STILL COMES FIRST: a guest in the round outranks any other ask, so a
+      // thaw round with a creature in it can never be cleared by melting ice alone.
+      if(S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need)){
+        if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
+        else { Game.winLevel(); return; }
+      }
     } else if(S.levelScore >= S.target){
       if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
       else { Game.winLevel(); return; }
@@ -5253,7 +5270,7 @@ const Tele = {
     this.log("session_start",{ ua:navigator.userAgent.slice(0,180), lang:navigator.language,
       w:innerWidth, h:innerHeight, dpr:Math.round(devicePixelRatio*100)/100, ref:(document.referrer||"").slice(0,80),
       ver:this.ver, lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
-      returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins) });
+      returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who() });
     document.addEventListener("click", e=>this._tap(e), true);
     window.addEventListener("error", e=>this.log("js_error",{ msg:(e.message||"").slice(0,180),
       src:(e.filename||"").split("/").pop(), line:e.lineno, col:e.colno }));
@@ -5272,7 +5289,7 @@ const Tele = {
     return { sc, ov, lv, mv, g:guide, goal };
   },
   log(n, props, kind){
-    const e={ t:Date.now(), sid:this.sid, pid:this.pid, q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
+    const e={ t:Date.now(), sid:this.sid, pid:this.pid, who:this.who(), q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
     this.buf.push(e);
     try{ const K="worddrop_ev1"; const q=JSON.parse(localStorage.getItem(K)||"[]"); q.push({t:e.t,n,p:props||{}}); while(q.length>500)q.shift(); localStorage.setItem(K,JSON.stringify(q)); }catch(_){}
     if(this.buf.length>=18) this.flush();
@@ -5305,14 +5322,23 @@ const Tele = {
   async flush(beacon){
     if(!this.buf.length || !this.on) return;
     const batch=this.buf.splice(0, this.buf.length);
-    const body=JSON.stringify({ sid:this.sid, pid:this.pid, ver:this.ver, events:batch });
+    const body=JSON.stringify({ sid:this.sid, pid:this.pid, who:this.who(), ver:this.ver, events:batch });
     try{
       if(beacon && navigator.sendBeacon){ navigator.sendBeacon(TELE_URL, body); return; }
       await fetch(TELE_URL,{ method:"POST", mode:"no-cors", keepalive:true,
         headers:{"Content-Type":"text/plain;charset=utf-8"}, body });
     }catch(e){ this.buf.unshift(...batch); }   // keep them for the next flush
   },
+  setName(n){   // whose notes are these? optional, stored on their device, sent with every batch
+    n=(n||"").trim().slice(0,24);
+    if(!n) return;
+    try{ P.teleName=n; save(); }catch(e){}
+    this.log("tester_named",{ name:n });
+    this.flush();
+  },
+  who(){ try{ return (P&&P.teleName)||""; }catch(e){ return ""; } },
   status(){ return (this.on?"📡 sending to your collector":"📴 local-only (no URL set)")
+    +"\nplaying as: "+(this.who()||"(no name given)")
     +"\nplayer "+this.pid+" · session "+this.sid+"\n"+this.seq+" events · "+this.buf.length+" waiting"; },
 };
 

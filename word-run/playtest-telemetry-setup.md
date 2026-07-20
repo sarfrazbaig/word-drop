@@ -33,28 +33,34 @@ function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1');
   const body = JSON.parse(e.postData.contents);
   const rows = (body.events || []).map(ev => [
-    new Date(ev.t),        // time
-    body.pid,              // player (anonymous)
-    body.sid,              // session
-    ev.q,                  // sequence #
-    ev.n,                  // event name  (tap, dead_tap, rage_tap, card_shown, level_start…)
-    ev.k,                  // kind (funnel/…)
-    JSON.stringify(ev.c),  // context {sc:screen, ov:openCard, lv:level, mv:moves, g:lesson, goal}
-    JSON.stringify(ev.p)   // details {sel,label,x,y,dead,…}
+    new Date(ev.t),           // time
+    ev.who || body.who || '', // WHO — the name the playtester typed
+    body.pid,                 // player id (stable per device)
+    body.sid,                 // session
+    ev.q,                     // sequence #
+    ev.n,                     // event name  (tap, dead_tap, rage_tap, card_shown, level_start…)
+    ev.k,                     // kind (funnel/…)
+    JSON.stringify(ev.c),     // context {sc:screen, ov:openCard, lv:level, mv:moves, g:lesson, goal}
+    JSON.stringify(ev.p)      // details {sel,label,x,y,dead,…}
   ]);
   if (rows.length) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 8).setValues(rows);
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 9).setValues(rows);
   }
   return ContentService.createTextOutput('ok');
 }
 ```
+
+> **Already deployed the earlier 8-column version?** Replace it with the one above (it adds the
+> `who` column), then **Deploy → Manage deployments → edit → Version: New version → Deploy.**
+> Same URL, no need to re-send it. Testers are asked for a name on first open; it's optional,
+> so `who` is blank for anyone who skips it — `player` still tells them apart.
 
 3. **Deploy → New deployment → Web app.**
    - *Execute as:* **Me**
    - *Who has access:* **Anyone**
    - Deploy, authorize, and **copy the Web app URL** (ends in `/exec`).
 4. (Nice to have) Put a header row in the Sheet:
-   `time | player | session | seq | event | kind | context | details`
+   `time | who | player | session | seq | event | kind | context | details`
 5. Send me that `/exec` URL. Done.
 
 > Note: the game POSTs as `text/plain` with `no-cors` on purpose — that's what lets a static
