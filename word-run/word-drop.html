@@ -499,15 +499,22 @@
     border-radius:12px; padding:9px; font-size:12.5px; font-weight:700; color:#8a6532; cursor:pointer; }
   #wish-pluck:active{ transform:scale(.97); }
   /* the bloom pause: a little word waits a breath — hold it, or let it bloom */
-  .gracebubble{ position:absolute; z-index:60; display:flex; align-items:center; gap:8px;
-    background:#fffdf6; border:2px solid var(--gold); border-radius:14px; padding:6px 8px 8px;
-    box-shadow:0 8px 18px rgba(90,60,30,.35); animation:bannerin .2s; overflow:hidden; }
-  .gracebubble .gw{ font-size:15px; font-weight:900; letter-spacing:1.5px; color:var(--gold-deep); }
-  .gracebubble .ghold{ border:none; border-radius:999px; padding:5px 10px; font-size:12px; font-weight:800;
+  /* sized to the 54px gap between the board's floor and the tray: the bar must clear the
+     bottom row of tiles completely, because that is exactly where the letters live. */
+  /* A PILL, NOT A BANNER. The word doesn't need repeating here — it is already glowing
+     on the board, which is where the player is looking. So this is only the button:
+     one thing to find, in the same spot every round, sitting in the 54px gap above the
+     tray so it can never cover the bottom row of letters. */
+  .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 4px);
+    z-index:70; display:flex; align-items:center; justify-content:center;
+    background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:4px;
+    box-shadow:0 6px 16px rgba(90,60,30,.42); animation:bannerin .2s; overflow:hidden; }
+  .gracebubble .ghold{ flex:none; border:none; border-radius:999px; padding:0 15px;
+    min-width:92px; min-height:32px; font-size:12.5px; font-weight:900; letter-spacing:.4px;
     background:linear-gradient(148deg,#e3f7ee,#c2ebd6); color:#2e6b4c; cursor:pointer;
     box-shadow:0 2px 0 #6aa98a; }
-  .gracebubble .ghold:active{ transform:translateY(1px); box-shadow:0 1px 0 #6aa98a; }
-  .gracebubble .gbar{ position:absolute; left:0; bottom:0; height:3px; background:var(--gold);
+  .gracebubble .ghold:active{ transform:translateY(2px); box-shadow:0 1px 0 #6aa98a; }
+  .gracebubble .gbar{ position:absolute; left:0; bottom:0; height:4px; background:var(--gold);
     animation:gracebar 2s linear forwards; } /* the bar IS the clock — must match the wait loop in Game.grace */
   @keyframes gracebar{ from{ width:100% } to{ width:0 } }
   /* 🎆 the jackpot: a 5-6+ letter word erupts */
@@ -560,7 +567,7 @@
     0 22px 46px -16px rgba(25,22,48,.7); } }
 
   /* -------- dock: the hand -------- */
-  #dock{ width:100%; display:flex; align-items:flex-end; justify-content:center; gap:10px;
+  #dock{ width:100%; position:relative; display:flex; align-items:flex-end; justify-content:center; gap:10px;
     background:var(--surface); border:1px solid var(--surface-border);
     border-radius:var(--r-xl); padding:10px 12px 12px; z-index:2; box-shadow:var(--shadow-panel); }
   .slotlabel{ display:block; text-align:center; font-size:10px; letter-spacing:1.5px;
@@ -838,7 +845,23 @@
   @keyframes glint{ from{ background-position:200% 0 } to{ background-position:-60% 0 } }
   .tile.breathe{ animation:breathe .7s; }
   @keyframes breathe{ 50%{ transform:scale(1.05); filter:brightness(1.14); } }
-  .tile.lit{ transform:scale(1.1)!important; box-shadow:0 0 20px var(--gold); filter:brightness(1.45); z-index:5; }
+  /* A CHOSEN WORD WEARS MOONLIGHT, NOT A SPOTLIGHT. brightness() used to wash the ink off
+     the tile — the letters you most needed to read were the ones you couldn't. So the
+     mark moved OUTSIDE the face: a crisp outline to say "this one", and a soft bloom
+     around it to catch the eye. And the colour is the wood's own hush — this is a dusk
+     game, and a warm gold flare belonged to some brighter, louder one. */
+  /* THE SAME WARM SHINE, TURNED DOWN. brightness(1.45) washed the ink clean off the tile —
+     the letters you most needed to read were the ones you couldn't. Same light, a third of
+     the strength: the tiles glow, the letters stay sharp. */
+  .tile.lit{ transform:scale(1.04)!important; z-index:5;
+    box-shadow:0 0 12px rgba(240,169,46,.55); filter:brightness(1.13); }
+  /* ONE BOX ROUND THE WHOLE WORD, not a cage round every letter. A word is one thing,
+     so it gets one frame — drawn over the run's bounding box, however long it is. */
+  .wordbox{ position:absolute; z-index:6; pointer-events:none;
+    border:2.5px solid var(--gold); border-radius:13px;
+    box-shadow:0 0 16px rgba(240,169,46,.45), inset 0 0 12px rgba(240,169,46,.18);
+    animation:wordboxin .22s ease-out; }
+  @keyframes wordboxin{ from{ opacity:0; transform:scale(.94) } to{ opacity:1; transform:scale(1) } }
   .tile.popout{ animation:popout .3s forwards; z-index:6; }
   @keyframes popout{ to{ transform:scale(0) rotate(25deg); opacity:0 } }
   .tile.landsquash{ animation:landsquash .38s; }
@@ -4052,13 +4075,21 @@ const Game = {
   async grace(words){
     const cells=[...new Set(words.flatMap(w=>w.cells))];
     cells.forEach(t=>t.inner.classList.add("lit"));
-    const mid=cells[Math.floor(cells.length/2)];
+    // one frame per WORD, drawn over its whole run — a word is one thing, not a row of
+    // separately-caged letters. Works for any length, across or down.
+    const boxes=words.map(w=>{
+      const rs=w.cells.map(t=>t.r), cs=w.cells.map(t=>t.c);
+      const r0=Math.min(...rs), r1=Math.max(...rs), c0=Math.min(...cs), c1=Math.max(...cs);
+      const bx=document.createElement("div"); bx.className="wordbox";
+      bx.style.left=(c0*STEP-4)+"px";  bx.style.top=(r0*STEP-4)+"px";
+      bx.style.width=((c1-c0)*STEP+CELL+8)+"px";
+      bx.style.height=((r1-r0)*STEP+CELL+8)+"px";
+      boardEl.appendChild(bx); return bx;
+    });
     const b=document.createElement("div"); b.className="gracebubble";
-    b.innerHTML='<span class="gw">'+words.map(w=>w.word.toUpperCase()).join(" · ")+'</span>'
-      +'<button class="ghold">🌱 hold</button><i class="gbar"></i>';
-    b.style.left=Math.max(4, Math.min(mid.c*STEP-30, COLS*STEP-150))+"px";
-    b.style.top=Math.max(4,(mid.r*STEP)-52)+"px";
-    boardEl.appendChild(b);
+    b.innerHTML='<button class="ghold">🌱 HOLD</button><i class="gbar"></i>';
+    $("dock").appendChild(b);   // a pill above the tray — same place, every single time.
+    // the word itself is named by the glow on the board, not repeated down here.
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
     if(!S.guide) UI.say("grace", "words pause, then <b>bloom</b> (clear) on their own — tap 🌱 <b>HOLD</b> to stop one and keep its letters", 2);
     FT.signal("graceShown",{bubble:b,words});
@@ -4074,6 +4105,7 @@ const Game = {
     for(let i=0; mustHold ? !held : (i<20 && !held && !skip); i++) await wait(100); // ~2s to decide — a tap anywhere hurries it
     boardEl.removeEventListener("pointerdown", hurry);
     b.remove();
+    boxes.forEach(bx=>bx.remove());
     cells.forEach(t=>t.inner.classList.remove("lit"));
     if(held){
       // HOLDING SPENDS THE WORD. The letters stay, but as plain material — each tile
