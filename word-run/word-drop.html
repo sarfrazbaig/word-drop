@@ -301,6 +301,15 @@
   #btn-play small{ font-size:11px; font-weight:800; opacity:.8; letter-spacing:1px; }
   @keyframes playpulse{ 50%{ box-shadow:0 9px 0 #a86a20, 0 0 64px rgba(255,196,110,.8); transform:translate(-50%,-50%) scale(1.05); } }
   #btn-play:active{ transform:translate(-50%,-50%) scale(.93); }
+  #home-prog{ position:absolute; left:0; right:0; top:92%; text-align:center; z-index:2;
+    font-family:var(--font-ui); font-size:12px; font-weight:800; color:#f6efdb;
+    text-shadow:0 1px 3px rgba(30,40,30,.75); }
+  #home-prog b{ color:var(--gold); }
+  #home-prog small{ display:block; font-size:11px; font-weight:700; opacity:.9; margin-top:2px; }
+  #home-prog .hbar{ width:148px; height:5px; margin:4px auto 0; border-radius:999px;
+    background:rgba(255,255,255,.28); overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.25); }
+  #home-prog .hbar i{ display:block; height:100%; border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),var(--gold)); }
   #home-place{ position:absolute; left:0; right:0; top:88%; text-align:center; z-index:2;
     font-family:var(--font-story); font-style:italic; font-size:12.5px; color:#f2ead2;
     text-shadow:0 1px 3px rgba(30,40,30,.7); letter-spacing:.5px; }
@@ -1104,6 +1113,9 @@
   #ov-end .buttons{ display:flex; flex-direction:column; gap:var(--sp2); }
   #ov-end .minirow{ display:flex; gap:10px; justify-content:center; }
   #ev-grove{ font-size:24px; letter-spacing:4px; min-height:0; }
+  #ev-pull{ font-size:12.5px; font-weight:700; color:var(--dim); line-height:1.5; letter-spacing:normal; }
+  #ev-pull b{ color:var(--gold-deep); }
+  #ev-pull small{ display:block; font-size:11.5px; margin-top:1px; }
 
   /* ================= GROVE / STATS ================= */
   #scene-grove{ justify-content:flex-start; gap:var(--sp3); }
@@ -1212,11 +1224,13 @@
   .bookchip{ cursor:pointer; border:none; background:none; line-height:1;
     padding:2px 8px; min-height:32px; display:flex; align-items:center; justify-content:center;
     filter:drop-shadow(0 2px 2px rgba(70,50,25,.4)); transition:transform .12s, filter .12s; }
-  .bookicon{ width:23px; height:23px; display:block; }
-  .menubook{ width:21px; height:21px; }
+  /* deliberately the largest thing in the strip — the top bar is busy, and the Book is
+     the one icon there that opens a whole other place rather than toggling a setting. */
+  .bookicon{ width:29px; height:29px; display:block; }
+  .menubook{ width:24px; height:24px; }
   /* the sheen: a slow light travelling across the cover so the Book catches the eye every
      minute and a half or so — long enough apart to read as "special", never as a nag. */
-  .bookwrap{ position:relative; display:block; width:23px; height:23px; overflow:hidden; border-radius:5px; }
+  .bookwrap{ position:relative; display:block; width:29px; height:29px; overflow:hidden; border-radius:6px; }
   .booksheen{ position:absolute; top:-20%; bottom:-20%; left:0; width:55%; pointer-events:none;
     background:linear-gradient(100deg, transparent, rgba(255,255,255,.9), transparent);
     transform:translateX(-160%) skewX(-18deg); opacity:0;
@@ -1264,6 +1278,7 @@
       </div>
       <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
       <div id="home-place">— The First Clearing —</div>
+      <div id="home-prog"></div>
     </div>
   </div>
 
@@ -1477,6 +1492,7 @@
         <div>best word<b id="ev-word" style="font-size:15px">—</b></div>
       </div>
       <div id="ev-grove"></div>
+      <div id="ev-pull"></div>
       <div class="buttons">
         <button class="btn-primary btn-gold" id="btn-moves" onclick="Game.extraMoves()">🪶 +5 moves</button>
         <button class="btn-primary btn-gold" id="btn-double" style="display:none" onclick="Game.doubleThanks()">🎬 double the wood's thanks</button>
@@ -4499,6 +4515,17 @@ const UI = {
     $("play-lvl").textContent = "LV "+P.level;
     const ring=Math.floor((P.level-1)/25)+1;
     $("home-place").textContent = "— "+(ring>1?"Ring "+ring+" · ":"")+BIOME_NAMES[biomeOf(P.level)]+" —";
+    // the ladder from the Book, on the door — the reason to come back, before you press play
+    { const hp=$("home-prog");
+      if(hp){
+        const found=Object.keys(P.grove).length;
+        const mile=UI.GROVE_MILES.find(mi=>found<mi.n);
+        hp.innerHTML = !P.tut ? ""
+          : '🐾 <b>'+found+'</b> of '+GROVE.length+' names remembered'
+            + '<div class="hbar"><i style="width:'+(100*found/GROVE.length)+'%"></i></div>'
+            + (mile ? '<small>'+(mile.n-found)+' more until '+mile.i+' '+mile.t.toLowerCase()+'</small>'
+                    : '<small>🌈 every name is home</small>');
+      } }
     $("hm-streak").textContent=P.streak||0;
     $("menu-grove-n").textContent=Object.keys(P.grove).length+" / "+GROVE.length;
     UI.homeCast();
@@ -4734,6 +4761,22 @@ const UI = {
                    : (eq.length? "your friends believe in you — " : "")+"<b>"+gap+"</b> points to go")
         + '</span>';
     }
+    // WHAT WAITS NEXT — the reason to tap "next level" instead of putting it down
+    { const pull=$("ev-pull");
+      if(!won){ pull.innerHTML=""; }
+      else {
+        const found=Object.keys(P.grove).length;
+        const stirring = (P.summon && !P.grove[P.summon]) ? P.summon
+          : (P.summonQ||[]).find(w=>!P.grove[w]);
+        const mile=UI.GROVE_MILES.find(mi=>found<mi.n);
+        pull.innerHTML = stirring
+          ? '🌙 <b>a name is stirring</b><br><small>it hides in a round soon — listen for it</small>'
+          : found
+            ? '🐾 <b>'+found+'</b> of '+GROVE.length+' names remembered'
+              + (mile ? '<small>'+(mile.n-found)+' more until '+mile.i+' '+mile.t.toLowerCase()+'</small>'
+                      : '<small>🌈 the wood is awake</small>')
+            : '🐾 <b>50</b> names sleep in this wood<br><small>the first is already close</small>';
+      } }
     $("btn-next").style.display = won ? "flex":"none";
     $("btn-retry").style.display = won ? "none":"flex";
     const canFree = !S.revived, canPaid = S.revived && (P.amber||0)>=30;
@@ -4751,10 +4794,11 @@ const UI = {
     $("ov-end").classList.add("active");
   },
   TUT:[
-    '<div class="big">🌲</div><p>A hush fell over the wood —<br>and the creatures forgot their names.</p><small>only loose letters drift where its voice used to be</small>',
+    '<div class="big">🌲</div><p>A hush fell over the wood —<br>and every creature forgot its name.</p><small>a name unspoken too long fades for good</small>',
     '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>You are the <b>Namekeeper</b>.<br>Weave letters into words ✨</p><small>words read left → right across a row, and either way up a column</small>',
     '<div class="tut-goals"><span>🎯<b>'+TARGET(1)+'</b>target</span><span>👣<b>'+MOVES(1)+'</b>moves</span></div><p>Every word thins the hush.<br>Clear it before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
     '<div class="big">🦊🦉🐝</div><p>Spell a creature\'s <b>true name</b><br>and it remembers itself — and joins you.</p><small>50 friends to wake · every one has its OWN power</small>',
+    '<div class="big">🌈</div><p>Wake all fifty,<br>and the hush lifts.</p><small>the wood has been waiting a long time for you</small>',
   ],
   _tut:0,
   tutShow(i){
