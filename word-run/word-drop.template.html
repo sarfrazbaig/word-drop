@@ -5241,7 +5241,7 @@ setInterval(()=>{
    Errors, screen changes, and the whole win/fail/wake/purchase/ad funnel flow in too.
    Endpoint-agnostic: paste your collector URL below (see playtest-telemetry-setup.md).
    With no URL it stays LOCAL-only — safe to ship, nothing leaves the device. */
-const TELE_URL = "";   // ← paste your Google-Sheet / Supabase / worker URL here to collect
+const TELE_URL = "https://script.google.com/macros/s/AKfycbxSN56xueipcmRDE-3UAGPpcTbfoJS9CUBdr9kawLfDwc5CNbhmz3BiljWfmxlYdtdy/exec";   // ← paste your Google-Sheet / Supabase / worker URL here to collect
 const Tele = {
   buf:[], sid:"", pid:"", seq:0, t0:0, recent:[], scene:"",
   ver:"hush-2026-07-20", get on(){ return !!TELE_URL; },
