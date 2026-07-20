@@ -641,6 +641,13 @@
   /* the paw meter, made LITERAL: one paw per word, sitting on the shelf's left edge.
      The old meter was a glow on the shelf's border — nobody read a border as a meter,
      and the level-5 lesson needs something it can point an arrow at. */
+  /* a pet's power speaks here — top of the play area, clear of the letters below */
+  #petsay{ position:absolute; left:50%; top:2px; transform:translate(-50%,-6px); z-index:60;
+    background:rgba(30,22,50,.82); color:#fff6df; border:1.5px solid rgba(255,220,140,.5);
+    border-radius:999px; padding:5px 14px; font-family:var(--font-ui); font-size:12.5px;
+    font-weight:800; white-space:nowrap; max-width:94%; overflow:hidden; text-overflow:ellipsis;
+    opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; }
+  #petsay.on{ opacity:1; transform:translate(-50%,0); }
   #pawpips.resting{ opacity:.4; filter:saturate(.5); } /* the round's moment has passed */
   #pawpips{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
     display:flex; flex-direction:column; gap:2px; align-items:center; }
@@ -774,10 +781,13 @@
   .tile.crate{ background:linear-gradient(148deg,#e8c58a,#c99a55 55%,#9c6f33); font-size:22px!important;
     box-shadow:0 4px 0 #6b4a1e, 0 5px 8px rgba(0,0,0,.35), inset 0 1.5px 0 rgba(255,255,255,.55), inset 0 -3px 4px rgba(110,75,30,.5); }
   /* ❄❄ DEEP FROST — winter twice over: the first word only sheds a layer */
-  .tile.frost{ background:linear-gradient(150deg,rgba(216,238,252,.98),rgba(148,196,230,.96) 45%,rgba(88,148,198,.95));
-    color:rgba(18,58,98,.55); text-shadow:0 1px 0 rgba(255,255,255,.75);
-    box-shadow:0 5px 0 #3f7ba4, 0 7px 12px rgba(30,90,140,.5), inset 0 0 0 2.5px rgba(255,255,255,.5),
-      inset 0 -5px 10px rgba(40,100,150,.55), inset 0 0 16px rgba(255,255,255,.55); }
+  /* DEEP frost reads as winter twice over: a darker, colder slab with a second wall of
+     ice inside it — beside ordinary ice the difference is obvious at a glance. */
+  .tile.frost{ background:linear-gradient(150deg,#8fb6d8,#5d8fbe 45%,#2f5f8f);
+    color:rgba(240,250,255,.92); text-shadow:0 1px 2px rgba(10,40,70,.8);
+    box-shadow:0 5px 0 #1d4368, 0 7px 12px rgba(10,45,80,.55),
+      inset 0 0 0 2px rgba(255,255,255,.85), inset 0 0 0 5px rgba(120,180,225,.5),
+      inset 0 -6px 12px rgba(15,55,95,.6); }
   .tile.frost::after{ content:"❄❄"; position:absolute; top:0; right:1px; font-size:10px; letter-spacing:-3px; color:rgba(255,255,255,.95); }
   .tile.frost::before{ content:"❄"; position:absolute; bottom:1px; left:3px; font-size:10px; color:rgba(20,80,130,.8); }
   /* 🌫️ MIST — the letter keeps its secret until a word clears beside it */
@@ -1153,6 +1163,14 @@
   .stat b{ display:block; font-size:18px; color:var(--gold-deep); margin-top:2px; }
   .stat small{ display:block; font-size:9.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--dim); margin-top:3px; }
   .chiplbl{ font-style:normal; font-size:10px; color:var(--dim); letter-spacing:.3px; }
+  .cardx{ position:absolute; top:8px; right:10px; z-index:5; width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    border:1.5px solid rgba(101,78,48,.28); border-radius:50%; background:rgba(255,253,246,.95);
+    font-size:16px; font-weight:900; color:var(--dim); line-height:1; padding:0; }
+  .cardx:active{ transform:scale(.92); }
+  .overlay .card{ position:relative; }
+  .bookchip{ cursor:pointer; border:none; font-size:15px; line-height:1; padding:5px 10px; }
+  .bookchip:active{ transform:scale(.94); }
 </style>
 
 <div id="app">
@@ -1231,6 +1249,7 @@
   <!-- 🟠 THE TRADING POST — amber by the pouchful. Comfort, never power. -->
   <div class="overlay" id="ov-shop" onclick="Shop.close()">
     <div class="card" onclick="event.stopPropagation()">
+      <button class="cardx" onclick="Shop.close()" aria-label="close">✕</button>
       <div style="font-size:34px">🟠</div>
       <div id="shop-title">The Trading Post</div>
       <div id="shop-sub">amber, by the pouchful — <b>comfort, never power</b>.<br>everything here stays earnable in play.</div>
@@ -1276,6 +1295,7 @@
     </div>
     <div id="goalstrip">
       <div id="gs-goals"></div>
+      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names">📖</button>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
     </div>
     <div id="petbar">
@@ -1301,6 +1321,7 @@
     <!-- 🌟 WISH: wish on a star for the letter you need -->
     <div class="overlay" id="ov-wish" onclick="Game.closeWish()">
       <div class="card" onclick="event.stopPropagation()">
+        <button class="cardx" onclick="Game.closeWish()" aria-label="close">✕</button>
         <div id="wish-title">🌟 Wish on a star</div>
         <div id="wish-grid"></div>
         <div id="wish-sub">your letter becomes it — drop it anywhere</div>
@@ -1323,6 +1344,7 @@
   <!-- ============ THE FRIEND SHEET — one pet, told properly ============ -->
   <div class="overlay" id="ov-pet" onclick="UI.closeSheet()">
     <div class="card" onclick="event.stopPropagation()">
+      <button class="cardx" onclick="UI.closeSheet()" aria-label="close">✕</button>
       <div id="pet-sheet-e">🐱</div>
       <div id="pet-sheet-n">CAT</div>
       <div id="pet-sheet-f"></div>
@@ -1406,7 +1428,6 @@
         <button class="btn-primary btn-ghost" id="btn-retry" onclick="Game.retryLevel()">↻ Retry</button>
       </div>
       <div class="minirow">
-        <button class="iconbtn" onclick="Game.share()">📤</button>
         <button class="iconbtn" onclick="Game.goHome()">🏠</button>
       </div>
     </div>
@@ -1414,6 +1435,7 @@
 
   <div class="overlay" id="m-stats" onclick="UI.statsHide(event)">
     <div class="card">
+      <button class="cardx" onclick="UI.statsHide()" aria-label="close">✕</button>
       <h2 style="font-family:var(--font-story);font-style:italic;font-size:20px">Your journey</h2>
       <div class="statgrid">
         <div class="stat">⭐<b id="st-level">1</b><small>level</small></div>
@@ -3166,7 +3188,7 @@ const Game = {
       else if(Object.keys(P.grove).length<10 && ++P.quietLvls>=3){
         const next=CALLING_ORDER.find(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school");
         if(next){ P.called[next]=1; P.summonQ.push(next); P.quietLvls=0;
-          setTimeout(()=>UI.toast("🌿 the wood has grown <b>curious</b> about you…<br><small>a name will hide in a coming level</small>", 4200), 1800); }
+          P.annQ.push("🌿 the wood has grown <b>curious</b> about you…<br><small>a name will hide in a coming level</small>"); save(); }
       }
       save();
     }
@@ -3488,7 +3510,7 @@ const Game = {
         document.querySelectorAll(".whosthat").forEach(e=>e.remove());
         S.lastAction=Date.now();
         UI.all();
-        UI.toast("🌿 the wood untangles itself — carry on");
+        UI.toast("🌿 that took a moment — the board is <b>ready again</b>.<br><small>nothing was lost — carry on</small>");
       }catch(e){}
     }, 5000);
   },
@@ -3609,7 +3631,7 @@ const Game = {
     const el=$("pet-"+eq.indexOf(pet)) || $("pet-0");
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
-    UI.say("abil-"+pet.fx.t, pet.e+" "+pet.pn+"! "+pet.pi+(boost?" ×2":""), 2);
+    UI.petSay(pet.e+" <b>"+pet.pn+"</b> "+pet.pi+(boost?" ×2":""));
     // THE FRIEND COMES OUT. It hops from its seat onto the board, stands where it is
     // about to work, names its power there, and walks back when it's done — so a power
     // is something a creature you collected DOES, not something that happens to you.
@@ -3625,7 +3647,10 @@ const Game = {
         if(boost && S.next && S.next.kind==="normal") S.next.kind="gold";
         UI.piece(); Snd.gold(); Game.handPop(); break; }
       case "weave": { const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
-        if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift(); } break; }
+        // no word to dig up on this board — rather than nothing, the dog brings back a
+        // star. Players saw their letter silently become ★ and had no idea why.
+        if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
+          UI.toast("🐶 no word to dig up — so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
       case "rainHelp": { const added=[];
         for(let i=0;i<fx.n*m+(pairOn("buildPlus")?1:0);i++){ const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
           if(!open.length) break; const p=rand(open);
@@ -4581,6 +4606,7 @@ const UI = {
     setTimeout(()=>el.classList.remove("pop"),500);
   },
   endCard(won){
+    UI.toastClear();   // the card gets a clean stage — no leftovers drifting across it
     // stars sit on their own line — inline they forced "Level 1 / clear!" to wrap mid-phrase
     $("ev-title").innerHTML = won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>Level '+S.level+' clear!'
@@ -5001,6 +5027,11 @@ const UI = {
     });
   },
   toast(m, hold){ // announcements take TURNS now — the next used to clobber the last mid-read
+    // A DECIDED ROUND BELONGS TO ITS CARD. Gift bursts, "a name is stirring", milestone
+    // banners — they all used to keep floating while the clear/fail card was on screen,
+    // competing with the very numbers the player was trying to read. Once the round is
+    // settled the stage goes quiet and the card says everything.
+    if(S && (S.over || S.won)) return;
     UI._tq=UI._tq||[];
     if(UI._tq.length>=4) UI._tq.shift();      // a flood keeps only its freshest four
     UI._tq.push({m, hold});
@@ -5032,6 +5063,13 @@ const UI = {
       const ms=(typeof hold==="number"?hold:0) || Math.min(7000, Math.max(2200, 1200+words*300));
       t._h=setTimeout(advance, ms);
     }
+  },
+  petSay(html){ // a power announces itself in the strip ABOVE the board, never over it
+    let el=$("petsay");
+    if(!el){ el=document.createElement("div"); el.id="petsay"; $("boardwrap").appendChild(el); }
+    el.innerHTML=html;
+    el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+    clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), 2600);
   },
   toastClear(){ // a new level starts with a quiet stage — stale notes don't follow you in
     UI._tq=[]; UI._tShowing=false;
