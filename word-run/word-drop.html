@@ -5261,7 +5261,15 @@ setInterval(()=>{
 const TELE_URL = "https://script.google.com/macros/s/AKfycbxSN56xueipcmRDE-3UAGPpcTbfoJS9CUBdr9kawLfDwc5CNbhmz3BiljWfmxlYdtdy/exec";   // ← paste your Google-Sheet / Supabase / worker URL here to collect
 const Tele = {
   buf:[], sid:"", pid:"", seq:0, t0:0, recent:[], scene:"",
-  ver:"hush-2026-07-20", get on(){ return !!TELE_URL; },
+  ver:"hush-2026-07-20",
+  // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports —
+  // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
+  // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
+  isLocal(){ const h=location.hostname||"";
+    try{ if(localStorage.getItem("hush_tele_force")==="1") return false; }catch(e){}
+    return location.protocol==="file:" || !h || h==="localhost" || h==="127.0.0.1"
+      || h==="[::1]" || h==="0.0.0.0" || h.endsWith(".local"); },
+  get on(){ return !!TELE_URL && !this.isLocal(); },
   boot(){
     this.t0=Date.now();
     this.sid=Math.random().toString(36).slice(2,10)+this.t0.toString(36);
@@ -5270,7 +5278,7 @@ const Tele = {
     this.log("session_start",{ ua:navigator.userAgent.slice(0,180), lang:navigator.language,
       w:innerWidth, h:innerHeight, dpr:Math.round(devicePixelRatio*100)/100, ref:(document.referrer||"").slice(0,80),
       ver:this.ver, lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
-      returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who() });
+      returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who(), host:location.hostname });
     document.addEventListener("click", e=>this._tap(e), true);
     window.addEventListener("error", e=>this.log("js_error",{ msg:(e.message||"").slice(0,180),
       src:(e.filename||"").split("/").pop(), line:e.lineno, col:e.colno }));
@@ -5337,7 +5345,7 @@ const Tele = {
     this.flush();
   },
   who(){ try{ return (P&&P.teleName)||""; }catch(e){ return ""; } },
-  status(){ return (this.on?"📡 sending to your collector":"📴 local-only (no URL set)")
+  status(){ return (this.on?"📡 sending to your collector":(this.isLocal()?"🛠️ dev build — not sending":"📴 local-only (no URL set)"))
     +"\nplaying as: "+(this.who()||"(no name given)")
     +"\nplayer "+this.pid+" · session "+this.sid+"\n"+this.seq+" events · "+this.buf.length+" waiting"; },
 };
