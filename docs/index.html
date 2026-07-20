@@ -634,6 +634,7 @@
   /* the paw meter, made LITERAL: one paw per word, sitting on the shelf's left edge.
      The old meter was a glow on the shelf's border — nobody read a border as a meter,
      and the level-5 lesson needs something it can point an arrow at. */
+  #pawpips.resting{ opacity:.4; filter:saturate(.5); } /* the round's moment has passed */
   #pawpips{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
     display:flex; flex-direction:column; gap:2px; align-items:center; }
   #pawpips .pip{ font-size:13px; line-height:1; filter:grayscale(1) opacity(.3); transition:filter .3s, transform .3s; }
@@ -2094,7 +2095,7 @@ function saveRun(){
   P.run={ level:S.level, board:S.board.map(row=>row.map(t=>t?{l:t.letter,k:t.kind,x:t.cracks||0,h:t.heldWord||"",d:t.cutDrop||0}:null)),
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
-    maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, charm:S.charm||0,
+    maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, petActs:S.petActs||0, charm:S.charm||0,
     goal:S.goal, goal2:S.goal2||null };
   save();
 }
@@ -2107,7 +2108,7 @@ function loadRun(){
     Object.assign(S,{ movesLeft:r.movesLeft, levelScore:r.levelScore, drops:r.drops,
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
       maxChain:r.maxChain||1, newGrove:(r.newGrove||[]).filter(w=>GROVE_BY_WORD[w]), cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
-      petCharge:r.petCharge||0, petTurn:r.petTurn||0, charm:r.charm||0,
+      petCharge:r.petCharge||0, petTurn:r.petTurn||0, petActs:r.petActs||0, charm:r.charm||0,
       goal:r.goal||{t:"hush",need:0,have:0}, goal2:r.goal2||null });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
       if(!cell) return;
@@ -2141,7 +2142,7 @@ function newState(level){
     goal:{t:"hush",need:0,have:0},
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
-    petCharge:0, petTurn:0, petReady:false, petActing:false, charm:0,
+    petCharge:0, petTurn:0, petReady:false, petActing:false, petActs:0, charm:0,
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -2676,6 +2677,7 @@ const Game = {
   },
   startLevel(level){
     Game.track("level_start",{L:level});
+    UI.toastClear(); // stale announcements never follow you into a fresh round
     FT.cleanup(); // no lesson litter survives into a new level
     boardEl.innerHTML="";
     S = newState(level);
@@ -3025,7 +3027,7 @@ const Game = {
     if(S.tutorWord && !S.over && !S.won && !tutorAlive()) tutorPrefill(S.tutorWord);
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
-    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
+    await Game.tryPetAct();
     if(Game.hasPassive("alwaysHint")) Game.petHint(false); // 🎯 Keen Eye: the hawk points, quietly, every time
 
     // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
@@ -3246,7 +3248,7 @@ const Game = {
     FT.signal("swapped");
     Game.tallyEv("breeze");
     await Game.toolResolve([a,b]); // the grace applies — tap 🌱 hold to keep building
-    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
+    await Game.tryPetAct();
     S.busy=false;
     UI.all(); saveRun();
     Game.checkEnd();
@@ -3324,7 +3326,7 @@ const Game = {
     const fell=await Game.gravity();
     S.lastAction=Date.now();
     await Game.toolResolve(fell||[]); // the grace applies here too — tumbled words wait a breath
-    if(S.petReady && !S.over && !S.won){ S.petReady=false; await Game.petAct(); }
+    await Game.tryPetAct();
     S.busy=false;
     UI.all(); saveRun();
     Game.checkEnd();
@@ -3493,7 +3495,7 @@ const Game = {
   cheer(n){ // rewards (crates, quests, daily word, cascades) excite your pets — extra paw charge
     if(!S || !UI.equipped().length) return;
     S.petCharge=(S.petCharge||0)+(n||1);
-    if(S.petCharge>=Game.petNeed()){ S.petCharge=0; S.petReady=true; }
+    if(S.petCharge>=Game.petNeed()){ S.petCharge=0; if((S.petActs||0)<Game.petCap()) S.petReady=true; }
     UI.petMeter();
     const pb=$("petbar"); pb.classList.remove("pulse"); void pb.offsetWidth; pb.classList.add("pulse");
     setTimeout(()=>pb.classList.remove("pulse"),520);
@@ -3505,6 +3507,22 @@ const Game = {
   petActives(){ return UI.equipped().filter(g=>!g.ps); },
   hasPassive(t){ return UI.equipped().some(g=>g.ps && g.fx.t===t); },
   petNeed(){ const n=Game.petActives().length; return n>=2 ? 2 : 3; },
+  petCap(){ return S.level<30 ? 1 : S.level<80 ? 2 : 3; },  // acts per ROUND — powers are a moment, not a faucet
+  async tryPetAct(){
+    if(!S.petReady || S.over || S.won) return;
+    // a decided round takes no more help — firing a power into a finished board
+    // reads as the game wasting YOUR charge. The win it was saving arrives anyway.
+    const decided = (S.goal && S.goal.t!=="hush")
+      ? (S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need))
+      : (S.levelScore>=S.target && !S.tutorWord);
+    if(decided) return;
+    // rituals own the stage: a reveal or a meet in progress means the pet WAITS —
+    // petReady stays armed and the power fires on the next quiet drop.
+    if(S.pendingReveal || document.querySelector(".whosthat") || $("ov-meet").classList.contains("active")) return;
+    if((S.petActs||0) >= Game.petCap()) return;
+    S.petReady=false; S.petActs=(S.petActs||0)+1;
+    await Game.petAct();
+  },
   petBoost(pet){ // same-home synergy: this pet is ×2 if another duty friend shares its home
     return UI.equipped().some(g=>g!==pet && g.z===pet.z);
   },
@@ -3790,7 +3808,7 @@ const Game = {
       S.petCharge=(S.petCharge||0)+1;
       if(word.cells.length===3 && pairOn("crumbCharge")) S.petCharge++; // 🧀 The Truce: cat & mouse split the crumbs
       UI.petMeter();
-      if(S.petCharge>=Game.petNeed()){ S.petCharge=0; S.petReady=true; UI.petMeter(); } }
+      if(S.petCharge>=Game.petNeed()){ S.petCharge=0; if((S.petActs||0)<Game.petCap()) S.petReady=true; UI.petMeter(); } }
     // the grove and the daily word must be EARNED: only words YOU made (chain 1 count).
     // A friend is UNLOCKED here but you MEET them (the ritual) at the start of the next round.
     if(chain===1){
@@ -4422,6 +4440,9 @@ const UI = {
   petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
     if(UI.equipped().length && S){
       const need=Game.petNeed(), t=Math.min(S.petCharge||0, need);
+      const resting=(S.petActs||0)>=Game.petCap() && !S.petReady;
+      const ppr=$("pawpips"); if(ppr){ ppr.classList.toggle("resting", resting);
+        if(resting) ppr.title="your friends have had their moment this round — fresh paws next level"; }
       const frac=t/need, bar=$("petbar");
       bar.style.setProperty("--pawglow",(frac*16)+"px");
       bar.style.setProperty("--pawalpha",(frac*0.75).toFixed(2));
@@ -4894,15 +4915,32 @@ const UI = {
       boardEl.appendChild(dl); g._label=dl;
     }
   },
-  toast(m, hold){ // a centered, unmissable announcement — same API, real presence
+  toast(m, hold){ // announcements take TURNS now — the next used to clobber the last mid-read
+    UI._tq=UI._tq||[];
+    if(UI._tq.length>=4) UI._tq.shift();      // a flood keeps only its freshest four
+    UI._tq.push({m, hold});
+    if(!UI._tShowing) UI._tNext();
+  },
+  _tNext(){
+    const q=UI._tq||[];
+    if(!q.length){ UI._tShowing=false; return; }
+    // a ritual on stage owns the eyes — announcements wait at the door
+    if($("ov-meet").classList.contains("active") || document.querySelector(".whosthat")){
+      UI._tShowing=true; setTimeout(()=>UI._tNext(), 600); return;
+    }
+    UI._tShowing=true;
+    const {m, hold}=q.shift();
     const t=$("toast"); t.innerHTML=m;
     t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
-    // 2.1s flat was a guess, and the longer announcements — a gift bursting, a pet's
-    // power, a best-friend pair — were gone before anyone could finish reading them.
-    // Time it to the words instead, and let callers hold the really big ones longer.
+    // timed to the words: short notes leave quickly, long ones hold to be read
     const words=m.replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
-    const ms=hold || Math.min(7000, Math.max(2400, 1400+words*300));
-    clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"), ms);
+    const ms=hold || Math.min(7000, Math.max(2200, 1200+words*300));
+    clearTimeout(t._h);
+    t._h=setTimeout(()=>{ t.classList.remove("on"); setTimeout(()=>UI._tNext(), 280); }, ms);
+  },
+  toastClear(){ // a new level starts with a quiet stage — stale notes don't follow you in
+    UI._tq=[]; UI._tShowing=false;
+    const t=$("toast"); clearTimeout(t._h); t.classList.remove("on");
   },
   /* Send a friend out onto the board. Returns a handle whose .home() walks it back —
      the caller runs its power in between, so the pet is standing there while it works
