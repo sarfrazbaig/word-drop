@@ -2323,28 +2323,43 @@ const FT = {
   cleanup(){ FT._w={}; FT._bits.forEach(e=>e.remove()); FT._bits=[];
     document.querySelectorAll(".ftue-scrim,.ftue-callout,.ftue-arrow,.ftue-note,.ftue-ring,.ftue-hand,.coach").forEach(e=>e.remove()); },
   appRect(){ return $("app").getBoundingClientRect(); },
+  /* THE STAGE IS SCALED — MEASURE IN ITS OWN UNITS. fitApp() shrinks the fixed 396×800
+     stage to fit the screen. getBoundingClientRect() answers in SCREEN pixels (already
+     scaled), but any overlay we position lives INSIDE that scaled box, so writing those
+     numbers straight into left/top makes the browser scale them a second time. On a
+     desktop preview k is 1 and everything looks perfect; on a real phone the ring drifts
+     off its button, and the further from the top-left corner, the worse the miss.
+     box() converts a target back into stage coordinates so highlights land true. */
+  scale(){ const r=FT.appRect(); return r.width ? r.width/396 : 1; },
+  box(el){
+    const k=FT.scale(), ar=FT.appRect(), r=el.getBoundingClientRect();
+    return { left:(r.left-ar.left)/k, top:(r.top-ar.top)/k,
+             right:(r.right-ar.left)/k, bottom:(r.bottom-ar.top)/k,
+             width:r.width/k, height:r.height/k };
+  },
   callout(el, html, side){ // a tap-through teaching bubble with an arrow at its target
     return new Promise(res=>{
       const t=typeof el==="string"?document.querySelector(el):el;
-      const app=$("app"), ar=FT.appRect(), r=t.getBoundingClientRect();
+      const app=$("app"), r=FT.box(t);          // stage coordinates, not screen pixels
+      const SW=396, SH=800;                     // the stage's own size — clamp against THIS
       const scrim=FT.bit(document.createElement("div")); scrim.className="ftue-scrim";
       const b=FT.bit(document.createElement("div")); b.className="ftue-callout";
       b.innerHTML=html+'<div class="ftue-tap">TAP TO CONTINUE</div>';
       app.appendChild(scrim); app.appendChild(b);
-      const cx=r.left-ar.left+r.width/2;
-      b.style.left=Math.max(8,Math.min(cx-112, ar.width-232))+"px";
+      const cx=r.left+r.width/2;
+      b.style.left=Math.max(8,Math.min(cx-112, SW-232))+"px";
       // NEVER off the stage: if the asked side has no room, flip to the other one
       // (a "below" callout on the bottom tray was rendering half off-screen)
       let above = side!=="below";
       const bh=b.offsetHeight;
-      if(!above && (r.bottom-ar.top)+24+bh > ar.height-8) above=true;
-      if(above && (r.top-ar.top)-bh-24 < 8) above=false;
-      b.style.top = above ? Math.max(8,(r.top-ar.top)-bh-24)+"px"
-        : Math.min(ar.height-bh-8,(r.bottom-ar.top+24))+"px";
+      if(!above && r.bottom+24+bh > SH-8) above=true;
+      if(above && r.top-bh-24 < 8) above=false;
+      b.style.top = above ? Math.max(8, r.top-bh-24)+"px"
+        : Math.min(SH-bh-8, r.bottom+24)+"px";
       const arrow=FT.bit(document.createElement("div")); arrow.className="ftue-arrow";
       arrow.textContent = above ? "▼" : "▲";
       arrow.style.left=cx+"px";
-      arrow.style.top = above ? ((r.top-ar.top)-22)+"px" : ((r.bottom-ar.top)+2)+"px";
+      arrow.style.top = above ? (r.top-22)+"px" : (r.bottom+2)+"px";
       app.appendChild(arrow);
       Snd.tone(880,{dur:.09,type:"sine",gain:.05,verb:true});
       const done=e=>{ e.stopPropagation(); scrim.remove(); b.remove(); arrow.remove(); res(); };
@@ -2370,10 +2385,10 @@ const FT = {
     g.style.left=(c*STEP-4)+"px"; g.style.top=(r*STEP-4)+"px";
     g.style.width=(CELL+2)+"px"; g.style.height=(CELL+2)+"px";
     boardEl.appendChild(g); return g; },
-  ringEl(el){ const ar=FT.appRect(), r=el.getBoundingClientRect();
+  ringEl(el){ const r=FT.box(el);   // stage coordinates — lands true at any screen scale
     const g=FT.bit(document.createElement("div")); g.className="ftue-ring"; g.style.borderRadius="999px";
-    g.style.left=(r.left-ar.left-5)+"px"; g.style.top=(r.top-ar.top-5)+"px";
-    g.style.width=(r.width+4)+"px"; g.style.height=(r.height+4)+"px";
+    g.style.left=(r.left-5)+"px"; g.style.top=(r.top-5)+"px";
+    g.style.width=(r.width+10)+"px"; g.style.height=(r.height+10)+"px";  // an even ring, centred
     $("app").appendChild(g); return g; },
   deny(){ Snd.reject(); buzz(40);
     boardEl.classList.remove("shake"); void boardEl.offsetWidth; boardEl.classList.add("shake");
