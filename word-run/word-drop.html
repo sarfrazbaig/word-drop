@@ -344,6 +344,26 @@
     background:#fffdf6; padding:7px 9px; font-family:monospace; font-size:10px; color:var(--ink); }
   #charm-in.show{ display:block; }
   #charm-msg{ font-family:var(--font-ui); font-size:12px; font-weight:700; line-height:1.45; color:var(--ink); min-height:0; }
+  /* 🟠 the Trading Post */
+  #shop-title{ font-family:var(--font-story); font-weight:800; font-size:21px; color:var(--ink); }
+  #shop-sub{ font-size:12.5px; color:var(--dim); line-height:1.5; margin:2px 0 8px; }
+  #shop-rows{ display:flex; flex-direction:column; gap:8px; width:100%; margin-bottom:8px; }
+  .shoprow{ position:relative; display:flex; align-items:center; gap:11px; text-align:left; cursor:pointer;
+    border:1px solid rgba(101,78,48,.2); border-radius:14px; padding:11px 12px;
+    background:linear-gradient(180deg,#fffdf6,#f5ecd8); box-shadow:0 2px 5px rgba(90,60,30,.12); }
+  .shoprow:active{ transform:scale(.98); }
+  .shoprow .si{ font-size:26px; }
+  .shoprow .sn{ flex:1; font-size:13.5px; font-weight:800; color:var(--ink); line-height:1.3; }
+  .shoprow .sn small{ display:block; font-size:11.5px; font-weight:700; color:var(--dim); margin-top:1px; }
+  .shoprow .sp{ font-size:13px; font-weight:900; color:#fff; background:linear-gradient(180deg,#8fbc6f,#5f9c4a);
+    border-radius:999px; padding:7px 12px; white-space:nowrap; box-shadow:0 2px 4px rgba(60,100,40,.3); }
+  .shoprow.best{ border:2px solid var(--gold); box-shadow:0 2px 10px rgba(240,169,46,.35); }
+  .besttag,.oncetag{ font-style:normal; font-size:9.5px; font-weight:900; letter-spacing:.5px; color:#5a3410;
+    background:linear-gradient(180deg,#ffd54f,#f0a92e); border-radius:999px; padding:1.5px 7px; margin-left:5px; vertical-align:1px; }
+  .oncetag{ background:linear-gradient(180deg,#d9c9f0,#b9a3dd); color:#3a2a58; }
+  .shoprow.owned{ opacity:.72; }
+  .shoprow.owned .sp{ background:linear-gradient(180deg,#c9bda5,#a89a7e); }
+  #shop-note{ font-size:11px; color:var(--dim); line-height:1.4; }
   /* 🔧 the keeper's toolbox — dev-only, opened by a secret knock */
   #dbg-title{ font-family:var(--font-story); font-weight:800; font-size:19px; color:var(--ink); }
   #dbg-state{ font-size:12px; color:var(--dim); font-weight:700; margin:2px 0 8px; }
@@ -1161,8 +1181,21 @@
         <button class="charm-btn" onclick="UI.dbgAmber()">🟠 +100 amber</button>
         <button class="charm-btn" onclick="UI.dbgSkip(0)">↻ replay level</button>
         <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑 wipe save</button>
+        <button class="charm-btn" id="dbg-shop" onclick="UI.dbgShop()">💳 test payments</button>
       </div>
       <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
+    </div>
+  </div>
+
+  <!-- 🟠 THE TRADING POST — amber by the pouchful. Comfort, never power. -->
+  <div class="overlay" id="ov-shop" onclick="Shop.close()">
+    <div class="card" onclick="event.stopPropagation()">
+      <div style="font-size:34px">🟠</div>
+      <div id="shop-title">The Trading Post</div>
+      <div id="shop-sub">amber, by the pouchful — <b>comfort, never power</b>.<br>everything here stays earnable in play.</div>
+      <div id="shop-rows"></div>
+      <div id="shop-note"></div>
+      <button class="charm-btn go show" onclick="Shop.close()">close</button>
     </div>
   </div>
 
@@ -1174,6 +1207,7 @@
     <div class="menu-stat" id="hm-quest-row"><span id="hm-quest">🌤️ today's quest</span></div>
     <button class="menu-item" onclick="UI.groveShow()"><span>📖</span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
     <button class="menu-item" onclick="UI.statsShow()"><span>📊</span> Your journey</button>
+    <button class="menu-item" onclick="Shop.open()"><span>🟠</span> The Trading Post <em>amber &amp; bundles</em></button>
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
     <button class="menu-item" id="menu-sound" onclick="Snd.toggle()"><span class="soundbtn">🔊</span> Sound <em id="menu-snd-state">on</em></button>
     <button class="menu-item" onclick="UI.charmToggle()"><span>🧿</span> Keeper's charm <em>save &amp; restore</em></button>
@@ -1201,7 +1235,7 @@
     </div>
     <div id="goalstrip">
       <div id="gs-goals"></div>
-      <span class="chip" id="amberchip" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
+      <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
     </div>
     <div id="petbar">
       <span id="pawpips" title="every word you spell fills a paw — full paws, and a friend acts"></span>
@@ -1858,6 +1892,80 @@ const SLOT_MSG={
   3:{t:"The pack grows! 🐾", b:"Three friends can join you now — more friends means their powers come faster."},
   4:{t:"Full party! 🐾", b:"Four friends at once! Pick your dream team in the Book of Names."},
 };
+/* ============ 🟠 THE TRADING POST — IAP catalog + adapter ============
+   The SHOP is real; the TILL is pluggable. Shop.provider is null until a store
+   is wired (Play Billing / StoreKit / Stripe) — one object with purchase(item)
+   and restore(). Until then buys answer honestly and grant nothing. The
+   toolbox's 💳 toggle mounts a test till so the whole flow runs end-to-end.
+   Prices are PLACEHOLDERS until store listings exist. Receipt validation
+   belongs to the store/server layer, not this file. */
+const SHOP_ITEMS=[
+  {sku:"starter", i:"🎒", n:"the wanderer's bundle", amber:300, extras:{swap:3,wild:3}, price:"$2.99", once:true},
+  {sku:"amber_s", i:"🟠", n:"a handful of amber",    amber:200,  price:"$1.99"},
+  {sku:"amber_m", i:"💰", n:"a pouch of amber",      amber:550,  price:"$4.99", best:true},
+  {sku:"amber_l", i:"🏺", n:"a jar of amber",        amber:1200, price:"$9.99"},
+];
+const Shop={
+  provider:null,
+  DEV:{ name:"dev-test", async purchase(it){ await wait(450); return {test:true}; }, async restore(){ return []; } },
+  open(){
+    if(S && S.guide) return;                    // lessons keep their focus
+    Game.track("shop_open",{L:S?S.level:0, amber:P.amber||0});
+    Shop.render(); $("ov-shop").classList.add("active");
+  },
+  close(){ $("ov-shop").classList.remove("active"); },
+  render(){
+    const r=$("shop-rows"); if(!r) return;
+    r.innerHTML=SHOP_ITEMS.map(it=>{
+      const owned=it.once && P.purchases[it.sku];
+      return '<button class="shoprow'+(it.best?" best":"")+(owned?" owned":"")+'" onclick="Shop.buy(\''+it.sku+'\')">'
+        +'<span class="si">'+it.i+'</span>'
+        +'<span class="sn">'+it.n+(it.best?'<em class="besttag">best value</em>':'')+(it.once?'<em class="oncetag">once</em>':'')
+        +'<small>'+(it.amber?"🟠 "+it.amber:"")+(it.extras?"  +  🍃×"+it.extras.swap+"  🌟×"+it.extras.wild:"")+'</small></span>'
+        +'<span class="sp">'+(owned?"yours ✓":it.price)+'</span></button>';
+    }).join("");
+    $("shop-note").innerHTML = Shop.provider
+      ? "💳 <b>test payments on</b> — no real money moves"
+      : "the till opens with the full release — prices are placeholders until then";
+  },
+  async buy(sku){
+    const it=SHOP_ITEMS.find(x=>x.sku===sku); if(!it) return;
+    if(it.once && P.purchases[sku]){ UI.toast("🎒 already yours — the wood remembers"); return; }
+    Game.track("purchase_start",{sku});
+    if(!Shop.provider){
+      Game.track("purchase_unwired",{sku});
+      UI.toast("🌰 the till opens with the full release —<br><small>everything here stays earnable in play</small>");
+      return;
+    }
+    try{
+      await Shop.provider.purchase(it);
+      Shop.grant(it);
+      Game.track("purchase_complete",{sku, amber:it.amber||0, test:Shop.provider===Shop.DEV});
+    }catch(e){
+      Game.track("purchase_fail",{sku, err:String(e).slice(0,80)});
+      UI.toast("🌫️ the trade didn't go through — <b>nothing was taken</b>");
+    }
+  },
+  grant(it){ // idempotent for once-items; every grant is saved before it's shown
+    if(it.once){ if(P.purchases[it.sku]) return; P.purchases[it.sku]=Date.now(); }
+    if(it.amber){ P.amberBought=(P.amberBought||0)+it.amber; Game.amber(it.amber); }
+    if(it.extras){
+      P.pow.swap=Math.min(4,(P.pow.swap||0)+(it.extras.swap||0));
+      P.pow.wild=Math.min(4,(P.pow.wild||0)+(it.extras.wild||0));
+    }
+    save();
+    Snd.levelUp(); UI.confetti(); buzz([30,50,90]);
+    UI.toast(it.i+" "+it.n+" — <b>yours!</b>");
+    if(S){ try{ UI.all(); }catch(e){} }
+    Shop.render();
+  },
+  async restore(){ // store re-installs re-deliver their once-items here
+    if(!Shop.provider || !Shop.provider.restore) return;
+    const owned=await Shop.provider.restore();
+    owned.forEach(sku=>{ const it=SHOP_ITEMS.find(x=>x.sku===sku); if(it && it.once && !P.purchases[sku]) Shop.grant(it); });
+  },
+};
+
 function dailyQuest(){
   const day = Math.floor(Date.now()/86400000);
   return [
@@ -1898,6 +2006,7 @@ function load(){
     out.amber = out.amber||0;         // 🟠 amber drops — cheap, cheerful, never power
     out.callBase = out.callBase||{};  // per-creature meter baselines (windowed callings)
     out.nameFails = out.nameFails||{}; // ceremony letdowns per creature — the mercy counter
+    out.purchases = out.purchases||{}; // once-items owned (receipts belong to the store layer)
     // players who already have friends predate the callings — their friends' callings
     // count as met, so nothing they own ever reads as un-earned
     Object.keys(out.grove).forEach(w=>{ out.called[w]=1; });
@@ -4852,6 +4961,12 @@ const UI = {
   dbgAmber(){
     Game.amber(100);
     $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
+  },
+  dbgShop(){ // session-only test till: the full purchase flow, zero real money
+    Shop.provider = Shop.provider ? null : Shop.DEV;
+    $("dbg-shop").textContent = Shop.provider ? "💳 test pay ON" : "💳 test payments";
+    UI.toast(Shop.provider ? "💳 test payments <b>on</b> — no real money moves" : "💳 test payments off");
+    Shop.render();
   },
   dbgWipe(){ // destructive — ask twice even in a dev drawer
     if(!UI._dbgWipeArmed){ UI._dbgWipeArmed=true; $("dbg-wipe").textContent="⚠️ really? tap again"; return; }
