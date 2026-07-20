@@ -75,7 +75,15 @@ const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on
 if (!fs.existsSync(docs)) fs.mkdirSync(docs);
 fs.writeFileSync(path.join(docs, "index.html"), dropOut);
 // PWA layer: ship manifest, service worker, and icon alongside the game
-["manifest.webmanifest", "sw.js", "icon.svg"].forEach(f => {
+["manifest.webmanifest", "icon.svg"].forEach(f => {
   fs.copyFileSync(path.join(__dirname, f), path.join(docs, f));
 });
+// the service worker is STAMPED, not copied: a fixed cache name means the browser sees an
+// identical sw.js each deploy, never installs a new worker, and never drops the old cache —
+// so a playtester keeps a stale build while you push fixes they never get. Stamping the
+// file makes it differ every build, which forces install → activate → old caches deleted.
+const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
+const sw = fs.readFileSync(path.join(__dirname, "sw.js"), "utf8").split("__BUILD__").join(stamp);
+fs.writeFileSync(path.join(docs, "sw.js"), sw);
+console.log(`Service worker stamped ${stamp} — every tester picks this build up`);
 console.log(`Built word-drop.html + index.html + docs/ (game + PWA) — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
