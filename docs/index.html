@@ -2112,21 +2112,36 @@ const Ads={
       return false;
     }
   },
-  giftRefresh(){ // the wood's daily chest: only shown when it can actually open
+  giftRefresh(){ // the wood's daily chest — FREE now; shows whenever today's gift is unclaimed
     const g=$("homegift"); if(!g) return;
     const today=Math.floor(Date.now()/864e5);
-    g.classList.toggle("on", (Ads.ready()||Shop.blessed()) && P.tut && P.giftDay!==today);
+    g.classList.toggle("on", P.tut && P.giftDay!==today);   // no longer gated on an ad provider
   },
   async dailyGift(){
+    // THE REASON TO COME BACK TOMORROW. This used to demand a rewarded ad — which meant that
+    // with no ad provider wired (and v1 ships free), the chest never opened at all: a dead
+    // retention feature. Now returning IS the price. The gift grows gently with the run of
+    // mornings, so the habit is rewarded — but a missed day only restarts the run, never
+    // punishes it. Cozy games retain through warmth, not loss-anxiety.
     const today=Math.floor(Date.now()/864e5);
-    if(P.giftDay===today || (!Ads.ready() && !Shop.blessed())) return;
-    if(!Shop.blessed()){ const ok=await Ads.show("gift"); if(!ok) return; }
+    if(P.giftDay===today) return;                       // already opened today
+    const newDay = P.lastDay!==today;                   // coordinate with play(): whoever meets the new day first claims it
+    if(newDay){ P.streak = (P.lastDay===today-1) ? (P.streak||0)+1 : 1; P.lastDay=today; }
     P.giftDay=today;
-    Game.amber(20);
-    P.pow.swap=Math.min(4,(P.pow.swap||0)+1);
+    const st = P.streak||1;
+    const amber = Math.min(45, 15 + st*5);              // day 1: 20🟠, climbing to 45 by the sixth morning
+    Game.amber(amber);
+    P.pow.swap=Math.min(4,(P.pow.swap||0)+1);           // always a breeze
+    const milestone = st===3 || (st>=7 && st%7===0);    // day 3, then each week: a wish as well
+    if(milestone){ P.pow.wild=Math.min(4,(P.pow.wild||0)+1); }
     save();
     Snd.levelUp(); UI.confetti(); buzz([30,50]);
-    UI.toast("🎁 the wood left you <b>20🟠</b> and a 🍃 breeze");
+    Game.track("daily_gift",{ streak:st, amber, milestone });
+    const line = st<=1
+      ? "🎁 the wood left you <b>"+amber+"🟠</b> and a 🍃 breeze"
+      : "🌙 <b>"+st+" mornings</b> here — the wood left <b>"+amber+"🟠</b>, a 🍃 breeze"
+        + (milestone ? " and a 🌟 wish" : "");
+    UI.toast(line);
     Ads.giftRefresh();
   },
 };
