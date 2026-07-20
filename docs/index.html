@@ -2161,7 +2161,7 @@ function tutorAlive(){ // is the guest still spellable? checks the LONGEST survi
     for(let c=0;c<COLS;c++){ if(wouldClear({letter:last,kind:"normal"},c)===w) return true; }
     return false;
   }
-  const K=Math.min(3, Math.ceil((w.length-1)/2));
+  const K=1;   // the single granted foothold — the keeper only steps in when it's gone
   // any contiguous prefix run of at least the anchor, with room for the whole name,
   // counts as alive — including runs the player has grown themselves
   for(let j=w.length-1;j>=K;j--){
@@ -2180,7 +2180,8 @@ function tutorPrefill(word, dug){ // stage the guest's ANCHOR: level ground + a 
   // After school the ceremony stages only an ANCHOR (1-3 letters): the player must
   // figure the name and BUILD the rest, holding the little words that form along the
   // way. If they crack it, glory; if not, the letdown — and one day, the hint shop.
-  const K = P.level<=6 ? word.length-1 : Math.min(3, Math.ceil((word.length-1)/2));
+  // post-school the wood grants ONE letter — the name's first — and nothing more
+  const K = P.level<=6 ? word.length-1 : 1;
   const head=word.slice(0,K).split("");
   const L=word.length;                   // reserve room for the WHOLE name to grow rightward
   const landAt=c=>{ let r=ROWS-1; while(r>=0 && S.board[r][c]) r--; return r; };
@@ -2445,8 +2446,11 @@ function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy t
   return rand(need);
 }
 function makePiece(){
-  // gently paced: no special tiles in the early levels — one new idea at a time
-  if(S && S.tutorWord && Math.random()<0.8){ const l=tutorLetter(); if(l) return {letter:l, kind:"normal"}; }
+  // gently paced: no special tiles in the early levels — one new idea at a time.
+  // The steer is SCHOOL-ONLY: past level 6 the ceremony deck is stone-normal. Feeding
+  // the name's letters to grown players spammed the same letter over and over — the
+  // wood gives one foothold on the board and nothing else; powers do the rest.
+  if(S && S.tutorWord && P.level<=6 && Math.random()<0.8){ const l=tutorLetter(); if(l) return {letter:l, kind:"normal"}; }
   // MERCY is deterministic, not a dice roll: after two wordless drops the deck ALWAYS
   // deals a completion if one exists. And in the ENDGAME (few moves left) even ONE dead
   // drop triggers it — a drought on your last moves is what quietly loses winnable levels.
