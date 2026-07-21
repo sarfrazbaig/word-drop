@@ -3529,6 +3529,12 @@ const Game = {
   showPendingTip(){ // first time you meet a special tile — or earn a tool — explain it
     if(!S || S.busy || S.over || S.won) return;
     if(S.guide) return; // a lesson explains things in its own voice — no tip cards mid-class
+    // NOR DURING A NAMING. The board is already asking the player to find a name in the
+    // letters; a card explaining the wish, or the gold, or anything else is a second new
+    // thing at the same moment. Holding obstacles back from a ceremony board and then
+    // teaching a TOOL on it would have missed the point. Nothing is lost — a tip is owed
+    // until it is shown, so it introduces itself on the next ordinary round.
+    if(S.tutorWord) return;
     if($("ov-meet").classList.contains("active")) return; // never slide a tip under a ritual
     const order=[];
     // TOOLS FIRST. The breeze and the wish were introducing themselves on a 700ms timer
