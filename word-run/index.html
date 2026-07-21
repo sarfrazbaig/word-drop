@@ -421,6 +421,12 @@
   #st-grove .hbar i{ display:block; height:100%; border-radius:999px;
     background:linear-gradient(90deg,var(--accent),var(--gold)); }
   #st-mile{ font-size:12px; color:var(--dim); font-weight:700; }
+  /* the one creature a player should be aiming at — lifted out of the wall of hushed cards */
+  .gcard.nextup{ position:relative; border-color:var(--gold); background:linear-gradient(180deg,#fffaef,#fdf1d8);
+    box-shadow:0 0 0 2px rgba(224,160,44,.35), 0 6px 16px -8px rgba(120,80,20,.5); }
+  .gcard.nextup .ge{ animation:peekbob 2.4s ease-in-out infinite; }
+  .nexttag{ display:block; font-size:9.5px; font-weight:800; letter-spacing:.7px;
+    text-transform:uppercase; color:var(--accent-deep); margin-bottom:1px; }
   #st-place{ font-size:12.5px; color:var(--dim); font-weight:700; margin-bottom:10px; }
   #st-place b{ color:var(--ink); }
   /* 🔧 the keeper's toolbox — dev-only, opened by a secret knock */
@@ -2740,6 +2746,11 @@ const FT = {
     await FT.callout("#pet-"+(seat<0?0:seat), "🐱 <b>CAT walks with you now</b><br><small>your party lives on this shelf — tap a friend anytime to see its power</small>", "below");
     await FT.callout("#pet-2", "🔒 <b>more seats open as you journey</b><br><small>every friend you wake can join the walk</small>", "below");
     await FT.callout("#pawpips", "every word fills a 🐾<br><small>when the paws are full, CAT steps onto the board and turns a letter <b>golden</b> ✨</small>", "below");
+    // …and finally, the thing that keeps them playing: WHO IS NEXT. The lesson used to end
+    // on the paw meter, leaving the player with a pet but no notion that fifty more could be
+    // earned or how. Point at the Book once, by name, while the cat is still fresh.
+    await FT.callout(".chip.bookchip",
+      "📔 <b>the Book of Names</b><br><small>every friend still hushed, and what each is listening for — <b>your next one is in there</b></small>", "below");
     FT.note("spell words — watch the paws fill 🐾");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null;
@@ -3166,7 +3177,16 @@ const Game = {
     // (As a timed toast it landed exactly on top of the level-clear CTA — caught live.)
     if(Object.keys(P.metGrove).length===1 && !(P.said["book-intro"])){
       P.said["book-intro"]=2;
-      P.annQ.push("📔 <b>"+(UI._lastWake||"🐾")+" "+Object.keys(P.metGrove)[0].toUpperCase()+"</b> has a page in the <b>Book of Names</b> now.<br>every creature has a <b>calling</b> — play its way and it draws near, then <b>spell its name</b>. the Book tells you how. <b>49 more</b> are listening for you!");
+      // NAME THE CAUSE, THEN THE RULE, THEN WHERE TO LOOK. The old card stated the loop in
+      // one dense paragraph and never said WHY the cat had come — so a player's first
+      // friend read as luck rather than something they earned, and nothing taught them the
+      // loop was theirs to drive. Three short beats instead: what you did, what happens
+      // next, and the one place that tracks it.
+      P.annQ.push("🐱 <b>you cleared the wood's first three lessons</b> — and <b>CAT</b> answered.<br>"
+        + "<small>that is how every friend is found: play a certain way, and something notices.</small>");
+      P.annQ.push("📔 then its name <b>hides in a round</b>, and you <b>spell it</b> to wake it.<br>"
+        + "<small>the <b>Book of Names</b> holds all fifty — and what each one is listening for. "
+        + "your next friend is already waiting there.</small>");
       save();
     }
     // …and once the Book has spoken, the shelf lesson takes the stage
@@ -5144,6 +5164,15 @@ const UI = {
   },
   GROVE_MILES:[ {n:10,i:"🌸",t:"The wood begins to stir!"}, {n:25,i:"🎶",t:"The wood is waking!"},
     {n:40,i:"🎼",t:"The wood remembers its song!"}, {n:50,i:"🌈",t:"The wood is AWAKE!"} ],
+  // WHO TO CHASE NEXT. A creature already listening outranks everything — its naming round
+  // is imminent. Otherwise it is simply the first still-hushed friend in the wood's own
+  // order, which puts the dog directly after the cat for a new player.
+  nextQuarry(){
+    const listening = GROVE.find(g=>!P.grove[g.w] && P.called[g.w]);
+    if(listening) return listening.w;
+    const next = GROVE.find(g=>!P.grove[g.w]);
+    return next ? next.w : null;
+  },
   groveShow(){
     const found=Object.keys(P.grove).length;
     $("gr-count").textContent = found+"/"+GROVE.length;
@@ -5203,7 +5232,12 @@ const UI = {
             +'<span class="gd">since '+fmt(P.grove[g.w])+'</span>';
           el.onclick=()=>UI.petSheet(g.w);
         } else {
-          el.className="gcard mystery";
+          // ONE FRIEND IS ALWAYS "NEXT". A wall of fifty identical hushed cards gives a new
+          // player no idea where to aim — so the first un-woken creature is marked as the
+          // one to chase. After the cat that is the dog, which is exactly where the game
+          // wants a beginner looking.
+          const isNext = g.w===UI.nextQuarry();
+          el.className="gcard mystery"+(isNext?" nextup":"");
           // the card IS the quest log: its calling, its progress, and — once it's
           // listening — the drumroll that a naming level is coming
           const c=CALLINGS[g.w]||{};
@@ -5212,6 +5246,7 @@ const UI = {
             ? '<span class="gcall listening">💫 it is LISTENING…<br>its name comes soon</span>'
             : '<span class="gcall">'+ (c.c||"") +' <b>'+pr.have+'/'+pr.n+'</b></span>';
           el.innerHTML='<span class="ge">'+g.e+'</span><span class="mound"></span>'
+            +(isNext?'<span class="nexttag">your next friend</span>':'')
             +'<span class="gn">a hushed friend</span>'
             +'<span class="gp">its name has '+g.w.length+' letters</span>'
             +callLine;
