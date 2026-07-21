@@ -1827,9 +1827,25 @@ const EARLY=[ null,
   [30,20],  // L7 · two pets
   [35,20],  // L8
 ];
+/* RETUNED against a party that BUILDS, not one that happens to be carried.
+   The old curve was written for a game where friends fired twice a round under a cap and
+   twenty-six best-friend pairs quietly padded the score. Both are gone, and friends now
+   wake to their own signs and grow at milestones, so the ask has to move with them.
+
+   Solved from the modelled win rates the wood is aiming for — generous early, fair in the
+   middle, demanding late: ~85% to L25, ~65% through the middle, ~55% past L110, ~50% deep.
+   That lands near 110 / 185 / 260 / 325 / 400 / 510 / 625 across L10 to L300, against an
+   old curve that topped out at 530 and asked it of a weaker party.
+
+   The steps are deliberately keyed to the growings at 50, 100 and 150: the wood asks for
+   more right after your friends become more, so an upgrade is felt as relief rather than
+   arriving into a level that was already comfortable. */
 function TARGET(L){
   if(EARLY[L]) return EARLY[L][0];
-  const base = 35 + 6*Math.pow(L-8, 0.75);
+  const tier = L>=150 ? 3 : L>=100 ? 2 : L>=50 ? 1 : 0;
+  // gentle multipliers, because the L^0.75 term ALREADY compounds — the first attempt
+  // stacked ×2.00 on top of it and asked 1025 at L300 against a modelled 625
+  const base = 35 + 6*Math.pow(L-8, 0.75) * [1, 1.12, 1.28, 1.45][tier];
   return Math.round(base*RHYTHM[(L-1)%5]/5)*5;   // always lands on a multiple of 5
 }
 /* The budget has to grow with the target. Holding it at 20 forever while the target
@@ -2230,6 +2246,15 @@ const SLOT_MSG={
   3:{t:"The pack grows! 🐾", b:"Three friends can join you now — more friends means their powers come faster."},
   4:{t:"The pack grows! 🐾", b:"Four friends at once — and they each stir to their own sign. Pick who walks with you in the Book of Names."},
   5:{t:"Full party! 🐾", b:"Five friends at once. Now the wood is asking you a real question: whose signs suit the round ahead?"},
+};
+/* The three growings. Every friend you own steps up together — the ones resting at home
+   as much as the ones on duty — so a friend you swap in is never behind the one you swap
+   out. Levelling only the friends you played would have made swapping cost something, and
+   swapping is the whole point. */
+const TIER_MSG={
+  1:{t:"Your friends have grown 🌿", b:"Something in the wood has deepened. Every friend you have met stirs a little sooner now, and gives a little more when they do."},
+  2:{t:"Grown again 🌿", b:"They know your hand by heart. Signs that used to take a while come quicker, and the wood is asking more of you to match."},
+  3:{t:"Grown into themselves 🌿", b:"Your friends are as awake as the wood can make them. What comes now, you and they meet together."},
 };
 /* ============ 🟠 THE TRADING POST — IAP catalog + adapter ============
    The SHOP is real; the TILL is pluggable. Shop.provider is null until a store
@@ -3303,7 +3328,21 @@ const Game = {
     // did the grove grow a new duty slot at this level? celebrate it BEFORE the level begins
     const slots=slotsFor(level);
     P.seenSlots=P.seenSlots||{};
-    if(SLOT_MSG[slots] && !P.seenSlots[slots] && Object.keys(P.metGrove).length){
+    // A GROWING is the biggest thing that happens to a party, and it happens to ALL of
+    // them at once — it has to be a moment, not a number that quietly changed.
+    const tier=Game.petTier();
+    P.seenTier=P.seenTier||{};
+    if(tier>0 && !P.seenTier[tier] && Object.keys(P.metGrove).length){
+      P.seenTier[tier]=true; save();
+      $("un-burst").textContent="🌿";
+      $("un-title").textContent=TIER_MSG[tier].t;
+      $("un-body").textContent=TIER_MSG[tier].b;
+      $("un-try").style.display="block";
+      $("un-try").innerHTML='<b>every friend you own has grown</b><br>the ones you keep resting grew too';
+      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      Snd.levelUp(); UI.confetti(); buzz([40,60,120]);
+    }
+    else if(SLOT_MSG[slots] && !P.seenSlots[slots] && Object.keys(P.metGrove).length){
       P.seenSlots[slots]=true; save();
       $("un-burst").textContent="🐾";
       $("un-title").textContent=SLOT_MSG[slots].t;
@@ -4144,13 +4183,32 @@ const Game = {
     for(const g of Game.petActives()){
       const w=g.wake; if(!w || w.on!==ev) continue;
       S.wake[g.w] = (S.wake[g.w]||0) + (n||1);
-      if(S.wake[g.w] >= w.n){ S.wake[g.w]=0; S._woke = S._woke || []; S._woke.push(g.w); }
+      if(S.wake[g.w] >= Game.wakeNeed(g)){ S.wake[g.w]=0; S._woke = S._woke || []; S._woke.push(g.w); }
     }
     if(S._woke && S._woke.length) UI.petMeter();
   },
   /* how far along a friend is, for the sleep dots on its card */
   wakeAt(g){ if(!g.wake) return null;
-    return { have: (S && S.wake && S.wake[g.w]) || 0, need: g.wake.n }; },
+    return { have: (S && S.wake && S.wake[g.w]) || 0, need: Game.wakeNeed(g) }; },
+
+  /* ============ FRIENDS GROW WITH YOU ============
+     Every friend you own gains a tier at a milestone — never by use. Levelling the ones
+     you play would have fought this whole design: a freshly swapped-in Lv1 sitting beside
+     your Lv3 regular means you stop swapping, which is the exact habit the triggers exist
+     to break. Milestones lift the whole collection at once, so a swap costs nothing but
+     thought.
+
+     And it is load-bearing, not garnish. Modelled with a fixed power budget, the target
+     that holds a 50% win rate FLATLINES at 240 from L110 and never moves again for two
+     hundred levels. Growth is what lets the wood keep asking for more. */
+  TIER_AT:[50,100,150],                 // three growings, and the wood is different after each
+  TIER_MUL:[1, 1.35, 1.82, 2.46],       // ×1.35 a tier — a step nobody will miss
+  petTier(){ let t=0; for(const L of Game.TIER_AT) if((P.level||1)>=L) t++; return t; },
+  tierMul(){ return Game.TIER_MUL[Game.petTier()] || 1; },
+  /* a grown friend does MORE and waits LESS. The waiting half matters most: it is the
+     only lever that reaches a power with no number in it. */
+  wakeNeed(g){ if(!g.wake) return 0;
+    return Math.max(1, Math.round(g.wake.n / Game.tierMul())); },
 
   petActives(){ return UI.equipped().filter(g=>!g.ps); },
   hasPassive(t){ return UI.equipped().some(g=>g.ps && g.fx.t===t); },
@@ -4222,7 +4280,9 @@ const Game = {
     const visit = await UI.petVisit(pet, Game.petTarget(pet.fx));
     if(boost && visit){ const p=document.querySelector(".petplate"); if(p) p.innerHTML+=" <b>×2</b>"; }
     await wait(300);
-    const fx=pet.fx, m=boost?2:1;
+    // a grown friend gives more of whatever it gives — legendary powers carry no count,
+    // so they are untouched by this and stay exactly as strong as the day you met them
+    const fx=pet.fx, m=Math.max(1, Math.round(Game.tierMul()));
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
     const cols=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0; for(let r=0;r<8;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
     const rowTiles=(r)=>{ const out=[]; for(let c=0;c<COLS;c++){ const t=S.board[r][c]; if(t&&(t.kind==="normal"||t.kind==="gold"||t.kind==="wild")) out.push(t); } return out; };
