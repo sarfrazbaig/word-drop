@@ -1004,6 +1004,20 @@
   #currentwrap{ animation:curbob 2.4s ease-in-out infinite; }
   /* THE SAME HAIRLINE THAT DIVIDES LV FROM MOVES, standing between the dock's three
      zones: what you can spend, what you are holding and what is coming, and the Book. */
+  /* THE SHELF'S RIGHT END, exactly as the menu is the pill's left end up top: a tinted
+     segment rounded to the panel's own corner, with a hairline for a seam. The friends
+     and the way to change them are one object rather than a panel with an icon parked
+     beside it. */
+  #petswap{ position:absolute; right:0; top:0; bottom:0; width:42px; z-index:3;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    border:none; padding:0; margin:0;
+    border-radius:0 16px 16px 0;
+    background:color-mix(in srgb, var(--frame2,#9a6f3c) 15%, transparent);
+    border-left:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent);
+    color:color-mix(in srgb, var(--frame2,#9a6f3c) 88%, #3a2a12);
+    transition:background .15s; }
+  #petswap:active{ background:color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent); }
+  #petswap .ui-ic{ width:23px; height:23px; }
   .dock-sep{ flex:none; align-self:center; width:1.5px; height:40px; border-radius:1px;
     background:color-mix(in srgb, var(--frame2,#9a6f3c) 36%, transparent); }
   @keyframes curbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
@@ -1224,7 +1238,9 @@
        shelf. At 12 the bigger seats fit with room left over.
        The padding is balanced because what sits on the midline is the seat AND the label
        hanging beneath it — bottom-heavy padding put the seats above the bar's top edge. */
-    border-radius:16px; padding:4px 10px 8px; align-items:center; justify-content:center; gap:12px;
+    /* the segment takes 42, leaving 314 against the 308 that five friends at this size
+       need; the gap comes in from 12 to 10 to turn six spare pixels into fourteen. */
+    border-radius:16px; padding:4px 46px 8px 10px; align-items:center; justify-content:center; gap:10px;
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:
@@ -2115,6 +2131,13 @@
       <span class="petcompanion" id="pet-2" onclick="UI.petInfo(2)"></span>
       <span class="petcompanion" id="pet-3" onclick="UI.petInfo(3)"></span>
       <span class="petcompanion" id="pet-4" onclick="UI.petInfo(4)"></span>
+      <button id="petswap" onclick="UI.groveShow()" aria-label="swap friends"
+        title="the Book of Names — change who walks with you">
+        <svg class="ui-ic" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.2 8.6h13M13.4 4.8l3.8 3.8-3.8 3.8"/>
+          <path d="M19.8 15.4h-13M10.6 11.6l-3.8 3.8 3.8 3.8"/>
+        </svg></button>
       <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
     </div>
     <div id="boardwrap">
@@ -2124,14 +2147,13 @@
     <!-- one enclosure: breeze, the letter in hand, the queue, the wish, the Book -->
     <div id="dock">
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
-      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()"><span class="starglyph">★</span><span class="cnt" id="wish-cnt">0</span></button>
       <i class="dock-sep"></i>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
       <!-- 👁 the owl's third tile. Built now, shown when Far Sight arrives. -->
       <div id="next2wrap"><span class="slotlabel">then</span><span id="next2slot"></span></div>
       <i class="dock-sep"></i>
-      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names"><span class="bookwrap"><svg class="bookicon" viewBox="3.2 2.2 17.2 19.8" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg><i class="booksheen"></i></span></button>
+      <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()"><span class="starglyph">★</span><span class="cnt" id="wish-cnt">0</span></button>
     </div>
 
     <!-- 🌟 WISH: wish on a star for the letter you need -->
