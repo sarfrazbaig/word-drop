@@ -2619,7 +2619,7 @@ const CALLINGS={
   /* TIER 4 — the legends: long names, hidden-word names, and the true grinds */
   boar:    {t:"stone",    n:12, c:"smash 12 mossy stones",                    s:"💢 something charges toward the <b>rubble</b>…"},
   robin:   {t:"word4",    n:30, c:"clear 30 four-letter words",               s:"🎶 something sings back at your morning words…"},
-  bunny:   {t:"daily",    n:3,  c:"spell the whispered word on 3 days",       s:"🥕 something heard you catch the <b>daily whisper</b>…"},
+  bunny:   {t:"day",      n:3,  c:"visit the wood on 3 different days",     s:"🥕 something hops out when you keep <b>coming back</b>…"},
   goose:   {t:"gold",     n:25, c:"clear 25 golden letters",                  s:"🥚 something golden waddles toward your <b>treasure</b>…"},
   moose:   {t:"word6",    n:3,  c:"clear 3 six-letter words",                 s:"🌲 something MIGHTY bows to your <b>great words</b>…"},
   fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
@@ -2878,7 +2878,7 @@ const Ads={
     // arrive here with nothing to give, correct the chest instead of ignoring the player.
     if(P.giftDay===today){ Ads.giftRefresh(); return; }
     const newDay = P.lastDay!==today;                   // coordinate with play(): whoever meets the new day first claims it
-    if(newDay){ P.streak = (P.lastDay===today-1) ? (P.streak||0)+1 : 1; P.lastDay=today; }
+    if(newDay){ P.streak = (P.lastDay===today-1) ? (P.streak||0)+1 : 1; P.lastDay=today; Game.tallyEv("day"); }
     P.giftDay=today;
     const st = P.streak||1;
     const amber = Math.min(45, 15 + st*5);              // day 1: 20🟠, climbing to 45 by the sixth morning
@@ -3733,7 +3733,7 @@ const Game = {
   play(){
     Snd.init();
     const today=Math.floor(Date.now()/864e5);
-    if(P.lastDay!==today){ P.streak = (P.lastDay===today-1) ? (P.streak||0)+1 : 1; P.lastDay=today; }
+    if(P.lastDay!==today){ P.streak = (P.lastDay===today-1) ? (P.streak||0)+1 : 1; P.lastDay=today; Game.tallyEv("day"); }
     if(P.questDay!==today){ P.questDay=today; P.questProgress=0; P.questDone=false; }
     save();
     UI.scene("scene-game");
