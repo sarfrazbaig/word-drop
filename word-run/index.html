@@ -427,11 +427,16 @@
     84%{ transform:rotate(-8deg) } 92%{ transform:rotate(0) } }
   @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
   #home-content{ position:absolute; inset:0; z-index:2; }
-  #home-menu-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top)); left:16px; z-index:4;
+  /* ONE MENU BUTTON, DRAWN ONCE, WORN BY BOTH SCREENS — only the placement differs. */
+  #home-menu-btn, #game-menu-btn{
     width:46px; height:46px; border-radius:14px; font-size:22px; border:1.5px solid rgba(90,72,45,.3);
     background:radial-gradient(120% 120% at 40% 28%, #f4ead4, #d8c39c 68%, #b99f74); color:var(--ink);
-    box-shadow:0 3px 0 #8a7048, 0 6px 12px rgba(40,35,60,.4), inset 0 2px 0 rgba(255,250,235,.7); }
-  #home-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
+    box-shadow:0 3px 0 #8a7048, 0 6px 12px rgba(40,35,60,.4), inset 0 2px 0 rgba(255,250,235,.7);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
+  #home-menu-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top)); left:16px; z-index:4; }
+  /* on the play screen it rides in the flow, first thing on the strip */
+  #game-menu-btn{ position:relative; flex:none; z-index:4; }
+  #home-menu-btn:active, #game-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
   #home-menu-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
     font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
@@ -1143,22 +1148,12 @@
   /* ══ THE DOCK ══ the four play controls span x80–x296 of a 347 panel; the gear and the
      Book take the empty 66px on its left and 51px on its right, absolutely placed so the
      controls between them keep the centring they already had. */
-  /* THE GEAR IS A BUTTON, in the same shape as the two powers it sits beside: a 46px
-     circle with a radial face, a hard bottom edge and an inset highlight. Warm cream, so
-     it stays out of the way of the green power on one side and the pink on the other. */
-  #dockrow > #btn-menu{ flex:none; margin:0; z-index:3; padding:0;
-    width:37px; height:37px; align-self:center; border-radius:50%; border:none;
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    background:radial-gradient(120% 120% at 40% 30%, #fdf7e9, #f1e4c8 65%, #e3d2ae) !important;
-    box-shadow:0 4px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 62%, #7d5c2c),
-               0 6px 12px rgba(90,60,30,.32), inset 0 2px 0 rgba(255,255,255,.85) !important;
-    transition:box-shadow .2s, transform .2s; }
-  #dockrow > #btn-menu:active{ transform:translateY(2px);
-    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 62%, #7d5c2c),
-               0 4px 8px rgba(90,60,30,.32), inset 0 2px 0 rgba(255,255,255,.85) !important; }
-  /* dark enough to read on a cream face */
-  #dockrow > #btn-menu .ui-ic{ width:21px; height:21px;
-    color:color-mix(in srgb, var(--frame2,#9a6f3c) 55%, #34240c); }
+  /* the dock holds only play controls now, so the panel takes the middle and the Book
+     keeps the right edge — absolutely placed so the panel centres on the row itself and
+     not on whatever is left over beside it. */
+  #dockrow{ position:relative; }
+  #dockrow > #dock{ margin:0 auto; }
+  #dockrow > .bookchip{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
   /* the Book is a picture, not a control surface — no chrome, just bigger */
   #dockrow > .bookchip{ flex:none; margin:0; z-index:3; padding:2px;
     background:none !important; border:none !important; box-shadow:none !important;
@@ -2051,6 +2046,8 @@
          read while playing: what the round wants, how many moves are left, where you
          are, the book, and the amber. The strip this frees belongs to the friends. -->
     <div id="topbar">
+      <!-- the same button, in the same corner, as the one on the door -->
+      <button id="game-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰</button>
       <div id="movesbox">
         <div id="movespill">
           <span id="lvlcap" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
@@ -2079,7 +2076,6 @@
     </div>
     <!-- the two doors flank the dock, outside its outline, under the thumbs -->
     <div id="dockrow">
-      <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu"><svg class="ui-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><circle cx="12" cy="12" r="6.6"/></g><circle cx="12" cy="12" r="2.9" fill="#fdf8ec"/></svg></button>
       <div id="dock">
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <div id="currentwrap"></div>
