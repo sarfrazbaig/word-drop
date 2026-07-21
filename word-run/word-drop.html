@@ -370,15 +370,17 @@
      stage — three things positioned from different edges, so on most screens the chest
      landed squarely on the words. It now hangs beside the play button, well clear of the
      copy, and reads as the tappable thing it is: a real tap target with a lifted rim. */
-  /* NOTE the anchor: this sits inside #hill-near, which begins partway down the stage — so a
-     percentage here is a percentage of the HILL, not of the screen. Reading it as the screen
-     is what put the chest on top of the place name and the progress ladder. 14% of the hill
-     lands it beside the play button, clear of every line of copy below. */
-  #homegift{ position:absolute; right:16%; top:14%; font-size:34px; cursor:pointer; display:none;
-    width:56px; height:56px; line-height:56px; text-align:center; border-radius:50%;
+  /* Bottom-left corner, and a sibling of the play button rather than a child of the hill.
+     That parentage is the point: z-index only ranks siblings inside a stacking context, so
+     while this lived in #hill-near (z:1) its own z:4 counted for nothing against
+     #home-content (z:2) — which covered the hill and quietly ate every tap aimed here. It
+     looked clickable and wasn't. Sharing a context with the copy it sits beside also makes
+     these offsets mean what they appear to mean. */
+  #homegift{ position:absolute; left:7%; bottom:5%; font-size:26px; cursor:pointer; display:none;
+    width:46px; height:46px; line-height:46px; text-align:center; border-radius:50%;
     background:radial-gradient(circle at 50% 35%, rgba(255,246,222,.95), rgba(240,214,160,.9));
     box-shadow:0 3px 10px -2px rgba(60,30,0,.45), inset 0 -2px 0 rgba(140,100,40,.25);
-    animation:peekbob 2.2s ease-in-out infinite; z-index:4; }
+    animation:peekbob 2.2s ease-in-out infinite; z-index:6; }
   #homegift:active{ transform:translateY(2px) scale(.96); }
   #homegift.on{ display:block; }
   #homegift:active{ transform:scale(.92); }
@@ -1315,7 +1317,6 @@
     <div id="hill-near">
       <span class="sprout" style="left:24%">🌿</span>
       <span class="sprout" style="right:28%">🌱</span>
-      <span id="homegift" onclick="Ads.dailyGift()" title="the wood left something for you">🎁</span>
       <span class="peek" id="peek-0" style="left:12%">🐱</span>
       <span class="peek" id="peek-1" style="left:33%">🐰</span>
       <span class="peek" id="peek-2" style="right:31%">🦌</span>
@@ -1332,6 +1333,14 @@
         <div class="logo-sub">a storybook of true names</div>
       </div>
       <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
+      <!-- THE CHEST LIVES WITH THE PLAY BUTTON, not out on the hillside. It used to sit
+           inside #hill-near, and that was the whole reason it felt clickable but wasn't:
+           z-index only ranks siblings within a stacking context, so its z:4 was competing
+           inside the hill (z:1) — and #home-content (z:2) covered the entire hill, swallowing
+           every tap aimed at the chest. Being a sibling of the play button puts it in the
+           same context as the copy it must sit above, and makes its offsets mean what they
+           look like. -->
+      <span id="homegift" onclick="Ads.dailyGift()" title="the wood left something for you">🎁</span>
       <div id="home-place">— The First Clearing —</div>
       <div id="home-prog"></div>
     </div>
@@ -2164,7 +2173,12 @@ const Ads={
     // mornings, so the habit is rewarded — but a missed day only restarts the run, never
     // punishes it. Cozy games retain through warmth, not loss-anxiety.
     const today=Math.floor(Date.now()/864e5);
-    if(P.giftDay===today) return;                       // already opened today
+    // NOTHING SHOULD EVER LOOK TAPPABLE AND DO NOTHING. The chest is only meant to be on
+    // screen while there is a gift waiting, but its visibility is refreshed by the home
+    // render — so if the state moved on without one (a day rolling over mid-session, a
+    // stale paint), it could sit there inviting a tap that silently did nothing. If we
+    // arrive here with nothing to give, correct the chest instead of ignoring the player.
+    if(P.giftDay===today){ Ads.giftRefresh(); return; }
     const newDay = P.lastDay!==today;                   // coordinate with play(): whoever meets the new day first claims it
     if(newDay){ P.streak = (P.lastDay===today-1) ? (P.streak||0)+1 : 1; P.lastDay=today; }
     P.giftDay=today;
