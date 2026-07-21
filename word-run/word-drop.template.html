@@ -712,7 +712,12 @@
 
   /* ================= GAME SCENE ================= */
   #scene-game{ padding-top:calc(10px + env(safe-area-inset-top)); gap:var(--sp2); }
-  #topbar{ width:100%; display:flex; align-items:center; gap:var(--sp2); z-index:2; }
+  #topbar{ width:100%; display:flex; align-items:center; gap:7px; z-index:2; }
+  /* the goals sit left of the moves and yield first when a round asks for two things */
+  #topbar #gs-goals{ flex:0 1 auto; min-width:0; overflow:hidden; }
+  #topbar #movesbox{ flex:1 1 auto; min-width:52px; }
+  .ingame-only{ display:none !important; }
+  #menu-panel.ingame .ingame-only{ display:flex !important; }
   #lvlchip{ font-weight:800; font-size:var(--fs-sm); letter-spacing:1px; color:var(--dim); }
   #lvlchip b{ color:var(--ink); font-size:15px; }
   #movesbox{ flex:1; text-align:center; }
@@ -1023,10 +1028,16 @@
   /* -------- grove visitor: your collection plays with you -------- */
   /* grove companions — sit by your thumbs, tap them for hearts, they grow as you bond */
   /* the PET MEADOW — a light, airy shelf where your party sits, toes in the grass */
-  #petbar{ display:none; width:100%; height:56px; z-index:2; position:relative; overflow:visible;
+  /* 56px was never enough: five seats plus their labels, and the labels hung out of the
+     bottom of the bar and collided with each other. With the second icon strip gone the
+     bar can have the height it always needed, and the labels can live INSIDE it. */
+  #petbar{ display:none; width:100%; height:92px; z-index:2; position:relative; overflow:visible;
     /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
        355px of usable bar and overflowed by 15. At 26 they fit with room to spare. */
-    border-radius:16px; padding:0 14px 3px; align-items:flex-end; justify-content:center; gap:16px;
+    /* seats sit CENTRED in the taller bar, not welded to its floor: bottom-aligning them in
+       92px pooled all the new room above their heads and left the shelf looking half-empty.
+       The bottom padding is the labels' room, measured against the -14px they hang at. */
+    border-radius:16px; padding:0 12px 14px; align-items:center; justify-content:center; gap:20px;
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:
@@ -1053,13 +1064,8 @@
     font-weight:800; white-space:nowrap; max-width:94%; overflow:hidden; text-overflow:ellipsis;
     opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; }
   #petsay.on{ opacity:1; transform:translate(-50%,0); }
-  #pawpips.resting{ opacity:.4; filter:saturate(.5); } /* the round's moment has passed */
-  #pawpips{ position:absolute; left:10px; top:50%; transform:translateY(-50%);
-    display:flex; flex-direction:column; gap:2px; align-items:center; }
-  #pawpips .pip{ font-size:13px; line-height:1; filter:grayscale(1) opacity(.3); transition:filter .3s, transform .3s; }
-  #pawpips .pip.fill{ filter:none; transform:scale(1.15); }
-  #pawpips.ready .pip{ filter:none; animation:pipready .6s ease-in-out infinite; }
-  @keyframes pipready{ 0%,100%{ transform:scale(1.1) } 50%{ transform:scale(1.35) rotate(-8deg) } }
+  /* the shared paw meter and its pips are gone: friends carry their own counters on
+     their own portraits now, so a single bar spoke for nobody. */
   .petcompanion.excited{ animation:petexcited .55s ease-in-out infinite !important; }
   @keyframes petexcited{ 0%,100%{ transform:translateY(0) rotate(0) } 25%{ transform:translateY(-4px) rotate(-6deg) }
     50%{ transform:translateY(0) rotate(5deg) } 75%{ transform:translateY(-3px) rotate(-4deg) } }
@@ -1080,8 +1086,16 @@
   .slotlocked .pawghost{ opacity:.2; }
   .slotlock{ position:absolute; top:-7px; right:-8px; font-size:11px; font-style:normal;
     filter:drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
-  .slotlv{ position:absolute; left:50%; bottom:-13px; transform:translateX(-50%); font-size:10px; font-weight:900;
-    letter-spacing:.5px; color:var(--dim); white-space:nowrap; }
+  /* WAS: bottom:-13px, white-space:nowrap, and the words "wake a friend" — a 70px label
+     hanging below a 46px seat, outside the bar, running into the label of the seat next
+     door. It sits inside the bar now and carries a number, not a sentence. */
+  .slotlv{ position:absolute; left:50%; bottom:-14px; transform:translateX(-50%);
+    font-size:9.5px; font-weight:900; letter-spacing:.3px; color:var(--dim);
+    background:rgba(255,253,246,.9); border-radius:8px; padding:1px 5px; line-height:1.3;
+    white-space:nowrap; max-width:52px; overflow:hidden; text-overflow:ellipsis; }
+  /* an open seat says "somebody could sit here" with a mark, not a sentence */
+  .slotplus{ position:absolute; left:50%; bottom:-13px; transform:translateX(-50%);
+    font-size:13px; font-weight:900; color:var(--accent-deep); font-style:normal; line-height:1; }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
   .petcompanion .petcount{ position:absolute; top:-7px; right:-9px; min-width:17px; height:17px; border-radius:9px;
     background:var(--gold); color:#3a2a00; font-size:11px; font-weight:900; display:flex; align-items:center;
@@ -1452,7 +1466,7 @@
      A round may ask several things (points, ice, a hidden name) — each is a segment
      that ticks to ✓. Goals live UP here with the moves counter: that pair is the
      player's whole decision context. The board's underside stays clear for play. */
-  #goalstrip{ width:100%; display:flex; align-items:center; gap:8px; padding:0 2px; }
+  /* #goalstrip is gone — its children moved into #topbar and its row went to the pet bar */
   #gs-goals{ flex:1; display:flex; align-items:center; gap:6px; min-width:0; }
   .gseg{ position:relative; display:flex; align-items:center; gap:5px; overflow:hidden;
     background:rgba(255,253,246,.85); border:1px solid rgba(121,92,55,.28); border-radius:999px;
@@ -1846,6 +1860,9 @@
   <div id="menu-scrim" onclick="UI.menuToggle(false)"></div>
   <aside id="menu-panel">
     <div id="menu-head"><span>Hushwood</span><button id="menu-close" onclick="UI.menuToggle(false)" aria-label="close">✕</button></div>
+    <!-- in-round controls: shown only while a round is actually running -->
+    <button class="menu-item ingame-only" onclick="UI.menuToggle(false); Game.restartBtn();"><span>↻</span> Restart this level</button>
+    <button class="menu-item ingame-only" onclick="UI.menuToggle(false); Game.goHome();"><span>🏠</span> Leave to the wood <em>your round is kept</em></button>
     <div class="menu-stat"><span>🔥 day streak</span><b id="hm-streak">0</b></div>
     <div class="menu-stat" id="hm-quest-row"><span id="hm-quest">🌤️ today's quest</span></div>
     <button class="menu-item" onclick="UI.groveShow()"><span><svg class="bookicon menubook" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg></span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
@@ -1879,20 +1896,19 @@
 
   <!-- ============ GAME ============ -->
   <div class="scene" id="scene-game">
+    <!-- ONE ROW, NOT TWO. Home, restart and sound are once-a-session controls, so they
+         live behind the ⚙ with the rest of the menu. What stays is what you actually
+         read while playing: what the round wants, how many moves are left, where you
+         are, the book, and the amber. The strip this frees belongs to the friends. -->
     <div id="topbar">
-      <button class="iconbtn sm" onclick="Game.goHome()">🏠</button>
-      <button class="iconbtn sm" id="btn-restart" onclick="Game.restartBtn()">↻</button>
+      <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu">⚙</button>
+      <div id="gs-goals"></div>
       <div id="movesbox"><div id="movesbig">15</div><div id="moveslabel">moves</div></div>
       <span id="lvlchip" class="chip" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
-      <button class="iconbtn sm soundbtn" onclick="Snd.toggle()">🔊</button>
-    </div>
-    <div id="goalstrip">
-      <div id="gs-goals"></div>
       <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names"><span class="bookwrap"><svg class="bookicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg><i class="booksheen"></i></span></button>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops — the wood's small thanks. spent on lifelines, never on power">🟠 <b id="amber-n">0</b></span>
     </div>
     <div id="petbar">
-      <span id="pawpips" title="every word you spell fills a paw — full paws, and a friend acts"></span>
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
       <span class="petcompanion" id="pet-0" onclick="UI.petInfo(0)"></span>
       <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
@@ -6102,6 +6118,8 @@ const UI = {
   menuToggle(open){ Snd.init();
     const on = open===undefined ? !$("menu-panel").classList.contains("on") : open;
     $("menu-panel").classList.toggle("on", on);
+    // restart and "leave to the wood" only mean anything with a round on the table
+    $("menu-panel").classList.toggle("ingame", !!(S && !S.over && $("scene-game").classList.contains("active")));
     $("menu-scrim").classList.toggle("on", on);
     if(on){ $("hm-streak").textContent=P.streak||0;
       const q=dailyQuest();
@@ -6254,7 +6272,6 @@ const UI = {
       bar.style.setProperty("--pawalpha",(closest*0.75).toFixed(2));
       bar.style.setProperty("--pawring",(closest*0.9).toFixed(2));
       bar.title="each friend stirs to its own sign — the shelf warms as one of them gets close";
-      const pp=$("pawpips"); if(pp) pp.innerHTML="";   // the shared meter is gone
       for(let s=0;s<5;s++){ const el=$("pet-"+s); if(!el) continue;
         const g=eq[s];
         let b=el.querySelector(".petcount");
@@ -6447,22 +6464,23 @@ const UI = {
     for(let s=0;s<5;s++){
       const el=$("pet-"+s), g=eq[s];
       el.classList.remove("slotopen","slotlocked");
-      if(g){ el.dataset.w=g.w; el.style.fontSize="31px";
+      if(g){ el.dataset.w=g.w; el.style.fontSize="36px";
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
       else if(s<slots){ // an open seat — an invitation
         el.innerHTML='<span class="pawghost">🐾</span>';
-        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="24px";
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="28px";
         el.title="an open seat — meet more friends!"; }
       else if(s < seatsByLevel(P.level)){
         // the LEVEL has opened this one; what is missing is somebody to sit in it. Saying
         // "unlocks at level 7" to a player who is already level 12 is just wrong.
-        el.innerHTML='<span class="pawghost">🐾</span><small class="slotlv">wake a friend</small>';
-        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="24px";
+        // a mark, not a sentence: the seat is plainly empty, and the tooltip carries the rest
+        el.innerHTML='<span class="pawghost">🐾</span><i class="slotplus">＋</i>';
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="28px";
         el.title="this seat is ready — meet another friend to fill it"; }
       else { // a locked seat — you can SEE what's coming
-        el.innerHTML='<span class="pawghost">🐾</span><i class="slotlock">🔒</i><small class="slotlv">LV '+UI.SLOT_LV[s]+'</small>';
-        el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="24px";
+        el.innerHTML='<span class="pawghost">🐾</span><i class="slotlock">🔒</i><small class="slotlv">'+UI.SLOT_LV[s]+'</small>';
+        el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="28px";
         el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
     }
     if(S && !S.over) UI.petMeter(); // repainting wipes the countdown badge — restore it
