@@ -1141,13 +1141,15 @@
   .gs-track{ flex:1; position:relative; height:23px; border-radius:999px; min-width:0;
     background:rgba(150,125,85,.17); overflow:hidden;
     box-shadow:inset 0 1px 2px rgba(120,90,45,.22); }
-  /* THE COUNTRY FILLS ITS OWN BAR: its horizon into its grass, each deepened toward the
-     frame colour so cream type holds on them. Free biome reactivity — no per-country
-     rule to maintain. */
+  /* THE FRAME'S COLOURS, NOT THE BOARD'S. --sky-low and --grass live inside the board —
+     they are what you drop into and land on. Everything in this strip is built from
+     --frame1/--frame2, the browns of the board's frame and the shelf below, so a green
+     bar here was importing the play area's palette into the chrome. Still one gradient
+     per country, just the right family of them. */
   .gs-track i{ position:absolute; inset:0; transform-origin:left center; border-radius:999px;
     background:linear-gradient(90deg,
-      color-mix(in srgb, var(--sky-low,#e6c39a) 52%, var(--frame2,#9a6f3c)),
-      color-mix(in srgb, var(--grass,#79c268) 74%, var(--frame2,#9a6f3c)));
+      color-mix(in srgb, var(--frame1,#caa26a) 62%, var(--frame2,#9a6f3c)),
+      var(--frame2,#9a6f3c));
     transition:transform .45s cubic-bezier(.4,1.1,.5,1); }
   .gs-txt{ position:absolute; inset:0; display:flex; align-items:center;
     justify-content:space-between; padding:0 11px; pointer-events:none;
@@ -1183,8 +1185,11 @@
   /* 47 of box draws 44 of book — the artwork fills 96% of its canvas, so the two
      numbers never match and the box is set from what shows. */
   #dock .bookchip .bookwrap{ width:47px; height:47px; overflow:visible; border-radius:0; }
+  /* eased back and warmed: a saturated red with hard black ink was the loudest thing on a
+     screen of soft cream, and it read as a sticker rather than as part of the picture. */
   #dock .bookchip .bookicon{ width:47px; height:47px;
-    filter:drop-shadow(0 3px 4px rgba(90,60,30,.4)); }
+    filter:saturate(.72) sepia(.16) contrast(.94) brightness(1.03)
+           drop-shadow(0 3px 4px rgba(90,60,30,.35)); }
   #dock .bookchip b{ display:none; }
   #dock .bookchip:active{ transform:translateY(2px); }
   /* the Book is a picture, not a control surface — no chrome, just bigger */
@@ -1207,13 +1212,18 @@
   #dockrow > .bookchip b{ display:none; }   /* the count belongs inside the Book */
   /* 92px held 41px of seats and 33px of nothing beneath them; the labels want about half
      of that, so twenty go back to the board. */
-  #petbar{ display:none; width:100%; height:72px; z-index:2; position:relative; overflow:visible;
+  #petbar{ display:none; width:100%; height:78px; z-index:2; position:relative; overflow:visible;
     /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
        355px of usable bar and overflowed by 15. At 26 they fit with room to spare. */
     /* seats sit CENTRED in the taller bar, not welded to its floor: bottom-aligning them in
        92px pooled all the new room above their heads and left the shelf looking half-empty.
        The bottom padding is the labels' room, measured against the -14px they hang at. */
-    border-radius:16px; padding:0 12px 12px; align-items:center; justify-content:center; gap:20px;
+    /* GAP PAYS FOR SIZE. Five filled seats at the old 47px and a 20px gap already came to
+       315 of 323 usable, so the row could not be enlarged without overflowing a full
+       shelf. At 12 the bigger seats fit with room left over.
+       The padding is balanced because what sits on the midline is the seat AND the label
+       hanging beneath it — bottom-heavy padding put the seats above the bar's top edge. */
+    border-radius:16px; padding:4px 10px 8px; align-items:center; justify-content:center; gap:12px;
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:
@@ -1273,8 +1283,10 @@
   .slotplus{ position:absolute; left:50%; bottom:-13px; transform:translateX(-50%);
     font-size:13px; font-weight:900; color:var(--accent-deep); font-style:normal; line-height:1; }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
-  .petcompanion .petcount{ position:absolute; top:-7px; right:-9px; min-width:17px; height:17px; border-radius:9px;
-    background:var(--gold); color:#3a2a00; font-size:11px; font-weight:900; display:flex; align-items:center;
+  /* the wake countdown is the most-read number on the shelf and it was 16px wide at 11px
+     type — smaller than the seat labels beneath it. */
+  .petcompanion .petcount{ position:absolute; top:-8px; right:-10px; min-width:21px; height:21px; border-radius:11px;
+    background:var(--gold); color:#3a2a00; font-size:12.5px; font-weight:900; display:flex; align-items:center;
     justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.3); padding:0 3px; }
   .petcompanion .petcount.ready{ background:var(--accent-deep); color:#fff; }
   /* the little shout a pet gives when its power fires — always visible, never modal */
@@ -6689,23 +6701,23 @@ const UI = {
     for(let s=0;s<5;s++){
       const el=$("pet-"+s), g=eq[s];
       el.classList.remove("slotopen","slotlocked");
-      if(g){ el.dataset.w=g.w; el.style.fontSize="36px";
+      if(g){ el.dataset.w=g.w; el.style.fontSize="40px";
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
       else if(s<slots){ // an open seat — an invitation
         el.innerHTML='<span class="pawghost">🐾</span>';
-        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="28px";
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
         el.title="an open seat — meet more friends!"; }
       else if(s < seatsByLevel(P.level)){
         // the LEVEL has opened this one; what is missing is somebody to sit in it. Saying
         // "unlocks at level 7" to a player who is already level 12 is just wrong.
         // a mark, not a sentence: the seat is plainly empty, and the tooltip carries the rest
         el.innerHTML='<span class="pawghost">🐾</span><i class="slotplus">＋</i>';
-        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="28px";
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
         el.title="this seat is ready — meet another friend to fill it"; }
       else { // a locked seat — you can SEE what's coming
         el.innerHTML='<span class="pawghost">🐾</span><i class="slotlock">🔒</i><small class="slotlv">'+UI.SLOT_LV[s]+'</small>';
-        el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="28px";
+        el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="34px";
         el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
     }
     if(S && !S.over) UI.petMeter(); // repainting wipes the countdown badge — restore it
