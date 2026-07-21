@@ -195,12 +195,10 @@
   #app{
     position:absolute; left:50%; top:50%; overflow:hidden;
     transform:translate(-50%,-50%);
-    width:396px; height:800px;
+    width:396px; height:800px;   /* height is replaced by fitApp to fill the screen */
     background:linear-gradient(180deg,#c9c6dc 0%, var(--bg1) 26%, #e7ddcd 62%, var(--bg2) 100%);
     display:flex; flex-direction:column;
-    border-radius:34px; border:1px solid rgba(121,92,55,.25);
-    box-shadow:0 30px 70px -26px rgba(90,60,30,.6), 0 0 0 8px #4a3b28;
-    transform-origin:center center;
+    /* no frame: the game is the screen */
   }
   #app::before{ content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
@@ -1092,8 +1090,8 @@
   /* the purse: coin, count, and the way to get more */
   #topbar #amberchip{ flex:none; display:flex; align-items:center; gap:5px;
     background:rgba(255,253,246,.9) !important; border:1.5px solid rgba(121,92,55,.28) !important;
-    border-radius:999px; padding:3px 5px 3px 4px; box-shadow:0 2px 0 rgba(150,120,70,.14) !important; }
-  #topbar #amberchip .coin-i{ font-size:21px; line-height:1; font-style:normal;
+    border-radius:999px; padding:2px 6px 2px 3px; box-shadow:0 2px 0 rgba(150,120,70,.14) !important; }
+  #topbar #amberchip .coin-i{ font-size:28px; line-height:1; font-style:normal;
     filter:drop-shadow(0 1px 1px rgba(120,80,20,.35)); }
   #topbar #amberchip b{ font-size:13px; font-weight:900; color:var(--ink);
     font-variant-numeric:tabular-nums; }
@@ -7303,9 +7301,16 @@ function fitBoard(){
   boardEl.style.transform="scale("+k+")";
   boardEl.style.transformOrigin="center center";
 }
-function fitApp(){ // scale the fixed 396×800 stage to whatever screen we're on (transform-centered — immune to overflow clipping)
-  const k=Math.min(1, innerWidth/396, innerHeight/800);
-  $("app").style.transform = "translate(-50%,-50%) scale("+k+")";
+function fitApp(){
+  // FIT THE WIDTH, THEN FILL THE HEIGHT. Scaling to contain 396x800 inside a phone left
+  // a band above and below the stage — 396/800 is a wider ratio than 375/812 — and that
+  // band was the brown bar. The logical WIDTH stays 396 because FT.scale() derives the
+  // tutorial's coordinate space from it; the height simply becomes whatever reaches the
+  // bottom of the screen at that scale, and the board takes up the slack.
+  const k=Math.min(1, innerWidth/396);
+  const app=$("app");
+  app.style.height=Math.round(innerHeight/k)+"px";
+  app.style.transform="translate(-50%,-50%) scale("+k+")";
 }
 window.addEventListener("resize", ()=>{ fitApp(); fitBoard(); });
 setInterval(fitApp, 900); // some webviews don't fire resize reliably — cheap insurance
