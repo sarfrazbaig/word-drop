@@ -800,11 +800,14 @@
   /* the floor of the place, under the tiles — the wood has ground, the mountain has scree */
   #board::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:38%;
     z-index:0; pointer-events:none; border-radius:inherit;
+    /* eased the whole way in — the ground used to arrive at 42% strongly enough to leave a
+       seam across the board, and a seam is exactly what you notice behind letters */
     background:linear-gradient(180deg,
       transparent 0%,
-      color-mix(in srgb, var(--grass) 34%, transparent) 42%,
-      color-mix(in srgb, var(--grass) 66%, transparent) 78%,
-      color-mix(in srgb, var(--grass) 82%, transparent) 100%); }
+      color-mix(in srgb, var(--grass) 8%,  transparent) 22%,
+      color-mix(in srgb, var(--grass) 26%, transparent) 46%,
+      color-mix(in srgb, var(--grass) 52%, transparent) 72%,
+      color-mix(in srgb, var(--grass) 70%, transparent) 100%); }
   /* THE BOARD'S EDGE. It was a cream ring in all fifteen countries; --frame1/--frame2
      were defined per-country and referenced nowhere. Now the wood has a mossy rim, the
      cave a stone one, and the summit an icy one. */
@@ -838,8 +841,8 @@
      starts somewhere bright. */
   #app.bio0, #app.bio1, #app.bio2{ --orb-size:62px; --orb-y:7%; --orb-x:13%; }
   #app.bio0 #board::after, #app.bio1 #board::after, #app.bio2 #board::after{
-    background:radial-gradient(circle at 42% 40%, #fffdf0, #ffe9a8 42%, rgba(255,214,120,.55) 66%, transparent 78%);
-    box-shadow:0 0 46px 20px rgba(255,222,150,.42), 0 0 90px 40px rgba(255,206,120,.18);
+    background:radial-gradient(circle at 44% 42%, #fffefa 0%, #ffe07a 34%, #ffc23f 58%, rgba(255,170,50,.5) 74%, transparent 84%);
+    box-shadow:0 0 40px 14px rgba(255,196,80,.55), 0 0 96px 44px rgba(255,170,60,.28), 0 0 150px 80px rgba(255,150,40,.12);
     animation:sunglow 7s ease-in-out infinite; }
   @keyframes sunglow{ 50%{ box-shadow:0 0 58px 26px rgba(255,226,160,.5), 0 0 110px 52px rgba(255,206,120,.22); } }
   /* the Glimmer Seams is lit from below by the seam itself, not from the sky */
@@ -853,17 +856,22 @@
   #biodecor::before{ content:""; position:absolute; left:-4%; right:-4%; bottom:31%; height:26%;
     pointer-events:none; opacity:.62; z-index:0;
     background:
-      radial-gradient(58% 118% at 14% 100%, var(--sil,#3f5a44) 71%, transparent 73%),
-      radial-gradient(44% 96%  at 39% 100%, var(--sil,#3f5a44) 71%, transparent 73%),
-      radial-gradient(62% 126% at 66% 100%, var(--sil,#3f5a44) 71%, transparent 73%),
-      radial-gradient(40% 88%  at 90% 100%, var(--sil,#3f5a44) 71%, transparent 73%); }
+      radial-gradient(58% 118% at 14% 100%, var(--sil,#3f5a44) 34%, transparent 82%),
+      radial-gradient(44% 96%  at 39% 100%, var(--sil,#3f5a44) 34%, transparent 82%),
+      radial-gradient(62% 126% at 66% 100%, var(--sil,#3f5a44) 34%, transparent 82%),
+      radial-gradient(40% 88%  at 90% 100%, var(--sil,#3f5a44) 34%, transparent 82%);
+    /* haze: distant ground has no edge, and nothing may draw a line where the letters are */
+    filter:blur(9px);
+    -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 52%, transparent 96%);
+    mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 52%, transparent 96%); }
   /* the mountain's mid-ground is sharper — peaks, not hills */
   #app.bio11 #biodecor::before, #app.bio12 #biodecor::before,
   #app.bio13 #biodecor::before, #app.bio14 #biodecor::before{
     background:
       conic-gradient(from 202deg at 18% 100%, transparent 0 40%, var(--sil) 40% 60%, transparent 60%),
       conic-gradient(from 202deg at 50% 100%, transparent 0 42%, var(--sil) 42% 58%, transparent 58%),
-      conic-gradient(from 202deg at 82% 100%, transparent 0 41%, var(--sil) 41% 59%, transparent 59%); }
+      conic-gradient(from 202deg at 82% 100%, transparent 0 41%, var(--sil) 41% 59%, transparent 59%);
+    filter:blur(7px); }
   /* underground there is no horizon at all — the mid-ground is the cave closing in */
   #app.bio8 #biodecor::before, #app.bio9 #biodecor::before{
     bottom:0; height:100%; opacity:.5;
