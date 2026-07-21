@@ -1767,7 +1767,14 @@ const MIN_LEN = 3;
 const RHYTHM=[1.0, 0.88, 1.02, 0.92, 1.16];
 const BIOMES=["🌼","🌊","🍂","🌙","❄️"]; // the world changes every 5 levels
 const BIOME_NAMES=["The First Clearing","The Listening Pond","The Amber Thicket","The Moonquiet","The Snowhush"];
-function biomeOf(L){ return Math.floor((L-1)/5)%5; }
+/* A PLACE YOU STAY IN, not a backdrop that changes every five levels.
+   Biomes used to rotate every 5, so a player passed through all five of them every 25
+   levels and none of them was anywhere — there was no "ice place" for a friend who
+   answers ice to belong to. Eighteen levels each makes a biome a chapter: meet its
+   trouble, struggle with words alone, find the friend who answers it, then master it.
+   Five chapters is 90 levels, and the ring beyond that is the same wood walked again. */
+const BIOME_LEN=18;
+function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%5; }
 // each place gets living scenery on the plot — quiet, behind the tiles, never in the way
 // scenery that drifts across the NIGHT SKY of each place — fireflies, moths, falling
 // leaves, snow — quiet, behind the letters, tuned to each region's twilight.
@@ -3272,7 +3279,7 @@ const Game = {
     const step=(level-1)%5;
     $("iv-path").innerHTML = Array.from({length:5},(_,i)=>
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
-    const ring=Math.floor((level-1)/25)+1; // each 25 levels = one ring deeper into the wood
+    const ring=Math.floor((level-1)/(BIOME_LEN*5))+1; // one ring = all five places walked
     $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
     // …and label it for what it actually is. On an obstacle round this number is a count of
     // things to clear, not a score — calling it "target" directly under a band saying the
@@ -4120,7 +4127,13 @@ const Game = {
     // and all fifty friends arrive by level 65 (the math said so).
     const c=CALLINGS[w];
     const raw = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0);
-    if(CALLING_ORDER.indexOf(w)<6) return {have:Math.min(raw,c.n), n:c.n};
+    // A PLACE-CALLING COUNTS FOR LIFE, whatever tier it sits in. Windowing it was harmless
+    // while a biome lasted five levels and every place came round every twenty-five; at
+    // eighteen a full circuit is ninety, so a fish that starts listening just after you
+    // leave the pond waits seventy levels for it to return — and the window is three wide,
+    // so it blocks the two behind it for all of that. The pity valve does not reach these:
+    // it only fires below ten friends, and the fish is the eighteenth.
+    if(/^regionwin/.test(c.t) || CALLING_ORDER.indexOf(w)<6) return {have:Math.min(raw,c.n), n:c.n};
     const base=P.callBase[w];
     return {have: base==null ? 0 : Math.min(Math.max(0,raw-base),c.n), n:c.n};
   },
@@ -5088,7 +5101,7 @@ const UI = {
     ["hb1","hb2","hb3","hb4"].forEach(c=>sh.classList.remove(c));
     if(hb) sh.classList.add("hb"+hb);
     $("play-lvl").textContent = "LV "+P.level;
-    const ring=Math.floor((P.level-1)/25)+1;
+    const ring=Math.floor((P.level-1)/(BIOME_LEN*5))+1;
     $("home-place").textContent = "— "+(ring>1?"Ring "+ring+" · ":"")+BIOME_NAMES[biomeOf(P.level)]+" —";
     // the ladder from the Book, on the door — the reason to come back, before you press play
     { const hp=$("home-prog");
