@@ -427,9 +427,21 @@
     background:rgba(255,255,255,.28); overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.25); }
   #home-prog .hbar i{ display:block; height:100%; border-radius:999px;
     background:linear-gradient(90deg,var(--accent),var(--gold)); }
-  #home-place{ position:absolute; left:0; right:0; top:88%; text-align:center; z-index:2;
-    font-family:var(--font-story); font-style:italic; font-size:12.5px; color:#f2ead2;
-    text-shadow:0 1px 3px rgba(30,40,30,.7); letter-spacing:.5px; }
+  /* THE CHAPTER HEADING. Set like the top of a page: a spaced small-caps line above,
+     the name in a serif that carries weight, an epigraph in italics beneath it, and a
+     quiet page count. Everything centred, everything readable over a painted hill. */
+  #home-place{ position:absolute; left:0; right:0; top:85.5%; text-align:center; z-index:2;
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    text-shadow:0 1px 3px rgba(30,40,30,.72); }
+  #home-place .ch-pre{ font:700 8.5px/1.2 var(--font-ui); letter-spacing:.22em;
+    color:#e7d9a6; text-transform:uppercase; }
+  #home-place .ch-name{ font:600 17px/1.18 var(--font-story); color:#fffaec; letter-spacing:.4px; }
+  #home-place .ch-line{ font:italic 400 10.5px/1.25 var(--font-story); color:#ded7bd;
+    max-width:78%; text-wrap:balance; }
+  #home-prog .hp-line{ display:block; font:600 9.5px/1.3 var(--font-ui); letter-spacing:.06em;
+    color:#e4dcc0; text-transform:uppercase; }
+  #home-place .ch-page{ font:600 9px/1.2 var(--font-ui); letter-spacing:.13em;
+    color:#cfc6a8; text-transform:uppercase; margin-top:2px; }
   /* the creatures peek from the hill crest, safely ABOVE the play button */
   #hill-near .peek{ top:-20px; }
   /* ===== the slide menu — a simple panel from the left ===== */
@@ -2058,6 +2070,37 @@ const BIOME_NAMES=["The First Clearing","The Bramblewood","The Mosswood","The Sp
    answers ice to belong to. Eighteen levels each makes a biome a chapter: meet its
    trouble, struggle with words alone, find the friend who answers it, then master it.
    Five chapters is 90 levels, and the ring beyond that is the same wood walked again. */
+/* ═══ THE BOOK ═══ every country is a chapter with a name and a line beneath it, and
+   the first five levels are the page before the story starts. Shown on the door so a
+   player always knows where in the tale they are standing. */
+const NUMERAL=["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN",
+  "ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN"];
+const CHAPTER_LINE=[
+  "where every name begins",                    /* 1  First Clearing   */
+  "the thorns close over the path",             /* 2  Bramblewood     */
+  "soft ground, and everything furred",         /* 3  Mosswood        */
+  "the low air, thick with drifting",           /* 4  Spore Hollow    */
+  "still water, and something listening",       /* 5  Listening Pond  */
+  "the ground stops holding",                   /* 6  Reedmarsh       */
+  "nothing here stays where you put it",        /* 7  Running River   */
+  "loud water, and a rainbow in it",            /* 8  Thunderfalls    */
+  "the sky closes over",                        /* 9  Undercave       */
+  "no light, and no need of it",                /* 10 Deep Dark       */
+  "the wood is generous, for once",             /* 11 Glimmer Seams   */
+  "the ground breaks as you climb it",          /* 12 Scree Slopes    */
+  "high enough for weather",                    /* 13 Windward Ridge  */
+  "the first snow, at last",                    /* 14 Snowline        */
+  "the top of the wood, and the last name",     /* 15 Frozen Crown    */
+];
+const PROLOGUE_END=5;   // the taught levels are the page before chapter one
+function chapterOf(L){
+  if(L<=PROLOGUE_END) return { pre:"PROLOGUE", name:"The Awakening",
+    line:"a hush fell, and every name was forgotten", from:1, to:PROLOGUE_END };
+  const b=biomeOf(L), ring=Math.floor((L-1)/RING_LEN)+1;
+  return { pre:"CHAPTER "+NUMERAL[b]+(ring>1?" \u00b7 RING "+ring:""),
+    name:BIOME_NAMES[b], line:CHAPTER_LINE[b],
+    from:b*BIOME_LEN+1, to:(b+1)*BIOME_LEN };
+}
 const BIOME_LEN=20;                          // a country is a chapter, not a backdrop
 const RING_LEN=BIOME_LEN*BIOME_NAMES.length; // 300 — one whole walk, floor to summit
 function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%BIOME_NAMES.length; }
@@ -5939,17 +5982,26 @@ const UI = {
     if(hb) sh.classList.add("hb"+hb);
     $("play-lvl").textContent = "LV "+P.level;
     const ring=Math.floor((P.level-1)/RING_LEN)+1;
-    $("home-place").textContent = "— "+(ring>1?"Ring "+ring+" · ":"")+BIOME_NAMES[biomeOf(P.level)]+" —";
+    { const ch=chapterOf(P.level);
+          // a place name alone told you nothing about being partway through a story
+          $("home-place").innerHTML =
+            '<span class="ch-pre">'+ch.pre+'</span>'
+          + '<span class="ch-name">'+ch.name+'</span>'
+          + '<span class="ch-line">'+ch.line+'</span>'
+            ; }   // no page count: the play button already carries the level, right above this
     // the ladder from the Book, on the door — the reason to come back, before you press play
     { const hp=$("home-prog");
       if(hp){
         const found=Object.keys(P.grove).length;
         const mile=UI.GROVE_MILES.find(mi=>found<mi.n);
         hp.innerHTML = !P.tut ? ""
-          : '🐾 <b>'+found+'</b> of '+GROVE.length+' names remembered'
-            + '<div class="hbar"><i style="width:'+(100*found/GROVE.length)+'%"></i></div>'
-            + (mile ? '<small>'+(mile.n-found)+' more until '+mile.i+' '+mile.t.toLowerCase()+'</small>'
-                    : '<small>🌈 every name is home</small>');
+        // ONE line, not three. The count and the next milestone were two separate
+        // sentences with a bar wedged between them, in a strip that also has to carry a
+        // chapter heading — seven rows of text stacked into the bottom eighth of the door.
+          : '<span class="hp-line"><b>'+found+'</b> of '+GROVE.length+' names'
+            + (mile ? ' \u00b7 '+(mile.n-found)+' to '+mile.i : ' \u00b7 all home')
+            + '</span>'
+            + '<div class="hbar"><i style="width:'+(100*found/GROVE.length)+'%"></i></div>';
       } }
     $("hm-streak").textContent=P.streak||0;
     $("menu-grove-n").textContent=Object.keys(P.grove).length+" / "+GROVE.length;
