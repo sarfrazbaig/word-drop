@@ -195,10 +195,12 @@
   #app{
     position:absolute; left:50%; top:50%; overflow:hidden;
     transform:translate(-50%,-50%);
-    width:396px; height:800px;   /* height is replaced by fitApp to fill the screen */
+    width:396px; height:800px;
     background:linear-gradient(180deg,#c9c6dc 0%, var(--bg1) 26%, #e7ddcd 62%, var(--bg2) 100%);
     display:flex; flex-direction:column;
-    /* no frame: the game is the screen */
+    border-radius:34px; border:1px solid rgba(121,92,55,.25);
+    box-shadow:0 30px 70px -26px rgba(90,60,30,.6), 0 0 0 8px #4a3b28;
+    transform-origin:center center;
   }
   #app::before{ content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
     background:
@@ -1049,15 +1051,29 @@
   #topbar .bookchip .bookicon{ width:21px; height:21px; }
   /* ══ ROW ONE ══ gear, the round, the purse. */
   #topbar{ width:100%; display:flex; align-items:center; gap:8px; z-index:2; padding:0 2px; }
-  #topbar #btn-menu{ flex:none; font-size:27px; opacity:.55; }
+  /* --frame2 alone is a surface tint, too light to carry a small glyph; deepened here so
+     the icons still follow the country without dissolving into the background. */
+  .ui-ic{ width:24px; height:24px; display:block;
+    color:color-mix(in srgb, var(--frame2,#9a6f3c) 72%, #4a3520); }
+  #topbar #btn-menu{ flex:none; opacity:1; }
+  #topbar #btn-menu .ui-ic{ width:26px; height:26px; }
+  .gseg .gs-i .ui-ic{ width:21px; height:21px; }
+  .gseg .gs-i{ display:flex; align-items:center; }
 
   #movesbox{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; }
-  #lvlcap{ font-size:11px; font-weight:700; letter-spacing:.2px; color:var(--dim); cursor:pointer; }
-  #lvlcap b{ font-weight:800; color:var(--dim); }
-  #movespill{ display:flex; align-items:baseline; gap:5px; padding:5px 16px 6px;
-    background:rgba(255,253,246,.9); border:1.5px solid rgba(121,92,55,.3); border-radius:999px;
-    box-shadow:0 2px 0 rgba(150,120,70,.14); }
-  #movespill .mv-lbl{ font-size:14px; font-weight:800; color:var(--ink); }
+  /* the book's voice, in the country's ink */
+  #lvlcap{ font-family:var(--font-story); font-size:12.5px; font-weight:600;
+    letter-spacing:.3px; cursor:pointer;
+    color:color-mix(in srgb, var(--frame2,#9a6f3c) 78%, #4a3a24); }
+  #lvlcap b{ font-weight:700; color:inherit; }
+  /* tinted by the country, like every other surface on this screen */
+  #movespill{ display:flex; align-items:baseline; gap:6px; padding:5px 16px 6px;
+    background:color-mix(in srgb, var(--frame1,#caa26a) 16%, #fffdf6);
+    border:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 42%, transparent);
+    border-radius:999px;
+    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 22%, transparent); }
+  #movespill .mv-lbl{ font-family:var(--font-story); font-size:13.5px; font-weight:600;
+    color:color-mix(in srgb, var(--frame2,#9a6f3c) 70%, #4a3a24); }
   #movesbig{ font-size:17px; font-weight:900; color:var(--ink); font-variant-numeric:tabular-nums;
     line-height:1; }
   #movespill.low{ border-color:rgba(190,70,50,.55); background:rgba(255,241,237,.95); }
@@ -1065,11 +1081,17 @@
   #movespill.low{ animation:movespulse 1s infinite; }
 
   /* the purse: coin, count, and the way to get more */
-  #topbar #amberchip{ flex:none; display:flex; align-items:center; gap:5px;
-    background:rgba(255,253,246,.9) !important; border:1.5px solid rgba(121,92,55,.28) !important;
-    border-radius:999px; padding:2px 6px 2px 3px; box-shadow:0 2px 0 rgba(150,120,70,.14) !important; }
-  #topbar #amberchip .coin-i{ font-size:28px; line-height:1; font-style:normal;
-    filter:drop-shadow(0 1px 1px rgba(120,80,20,.35)); }
+  /* THE COIN CUTS INTO THE PILL. In the spec the coin is taller than the pill and hangs
+     off its left edge, so the pill reads as interrupted by it rather than as a container
+     holding it politely inside. */
+  #topbar #amberchip{ position:relative; flex:none; display:flex; align-items:center; gap:4px;
+    background:color-mix(in srgb, var(--frame1,#caa26a) 16%, #fffdf6) !important;
+    border:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 42%, transparent) !important;
+    border-radius:999px; padding:3px 5px 3px 27px; margin-left:9px;
+    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 22%, transparent) !important; }
+  #topbar #amberchip .coin-i{ position:absolute; left:-11px; top:50%;
+    transform:translateY(-50%); font-size:36px; line-height:1; font-style:normal;
+    filter:drop-shadow(0 2px 2px rgba(120,80,20,.4)); }
   #topbar #amberchip b{ font-size:13px; font-weight:900; color:var(--ink);
     font-variant-numeric:tabular-nums; }
   #topbar #amberchip .coin-plus{ width:17px; height:17px; border-radius:50%; flex:none;
@@ -1977,7 +1999,7 @@
          read while playing: what the round wants, how many moves are left, where you
          are, the book, and the amber. The strip this frees belongs to the friends. -->
     <div id="topbar">
-      <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu">⚙</button>
+      <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu"><svg class="ui-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><circle cx="12" cy="12" r="6.6"/></g><circle cx="12" cy="12" r="2.9" fill="#fdf8ec"/></svg></button>
       <div id="movesbox">
         <div id="lvlcap" onclick="UI.dbgTap()">Level: <b id="h-level">1</b></div>
         <div id="movespill"><span class="mv-lbl">Moves:</span><span id="movesbig">15</span></div>
@@ -6247,6 +6269,11 @@ const UI = {
     const mist=document.getElementById("hushmist"); // every word thins the hush — visibly
     if(mist) mist.style.opacity=Math.max(0, 1-(pct/100)*1.25);
   },
+  // the round's own mark, drawn rather than borrowed from the system emoji set — the
+  // 🎯 was a primary red that appears nowhere else in this wood.
+  TARGET_IC:'<svg class="ui-ic" viewBox="0 0 24 24" aria-hidden="true">'
+    +'<circle cx="12" cy="12" r="9.2" fill="#fdf8ec" stroke="currentColor" stroke-width="2.7"/>'
+    +'<circle cx="12" cy="12" r="3.7" fill="currentColor"/></svg>',
   goalStrip(){ // every ask of the round, one segment each — built to hold SEVERAL
     const gs=$("gs-goals"); if(!gs || !S) return;
     const segs=[]; let nameSeg="";
@@ -6268,7 +6295,7 @@ const UI = {
       segs.push(seg(done, S.goal.have, S.goal.need, GOALS[S.goal.t].i));
     } else {
       const done=S.levelScore>=S.target;
-      segs.push(seg(done, S.levelScore, S.target, "🎯"));
+      segs.push(seg(done, S.levelScore, S.target, UI.TARGET_IC));
     }
     if(S.goal2){
       const d2=S.goal2.have>=S.goal2.need;
@@ -7284,10 +7311,8 @@ function fitApp(){
   // band was the brown bar. The logical WIDTH stays 396 because FT.scale() derives the
   // tutorial's coordinate space from it; the height simply becomes whatever reaches the
   // bottom of the screen at that scale, and the board takes up the slack.
-  const k=Math.min(1, innerWidth/396);
-  const app=$("app");
-  app.style.height=Math.round(innerHeight/k)+"px";
-  app.style.transform="translate(-50%,-50%) scale("+k+")";
+  const k=Math.min(1, innerWidth/396, innerHeight/800);
+  $("app").style.transform="translate(-50%,-50%) scale("+k+")";
 }
 window.addEventListener("resize", ()=>{ fitApp(); fitBoard(); });
 setInterval(fitApp, 900); // some webviews don't fire resize reliably — cheap insurance
