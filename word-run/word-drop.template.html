@@ -761,7 +761,9 @@
   /* grove companions — sit by your thumbs, tap them for hearts, they grow as you bond */
   /* the PET MEADOW — a light, airy shelf where your party sits, toes in the grass */
   #petbar{ display:none; width:100%; height:56px; z-index:2; position:relative; overflow:visible;
-    border-radius:16px; padding:0 14px 3px; align-items:flex-end; justify-content:center; gap:24px;
+    /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
+       355px of usable bar and overflowed by 15. At 26 they fit with room to spare. */
+    border-radius:16px; padding:0 14px 3px; align-items:flex-end; justify-content:center; gap:16px;
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:
@@ -1567,6 +1569,7 @@
       <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
       <span class="petcompanion" id="pet-2" onclick="UI.petInfo(2)"></span>
       <span class="petcompanion" id="pet-3" onclick="UI.petInfo(3)"></span>
+      <span class="petcompanion" id="pet-4" onclick="UI.petInfo(4)"></span>
       <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
     </div>
     <div id="boardwrap">
@@ -2246,11 +2249,15 @@ function dailyWord(){
 }
 /* five powers, five distinct verbs — and each announces how it wants to be used */
 /* No powerup bar. Your FRIENDS are the powers — duty slots open as the grove grows. */
-function slotsFor(L){ return L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 1; }
+/* FIVE SEATS, not four. The fifth arrives at L20, where the bench first genuinely
+   outgrows it: by then a player owns eight or nine friends, and choosing between them
+   is the beginning of the game having a strategy at all. */
+function slotsFor(L){ return L>=20 ? 5 : L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 1; }
 const SLOT_MSG={
   2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Same-home friends make each other's powers twice as strong."},
   3:{t:"The pack grows! 🐾", b:"Three friends can join you now — more friends means their powers come faster."},
-  4:{t:"Full party! 🐾", b:"Four friends at once! Pick your dream team in the Book of Names."},
+  4:{t:"The pack grows! 🐾", b:"Four friends at once — and they each stir to their own sign. Pick who walks with you in the Book of Names."},
+  5:{t:"Full party! 🐾", b:"Five friends at once. Now the wood is asking you a real question: whose signs suit the round ahead?"},
 };
 /* ============ 🟠 THE TRADING POST — IAP catalog + adapter ============
    The SHOP is real; the TILL is pluggable. Shop.provider is null until a store
@@ -4616,7 +4623,7 @@ const Game = {
       s.style.animationDuration=(1.0+Math.random()*0.8)+"s"; s.style.animationDelay=(Math.random()*0.5)+"s";
       boardEl.appendChild(s); setTimeout(()=>s.remove(),2400); }
     // the whole party goes wild, the paw meter fills, and the garden showers you with tools
-    for(let s=0;s<4;s++){ const el=$("pet-"+s); if(el && el.classList.contains("has")){
+    for(let s=0;s<5;s++){ const el=$("pet-"+s); if(el && el.classList.contains("has")){
       el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy"); } }
     Game.cheer(Game.petNeed());
     Game.earnBreeze(); if(len>=6){ Game.earnWish(); }
@@ -5360,11 +5367,11 @@ const UI = {
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
-  SLOT_LV:[null,7,10,14], // the level each seat (index 1-3) unlocks at
-  visitor(){ // the meadow shows ALL FOUR seats: pets, open seats, and locked ones with their level
+  SLOT_LV:[null,7,10,14,20], // the level each seat (index 1-4) unlocks at
+  visitor(){ // the meadow shows ALL FIVE seats: pets, open seats, and locked ones with their level
     const eq = UI.equipped(), slots=slotsFor(P.level);
     $("petbar").classList.toggle("on", eq.length>0);
-    for(let s=0;s<4;s++){
+    for(let s=0;s<5;s++){
       const el=$("pet-"+s), g=eq[s];
       el.classList.remove("slotopen","slotlocked");
       if(g){ el.dataset.w=g.w; el.style.fontSize="31px";
@@ -5473,7 +5480,7 @@ const UI = {
     const nxt=UI.nextSlotAt();
     const slots=slotsFor(P.level);
     const seats=[];
-    for(let s=0;s<4;s++){
+    for(let s=0;s<5;s++){
       const g=eq[s];
       if(g) seats.push('<div class="gpartypet"><span class="pe">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>');
       else if(s<slots) seats.push('<div class="gpartypet gseat"><span class="pe pawghost">🐾</span><small>open seat</small><span class="pw">meet a friend</span></div>');
@@ -5610,7 +5617,7 @@ const UI = {
     $("pet-sheet-swap").classList.remove("on");
     UI.visitor(); UI.groveShow(); UI.petSheet(inW);
   },
-  nextSlotAt(){ const m=slotsFor(P.level); return m>=4?null : m===3?14 : m===2?10 : 7; },
+  nextSlotAt(){ const m=slotsFor(P.level); return m>=5?null : m===4?20 : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
     if(!P.metGrove[w]) return;
     P.equip = P.equip||[];
