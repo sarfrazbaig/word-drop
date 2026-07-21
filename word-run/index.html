@@ -841,11 +841,10 @@
   .petsprite.landed{ font-size:46px; animation:petwork .55s ease-in-out infinite; }
   @keyframes petwork{ 0%,100%{ transform:translate(-50%,-50%) rotate(-7deg) scale(1) }
     50%{ transform:translate(-50%,-64%) rotate(7deg) scale(1.09) } }
-  .petplate{ position:absolute; z-index:89; white-space:nowrap; pointer-events:none;
-    transform:translate(-50%,0); background:#fffdf6; border:2px solid var(--gold); border-radius:999px;
-    padding:4px 11px; font-size:13px; font-weight:900; letter-spacing:.4px; color:var(--gold-deep);
-    box-shadow:0 6px 16px rgba(90,60,30,.4); animation:platein .3s cubic-bezier(.3,1.5,.5,1); }
-  @keyframes platein{ from{ opacity:0; transform:translate(-50%,8px) scale(.6) } }
+  /* .petplate was the name pill a visiting friend wore. It sat over the board announcing
+     what the friend was called while covering the very tiles it was working on — the one
+     thing the player needed to see. The friend is right there doing the thing, which says
+     it better than a label ever did. */
   .petcompanion:nth-of-type(2){ animation-delay:.9s; } .petcompanion:nth-of-type(3){ animation-delay:1.7s; }
   .petcompanion:nth-of-type(4){ animation-delay:2.4s; }
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
@@ -4350,7 +4349,6 @@ const Game = {
     // about to work, names its power there, and walks back when it's done — so a power
     // is something a creature you collected DOES, not something that happens to you.
     const visit = await UI.petVisit(pet, Game.petTarget(pet.fx));
-    if(boost && visit){ const p=document.querySelector(".petplate"); if(p) p.innerHTML+=" <b>×2</b>"; }
     await wait(300);
     // a grown friend gives more of whatever it gives — legendary powers carry no count,
     // so they are untouched by this and stay exactly as strong as the day you met them
@@ -4373,7 +4371,10 @@ const Game = {
         // spell nothing, and the whole point is that the player SEES it work
         const social=ns.filter(t=>(t.c>0 && S.board[t.r][t.c-1]) || (t.c<COLS-1 && S.board[t.r][t.c+1]));
         const pool=social.length?social:ns;
-        const picks=pool.sort(()=>Math.random()-.5).slice(0, 1*m);
+        // the tile the cat WALKED to, so the player watches the letter it is standing beside
+        const aim=Game.petAim();
+        const picks = aim ? [aim, ...pool.filter(t=>t!==aim)].slice(0, 1*m)
+                          : pool.sort(()=>Math.random()-.5).slice(0, 1*m);
         for(const t of picks){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#ffd9a8"); }
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
         S.chain=1; await Game.resolve(picks); break; }
@@ -4409,29 +4410,17 @@ const Game = {
          two and a half fires a round it would have happened most rounds. One letter slides
          one space instead, and it looks for a slide that MAKES a word before settling for
          any slide at all. */
+      // the slide was already chosen by petTarget, and the bat is standing beside that
+      // exact letter — this only carries it out
       case "nudge": {
-        const slides=[];
-        for(const t of Object.values(S.tiles)){
-          if(t.kind!=="normal") continue;
-          for(const dc of [-1,1]){ const c=t.c+dc;
-            if(c<0 || c>=COLS || S.board[t.r][c]) continue;
-            slides.push({t, to:c}); }
-        }
-        if(!slides.length){ Game.addMoves(1); break; }
-        // does this slide spell something? try them all before taking a blind one
-        const move=(s,back)=>{ const from=back?s.to:s.t.c, to=back?s.t.c0:s.to;
-          S.board[s.t.r][from]=null; S.board[s.t.r][to]=s.t; s.t.c=to; };
-        let chosen=null;
-        for(const s of slides){
-          s.t.c0=s.t.c; move(s,false);
-          if(findWords().some(w=>w.cells.includes(s.t) && !w.cells.every(c=>c.heldWord===w.word))){ chosen=s; break; }
-          move(s,true);
-        }
-        if(!chosen){ chosen=rand(slides); chosen.t.c0=chosen.t.c; move(chosen,false); }
-        chosen.t.el.style.transition="transform .42s cubic-bezier(.4,.05,.35,1)";
-        placeTile(chosen.t, chosen.t.r, chosen.t.c, false);
-        UI.breeze(); await wait(440); chosen.t.el.style.transition="";
-        S.chain=1; await Game.settle([chosen.t]); break; }
+        const s = S._petSlide;
+        if(!s || !S.tiles[s.t.id] || S.board[s.t.r][s.to]){ Game.addMoves(1); break; }
+        S.board[s.t.r][s.t.c]=null; S.board[s.t.r][s.to]=s.t; s.t.c=s.to;
+        s.t.el.style.transition="transform .42s cubic-bezier(.4,.05,.35,1)";
+        placeTile(s.t, s.t.r, s.t.c, false);
+        UI.breeze(); await wait(440); s.t.el.style.transition="";
+        S._petSlide=null;
+        S.chain=1; await Game.settle([s.t]); break; }
 
       /* 🐝 THE BEE MAKES SPACE, it does not make letters. Two helpful tiles a fire at six
          fires a round was about twelve extra tiles per round, which buries a small board —
@@ -4635,17 +4624,59 @@ const Game = {
     S.petActing=false;
     UI.petMeter(); UI.all(); saveRun();
   },
-  petTarget(fx){ // where should this friend stand while it works? somewhere that makes sense
+  /* WHERE THE FRIEND STANDS, and — more importantly — WHICH TILE IT IS ABOUT TO TOUCH.
+     These used to be two separate decisions: the visit picked a random plain tile to walk
+     to, and then the power went off and chose its own. So the bee flew to one letter and
+     lifted a different one, which reads as the friend doing nothing and something else
+     happening on its own.
+     The aim is chosen ONCE here and stashed. Single-tile powers below use it rather than
+     picking again, so what the player watches is what the friend does. */
+  petTarget(fx){
     const ts=Object.values(S.tiles);
     const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
-    const t=(/stone|rock|crack|boulder/i.test(fx.t) && pick(ts.filter(x=>x.kind==="stone")))
-         || (/ice|thaw|frost|melt/i.test(fx.t)     && pick(ts.filter(x=>x.kind==="ice")))
-         || (/gold/i.test(fx.t)                    && pick(ts.filter(x=>x.kind==="normal")))
-         || pick(ts.filter(x=>x.kind==="normal"))
-         || pick(ts);
+    const heights=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0;
+      for(let r=0;r<ROWS;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
+    const topOf=c=>{ for(let r=0;r<ROWS;r++) if(S.board[r][c]) return S.board[r][c]; return null; };
+    let t=null;
+    switch(fx.t){
+      case "liftTop": { const h=heights(); t=topOf(h.indexOf(Math.max(...h))); break; }
+      case "goldCol": { const h=heights(); let c=-1, low=Infinity;
+        for(let i=0;i<COLS;i++) if(h[i]>0 && h[i]<low){ low=h[i]; c=i; }
+        t = c<0 ? null : topOf(c); break; }
+      case "pawPat": { const ns=ts.filter(x=>x.kind==="normal");
+        const social=ns.filter(x=>(x.c>0 && S.board[x.r][x.c-1]) || (x.c<COLS-1 && S.board[x.r][x.c+1]));
+        t=pick(social.length?social:ns); break; }
+      /* THE SLIDE IS CHOSEN HERE, not later. If the power went looking for a word-making
+         slide of its own after the bat had already flown somewhere, it would routinely
+         pick a different tile — and the player watches the friend stand next to a letter
+         that never moves. Deciding once means the aim IS the decision. */
+      case "nudge": {
+        const slides=[];
+        for(const x of ts){ if(x.kind!=="normal") continue;
+          for(const dc of [-1,1]){ const c=x.c+dc;
+            if(c<0||c>=COLS||S.board[x.r][c]) continue; slides.push({t:x,to:c}); } }
+        if(!slides.length) break;
+        const move=(s,to)=>{ const from=s.t.c;
+          S.board[s.t.r][from]=null; S.board[s.t.r][to]=s.t; s.t.c=to; };
+        let chosen=null;
+        for(const s of slides){ const home=s.t.c; move(s,s.to);
+          if(findWords().some(w=>w.cells.includes(s.t) && !w.cells.every(c=>c.heldWord===w.word))) chosen=s;
+          move(s,home);                                  // always put it back; the fx does the real move
+          if(chosen) break; }
+        S._petSlide = chosen || pick(slides);
+        t = S._petSlide ? S._petSlide.t : null; break; }
+    }
+    t = t
+      || (/stone|rock|crack|boulder/i.test(fx.t) && pick(ts.filter(x=>x.kind==="stone")))
+      || (/ice|thaw|frost|melt/i.test(fx.t)     && pick(ts.filter(x=>x.kind==="ice")))
+      || pick(ts.filter(x=>x.kind==="normal"))
+      || pick(ts);
+    S._petAim = t || null;
     // an empty board still deserves a landing spot — stand on the floor, centre stage
     return t ? {r:t.r,c:t.c} : {r:ROWS-1,c:Math.floor(COLS/2)};
   },
+  /* the tile the visit aimed at, if it is still on the board */
+  petAim(){ return (S && S._petAim && S.tiles[S._petAim.id]) ? S._petAim : null; },
   async petAlign(minLen){ // find two tiles whose swap makes a word of minLen+ — and weave it
     const ts=Object.values(S.tiles).filter(t=>t.kind==="normal"||t.kind==="gold");
     for(let i=ts.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [ts[i],ts[j]]=[ts[j],ts[i]]; }
@@ -6017,26 +6048,28 @@ const UI = {
     sp.style.left=x0+"px"; sp.style.top=y0+"px";
     app.appendChild(sp);
     const k=br.width/(COLS*STEP-GAP);                       // the board is scaled to fit
-    const x1=br.left-ar.left+(cell.c*STEP+CELL/2)*k;
+    // STAND BESIDE THE TILE, NEVER ON IT. A friend landing squarely on the letter it is
+    // about to change hides the one thing the player is meant to watch. It steps to
+    // whichever side has room — outward from the middle, so it never walks off the board.
+    const side = cell.c >= COLS/2 ? -1 : 1;
+    const x1=br.left-ar.left+(cell.c*STEP+CELL/2)*k + side*CELL*0.82*k;
     const y1=br.top -ar.top +(cell.r*STEP+CELL/2)*k;
     await wait(40);
     sp.style.left=x1+"px"; sp.style.top=y1+"px";
     Snd.tone(660,{dur:.1,type:"triangle",gain:.06,verb:true});
     await wait(430);
     sp.classList.add("landed");
-    const plate=document.createElement("div"); plate.className="petplate";
-    plate.innerHTML=pet.pi+" <b>"+pet.pn+"</b>";
-    plate.style.left=Math.max(58,Math.min(x1, ar.width-58))+"px";
-    plate.style.top=Math.max(4,y1-46)+"px";
-    app.appendChild(plate);
+    // the name plate is gone. It sat over the board announcing what the friend was called
+    // while covering the tiles the player needed to see it working on — and the friend is
+    // right there, doing the thing, which says it better than a label did.
     Snd.tone(990,{dur:.14,type:"sine",gain:.06,verb:true}); buzz([18,25]);
     const shown=Date.now();
     return { async home(){
-      // a power like Golden Paw finishes instantly, and the friend was hopping home
-      // 300ms after arriving — long enough to see a blur, not long enough to read WHO.
-      // Whatever the power costs, the name plate stays up long enough to be read.
-      const dwell=1500-(Date.now()-shown); if(dwell>0) await wait(dwell);
-      plate.remove();
+      // an instant power used to hop the friend home 300ms after it arrived — long enough
+      // to see a blur, not long enough to see WHAT it did. It lingers beside its work
+      // instead, and since the plate is gone that dwell is now spent watching the tile
+      // rather than reading a label over it.
+      const dwell=1200-(Date.now()-shown); if(dwell>0) await wait(dwell);
       sp.classList.remove("landed");
       sp.style.left=x0+"px"; sp.style.top=y0+"px";
       Snd.tone(560,{dur:.09,type:"triangle",gain:.05,verb:true});
