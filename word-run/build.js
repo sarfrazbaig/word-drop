@@ -95,7 +95,16 @@ if (missingIcons.length) {
 // so a playtester keeps a stale build while you push fixes they never get. Stamping the
 // file makes it differ every build, which forces install → activate → old caches deleted.
 const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
-const sw = fs.readFileSync(path.join(__dirname, "sw.js"), "utf8").split("__BUILD__").join(stamp);
+/* The worker template lives in sw.src.js and BOTH workers are written from it.
+   Only docs/sw.js used to be stamped, so the dev server's own sw.js kept the literal
+   cache name "hushwood-__BUILD__" forever: it never changed, so the browser never
+   installed a new worker, never dropped the old cache, and served the same stale game
+   no matter how many times the template was rebuilt. Every "why does it still look
+   old?" in this project traces back to these two lines. */
+const swSrc = path.join(__dirname, "sw.src.js");
+const sw = fs.readFileSync(fs.existsSync(swSrc) ? swSrc : path.join(__dirname,"sw.js"), "utf8")
+             .split("__BUILD__").join(stamp);
 fs.writeFileSync(path.join(docs, "sw.js"), sw);
+fs.writeFileSync(path.join(__dirname, "sw.js"), sw);   // the one the dev server serves
 console.log(`Service worker stamped ${stamp} — every tester picks this build up`);
 console.log(`Built word-drop.html + index.html + docs/ (game + PWA) — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
