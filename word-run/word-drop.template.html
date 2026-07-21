@@ -710,33 +710,10 @@
 
   /* ================= GAME SCENE ================= */
   #scene-game{ padding-top:calc(10px + env(safe-area-inset-top)); gap:var(--sp2); }
-  /* A SHELF, LIKE THE ONE BELOW IT — same cream, same warm border, same inset highlight,
-     same biome tint. The round used to sit in a flat white box floating on a painted
-     screen; it belongs to the wood now, and the emphasis comes from type. */
-  #topbar{ width:100%; display:flex; align-items:center; gap:9px; z-index:2;
-    min-height:62px; padding:7px 12px; border-radius:16px;
-    border:1px solid var(--surface-border);
-    background-color:#fbf6e8;
-    background-image:linear-gradient(180deg, rgba(255,253,246,.95), #f6efdc);
-    box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
-  #app[class*="bio"] #topbar{
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--frame1) 20%, #fbf6e8),
-      color-mix(in srgb, var(--frame2) 26%, #f1e9d4));
-    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2) 45%, transparent),
-               0 6px 14px rgba(40,30,20,.16); }
-  /* CORNERS: quiet, no chrome, no competing with the board. */
-  /* the two corners are given the SAME width so the round sits on the true centre of the
-     strip. Left measured 67px against the right’s 85, which pulled the numbers 9px off
-     centre — not enough to name, exactly enough to look accidental. */
   /* 86px corners left the round only 137px to stand in and its two columns want 159, so
      they wrapped onto two lines. 68 is still enough to balance the centre. */
   /* no floor at all: the corners are as wide as their contents and not a pixel more, so
      everything they do not need belongs to the round in the middle. */
-  /* THE ROUND, CENTRED. The only container on the strip, because it is the only thing
-     here that is read every move. */
-  /* no chrome of its own: the shelf is the container, and these two numbers are simply
-     the largest, darkest things standing on it. */
 
   /* ══ A STAT POD ══ a light card lifted off the shelf: a hard bottom edge for weight, a
      soft shadow beneath it for lift, and a white highlight along the top so it catches
