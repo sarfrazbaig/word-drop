@@ -421,12 +421,37 @@
   #st-grove .hbar i{ display:block; height:100%; border-radius:999px;
     background:linear-gradient(90deg,var(--accent),var(--gold)); }
   #st-mile{ font-size:12px; color:var(--dim); font-weight:700; }
-  /* the one creature a player should be aiming at — lifted out of the wall of hushed cards */
-  .gcard.nextup{ position:relative; border-color:var(--gold); background:linear-gradient(180deg,#fffaef,#fdf1d8);
-    box-shadow:0 0 0 2px rgba(224,160,44,.35), 0 6px 16px -8px rgba(120,80,20,.5); }
-  .gcard.nextup .ge{ animation:peekbob 2.4s ease-in-out infinite; }
+  /* THE ONE CARD THAT SHOULD PULL THE EYE ACROSS A WALL OF FIFTY. A tinted border did not
+     survive that crowd — this one breathes, throws sparks and sweeps a shine, because it
+     is shown for a short teaching window only and has to be found instantly. */
+  .gcard.nextup{ position:relative; overflow:visible; border-color:var(--gold);
+    background:linear-gradient(180deg,#fffdf6,#fdeec9);
+    animation:questPulse 1.7s ease-in-out infinite; z-index:2; }
+  @keyframes questPulse{
+    0%,100%{ box-shadow:0 0 0 2px rgba(224,160,44,.55), 0 0 14px 2px rgba(240,180,60,.45), 0 6px 16px -8px rgba(120,80,20,.5); }
+    50%    { box-shadow:0 0 0 3px rgba(240,185,70,.85), 0 0 26px 8px rgba(245,200,90,.7),  0 6px 18px -8px rgba(120,80,20,.55); }
+  }
+  .gcard.nextup .ge{ animation:peekbob 2s ease-in-out infinite;
+    filter:drop-shadow(0 0 8px rgba(250,205,105,.95)); }
+  /* the sparks: two drifting glints on opposite corners, offset so they never blink together */
+  .gcard.nextup::before, .gcard.nextup::after{
+    content:"✨"; position:absolute; font-size:15px; pointer-events:none;
+    animation:questSpark 2.1s ease-in-out infinite; }
+  .gcard.nextup::before{ top:-9px; right:-6px; }
+  .gcard.nextup::after { bottom:-8px; left:-7px; animation-delay:1.05s; }
+  @keyframes questSpark{
+    0%,100%{ opacity:0; transform:scale(.5) rotate(-18deg); }
+    45%    { opacity:1; transform:scale(1.15) rotate(10deg); }
+  }
   .nexttag{ display:block; font-size:9.5px; font-weight:800; letter-spacing:.7px;
-    text-transform:uppercase; color:var(--accent-deep); margin-bottom:1px; }
+    text-transform:uppercase; color:#8a5a00; margin-bottom:1px;
+    text-shadow:0 1px 0 rgba(255,255,255,.7); }
+  @media (prefers-reduced-motion: reduce){
+    .gcard.nextup{ animation:none;
+      box-shadow:0 0 0 3px rgba(240,185,70,.9), 0 0 20px 4px rgba(245,200,90,.6); }
+    .gcard.nextup::before, .gcard.nextup::after{ animation:none; opacity:1; }
+    .gcard.nextup .ge{ animation:none; }
+  }
   #st-place{ font-size:12.5px; color:var(--dim); font-weight:700; margin-bottom:10px; }
   #st-place b{ color:var(--ink); }
   /* 🔧 the keeper's toolbox — dev-only, opened by a secret knock */
@@ -5164,12 +5189,16 @@ const UI = {
   },
   GROVE_MILES:[ {n:10,i:"🌸",t:"The wood begins to stir!"}, {n:25,i:"🎶",t:"The wood is waking!"},
     {n:40,i:"🎼",t:"The wood remembers its song!"}, {n:50,i:"🌈",t:"The wood is AWAKE!"} ],
-  // WHO TO CHASE NEXT. A creature already listening outranks everything — its naming round
-  // is imminent. Otherwise it is simply the first still-hushed friend in the wood's own
-  // order, which puts the dog directly after the cat for a new player.
-  nextQuarry(){
-    const listening = GROVE.find(g=>!P.grove[g.w] && P.called[g.w]);
-    if(listening) return listening.w;
+  // ONE SIGNAL, SHOWN ONCE. "your next friend" exists to show a brand-new player that the
+  // hushed cards are earnable and where the requirement is written. It runs only while the
+  // cat is their single friend and retires the moment the dog is home.
+  //
+  // Nothing else in this Book glows. A creature whose calling completes is already
+  // announced twice — the whispers card, then the level intro naming what hides there — so
+  // a third badge here would be noise, and a permanent "next" signpost would be a lie
+  // besides: callings complete from how you play, not from the order they are listed in.
+  teachingQuarry(){
+    if(Object.keys(P.metGrove||{}).length!==1) return null;   // the window is exactly one friend wide
     const next = GROVE.find(g=>!P.grove[g.w]);
     return next ? next.w : null;
   },
@@ -5232,11 +5261,7 @@ const UI = {
             +'<span class="gd">since '+fmt(P.grove[g.w])+'</span>';
           el.onclick=()=>UI.petSheet(g.w);
         } else {
-          // ONE FRIEND IS ALWAYS "NEXT". A wall of fifty identical hushed cards gives a new
-          // player no idea where to aim — so the first un-woken creature is marked as the
-          // one to chase. After the cat that is the dog, which is exactly where the game
-          // wants a beginner looking.
-          const isNext = g.w===UI.nextQuarry();
+          const isNext = g.w===UI.teachingQuarry();      // the one-time lesson, and nothing else
           el.className="gcard mystery"+(isNext?" nextup":"");
           // the card IS the quest log: its calling, its progress, and — once it's
           // listening — the drumroll that a naming level is coming
@@ -5257,8 +5282,24 @@ const UI = {
       });
       sec.appendChild(grid); f.appendChild(sec);
     };
-    section("🌤️ In the Sky", GROVE.filter(g=>g.z==="sky"));
+    // GROUND FIRST, because that is the order the wood is actually met in. The cat, the dog
+    // and everything else a player earns in their first hours live on the ground — putting
+    // the sky above them buried the one card that matters (your next friend) below the fold,
+    // so a beginner had to scroll past thirty strangers to find the creature they were
+    // being told to chase.
     section("🌱 On the Ground", GROVE.filter(g=>g.z!=="sky"));
+    section("🌤️ In the Sky", GROVE.filter(g=>g.z==="sky"));
+    // …and if the one-time lesson card has fallen below the fold, lift it into view. Only
+    // then — nobody wants the party shelf yanked out from under them when it was already
+    // in plain sight. Once the lesson retires there is nothing here to chase the player to.
+    f.scrollTop=0;   // always open at the top — the field kept its last position, so reopening
+                     // the Book could drop you halfway down the sky with no idea why
+    requestAnimationFrame(()=>{
+      const card=f.querySelector(".gcard.nextup"); if(!card) return;
+      const fr=f.getBoundingClientRect(), cr=card.getBoundingClientRect();
+      if(cr.top>=fr.top && cr.bottom<=fr.bottom) return;      // already visible — leave it alone
+      f.scrollTop += (cr.top-fr.top) - fr.height*0.28;         // sit it comfortably, not jammed to the top
+    });
     UI.scene("scene-grove");
   },
   petSheet(w){ // one friend, told properly — portrait, plaque, power, and the duty button
