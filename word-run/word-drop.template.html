@@ -2308,7 +2308,7 @@ const GROVE = [
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
   {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Nudge",pi:"🔄",pd:"slides <b>one letter</b> into the space beside it",fx:{t:"nudge"},f:"reads the bottom row backwards for fun"},
   {w:"heron",wake:{on:"word4",n:2},e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
-  {w:"beetle",wake:{on:"word5",n:1},e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"rolls boulders away like morning chores"},
+  {w:"golem",wake:{on:"word5",n:1},e:"🗿",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"was a mountain once, and remembers how mountains break"},
   {w:"fly",wake:{on:"drop",n:12},e:"🪰",z:"sky",pn:"Vowel Swarm",pi:"🍃",pd:"every <b>awkward letter softens into a vowel</b>",fx:{t:"vowelSwarm"},f:"turns the awkward letters soft and speakable"},
   {w:"ladybug",wake:{on:"anyWord",n:4},e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"a tile on the board <b>turns into a ⭐ star</b>",fx:{t:"luckyTile"},f:"lands on a tile and leaves a star behind"},
   {w:"cricket",wake:{on:"anyWord",n:4},e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
@@ -2329,20 +2329,20 @@ const GROVE = [
   {w:"snake",wake:{on:"consonant",n:8},e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
   {w:"chick",wake:{on:"anyWord",n:6},e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
   {w:"goat",wake:{on:"word3",n:3},e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
-  {w:"otter",wake:{on:"obstacle",n:2},e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"warms the pond until every ice lets go"},
+  {w:"dragon",wake:{on:"obstacle",n:2},e:"🐉",z:"ground",pn:"Dragonfire",pi:"🔥",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"sleeps under the mountain and dreams of warm water"},
   {w:"boar",wake:{on:"consonant",n:12},e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
   {w:"moose",wake:{on:"drop",n:11},e:"🫎",z:"ground",pn:"Antler Sort",pi:"🌬️",pd:"the <b>top letter of every column</b> becomes one that fits",fx:{t:"antlerSort"},f:"shakes the treetops until the letters make sense"},
   {w:"seal",wake:{on:"anyWord",n:5},e:"🦭",z:"ground",pn:"Tide Pool",pi:"💦",pd:"the <b>two shortest columns</b> fill with vowels",fx:{t:"tidePool"},f:"splashes the shallow places full again"},
   {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"},f:"carries your first step, every level, free"},
   {w:"beaver",wake:{on:"drop",n:10},e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
-  {w:"badger",wake:{on:"consonant",n:10},e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"will dig any letter out, no questions asked"},
+  {w:"wyrm",wake:{on:"consonant",n:10},e:"🐍",z:"ground",pn:"Deepdelve",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"has been under this wood longer than the wood has"},
   {w:"lizard",wake:{on:"obstacle",n:1},e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
   {w:"pony",wake:{on:"drop",n:12},e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
   {w:"lamb",wake:{on:"consonant",n:5},e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
   {w:"bunny",e:"🐰",z:"ground",ps:true,pn:"Daily Whisper",pi:"🥕",pd:"sniffs out the <b>daily word's first letter</b> (see the Book)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
   {w:"skunk",wake:{on:"rare",n:1},e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room — every last copy of it"},
   {w:"raccoon",wake:{on:"crate",n:1},e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
-  {w:"squirrel",wake:{on:"word5",n:1},e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"stashes acorns that go off with a pop"},
+  {w:"phoenix",wake:{on:"word5",n:1},e:"🦅",z:"ground",pn:"Ember Hoard",pi:"🌟",pd:"drops an <b>ember that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"keeps its treasure in the ashes, and always comes back for it"},
   {w:"spider",wake:{on:"word3",n:2},e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
   {w:"bison",wake:{on:"drop",n:9},e:"🦬",z:"ground",pn:"Herd Call",pi:"📣",pd:"your <b>next three letters are chosen</b>, not drawn",fx:{t:"herdCall"},f:"calls the herd, and the good letters come"},
 ];
@@ -2386,7 +2386,7 @@ const CALLINGS={
   crab:    {t:"breeze",   n:20, c:"use 20 breezes",                           s:"🌊 something sidles along your <b>sideways winds</b>…"},
   /* TIER 3 — the climb: clean longer names and the gentlest 1-hold names */
   snail:   {t:"win",      n:12, c:"win 12 levels",                            s:"🐌 something slow and sure has been <b>following you</b>…"},
-  otter:   {t:"ice",      n:6,  c:"thaw 6 frozen letters",                    s:"💧 something splashed in your <b>thawed waters</b>…"},
+  dragon:   {t:"ice",      n:6,  c:"thaw 6 frozen letters",                    s:"💧 something splashed in your <b>thawed waters</b>…"},
   snake:   {t:"wish",     n:8,  c:"transform your letter with 8 🌟 wishes",   s:"🐍 something admires how you <b>shed letters</b>…"},
   bear:    {t:"word5",    n:8,  c:"clear 8 five-letter words",                s:"🍯 something big smelled your <b>feast of words</b>…"},
   goat:    {t:"friends",  n:18, c:"wake 18 friends",                          s:"🐐 something calls to its <b>kindred</b> — you…"},
@@ -2409,17 +2409,51 @@ const CALLINGS={
   fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
   ant:     {t:"words",    n:300,c:"clear 300 words",                          s:"🐜 something industrious salutes your <b>work</b>…"},
   raccoon: {t:"crate",    n:8,  c:"burst open 8 gift crates",                 s:"🗑️ something heard you <b>rummaging</b>…"},
-  squirrel:{t:"hold",     n:30, c:"hold 30 words with 🌱",                    s:"🌰 something envies your <b>stash</b>…"},
+  phoenix:{t:"hold",     n:30, c:"hold 30 words with 🌱",                    s:"🌰 something envies your <b>stash</b>…"},
   cricket: {t:"chain3",   n:3,  c:"set off 3 triple chains",                  s:"🎻 something joined your <b>night chorus</b>…"},
   heron:   {t:"bigwin",   n:4,  c:"win 4 times with 10+ moves to spare",      s:"🪶 something admires your <b>patient hunt</b>…"},
-  beetle:  {t:"stone",    n:20, c:"smash 20 mossy stones",                    s:"🪨 something heard the <b>knocking</b>…"},
-  badger:  {t:"pluck",    n:12, c:"pluck 12 letters off the board",           s:"🕳️ something respects a fellow <b>digger</b>…"},
+  golem:  {t:"stone",    n:20, c:"smash 20 mossy stones",                    s:"🪨 something heard the <b>knocking</b>…"},
+  wyrm:  {t:"pluck",    n:12, c:"pluck 12 letters off the board",           s:"🕳️ something respects a fellow <b>digger</b>…"},
   ladybug: {t:"chain",    n:15, c:"set off 15 chain reactions",               s:"🍀 something landed on your <b>lucky</b> chain…"},
   chick:   {t:"twin",     n:12, c:"clear 12 DOUBLE WORDs",                    s:"🥚 something peeps at your <b>twin words</b>…"},
 };
 // every creature MUST have a calling — a roster edit that forgets one gets a gentle default
 GROVE.forEach(g=>{ if(!CALLINGS[g.w]) CALLINGS[g.w]={t:"words",n:40,c:"clear forty words",s:"🐾 something has been watching your words…"}; });
-const CALLING_ORDER=Object.keys(CALLINGS);
+/* ═══ KEYSTONES — the friend you are HANDED at a door, never the one you spell ═══
+   Two reasons, and the second is the one that matters.
+
+   FIRST, ten of the fifty names cannot be spelled. The telemetry from real players says
+   three letters 71% of the time, four 25%, five 4%, and six or more never once. Asking
+   somebody to spell SQUIRREL is not a challenge, it is a wall — so every name of six
+   letters and up is handed over instead, and its length stops mattering.
+
+   SECOND, a keystone answers the country you are walking INTO, not the one you just left.
+   Clear the Undercave and the wood gives you the friend who sees through mist, because the
+   Deep Dark is next. You do not get the tool for the room you finished — you get the key
+   to the room ahead. That is also why the legendaries land at the last four doors and not
+   at the very end: they arrive twenty levels BEFORE the trouble they answer, with a
+   country left to enjoy them in. */
+const KEYSTONE={
+   20:"worm",    /* → root — it loosens the soil so nothing can heal in it   */
+   40:"raccoon", /* → spore — Rummage turns the hollow's junk into gifts     */
+   60:"boar",    /* → reed — it smashes a whole column, which is the problem */
+   80:"ladybug", /* → mire — a wild tile is the way off stuck ground         */
+  100:"beaver",  /* → current — it dams a river. The clearest one on the map */
+  120:"spider",  /* → pest — it webs what moves                             */
+  140:"bear",    /* → stone — it smashes a patch                            */
+  160:"hawk",    /* → mist — it sees what you cannot                        */
+  180:"lizard",  /* → crystal — Sunbake turns rock to GOLD in the gold country */
+  200:"turtle",  /* → scree — a shield, for the slope that fights back      */
+  220:"cricket", /* → wind — the ridge is loud, and so is he                */
+  240:"dragon",   /* → ice, at the Snowline                                  */
+  260:"golem",  /* → deep frost, at the Crown                              */
+  280:"wyrm",  /* → everything at once                                    */
+  300:"phoenix" /* the hoard, at the summit                                */
+};
+const KEYSTONE_SET=new Set(Object.values(KEYSTONE));
+/* a keystone is never called for — it is given, so it must not also sit in the calling
+   queue waiting to be spelled */
+const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w));
 /* ============ LEVEL GOALS — what a round asks of you ============
    The hush (points) is the baseline; obstacle goals make obstacles the WIN CONDITION,
    Candy-Crush style: melt every ice, smash every stone, or lose the round. Each type
@@ -2737,7 +2771,7 @@ function load(){
     // MIGRATION: some creatures were renamed in updates (wasp→beetle, toad→chick,
     // mole→pig, newt→goat) — carry the friendship over. Anything unknown is gently
     // released: one orphaned word in an old save froze every level start.
-    const RENAMED={wasp:"beetle",toad:"chick",mole:"pig",newt:"goat"};
+    const RENAMED={wasp:"golem",toad:"chick",mole:"pig",newt:"goat"};
     const remap=o=>{ const m={}; for(const w in (o||{})){ const nw=RENAMED[w]||w;
       if(GROVE_BY_WORD[nw] && !m[nw]) m[nw]=o[w]; } return m; };
     out.grove = remap(out.grove);
@@ -3988,6 +4022,16 @@ const Game = {
   async winLevel(){
     S.won=true; S.busy=true;
     Game.track("level_win",{L:S.level, moves_left:S.movesLeft, goal:S.goal?S.goal.t:"hush"});
+    // THE DOOR PAYS. Clearing a country's last level hands you the friend who answers the
+    // country ahead — no calling, no spelling, no waiting. It is the only friend in the
+    // game you are simply given, and it arrives exactly when it becomes useful.
+    { const key=KEYSTONE[S.level];
+      if(key && GROVE_BY_WORD[key] && !P.grove[key]){
+        P.grove[key]=Date.now(); S.newGrove.push(key);
+        delete P.nameFails[key]; P.quietLvls=0; save();
+        Game.track("keystone",{w:key, L:S.level});
+        Game.amber(25);
+      } }
     // stars scale with the level's OWN budget (not an absolute count), so a tight
     // level's 3★ stays earnable: clear with ~30% of your moves spare for gold.
     const mv=MOVES(S.level);
