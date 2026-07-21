@@ -716,7 +716,7 @@
      same biome tint. The round used to sit in a flat white box floating on a painted
      screen; it belongs to the wood now, and the emphasis comes from type. */
   #topbar{ width:100%; display:flex; align-items:center; gap:9px; z-index:2;
-    min-height:56px; padding:4px 13px; border-radius:16px;
+    min-height:62px; padding:7px 12px; border-radius:16px;
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:linear-gradient(180deg, rgba(255,253,246,.95), #f6efdc);
@@ -731,14 +731,49 @@
   /* the two corners are given the SAME width so the round sits on the true centre of the
      strip. Left measured 67px against the right’s 85, which pulled the numbers 9px off
      centre — not enough to name, exactly enough to look accidental. */
-  .tb-side{ display:flex; align-items:center; gap:3px; flex:0 0 auto; min-width:86px; }
+  /* 86px corners left the round only 137px to stand in and its two columns want 159, so
+     they wrapped onto two lines. 68 is still enough to balance the centre. */
+  /* no floor at all: the corners are as wide as their contents and not a pixel more, so
+     everything they do not need belongs to the round in the middle. */
+  .tb-side{ display:flex; align-items:center; gap:2px; flex:0 0 auto; }
   .tb-side.tb-right{ justify-content:flex-end; }
   /* THE ROUND, CENTRED. The only container on the strip, because it is the only thing
      here that is read every move. */
   /* no chrome of its own: the shelf is the container, and these two numbers are simply
      the largest, darkest things standing on it. */
-  #statusblock{ flex:1 1 auto; min-width:0; display:flex; align-items:center;
-    flex-wrap:wrap; justify-content:center; gap:3px 20px; padding:0; }
+  #statusblock{ flex:1 1 auto; min-width:0; display:flex; align-items:flex-start;
+    flex-wrap:wrap; justify-content:center; gap:5px 8px; padding:0; }
+
+  /* ══ A STAT POD ══ a light card lifted off the shelf: a hard bottom edge for weight, a
+     soft shadow beneath it for lift, and a white highlight along the top so it catches
+     the light like every other raised surface in this game. This is the separation the
+     strip never had — the values were cream on cream and no container was going to
+     rescue that. */
+  #movesbig, .gseg b{
+    display:block; min-width:48px; text-align:center;
+    background:linear-gradient(180deg,#fffefa,#fdf7e9);
+    border:1px solid rgba(150,120,70,.22); border-radius:12px;
+    padding:5px 9px 6px;
+    box-shadow:0 2px 0 rgba(150,120,70,.26), 0 6px 11px -7px rgba(90,60,30,.65),
+               inset 0 1px 0 rgba(255,255,255,.95); }
+
+  /* ══ ITS LABEL, ABOVE IT ══ small, muted, out of the way. It used to hang off the
+     bottom, which read as a caption on a loose number instead of a name for a thing. */
+  #movesbox, .gseg{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+  #moveslabel, .gseg .glbl{ font-size:var(--fs-xs); letter-spacing:1.1px;
+    line-height:1; color:var(--dim); text-transform:uppercase; white-space:nowrap;
+    opacity:.85; }
+  /* both columns top-aligned so a taller pod cannot stretch its neighbour */
+  #statusblock #gs-goals{ align-items:flex-start; }
+  #movesbox, .gseg{ justify-content:flex-start; }
+  /* THREE PODS. A gauntlet asks two things at once and the centre then wants 175px
+     against the 165 it has. Rather than wrap the row, the round steps down a notch —
+     and only on the rounds that actually ask for it. */
+  #statusblock.crowded{ gap:4px 6px; }
+  #statusblock.crowded #movesbig, #statusblock.crowded .gseg b{
+    min-width:40px; font-size:21px; padding:5px 7px 6px; }
+  #statusblock.crowded #moveslabel, #statusblock.crowded .gseg .glbl{
+    font-size:8px; letter-spacing:.5px; }
   #statusblock #movesbox{ flex:0 0 auto; text-align:center; }
   #statusblock #gs-goals{ flex:0 1 auto; min-width:0; overflow:hidden; }
   /* full width, so it drops below the numbers instead of squeezing in beside them */
@@ -758,9 +793,15 @@
   #movesbox{ flex:1; text-align:center; }
   /* matched to the goal beside it: these two are read together, so neither outranks
      the other. It was 34px against the goal’s 12.5px. */
-  #movesbig{ font-size:27px; font-weight:900; line-height:1; color:var(--ink);
+  #movesbig{ font-size:25px; font-weight:900; line-height:1.05; color:var(--ink);
     font-variant-numeric:tabular-nums; text-shadow:0 2px 0 rgba(255,255,255,.6); transition:color .3s; }
-  #movesbig.low{ color:var(--danger); animation:movespulse 1s infinite; }
+  /* the warning belongs to the whole pod: red digits alone on a pale card were easy to
+     miss at the exact moment they matter most. */
+  #movesbig.low{ color:var(--danger); animation:movespulse 1s infinite;
+    background:linear-gradient(180deg,#fff2ef,#ffe3dd);
+    border-color:rgba(190,70,50,.4);
+    box-shadow:0 2px 0 rgba(190,70,50,.32), 0 6px 12px -6px rgba(150,40,25,.6),
+               inset 0 1px 0 rgba(255,255,255,.9); }
   @keyframes movespulse{ 50%{ transform:scale(1.12); } }
   #moveslabel{ font-size:var(--fs-xs); letter-spacing:2px; color:var(--dim); text-transform:uppercase; }
 
@@ -1073,7 +1114,7 @@
   #topbar .bookchip, #topbar #amberchip{ background:none !important; border:none !important;
     box-shadow:none !important; padding:3px 4px; font-size:11px; font-weight:800;
     color:var(--dim); opacity:.82; }
-  #topbar #amberchip b{ font-size:12.5px; color:var(--dim); }
+  #topbar #amberchip b{ font-size:12px; color:var(--dim); }
   #topbar .bookchip .bookicon{ width:21px; height:21px; }
   #petbar{ display:none; width:100%; height:92px; z-index:2; position:relative; overflow:visible;
     /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
@@ -1519,12 +1560,18 @@
   .gseg{ position:relative; display:flex; flex-direction:column; align-items:center;
     gap:1px; background:none; border:none; padding:0; overflow:visible;
     font-weight:800; color:var(--ink); white-space:nowrap; }
-  .gseg{ gap:3px; }
-  .gseg b{ order:1; font-size:25px; line-height:1; color:var(--ink);
+  .gseg b{ font-size:25px; line-height:1.05; color:var(--ink);
     font-variant-numeric:tabular-nums; }
+  /* 625/625 is seven characters; at full size that is wider than the centre has, and a
+     wrapped row is worse than a smaller number. */
+  .gseg b.tight{ font-size:18px; letter-spacing:-.4px; padding:9px 6px 10px; }
+  /* a met ask goes green in the pod, not just in the digits */
+  .gseg.metdone b{ background:linear-gradient(180deg,#f2fbf0,#e3f4de);
+    border-color:rgba(79,122,82,.35); box-shadow:0 2px 0 rgba(79,122,82,.3),
+    0 6px 11px -7px rgba(40,80,45,.6), inset 0 1px 0 rgba(255,255,255,.95); }
   /* the same small-caps label the moves wears. A bare emoji floating under a number
      read as a rendering accident beside "MOVES" set in type. */
-  .gseg .glbl{ order:2; font-size:var(--fs-xs); letter-spacing:1.4px; line-height:1;
+  /* order:0 — ABOVE its pod. This rule sits later in the sheet than the statusblock one,
     color:var(--dim); text-transform:uppercase; white-space:nowrap; }
   .gseg.metdone b{ color:var(--good, #4f7a52); }
   /* the fill was the chip’s progress shading; there is no chip now, and a bar that
@@ -1532,7 +1579,9 @@
   .gsfill{ display:none !important; }
   /* the naming word is a sentence, not a counter — it keeps its own shape */
   .gseg.gname{ flex-direction:row; align-items:center; gap:7px; font-size:13px; }
-  .gseg.gname b{ order:0; font-size:15px; letter-spacing:2.5px; color:var(--gold-deep); }
+  /* a name is not a counter: no pod, no card, just the letters waiting to be spoken */
+  .gseg.gname b{ order:0; font-size:15px; letter-spacing:2.5px; color:var(--gold-deep);
+    background:none; border:none; box-shadow:none; padding:0; min-width:0; display:inline; }
   .gseg.gname > span{ order:0; font-size:16px; }
   .gseg .gsfill{ position:absolute; inset:0; z-index:0; background:linear-gradient(90deg,rgba(125,216,125,.35),rgba(240,169,46,.3));
     transform-origin:left; transform:scaleX(0); transition:transform .4s; border-radius:999px; }
@@ -1966,12 +2015,12 @@
       <!-- left corner: where you are, and the way out. Both read once a round. -->
       <div class="tb-side">
         <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu">⚙</button>
-        <span id="lvlchip" onclick="UI.dbgTap()">LV<b id="h-level">1</b></span>
+        <span id="lvlchip" onclick="UI.dbgTap()"><b id="h-level">1</b></span>
       </div>
       <!-- the centre is the round itself: moves left and how close you are. One thought,
            one block, one size, and the only thing on this strip that gets a container. -->
       <div id="statusblock">
-        <div id="movesbox"><div id="movesbig">15</div><div id="moveslabel">moves</div></div>
+        <div id="movesbox"><div id="moveslabel">moves</div><div id="movesbig">15</div></div>
         <div id="gs-goals"></div>
         <!-- ceremony rounds only: a name is a word, not a counter, and it will not share
              a row with one. -->
@@ -6243,17 +6292,26 @@ const UI = {
   goalStrip(){ // every ask of the round, one segment each — built to hold SEVERAL
     const gs=$("gs-goals"); if(!gs || !S) return;
     const segs=[]; let nameSeg="";
+    // ONE BUILDER for every ask. A long ratio steps its own type down rather than growing
+    // wide enough to shove the moves onto a second line — 625/625 at full size is wider
+    // than the centre of the strip has to give.
+    const seg=(met, have, need, label)=>{
+      const n=have+"/"+need;
+      return '<div class="gseg'+(met?" metdone":"")+'">'
+        +'<span class="glbl">'+label+'</span>'
+        +'<b'+(n.length>=6?' class="tight"':"")+'>'+n+'</b></div>';
+    };
     const goalMode=S.goal && S.goal.t!=="hush";
     if(goalMode){
       const done=S.goal.have>=S.goal.need;
-      segs.push('<div class="gseg'+(done?" metdone":"")+'"><b>'+S.goal.have+'/'+S.goal.need+'</b><span class="glbl">'+GOALS[S.goal.t].i+' '+GOALS[S.goal.t].s+'</span></div>');
+      segs.push(seg(done, S.goal.have, S.goal.need, GOALS[S.goal.t].s));
     } else {
       const done=S.levelScore>=S.target;
-      segs.push('<div class="gseg'+(done?" metdone":"")+'"><b>'+S.levelScore+'/'+S.target+'</b><span class="glbl">'+'🎯'+' '+'points'+'</span></div>');
+      segs.push(seg(done, S.levelScore, S.target, "points"));
     }
     if(S.goal2){
       const d2=S.goal2.have>=S.goal2.need;
-      segs.push('<div class="gseg'+(d2?" metdone":"")+'"><b>'+S.goal2.have+'/'+S.goal2.need+'</b><span class="glbl">'+GOALS[S.goal2.t].i+' '+GOALS[S.goal2.t].s+'</span></div>');
+      segs.push(seg(d2,   S.goal2.have, S.goal2.need, GOALS[S.goal2.t].s));
     }
     if(S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord], full=P.level<=6;
@@ -6265,6 +6323,9 @@ const UI = {
       nameSeg='<div class="gseg gname">🎭 <span class="sil">'+g.e+'</span> <b>'+nm+'</b></div>';
     }
     gs.innerHTML=segs.join("");
+    // a crown trial asks two things at once, so the centre carries three pods
+    const sbk=$("statusblock");
+    if(sbk) sbk.classList.toggle("crowded", segs.length>1);
     const gn=$("gs-name");
     if(gn){ gn.innerHTML=nameSeg; gn.classList.toggle("on", !!nameSeg); }
   },
