@@ -1489,11 +1489,15 @@
     <button class="menu-item" onclick="UI.groveShow()"><span><svg class="bookicon menubook" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg></span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
     <button class="menu-item" onclick="UI.statsShow()"><span>📊</span> Your journey</button>
     <button class="menu-item" onclick="Shop.open()"><span>🟠</span> The Trading Post <em>what amber buys</em></button>
-    <!-- THE TWO WAYS BACK, SIDE BY SIDE. "Start over from level 1" used to sit inside the
-         journey panel with no hint of how it differed from wiping everything — two
-         destructive-looking buttons in different rooms, neither explaining itself. They live
-         together now, and each says exactly what it keeps and what it costs. -->
-    <button class="menu-item" id="btn-restart1" onclick="Game.restartFromOne()"><span>↺</span> Walk it again <em>back to level 1 &middot; friends and names stay</em></button>
+    <!-- There is ONE way back, and it is the wipe at the bottom of this menu. "Walk it again"
+         used to sit here — level 1 again, grove intact — and it could not work, because in
+         this game the levels and the friends are the same progression. Levels 1-3 ARE the
+         lessons and level 4 IS the cat's ceremony, so a player with six friends who walked it
+         again got taught how to drop a tile, then a level 4 with no ceremony in it at all:
+         the cat already had its name, so the one thing that level exists to do was skipped
+         and it played as an empty round. Replaying beaten levels was never a reward either —
+         you keep every friend you own, so the wood just gets easier. Someone who wants the
+         story again wants it from the start, which is what the wipe is for. -->
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
     <button class="menu-item" id="menu-sound" onclick="Snd.toggle()"><span class="soundbtn">🔊</span> Sound <em id="menu-snd-state">on</em></button>
     <button class="menu-item" onclick="UI.charmToggle()"><span>🧿</span> Keeper's charm <em>save &amp; restore</em></button>
@@ -3105,21 +3109,10 @@ const Game = {
     Game.startLevel(P.level);
   },
 
-  restart1Ask:0,
-  restartFromOne(){ // two taps: arms red first — resets the ladder, keeps the grove
-    const b=$("btn-restart1");
-    if(Date.now()-Game.restart1Ask < 2500){
-      Game.restart1Ask=0; b.classList.remove("armed-danger");
-      P.level=1; P.run=null; save();
-      UI.menuToggle(false); UI.home();   // the button lives in the sidebar now, not the journey panel
-      UI.toast("🌱 back to level 1 — a fresh path");
-      Snd.tone(392,{dur:.2,type:"triangle",gain:.1}); buzz(25);
-    } else {
-      Game.restart1Ask=Date.now(); b.classList.add("armed-danger");
-      Snd.tone(300,{dur:.12,type:"triangle",gain:.07});
-      setTimeout(()=>{ if(Date.now()-Game.restart1Ask>=2400){ Game.restart1Ask=0; b.classList.remove("armed-danger"); } }, 2500);
-    }
-  },
+  // restartFromOne() lived here — removed with its button. See the note in the menu markup:
+  // the ladder and the grove are one progression, so sending a player back to level 1 while
+  // they keep their friends replayed the lessons at someone who needs none and hollowed out
+  // the ceremony levels for names already spoken.
   startLevel(level){
     Game.track("level_start",{L:level});
     UI.toastClear(); // stale announcements never follow you into a fresh round
