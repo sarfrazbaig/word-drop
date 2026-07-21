@@ -40,11 +40,20 @@
     --frame1:#caa26a; --frame2:#9a6f3c;
     /* the board is the SKY of the wood — a twilight that each region tints its own way.
        (top → mid → horizon-glow). deep at first, brightening toward dawn as you wake it. */
-    --spec:255,246,222; --sky-top:#4a4a78; --sky-mid:#8878a4; --sky-low:#e6c39a; --moon:#fff4d2;
+    --spec:255,246,222; --sky-glow:#f0c9a0; --sky-top:#4a4a78; --sky-mid:#8878a4; --sky-low:#e6c39a; --moon:#fff4d2;
   }
-  /* ===== BIOMES: the world changes every 5 levels — the whole plot takes on the place.
-     letter tiles keep readable; special tiles keep their identity. ===== */
-  #app.bio1{ --spec:236,250,214; /* 🌿 the Bramblewood — deeper in, and the green closes over */
+  /* ===== THE FIFTEEN COUNTRIES. The whole plot takes on the place — sky, frame, shelf,
+     tile face and the things growing in at the edges. Letters stay readable in all of
+     them; special tiles keep their identity everywhere. ===== */
+  #app.bio0{ /* 🌼 the First Clearing — a sunny gap in the wood, and where everyone begins */
+    --tile-face:linear-gradient(148deg,#fffdf4 0%, #f2e6c8 52%, #e2d0a4 100%);
+    --tile-edge:#c2a068; --tile-ink:#4a3a1e;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(150,105,40,.09) 0 2px, transparent 2px 7px);
+    --grass:#79c268;
+    --frame1:#caa26a; --frame2:#9a6f3c;
+    --spec:255,246,222; --sky-glow:#f0c9a0;
+    --sky-top:#4a4a78; --sky-mid:#8878a4; --sky-low:#e6c39a; --moon:#fff4d2; }
+  #app.bio1{ --sky-glow:#cfe3a8; --spec:236,250,214; /* 🌿 the Bramblewood — deeper in, and the green closes over */
     --tile-face:linear-gradient(148deg,#f2f8ec 0%, #d7e8c6 52%, #b4d0a0 100%);
     --tile-edge:#78a066; --tile-ink:#2f4a26;
     --tile-grain:repeating-linear-gradient(94deg, rgba(70,120,55,.09) 0 2px, transparent 2px 7px);
@@ -52,7 +61,7 @@
     --board-tint:linear-gradient(180deg, rgba(160, 205,140,.30),rgba(95,150,80,.18));
     --frame1:#9dc189; --frame2:#6d9c5c;
     --sky-top:#26382f; --sky-mid:#456b4c; --sky-low:#93b98d; --moon:#eef7e6; }
-  #app.bio2{ --spec:226,246,232; /* 🌱 the Mosswood — damp, close, everything soft with moss */
+  #app.bio2{ --sky-glow:#bcdcc4; --spec:226,246,232; /* 🌱 the Mosswood — damp, close, everything soft with moss */
     --tile-face:linear-gradient(148deg,#eef6ea 0%, #cfe3cd 52%, #a9cbaa 100%);
     --tile-edge:#6f9b7c; --tile-ink:#28453a;
     --tile-grain:repeating-linear-gradient(94deg, rgba(55,105,80,.10) 0 2px, transparent 2px 7px);
@@ -60,7 +69,7 @@
     --board-tint:linear-gradient(180deg, rgba(150, 200,175,.30),rgba(85,140,115,.20));
     --frame1:#94bfa4; --frame2:#628f74;
     --sky-top:#1f3630; --sky-mid:#3d6455; --sky-low:#8db69c; --moon:#e8f5ee; }
-  #app.bio3{ --spec:240,222,252; /* 🍄 the Spore Hollow — low ground, and the air is full of drift */
+  #app.bio3{ --sky-glow:#e0c2f0; --spec:240,222,252; /* 🍄 the Spore Hollow — low ground, and the air is full of drift */
     --tile-face:linear-gradient(148deg,#f6eefa 0%, #e2cfec 52%, #c9aedb 100%);
     --tile-edge:#9878b4; --tile-ink:#3f2a52;
     --tile-grain:repeating-linear-gradient(94deg, rgba(110,70,145,.10) 0 2px, transparent 2px 7px);
@@ -68,7 +77,7 @@
     --board-tint:linear-gradient(180deg, rgba(200, 165,225,.30),rgba(140,100,175,.20));
     --frame1:#bb9bd0; --frame2:#8e6cab;
     --sky-top:#2c1f3d; --sky-mid:#5a4079; --sky-low:#a98cc4; --moon:#f4e9fb; }
-  #app.bio4{ --spec:224,250,242; /* 🌊 the Listening Pond — lily-pad tiles floating on still water */
+  #app.bio4{ --sky-glow:#b6e4d6; --spec:224,250,242; /* 🌊 the Listening Pond — lily-pad tiles floating on still water */
     --tile-face:linear-gradient(148deg,#eefaf0 0%, #cfe9d3 52%, #a9d4b2 100%);
     --tile-edge:#6da283; --tile-ink:#26513a;
     --tile-grain:repeating-linear-gradient(94deg, rgba(50,115,80,.08) 0 2px, transparent 2px 7px);
@@ -76,7 +85,7 @@
     --board-tint:linear-gradient(180deg, rgba(150, 220,235,.30),rgba(90,180,160,.18));
     --frame1:#8fc3ae; --frame2:#5e9e86;
     --sky-top:#2b3f5e; --sky-mid:#4a7d86; --sky-low:#9fcbba; --moon:#eafff4; }
-  #app.bio5{ --spec:244,248,214; /* 🪷 the Reedmarsh — olive water, soft ground, wading birds */
+  #app.bio5{ --sky-glow:#dfe6b0; --spec:244,248,214; /* 🪷 the Reedmarsh — olive water, soft ground, wading birds */
     --tile-face:linear-gradient(148deg,#f4f5e6 0%, #dfe2c2 52%, #c2c79c 100%);
     --tile-edge:#95a06a; --tile-ink:#3b4026;
     --tile-grain:repeating-linear-gradient(94deg, rgba(110,120,60,.10) 0 2px, transparent 2px 7px);
@@ -84,7 +93,7 @@
     --board-tint:linear-gradient(180deg, rgba(195, 205,150,.30),rgba(130,145,90,.20));
     --frame1:#b2bb8a; --frame2:#87935e;
     --sky-top:#33402f; --sky-mid:#5d6f4a; --sky-low:#a8b591; --moon:#f1f6de; }
-  #app.bio6{ --spec:216,242,255; /* 🌀 the Running River — bright, fast, nothing sits still */
+  #app.bio6{ --sky-glow:#a8dcf4; --spec:216,242,255; /* 🌀 the Running River — bright, fast, nothing sits still */
     --tile-face:linear-gradient(148deg,#eaf6fd 0%, #c8e5f6 52%, #9fd0ee 100%);
     --tile-edge:#5f9dc4; --tile-ink:#1e3f57;
     --tile-grain:repeating-linear-gradient(94deg, rgba(40,110,160,.09) 0 2px, transparent 2px 7px);
@@ -92,7 +101,7 @@
     --board-tint:linear-gradient(180deg, rgba(150, 215,245,.32),rgba(75,150,200,.20));
     --frame1:#8dc2dd; --frame2:#5794bb;
     --sky-top:#1f3a55; --sky-mid:#3f7ba3; --sky-low:#9ccce6; --moon:#ecfaff; }
-  #app.bio7{ --spec:222,255,250; /* 💦 the Thunderfalls — spray, noise, and a rainbow in it */
+  #app.bio7{ --sky-glow:#b4f0e6; --spec:222,255,250; /* 💦 the Thunderfalls — spray, noise, and a rainbow in it */
     --tile-face:linear-gradient(148deg,#eafcfa 0%, #c6efeb 52%, #9adcd6 100%);
     --tile-edge:#5aa9a2; --tile-ink:#16453f;
     --tile-grain:repeating-linear-gradient(94deg, rgba(35,140,130,.09) 0 2px, transparent 2px 7px);
@@ -100,7 +109,7 @@
     --board-tint:linear-gradient(180deg, rgba(150, 240,232,.32),rgba(70,175,165,.20));
     --frame1:#8bd0c8; --frame2:#54a79d;
     --sky-top:#173f45; --sky-mid:#39868a; --sky-low:#96d8d0; --moon:#e9fffc; }
-  #app.bio8{ --spec:255,206,128; /* 🕳️ the Undercave — the sky is gone; stone and lamplight */
+  #app.bio8{ --sky-glow:#e0a860; --spec:255,206,128; /* 🕳️ the Undercave — the sky is gone; stone and lamplight */
     --tile-face:linear-gradient(148deg,#f0e9df 0%, #d8caba 52%, #bda893 100%);
     --tile-edge:#8b7460; --tile-ink:#3a2c20;
     --tile-grain:repeating-linear-gradient(94deg, rgba(120,90,60,.11) 0 2px, transparent 2px 7px);
@@ -108,7 +117,7 @@
     --board-tint:linear-gradient(180deg, rgba(215, 195,170,.24),rgba(140,115,90,.24));
     --frame1:#a89279; --frame2:#826b53;
     --sky-top:#241c16; --sky-mid:#4a3a2c; --sky-low:#8d7660; --moon:#f6e6cc; }
-  #app.bio9{ --spec:120,108,150; /* 🌑 the Deep Dark — almost nothing, and that is the point */
+  #app.bio9{ --sky-glow:#4a3f66; --spec:120,108,150; /* 🌑 the Deep Dark — almost nothing, and that is the point */
     --tile-face:linear-gradient(148deg,#e6e3ec 0%, #c7c2d4 52%, #a9a2bd 100%);
     --tile-edge:#736c8a; --tile-ink:#241f33;
     --tile-grain:repeating-linear-gradient(94deg, rgba(70,60,100,.12) 0 2px, transparent 2px 7px);
@@ -116,7 +125,7 @@
     --board-tint:linear-gradient(180deg, rgba(160, 150,190,.20),rgba(90,80,120,.28));
     --frame1:#948ca8; --frame2:#6d6484;
     --sky-top:#15111f; --sky-mid:#2e2743; --sky-low:#6a6284; --moon:#cfc9e0; }
-  #app.bio10{ --spec:180,240,255; /* 💎 the Glimmer Seams — the wood being generous on purpose */
+  #app.bio10{ --sky-glow:#9fe4fa; --spec:180,240,255; /* 💎 the Glimmer Seams — the wood being generous on purpose */
     --tile-face:linear-gradient(148deg,#eafaff 0%, #c9ecfb 52%, #a2d8f2 100%);
     --tile-edge:#5fa7cc; --tile-ink:#173a51;
     --tile-grain:repeating-linear-gradient(94deg, rgba(40,125,175,.10) 0 2px, transparent 2px 7px);
@@ -124,7 +133,7 @@
     --board-tint:linear-gradient(180deg, rgba(165, 230,250,.34),rgba(80,165,215,.20));
     --frame1:#8fcbe6; --frame2:#57a3c6;
     --sky-top:#1b3348; --sky-mid:#3d7fa8; --sky-low:#a5d6ee; --moon:#f0fdff; }
-  #app.bio11{ --spec:236,228,214; /* 🪨 the Scree Slopes — loose rock, open air, climbing */
+  #app.bio11{ --sky-glow:#e6d8c0; --spec:236,228,214; /* 🪨 the Scree Slopes — loose rock, open air, climbing */
     --tile-face:linear-gradient(148deg,#f4f1ec 0%, #ded8cf 52%, #c2b9ac 100%);
     --tile-edge:#948a7c; --tile-ink:#3b352d;
     --tile-grain:repeating-linear-gradient(94deg, rgba(110,100,85,.10) 0 2px, transparent 2px 7px);
@@ -132,7 +141,7 @@
     --board-tint:linear-gradient(180deg, rgba(215, 205,190,.26),rgba(140,130,115,.22));
     --frame1:#b3a996; --frame2:#8b8170;
     --sky-top:#33302c; --sky-mid:#615a50; --sky-low:#a79d8d; --moon:#f3efe6; }
-  #app.bio12{ --spec:236,246,255; /* 🌬️ the Windward Ridge — high, exposed, the cloud is back */
+  #app.bio12{ --sky-glow:#dcecfa; --spec:236,246,255; /* 🌬️ the Windward Ridge — high, exposed, the cloud is back */
     --tile-face:linear-gradient(148deg,#f2f7fb 0%, #dbe6f0 52%, #bccfe2 100%);
     --tile-edge:#8aa3bd; --tile-ink:#2c3c4f;
     --tile-grain:repeating-linear-gradient(94deg, rgba(80,110,150,.09) 0 2px, transparent 2px 7px);
@@ -140,7 +149,7 @@
     --board-tint:linear-gradient(180deg, rgba(210, 230,248,.34),rgba(130,165,205,.18));
     --frame1:#adc3d8; --frame2:#82a0bd;
     --sky-top:#39537a; --sky-mid:#7098c0; --sky-low:#c3daec; --moon:#f7fdff; }
-  #app.bio13{ --spec:255,255,255; /* ❄️ the Snowline — the first snow, at last */
+  #app.bio13{ --sky-glow:#e8f4ff; --spec:255,255,255; /* ❄️ the Snowline — the first snow, at last */
     --tile-face:linear-gradient(148deg,#fdfeff 0%, #e4f0fa 52%, #cbdff0 100%);
     --tile-edge:#87a4be; --tile-ink:#2f4459;
     --tile-grain:repeating-linear-gradient(94deg, rgba(90,130,170,.08) 0 2px, transparent 2px 7px);
@@ -148,7 +157,7 @@
     --board-tint:linear-gradient(180deg, rgba(215, 235,248,.40),rgba(140,175,205,.18));
     --frame1:#a9c0d4; --frame2:#7d9bb4;
     --sky-top:#2b3550; --sky-mid:#5f7a9a; --sky-low:#bcd4e4; --moon:#f2fbff; }
-  #app.bio14{ --spec:228,214,255; /* 👑 the Frozen Crown — the summit, and the sky puts on a show */
+  #app.bio14{ --sky-glow:#b79ae8; --spec:228,214,255; /* 👑 the Frozen Crown — the summit, and the sky puts on a show */
     --tile-face:linear-gradient(148deg,#f6f2ff 0%, #ddd4f4 52%, #bfb2e6 100%);
     --tile-edge:#8577b8; --tile-ink:#2b2450;
     --tile-grain:repeating-linear-gradient(94deg, rgba(95,75,165,.10) 0 2px, transparent 2px 7px);
@@ -768,7 +777,11 @@
       radial-gradient(1px 1px at 74% 33%, rgba(var(--spec),.65), transparent 60%),
       radial-gradient(1.3px 1.3px at 92% 40%, rgba(var(--spec),.6), transparent 60%),
       radial-gradient(1px 1px at 26% 44%, rgba(var(--spec),.55), transparent 60%),
-      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 46%, var(--sky-low) 100%);
+      /* the horizon glows before it meets the ground — this is the difference between a
+         gradient and a sky */
+      radial-gradient(150% 62% at 50% 84%, color-mix(in srgb, var(--sky-glow) 78%, transparent), transparent 72%),
+      radial-gradient(90% 40% at 78% 8%, color-mix(in srgb, var(--sky-top) 60%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-top) 14%, var(--sky-mid) 50%, var(--sky-low) 86%, var(--sky-low) 100%);
     background-repeat:no-repeat;
     border-radius:var(--r-lg); overflow:hidden;
     transition:filter .8s ease;
@@ -791,6 +804,34 @@
       color-mix(in srgb, var(--grass) 34%, transparent) 42%,
       color-mix(in srgb, var(--grass) 66%, transparent) 78%,
       color-mix(in srgb, var(--grass) 82%, transparent) 100%); }
+  /* THE BOARD'S EDGE. It was a cream ring in all fifteen countries; --frame1/--frame2
+     were defined per-country and referenced nowhere. Now the wood has a mossy rim, the
+     cave a stone one, and the summit an icy one. */
+  #app[class*="bio"] #board{
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--frame1) 82%, transparent),
+      0 0 0 5px color-mix(in srgb, var(--frame2) 55%, transparent),
+      0 10px 26px rgba(20,16,30,.34),
+      inset 0 0 44px color-mix(in srgb, var(--frame2) 30%, transparent); }
+
+  /* ── the edges grow things ── large, soft, behind the letters, never in the way */
+  #biodecor span.edge{ opacity:.46; filter:blur(.2px) drop-shadow(0 4px 7px rgba(0,0,0,.32)); }
+  #biodecor span.edge.flip{ transform:scaleX(-1); }
+  #biodecor span.edge.tilt{ transform:rotate(14deg); }
+  #biodecor span.edge.tiltl{ transform:rotate(-14deg) scaleX(-1); }
+  /* the deeper you go, the more the dark closes in around the play */
+  #app.bio8 #board, #app.bio9 #board{ }
+  #app.bio8 #biodecor::after, #app.bio9 #biodecor::after{
+    content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+    background:radial-gradient(120% 90% at 50% 62%, transparent 34%, rgba(8,6,14,.55) 100%); }
+
+  /* ── the pet bar takes the local light ── */
+  #app[class*="bio"] #petbar{
+    background:linear-gradient(180deg,
+      color-mix(in srgb, var(--frame1) 20%, #fbf6e8),
+      color-mix(in srgb, var(--frame2) 26%, #f1e9d4));
+    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2) 45%, transparent),
+               0 6px 14px rgba(40,30,20,.16); }
   @keyframes moonglow{ 50%{ box-shadow:0 0 44px 16px color-mix(in srgb, var(--moon) 65%, transparent); } }
   /* THE SKY IS NOT ALWAYS THERE. The same moon hung in the same corner of every board for
      three hundred levels, which is the single most repetitive thing on screen — and it hung
@@ -1968,38 +2009,51 @@ function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%BIOME_NAMES.length; }
    off the slope, then snow, then the aurora at the top. The old array had five, so the
    moment there were fifteen countries the board threw on every level past L100. */
 const BIOME_DECOR=[
-  /* 1 First Clearing — a bright, safe morning */
-  [ {e:"✨",x:"14%",y:"12%",s:10,a:"deco-twinkle"},{e:"🦋",x:"78%",y:"14%",s:13,a:"deco-sway"},{e:"✨",x:"52%",y:"8%",s:8,a:"deco-twinkle2"} ],
-  /* 2 Bramblewood — deeper in, and something is growing */
-  [ {e:"🌿",x:"12%",y:"16%",s:13,a:"deco-sway"},{e:"🦋",x:"70%",y:"10%",s:11,a:"deco-bob"},{e:"✨",x:"44%",y:"7%",s:8,a:"deco-twinkle"} ],
-  /* 3 Mosswood — damp, green, close */
-  [ {e:"🍃",x:"74%",y:"3%",s:13,a:"deco-fall"},{e:"🍃",x:"28%",y:"2%",s:11,a:"deco-fall2"},{e:"🐛",x:"88%",y:"18%",s:11,a:"deco-sway"} ],
-  /* 4 Spore Hollow — low, fungal, drifting */
-  [ {e:"🍄",x:"16%",y:"16%",s:13,a:"deco-bob"},{e:"✨",x:"58%",y:"6%",s:9,a:"deco-twinkle"},{e:"🍄",x:"84%",y:"12%",s:10,a:"deco-sway"} ],
-  /* 5 Listening Pond — water at last */
-  [ {e:"🪷",x:"18%",y:"18%",s:14,a:"deco-bob"},{e:"🌙",x:"78%",y:"9%",s:14,a:"deco-twinkle"},{e:"✨",x:"48%",y:"7%",s:8,a:"deco-twinkle2"} ],
-  /* 6 Reedmarsh — still, muddy, alive with wings */
-  [ {e:"🌾",x:"10%",y:"14%",s:14,a:"deco-sway"},{e:"🪰",x:"66%",y:"12%",s:10,a:"deco-bob"},{e:"🌾",x:"86%",y:"17%",s:12,a:"deco-sway"} ],
-  /* 7 Running River — everything is moving */
-  [ {e:"💧",x:"24%",y:"4%",s:11,a:"deco-fall"},{e:"💧",x:"70%",y:"2%",s:9,a:"deco-fall2"},{e:"🌀",x:"12%",y:"18%",s:12,a:"deco-sway"} ],
-  /* 8 Thunderfalls — loud and wet */
-  [ {e:"💦",x:"20%",y:"3%",s:13,a:"deco-fall"},{e:"💦",x:"74%",y:"2%",s:11,a:"deco-fall2"},{e:"🌈",x:"50%",y:"16%",s:13,a:"deco-twinkle"} ],
-  /* 9 Undercave — the sky is gone; only what glows */
-  [ {e:"✨",x:"22%",y:"10%",s:8,a:"deco-twinkle"},{e:"🦇",x:"72%",y:"13%",s:12,a:"deco-bob"},{e:"✨",x:"52%",y:"17%",s:7,a:"deco-twinkle2"} ],
-  /* 10 Deep Dark — almost nothing, and that is the point */
-  [ {e:"✨",x:"34%",y:"14%",s:7,a:"deco-twinkle2"},{e:"🌑",x:"80%",y:"10%",s:13,a:"deco-bob"} ],
-  /* 11 Glimmer Seams — the wood being generous */
-  [ {e:"💎",x:"16%",y:"14%",s:12,a:"deco-twinkle"},{e:"✨",x:"58%",y:"8%",s:10,a:"deco-twinkle2"},{e:"💎",x:"84%",y:"17%",s:10,a:"deco-bob"} ],
-  /* 12 Scree Slopes — out of the caves, climbing */
-  [ {e:"🪨",x:"14%",y:"17%",s:11,a:"deco-bob"},{e:"✨",x:"66%",y:"9%",s:8,a:"deco-twinkle"},{e:"🪨",x:"86%",y:"13%",s:9,a:"deco-sway"} ],
-  /* 13 Windward Ridge — high, exposed, and the cloud is back */
-  [ {e:"🌬️",x:"18%",y:"11%",s:14,a:"deco-sway"},{e:"☁️",x:"72%",y:"15%",s:15,a:"deco-bob"},{e:"🦅",x:"46%",y:"7%",s:12,a:"deco-sway"} ],
-  /* 14 Snowline — the first snow, at last */
-  [ {e:"❄️",x:"22%",y:"2%",s:12,a:"deco-fall"},{e:"❄️",x:"64%",y:"2%",s:10,a:"deco-fall2"},
-    {e:"❄️",x:"8%",y:"14%",s:9,a:"deco-twinkle"},{e:"✨",x:"80%",y:"18%",s:9,a:"deco-twinkle2"} ],
-  /* 15 Frozen Crown — the summit, and the sky puts on a show */
-  [ {e:"❄️",x:"18%",y:"2%",s:11,a:"deco-fall"},{e:"🌌",x:"70%",y:"11%",s:16,a:"deco-twinkle"},
-    {e:"⭐",x:"40%",y:"8%",s:11,a:"deco-twinkle2"},{e:"❄️",x:"88%",y:"4%",s:9,a:"deco-fall2"} ],
+  /* 1 First Clearing — a bright gap in the trees */
+  [ {e:"🌿",x:"-6%",y:"-4%",s:84,a:"edge tilt"}, {e:"🍃",x:"82%",y:"-8%",s:70,a:"edge tiltl"}, {e:"🌱",x:"-4%",y:"74%",s:62,a:"edge"},
+    {e:"✨",x:"30%",y:"20%",s:10,a:"deco-twinkle"}, {e:"🦋",x:"70%",y:"26%",s:13,a:"deco-sway"} ],
+  /* 2 Bramblewood — the thorns close over the path */
+  [ {e:"🌿",x:"-8%",y:"-6%",s:96,a:"edge tilt"}, {e:"🌿",x:"78%",y:"-6%",s:90,a:"edge tiltl"}, {e:"🍂",x:"-6%",y:"70%",s:68,a:"edge"},
+    {e:"🦋",x:"54%",y:"22%",s:11,a:"deco-bob"}, {e:"✨",x:"28%",y:"14%",s:9,a:"deco-twinkle"} ],
+  /* 3 Mosswood — soft and damp, everything furred with moss */
+  [ {e:"🌱",x:"-7%",y:"-5%",s:88,a:"edge tilt"}, {e:"🍃",x:"80%",y:"-4%",s:76,a:"edge tiltl"}, {e:"🍄",x:"84%",y:"72%",s:54,a:"edge"},
+    {e:"🍃",x:"36%",y:"6%",s:12,a:"deco-fall"}, {e:"🐛",x:"62%",y:"26%",s:11,a:"deco-sway"} ],
+  /* 4 Spore Hollow — caps crowding in from the low ground */
+  [ {e:"🍄",x:"-8%",y:"62%",s:92,a:"edge"}, {e:"🍄",x:"78%",y:"68%",s:80,a:"edge flip"}, {e:"🌿",x:"-4%",y:"-6%",s:70,a:"edge tilt"},
+    {e:"✨",x:"46%",y:"12%",s:10,a:"deco-twinkle2"}, {e:"🍄",x:"30%",y:"28%",s:12,a:"deco-bob"} ],
+  /* 5 Listening Pond — lilies riding the waterline */
+  [ {e:"🪷",x:"-6%",y:"70%",s:84,a:"edge"}, {e:"🪷",x:"80%",y:"74%",s:70,a:"edge flip"}, {e:"🌾",x:"86%",y:"-2%",s:66,a:"edge tiltl"},
+    {e:"✨",x:"40%",y:"14%",s:9,a:"deco-twinkle"}, {e:"🌙",x:"72%",y:"10%",s:14,a:"deco-twinkle2"} ],
+  /* 6 Reedmarsh — reeds standing on both banks */
+  [ {e:"🌾",x:"-7%",y:"36%",s:104,a:"edge"}, {e:"🌾",x:"82%",y:"32%",s:96,a:"edge flip"}, {e:"🪷",x:"40%",y:"78%",s:58,a:"edge"},
+    {e:"🪰",x:"58%",y:"20%",s:10,a:"deco-bob"}, {e:"✨",x:"24%",y:"12%",s:8,a:"deco-twinkle"} ],
+  /* 7 Running River — the water will not hold still */
+  [ {e:"🌀",x:"-9%",y:"54%",s:96,a:"edge"}, {e:"🌀",x:"80%",y:"20%",s:78,a:"edge flip"}, {e:"💧",x:"44%",y:"-6%",s:60,a:"edge"},
+    {e:"💧",x:"30%",y:"10%",s:11,a:"deco-fall"}, {e:"💧",x:"68%",y:"6%",s:9,a:"deco-fall2"} ],
+  /* 8 Thunderfalls — falling water down both walls */
+  [ {e:"💦",x:"-8%",y:"-8%",s:100,a:"edge"}, {e:"💦",x:"80%",y:"-6%",s:92,a:"edge flip"}, {e:"🌈",x:"32%",y:"62%",s:76,a:"edge"},
+    {e:"💦",x:"46%",y:"4%",s:12,a:"deco-fall"}, {e:"✨",x:"64%",y:"24%",s:9,a:"deco-twinkle2"} ],
+  /* 9 Undercave — stone teeth hanging from the roof */
+  [ {e:"🪨",x:"-8%",y:"-10%",s:96,a:"edge tilt"}, {e:"🪨",x:"78%",y:"-12%",s:88,a:"edge tiltl"}, {e:"🕳️",x:"40%",y:"74%",s:64,a:"edge"},
+    {e:"🦇",x:"62%",y:"18%",s:13,a:"deco-bob"}, {e:"✨",x:"26%",y:"24%",s:8,a:"deco-twinkle"} ],
+  /* 10 Deep Dark — almost nothing. The dark is the decoration */
+  [ {e:"🌑",x:"74%",y:"-6%",s:78,a:"edge"}, {e:"🕳️",x:"-8%",y:"66%",s:84,a:"edge"},
+    {e:"✨",x:"44%",y:"30%",s:7,a:"deco-twinkle2"} ],
+  /* 11 Glimmer Seams — crystal growing from every corner */
+  [ {e:"💎",x:"-7%",y:"-6%",s:86,a:"edge tilt"}, {e:"💎",x:"80%",y:"66%",s:78,a:"edge flip"}, {e:"💎",x:"78%",y:"-8%",s:64,a:"edge tiltl"},
+    {e:"✨",x:"40%",y:"22%",s:11,a:"deco-twinkle"}, {e:"✨",x:"62%",y:"10%",s:9,a:"deco-twinkle2"} ],
+  /* 12 Scree Slopes — loose rock piled at your feet */
+  [ {e:"🪨",x:"-8%",y:"68%",s:88,a:"edge"}, {e:"🪨",x:"76%",y:"72%",s:76,a:"edge flip"}, {e:"⛰️",x:"36%",y:"-8%",s:82,a:"edge"},
+    {e:"✨",x:"58%",y:"18%",s:8,a:"deco-twinkle"}, {e:"🪨",x:"24%",y:"26%",s:11,a:"deco-bob"} ],
+  /* 13 Windward Ridge — cloud blowing past at eye level */
+  [ {e:"☁️",x:"-10%",y:"14%",s:100,a:"edge"}, {e:"☁️",x:"78%",y:"54%",s:88,a:"edge flip"}, {e:"🌬️",x:"36%",y:"-8%",s:76,a:"edge"},
+    {e:"🦅",x:"56%",y:"20%",s:13,a:"deco-sway"}, {e:"☁️",x:"20%",y:"40%",s:14,a:"deco-bob"} ],
+  /* 14 Snowline — snow banked at the edges, ice reaching down */
+  [ {e:"🏔️",x:"-8%",y:"60%",s:96,a:"edge"}, {e:"❄️",x:"80%",y:"-8%",s:82,a:"edge tiltl"}, {e:"🌲",x:"82%",y:"62%",s:70,a:"edge"},
+    {e:"❄️",x:"30%",y:"2%",s:12,a:"deco-fall"}, {e:"❄️",x:"64%",y:"4%",s:10,a:"deco-fall2"} ],
+  /* 15 Frozen Crown — the summit, and the sky lit up */
+  [ {e:"🏔️",x:"-9%",y:"54%",s:104,a:"edge"}, {e:"🌌",x:"70%",y:"-8%",s:96,a:"edge"}, {e:"❄️",x:"-6%",y:"-6%",s:72,a:"edge tilt"},
+    {e:"❄️",x:"24%",y:"4%",s:11,a:"deco-fall"}, {e:"⭐",x:"48%",y:"16%",s:11,a:"deco-twinkle2"} ],
 ];
 function applyBiome(L){
   const app=document.getElementById("app");
@@ -2007,7 +2061,11 @@ function applyBiome(L){
   // element, and which country you appeared to be in came down to CSS source order
   app.className = app.className.replace(/\bbio\d+\b/g,"").trim();
   const b=biomeOf(L);
-  if(b>0) app.classList.add("bio"+b);
+  // ALWAYS class it, including the first country. bio0 was left bare so that the default
+  // palette in :root would show through — which meant the First Clearing, the country
+  // every player sees first and longest, was the one place that got no frame, no tinted
+  // shelf and none of the country styling. It is a place like the other fourteen.
+  app.classList.add("bio"+b);
   // scenery lives UNDER the tiles: first child of the board, rebuilt with each place
   const old=document.getElementById("biodecor"); if(old) old.remove();
   const d=document.createElement("div"); d.id="biodecor";
