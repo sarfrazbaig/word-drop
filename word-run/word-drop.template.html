@@ -1060,21 +1060,22 @@
   .gseg .gs-i .ui-ic{ width:21px; height:21px; }
   .gseg .gs-i{ display:flex; align-items:center; }
 
-  #movesbox{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0; }
-  /* the book's voice, in the country's ink */
-  #lvlcap{ font-family:var(--font-story); font-size:12.5px; font-weight:600;
-    letter-spacing:.3px; cursor:pointer;
+  #movesbox{ flex:1; display:flex; align-items:center; justify-content:center; min-width:0; }
+  /* the level, inside the pill, divided from the moves by a hairline rather than a dot */
+  #lvlcap{ font-family:var(--font-story); font-size:13px; font-weight:600;
+    letter-spacing:.3px; cursor:pointer; padding-right:10px; margin-right:2px;
+    border-right:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 30%, transparent);
     color:color-mix(in srgb, var(--frame2,#9a6f3c) 78%, #4a3a24); }
   #lvlcap b{ font-weight:700; color:inherit; }
   /* tinted by the country, like every other surface on this screen */
-  #movespill{ display:flex; align-items:baseline; gap:6px; padding:5px 16px 6px;
+  #movespill{ display:flex; align-items:baseline; gap:7px; padding:8px 20px 9px;
     background:color-mix(in srgb, var(--frame1,#caa26a) 16%, #fffdf6);
     border:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 42%, transparent);
     border-radius:999px;
     box-shadow:0 2px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 22%, transparent); }
-  #movespill .mv-lbl{ font-family:var(--font-story); font-size:13.5px; font-weight:600;
+  #movespill .mv-lbl{ font-family:var(--font-story); font-size:14px; font-weight:600;
     color:color-mix(in srgb, var(--frame2,#9a6f3c) 70%, #4a3a24); }
-  #movesbig{ font-size:17px; font-weight:900; color:var(--ink); font-variant-numeric:tabular-nums;
+  #movesbig{ font-size:19px; font-weight:900; color:var(--ink); font-variant-numeric:tabular-nums;
     line-height:1; }
   #movespill.low{ border-color:rgba(190,70,50,.55); background:rgba(255,241,237,.95); }
   #movespill.low .mv-lbl, #movespill.low #movesbig{ color:var(--danger); }
@@ -1087,7 +1088,9 @@
   #topbar #amberchip{ position:relative; flex:none; display:flex; align-items:center; gap:4px;
     background:color-mix(in srgb, var(--frame1,#caa26a) 16%, #fffdf6) !important;
     border:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 42%, transparent) !important;
-    border-radius:999px; padding:3px 5px 3px 27px; margin-left:9px;
+    /* 40px, measured: the coin's glyph box is 47px wide at 36px type, not 36 — reasoning
+       from the font-size left it lying across the count by 11px. */
+    border-radius:999px; padding:3px 8px 3px 40px; margin-left:11px;
     box-shadow:0 2px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 22%, transparent) !important; }
   #topbar #amberchip .coin-i{ position:absolute; left:-11px; top:50%;
     transform:translateY(-50%); font-size:36px; line-height:1; font-style:normal;
@@ -2001,8 +2004,10 @@
     <div id="topbar">
       <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu"><svg class="ui-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><circle cx="12" cy="12" r="6.6"/></g><circle cx="12" cy="12" r="2.9" fill="#fdf8ec"/></svg></button>
       <div id="movesbox">
-        <div id="lvlcap" onclick="UI.dbgTap()">Level: <b id="h-level">1</b></div>
-        <div id="movespill"><span class="mv-lbl">Moves:</span><span id="movesbig">15</span></div>
+        <div id="movespill">
+          <span id="lvlcap" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
+          <span class="mv-lbl">Moves:</span><span id="movesbig">15</span>
+        </div>
       </div>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops — the wood's small thanks. spent on lifelines, never on power"><i class="coin-i">🟠</i><b id="amber-n">0</b><i class="coin-plus">+</i></span>
     </div>
