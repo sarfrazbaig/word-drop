@@ -4,7 +4,7 @@
 // each deploy, never installs a new worker, and never clears the old cache — so a
 // playtester can sit on a stale build while you push fixes they never receive. A changed
 // stamp makes the file differ, which triggers install → activate → old caches deleted.
-const CACHE = "hushwood-20260721193244";
+const CACHE = "hushwood-20260721194443";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // the raster set the launcher and the install prompt actually use — cached so an
   // offline install still shows a proper icon instead of a blank tile
