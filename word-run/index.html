@@ -268,6 +268,46 @@
   #tiptip .tt{ font-size:14px; color:var(--ink); line-height:1.5; margin-top:6px; }
   #tiptip .tk{ margin-top:10px; font-size:12px; color:var(--accent-deep); font-weight:800; letter-spacing:1px; }
   /* announcements land CENTER STAGE — toasts are website furniture, players miss them */
+  /* ══ THE SKY RAIL ══ anything you have to read while looking at the board. It rides the
+     empty sky at the top of the board, because letters stack from the floor. Translucent so
+     a full board still reads through it, and slim enough that at its longest it costs about
+     one row -- against the 47% the tip card used to take. */
+  #skyrail{ position:absolute; left:10px; right:10px; top:8px; z-index:86;
+    background:rgba(26,32,28,.80); color:#f3eee1; border:1px solid rgba(255,255,255,.14);
+    border-radius:13px; padding:8px 12px; text-align:center;
+    font-size:12.5px; line-height:1.42;
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    box-shadow:0 8px 22px -12px rgba(0,0,0,.75);
+    opacity:0; transform:translateY(-8px); transition:opacity .26s ease, transform .26s ease;
+    pointer-events:none; }
+  /* NO pointer-events, ever: a tap here is a tap meant for the column underneath. */
+  #skyrail.on{ opacity:1; transform:none; }
+  #skyrail b{ color:#ffe6a2; font-weight:700; }
+  #skyrail small{ display:block; margin-top:3px; opacity:.82; font-size:11px; }
+
+  /* ══ THE CHIP ══ amber spent, seats opened, friends swapped. None of it refers to the
+     board, so none of it belongs over the board -- it appears beside the counters it just
+     changed. */
+  #chiptoast{ position:absolute; right:10px; top:86px; z-index:87; max-width:74%;
+    background:rgba(26,32,28,.88); color:#f3eee1; border:1px solid rgba(255,255,255,.14);
+    border-radius:12px; padding:7px 11px; font-size:12px; line-height:1.4; text-align:right;
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    box-shadow:0 8px 20px -12px rgba(0,0,0,.7);
+    opacity:0; transform:translateY(-6px); transition:opacity .22s ease, transform .22s ease;
+    pointer-events:none; }
+  #chiptoast.on{ opacity:1; transform:none; }
+  #chiptoast b{ color:#ffe6a2; }
+  #chiptoast small{ display:block; opacity:.8; font-size:10.5px; }
+
+  /* the tile a friend is working on. The friend hovers in the sky above its column now, so
+     the tile needs to say for itself that it is the one being changed. */
+  .tile.petmark{ animation:petmarkpulse 1.05s ease-in-out infinite; }
+  @keyframes petmarkpulse{
+    0%,100%{ box-shadow:0 0 0 3px rgba(255,214,110,.85), 0 0 12px 1px rgba(255,214,110,.45); }
+    50%    { box-shadow:0 0 0 4px rgba(255,214,110,1),   0 0 18px 3px rgba(255,214,110,.7); } }
+  @media (prefers-reduced-motion:reduce){
+    #skyrail, #chiptoast{ transition:opacity .01s ease; }
+    .tile.petmark{ animation:none; box-shadow:0 0 0 3px rgba(255,214,110,.95); } }
   #toast{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%) scale(.6); opacity:0;
     background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:13px 22px;
     font-size:16px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
@@ -1059,9 +1099,13 @@
      nobody could tell who had done what. Now the one whose turn it is hops out, lands
      on the tiles, does the thing where you can see it, and hops home. */
   .petsprite{ position:absolute; z-index:88; font-size:32px; line-height:1; pointer-events:none;
+    display:flex; align-items:center; justify-content:center;   /* the glyph is centred in a box */
+    width:44px; height:44px;                                    /* JS overrides both to the cell */
     transform:translate(-50%,-50%); filter:drop-shadow(0 5px 7px rgba(30,20,10,.45));
     transition:left .42s cubic-bezier(.34,1.3,.5,1), top .42s cubic-bezier(.34,1.3,.5,1), font-size .3s; }
-  .petsprite.landed{ font-size:46px; animation:petwork .55s ease-in-out infinite; }
+  /* it grows a little on landing, but never past the column: the glyph is clipped to the
+     cell box so a big emoji cannot reach into the letter next door. */
+  .petsprite.landed{ font-size:40px; animation:petwork .55s ease-in-out infinite; }
   @keyframes petwork{ 0%,100%{ transform:translate(-50%,-50%) rotate(-7deg) scale(1) }
     50%{ transform:translate(-50%,-64%) rotate(7deg) scale(1.09) } }
   /* .petplate was the name pill a visiting friend wore. It sat over the board announcing
@@ -2855,7 +2899,7 @@ const Ads={
       return true;
     }catch(e){
       Game.track("ad_fail",{p:placement});
-      UI.toast("🌫️ the picture-show flickered out — <b>nothing was lost</b>");
+      UI.chip("🌫️ the picture-show flickered out — <b>nothing was lost</b>");
       return false;
     }
   },
@@ -2954,7 +2998,7 @@ const Shop={
   },
   async buy(sku){
     const it=SHOP_ITEMS.find(x=>x.sku===sku); if(!it) return;
-    if(it.once && P.purchases[sku]){ UI.toast("🎒 already yours — the wood remembers"); return; }
+    if(it.once && P.purchases[sku]){ UI.chip("🎒 already yours — the wood remembers"); return; }
     Game.track("purchase_start",{sku});
     if(!Shop.provider){
       Game.track("purchase_unwired",{sku});
@@ -2967,7 +3011,7 @@ const Shop={
       Game.track("purchase_complete",{sku, amber:it.amber||0, test:Shop.provider===Shop.DEV});
     }catch(e){
       Game.track("purchase_fail",{sku, err:String(e).slice(0,80)});
-      UI.toast("🌫️ the trade didn't go through — <b>nothing was taken</b>");
+      UI.chip("🌫️ the trade didn't go through — <b>nothing was taken</b>");
     }
   },
   grant(it){ // idempotent for once-items; every grant is saved before it's shown
@@ -2979,7 +3023,7 @@ const Shop={
     }
     save();
     Snd.levelUp(); UI.confetti(); buzz([30,50,90]);
-    UI.toast(it.i+" "+it.n+" — <b>yours!</b>");
+    UI.chip(it.i+" "+it.n+" — <b>yours!</b>");
     if(S){ try{ UI.all(); }catch(e){} }
     Shop.render();
   },
@@ -4295,7 +4339,7 @@ const Game = {
       if(freeBreeze || freeWish){
         S.toolNudged=true;
         const which = freeBreeze && freeWish ? "🍃 a breeze or a 🌟 wish" : freeBreeze ? "🍃 a breeze" : "🌟 a wish";
-        UI.toast("psst — you still have "+which+"!");
+        UI.sky("psst — you still have "+which+"!");
         [freeBreeze&&"breezepill", freeWish&&"wishbtn"].filter(Boolean).forEach(id=>{
           const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
       } else if((P.amber||0)>=20){
@@ -4306,7 +4350,7 @@ const Game = {
         // point straight at it — no menu, one tap.
         S.toolNudged=true;
         const canWish = (P.amber||0)>=25;
-        UI.toast("🟠 your amber buys help — a fresh 🍃 breeze"+(canWish?" or 🌟 wish":"")+", just <b>tap it</b>");
+        UI.chip("🟠 your amber buys help — a fresh 🍃 breeze"+(canWish?" or 🌟 wish":"")+", just <b>tap it</b>");
         ["breezepill", canWish && "wishbtn"].filter(Boolean).forEach(id=>{
           const el=$(id); el.classList.add("pop"); setTimeout(()=>el.classList.remove("pop"),700); });
         Game.track("amber_nudge",{ amber:P.amber, L:S.level });
@@ -4331,7 +4375,7 @@ const Game = {
     if(!ok){ dbl.disabled=false; return; }
     Game.amber(S._winAmber); S._winAmber=0;
     dbl.style.display="none";
-    UI.toast("🌟 the wood's thanks, doubled");
+    UI.chip("🌟 the wood's thanks, doubled");
   },
 
   async winLevel(){
@@ -4446,7 +4490,7 @@ const Game = {
   share(){
     const txt="🌲 Hushwood — LV "+S.level+" · "+S.levelScore+" pts · 👑 best word "+(S.bestWord||"—")+"\nplay: sarfrazbaig.github.io/word-drop";
     if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
-    else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.toast("copied ✓"); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.chip("copied ✓"); }
   },
 
   /* ---- the BREEZE: the player's own hands-on tool. pets act on their own; the wind is YOURS. ---- */
@@ -4478,7 +4522,7 @@ const Game = {
     if(!(P.pow.swap>0)){
       // an empty pocket with amber in it: one tap buys one — 20🟠, no menus
       if((P.amber||0)>=20){ Game.amber(-20); P.pow.swap=1; save(); UI.breezePill();
-        UI.toast("−20 🟠 · a fresh 🍃 breeze!"); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
+        UI.chip("−20 🟠 · a fresh 🍃 breeze!"); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
       else{ const el=$("breezepill");
         el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
         setTimeout(()=>el.classList.remove("deny"),350);
@@ -4561,7 +4605,7 @@ const Game = {
     if(!(P.pow.wild>0)){
       // an empty pocket with amber in it: one tap buys one — 25🟠, no menus
       if((P.amber||0)>=25){ Game.amber(-25); P.pow.wild=1; save(); UI.wishPill();
-        UI.toast("−25 🟠 · a fresh 🌟 wish!"); Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
+        UI.chip("−25 🟠 · a fresh 🌟 wish!"); Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
       else{ const el=$("wishbtn");
         el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
         setTimeout(()=>el.classList.remove("deny"),350);
@@ -4570,8 +4614,8 @@ const Game = {
     // a wish reshapes a LETTER — a hand with no letter to reshape politely refuses,
     // and no wish is spent learning that
     const k=S.cur && S.cur.kind;
-    if(k==="bomb"){ UI.toast("🌰 the acorn is already exactly what it wants to be"); Snd.reject(); return; }
-    if(k==="wild"){ UI.toast("⭐ that star is already <b>every</b> letter at once"); Snd.reject(); return; }
+    if(k==="bomb"){ UI.sky("🌰 the acorn is already exactly what it wants to be"); Snd.reject(); return; }
+    if(k==="wild"){ UI.sky("⭐ that star is already <b>every</b> letter at once"); Snd.reject(); return; }
     const grid=$("wish-grid");
     if(!grid.children.length){
       "abcdefghijklmnopqrstuvwxyz".split("").forEach(l=>{
@@ -4603,7 +4647,7 @@ const Game = {
   async pluckAt(row,col){
     const t = S.board[row] && S.board[row][col];
     S.usingPluck=false; $("wishbtn").classList.remove("armed");
-    if(!t || (t.kind!=="normal" && t.kind!=="gold" && t.kind!=="shift")){ Snd.reject(); UI.toast("that one won't budge"); S.freePluck=false; return; }
+    if(!t || (t.kind!=="normal" && t.kind!=="gold" && t.kind!=="shift")){ Snd.reject(); UI.sky("that one won't budge"); S.freePluck=false; return; }
     S.busy=true;
     if(S.freePluck){ S.freePluck=false; }             // 🦡 Digger pays the bill
     else { P.pow.wild--; save(); UI.wishPill(); }
@@ -4767,7 +4811,7 @@ const Game = {
         boardEl.classList.remove("naming");
         S.lastAction=Date.now();
         UI.all();
-        UI.toast("🌿 that took a moment — the board is <b>ready again</b>.<br><small>nothing was lost — carry on</small>");
+        UI.sky("🌿 that took a moment — the board is <b>ready again</b>.<br><small>nothing was lost — carry on</small>");
       }catch(e){}
     }, 5000);
   },
@@ -5009,7 +5053,7 @@ const Game = {
         // no word to dig up on this board — rather than nothing, the dog brings back a
         // star. Players saw their letter silently become ★ and had no idea why.
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
-          UI.toast("🐶 no word to dig up — so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
+          UI.sky("🐶 no word to dig up — so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
       // rainHelp lived here — the bee's old power, two helpful tiles a fire. It went with
       // the bee's rethink: at six fires a round it buried a small board, and burying the
       // board is how a beginner loses. Nothing else used it.
@@ -5170,7 +5214,7 @@ const Game = {
           await wait(250); t.el.style.transition=""; }
         S.chain=1; await Game.resolve(added); break; }
       case "freePluck": { S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
-        UI.toast(pet.e+" dug a hole — tap any letter to pluck it FREE"); break; }
+        UI.sky(pet.e+" dug a hole — tap any letter to pluck it FREE"); break; }
       case "stoneGold": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
         rocks.forEach(t=>{ Game.credit("stone"); t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
@@ -6233,7 +6277,7 @@ const UI = {
       if(slot<slots) UI.say("seat-open", "🐾 an open seat — wake more friends to fill it!", 3);
       else if(slot < seatsByLevel(P.level))
         UI.say("seat-ready", "🐾 this seat is ready — <b>wake another friend</b> to fill it", 3);
-      else UI.toast("🔒 this seat unlocks at <b>level "+UI.SLOT_LV[slot]+"</b>");
+      else UI.chip("🔒 this seat unlocks at <b>level "+UI.SLOT_LV[slot]+"</b>");
       Snd.tone(520,{dur:.08,type:"triangle",gain:.05});
       return;
     }
@@ -6250,7 +6294,7 @@ const UI = {
       turn = "wakes on <b>"+(g.wake&&g.wake.n>1 ? g.wake.n+" "+sign : sign)+"</b>"
            + (togo<=0 ? " — <b>stirring now!</b>" : "<br><small>"+togo+" to go</small>");
     }
-    UI.toast(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+"</small>");
+    UI.chip(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+"</small>");
   },
   pillPop(id){
     const el=$(id); if(!el) return;      // some pills have retired from the stage
@@ -6656,7 +6700,7 @@ const UI = {
     P.equip=(P.equip||[]).filter(x=>x!==outW);
     P.equip.push(inW);
     save();
-    UI.toast(GROVE_BY_WORD[outW].e+" rests · "+GROVE_BY_WORD[inW].e+" joins the party!");
+    UI.chip(GROVE_BY_WORD[outW].e+" rests · "+GROVE_BY_WORD[inW].e+" joins the party!");
     Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
     $("pet-sheet-swap").classList.remove("on");
     UI.visitor(); UI.groveShow(); UI.petSheet(inW);
@@ -6670,14 +6714,14 @@ const UI = {
     P.equip = P.equip||[];
     const max=slotsFor(P.level);
     const i=P.equip.indexOf(w);
-    if(i>=0){ P.equip.splice(i,1); UI.toast(GROVE_BY_WORD[w].e+" stays home for now"); }
+    if(i>=0){ P.equip.splice(i,1); UI.chip(GROVE_BY_WORD[w].e+" stays home for now"); }
     else {
       if(P.equip.length>=max){ // never surprise-swap: the sheet's picker owns full-party trades
         const nxt=UI.nextSlotAt();
-        UI.toast("all "+max+" seats are taken — pick who rests first 💤"+(nxt?"<br><small>another seat opens at level "+nxt+"</small>":""));
+        UI.chip("all "+max+" seats are taken — pick who rests first 💤"+(nxt?"<br><small>another seat opens at level "+nxt+"</small>":""));
         return;
       }
-      UI.toast(GROVE_BY_WORD[w].e+" joins the party!");
+      UI.chip(GROVE_BY_WORD[w].e+" joins the party!");
       P.equip.push(w);
       Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
     }
@@ -6844,8 +6888,34 @@ const UI = {
     el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
     clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), 2600);
   },
+  /* A LINE IN THE SKY. Latest wins: these are one-shot teaching lines gated by P.said, so a
+     queue would only ever delay the one that matters. Tap dismisses. */
+  sky(html, ms){
+    if(!html) return;
+    const host=$("boardwrap"); if(!host) return UI.toast(html);   // no board yet: fall back
+    let el=$("skyrail");
+    if(!el){ el=document.createElement("div"); el.id="skyrail"; host.appendChild(el); }
+    el.innerHTML=html; el.classList.add("on");
+    clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||5200);
+  },
+  skyClear(){ const el=$("skyrail"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
+  /* A CHIP BY THE COUNTERS. */
+  chip(html, ms){
+    if(!html) return;
+    const app=$("app"); if(!app) return UI.toast(html);
+    let el=$("chiptoast");
+    if(!el){ el=document.createElement("div"); el.id="chiptoast"; app.appendChild(el); }
+    // HANG IT FROM THE COUNTERS, never over them. Measured at show time so it follows the
+    // layout rather than trusting a number typed into the stylesheet.
+    const pill=$("amberchip");
+    if(pill){ const p=pill.getBoundingClientRect(), a=app.getBoundingClientRect();
+      if(p.height) el.style.top=Math.round(p.bottom-a.top+5)+"px"; }
+    el.innerHTML=html; el.classList.add("on");
+    clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||3400);
+  },
+  chipClear(){ const el=$("chiptoast"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
   toastClear(){ // a new level starts with a quiet stage — stale notes don't follow you in
-    UI._tq=[]; UI._tShowing=false;
+    UI._tq=[]; UI._tShowing=false; UI.skyClear(); UI.chipClear();
     const t=$("toast"); clearTimeout(t._h); t.onclick=null; t.classList.remove("on","tapwait");
   },
   /* Send a friend out onto the board. Returns a handle whose .home() walks it back —
@@ -6861,12 +6931,28 @@ const UI = {
     sp.style.left=x0+"px"; sp.style.top=y0+"px";
     app.appendChild(sp);
     const k=br.width/(COLS*STEP-GAP);                       // the board is scaled to fit
+    // THE BOX IS THE COLUMN. Without an explicit width the sprite was as wide as the emoji
+    // glyph wanted to be — 68px against a far narrower cell — so even hovering dead centre
+    // over its own column it clipped the letter beside it. Now it cannot.
+    sp.style.width=sp.style.height=(CELL*k)+"px";
     // STAND BESIDE THE TILE, NEVER ON IT. A friend landing squarely on the letter it is
     // about to change hides the one thing the player is meant to watch. It steps to
     // whichever side has room — outward from the middle, so it never walks off the board.
-    const side = cell.c >= COLS/2 ? -1 : 1;
-    const x1=br.left-ar.left+(cell.c*STEP+CELL/2)*k + side*CELL*0.82*k;
-    const y1=br.top -ar.top +(cell.r*STEP+CELL/2)*k;
+    // HOVER IN THE SKY ABOVE ITS OWN COLUMN. Stepping sideways only moved the problem one
+    // square over: at 46px the sprite covered the NEIGHBOUR's letter instead of the
+    // target's. Letters stack from the floor, so the square above a column's top tile is
+    // empty by definition — it is where the next tile would fall. The friend leans down out
+    // of that gap, and the tile it is working on stays completely visible.
+    let topR=ROWS; for(let r=0;r<ROWS;r++){ if(S.board[r] && S.board[r][cell.c]){ topR=r; break; } }
+    const hoverR=Math.min(cell.r, topR)-1;
+    const inSky = hoverR>=0;   // a column filled to the very brim has no sky left over it
+    const side = cell.c >= COLS/2 ? -1 : 1;   // the old dodge, kept for exactly that case
+    const x1=br.left-ar.left+(cell.c*STEP+CELL/2)*k + (inSky?0:side*CELL*0.82*k);
+    const y1=br.top -ar.top +((inSky?hoverR:cell.r)*STEP+CELL/2)*k;
+    // with the friend no longer touching it, the tile has to say for itself that it is the
+    // one being worked on.
+    const tgt=(cell && cell.inner) || (S.board[cell.r] && S.board[cell.r][cell.c] && S.board[cell.r][cell.c].inner) || null;
+    if(tgt) tgt.classList.add("petmark");
     await wait(40);
     sp.style.left=x1+"px"; sp.style.top=y1+"px";
     Snd.tone(660,{dur:.1,type:"triangle",gain:.06,verb:true});
@@ -6883,6 +6969,7 @@ const UI = {
       // instead, and since the plate is gone that dwell is now spent watching the tile
       // rather than reading a label over it.
       const dwell=1200-(Date.now()-shown); if(dwell>0) await wait(dwell);
+      if(tgt) tgt.classList.remove("petmark");
       sp.classList.remove("landed");
       sp.style.left=x0+"px"; sp.style.top=y0+"px";
       Snd.tone(560,{dur:.09,type:"triangle",gain:.05,verb:true});
@@ -6894,7 +6981,9 @@ const UI = {
     P.said=P.said||{};
     if((P.said[key]||0) >= (times||2)) return;
     P.said[key]=(P.said[key]||0)+1; save();
-    UI.toast(msg);
+    // EVERY say() IS AN INSTRUCTION, and an instruction about the board must not cover the
+    // board. This one routing change moves eighteen of them off centre stage at a stroke.
+    UI.sky(msg, 6200);
   },
   TIPS:{
     breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3). Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
@@ -7036,13 +7125,13 @@ const UI = {
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
     P.seenTip[kind]=true; save();
     const tip=UI.TIPS[kind]; if(!tip) return false;
-    $("tiptip").querySelector(".ti").textContent=tip.i;
-    $("tiptip").querySelector(".tt").innerHTML=tip.t;
-    $("tiptip").classList.add("on"); Game.shown("tip");
+    // 270x236 in the middle of a 507px board — 47% of the play surface, opaque, while
+    // telling you to go and look at the play surface. Same words, in the sky.
+    UI.sky('<b>'+tip.i+'</b> '+tip.t, 9000); Game.shown("tip");
     Game.track("tip_shown",{ kind, L:S.level });
     UI._tipAt=Date.now();
     clearTimeout(UI._tipT);
-    UI._tipT=setTimeout(()=>{ $("tiptip").classList.remove("on");
+    UI._tipT=setTimeout(()=>{ UI.skyClear();
       Game.track("tip_gone",{ kind, how:"timeout", ms:Date.now()-(UI._tipAt||Date.now()) }); }, 7000); // reads in ~4s; leaves before it's in the way
     Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
     return true;
@@ -7050,9 +7139,9 @@ const UI = {
   // note: this must NOT touch S.busy any more. Tips no longer set it, so clearing it here
   // would release a board that something else (a resolve, a ceremony) is legitimately holding.
   hideTip(){ if(Game.guard("tip")) return;
-    if($("tiptip").classList.contains("on"))
+    if($("skyrail") && $("skyrail").classList.contains("on"))
       Game.track("tip_gone",{ how:"tapped", ms:Date.now()-(UI._tipAt||Date.now()) });
-    clearTimeout(UI._tipT); $("tiptip").classList.remove("on"); },
+    clearTimeout(UI._tipT); UI.skyClear(); },
   confetti(){
     const colors=["#7dd87d","#ffd54f","#4fc3f7","#ff8a5c","#b388ff"];
     for(let i=0;i<24;i++){ const c=document.createElement("div"); c.className="confetti";
