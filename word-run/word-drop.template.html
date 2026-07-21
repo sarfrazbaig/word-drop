@@ -434,8 +434,10 @@
     box-shadow:0 3px 0 #8a7048, 0 6px 12px rgba(40,35,60,.4), inset 0 2px 0 rgba(255,250,235,.7);
     cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
   #home-menu-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top)); left:16px; z-index:4; }
-  /* on the play screen it rides in the flow, first thing on the strip */
-  #game-menu-btn{ position:relative; flex:none; z-index:4; }
+  /* on the play screen it rides in the flow, first thing on the strip — and smaller than
+     the door's, which has a whole screen to itself and no round to report. */
+  #game-menu-btn{ position:relative; flex:none; z-index:4;
+    width:33px; height:33px; border-radius:10px; font-size:16px; }
   #home-menu-btn:active, #game-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
   #home-menu-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
     font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
@@ -1072,7 +1074,9 @@
   .gseg .gs-i .ui-ic{ width:21px; height:21px; }
   .gseg .gs-i{ display:flex; align-items:center; }
 
-  #movesbox{ flex:0 1 auto; display:flex; align-items:center; justify-content:flex-start; min-width:0; }
+  /* it takes the whole gap and centres in it, so it sits BETWEEN the menu and the purse
+     instead of against the menu with every spare pixel falling to its right. */
+  #movesbox{ flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-width:0; }
   /* the level, inside the pill, divided from the moves by a hairline rather than a dot */
   #lvlcap{ font-family:var(--font-story); font-size:13px; font-weight:600;
     letter-spacing:.3px; cursor:pointer; padding-right:10px; margin-right:2px;
@@ -1151,9 +1155,12 @@
   /* the dock holds only play controls now, so the panel takes the middle and the Book
      keeps the right edge — absolutely placed so the panel centres on the row itself and
      not on whatever is left over beside it. */
-  #dockrow{ position:relative; }
-  #dockrow > #dock{ margin:0 auto; }
-  #dockrow > .bookchip{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
+  /* THE DOCK TAKES THE ROOM THE GEAR GAVE UP. It was a centred island with dead space
+     on its left; it runs from the row edge out to the Book now, which is where the
+     third letter slot goes when the owl arrives. Its contents stay centred inside. */
+  #dockrow{ position:relative; justify-content:flex-start; }
+  #dockrow > #dock{ flex:1 1 auto; margin:0; }
+  #dockrow > .bookchip{ position:relative; flex:none; }
   /* the Book is a picture, not a control surface — no chrome, just bigger */
   #dockrow > .bookchip{ flex:none; margin:0; z-index:3; padding:2px;
     background:none !important; border:none !important; box-shadow:none !important;
