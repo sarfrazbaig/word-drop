@@ -2172,6 +2172,13 @@ const GOALS={
   star:   {i:"⭐", n:"walk the star course", seed:"wild", base:3},
   gauntlet:{i:"👑", n:"the crown trial"},
 };
+/* WHICH ASK AN OBSTACLE ANSWERS TO. Frost is listed as a thaw because a frost destroyed
+   outright never gets to shed its layer into ordinary ice — the round should not punish
+   someone for clearing it in one blow instead of two. Root, shroud and pest have no goal
+   of their own; they still pay their amber. */
+const OBSTACLE_GOAL={ ice:"thaw", frost:"thaw", stone:"boulder", crate:"unravel",
+  mist:"lift", bramble:"cut" };
+const OBSTACLE_KINDS=["ice","frost","stone","crate","mist","bramble","root","shroud","pest"];
 function goalFor(L){
   // authored solo introductions, then one obstacle-goal level per 5-beat cycle.
   // every new goal debuts a few levels after its obstacle does — meet the trouble
@@ -3981,6 +3988,26 @@ const Game = {
     UI.discover(g);
   },
 
+  /* THE ONE PLACE AN OBSTACLE IS PAID FOR, whoever took it off the board.
+     For a long time only the word-clear path paid. A friend's power or an acorn could
+     erase the very thing the round was asking for and the ask would never notice —
+     measured on a "melt every ice" round, the otter's Warm Current took all three ices
+     and left the goal at 0/3. That is not a hard round, it is an unwinnable one, and the
+     one pet whose whole identity is melting ice guaranteed a loss on the melt-the-ice
+     round. Every destructive path routes through here now, so a new power cannot quietly
+     bring it back.
+     A crate taken by a blast is credited but not opened — a bomb should not hand out the
+     pig's gifts. */
+  credit(kind){
+    if(!OBSTACLE_KINDS.includes(kind)) return false;
+    Game.tallyEv(kind==="frost" ? "ice" : kind);
+    Game.amber(2);
+    const g=OBSTACLE_GOAL[kind];
+    if(g) Game.goalTick(g);
+    return true;
+  },
+  creditTile(t){ return t ? Game.credit(t.kind) : false; },
+
   goalTick(t){ // one step of the round's ask — a gauntlet listens on both channels
     if(!S) return;
     let hit=false;
@@ -4205,7 +4232,7 @@ const Game = {
       case "crackAll": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(const t of rocks){ if(boost||t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); removeTile(t); S.levelScore+=5; Snd.crack(true); }
+        for(const t of rocks){ if(boost||t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); Game.credit("stone"); removeTile(t); S.levelScore+=5; Snd.crack(true); }
           else { t.cracks=1; t.inner.classList.add("cracked"); Snd.crack(false); } await wait(110); }
         if(pairOn("smashScore")){ S.levelScore+=10; } // 💥 Demolition Duo
         UI.hud(); await Game.settle(); break; }
@@ -4242,7 +4269,7 @@ const Game = {
         for(let r=ROWS-2;r<ROWS;r++) for(let c=3;c<=4;c++){ const t=S.board[r][c]; if(t) picks.push(t); }
         if(!picks.length){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(const t of picks){ UI.shards(t.r,t.c,"#c5a3e0"); removeTile(t); Snd.crack(true); await wait(90); }
+        for(const t of picks){ UI.shards(t.r,t.c,"#c5a3e0"); Game.creditTile(t); removeTile(t); Snd.crack(true); await wait(90); }
         await Game.settle(); break; }
       case "digCrate": { const h=cols(); const c=h.indexOf(Math.min(...h));
         let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
@@ -4270,12 +4297,12 @@ const Game = {
       case "twinHand": { if(S.cur) S.next={letter:S.cur.letter,kind:S.cur.kind}; UI.piece(); Game.handPop(); break; }
       case "thawAll": { const ices=Object.values(S.tiles).filter(t=>t.kind==="ice");
         if(!ices.length){ Game.addMoves(2); break; }
-        ices.forEach(t=>{ t.kind="normal"; t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#a8dcf5"); });
+        ices.forEach(t=>{ Game.credit("ice"); t.kind="normal"; t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#a8dcf5"); });
         Snd.thaw(); S.chain=1; await Game.resolve(ices); break; }
       case "smashCol": { const h=cols(); const c=h.indexOf(Math.max(...h));
         if(!h[c]){ Game.addMoves(2); break; }
         $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); removeTile(t); } }
+        for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); Game.creditTile(t); removeTile(t); } }
         if(pairOn("smashScore")){ S.levelScore+=10; UI.hud(); } // 💥 Demolition Duo
         Snd.collapse(6); break; }
       case "sweepTops": { const picks=[];
@@ -4297,7 +4324,7 @@ const Game = {
         UI.toast(pet.e+" dug a hole — tap any letter to pluck it FREE"); break; }
       case "stoneGold": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
-        rocks.forEach(t=>{ t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
+        rocks.forEach(t=>{ Game.credit("stone"); t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
         Snd.gold(); S.chain=1; await Game.resolve(rocks); break; }
       case "shuffleCols": { const perm=[...Array(COLS).keys()].sort(()=>Math.random()-.5);
         const grid=[]; for(let r=0;r<8;r++){ grid.push([...S.board[r]]); }
@@ -4321,6 +4348,7 @@ const Game = {
         Snd.collapse(picks.length); await Game.settle(); break; }
       case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") || Game.worstTiles(1)[0];
         if(!cand){ Game.addMoves(2); break; }
+        Game.creditTile(cand);   // the rummaged obstacle is genuinely gone — pay the ask for it
         cand.kind="crate"; cand.inner.className="tile thawpop"; cand.inner.innerHTML=tileFace(cand);
         UI.shards(cand.r,cand.c,"#ffd54f"); Snd.gold(); break; }
       case "acornBlast": { const h=cols(); const c=h.indexOf(Math.max(...h));
@@ -4485,7 +4513,7 @@ const Game = {
     boardEl.appendChild(sw); setTimeout(()=>sw.remove(),600);
     for(let rr=r-1;rr<=r+1;rr++) for(let cc=c-1;cc<=c+1;cc++){
       if(rr<0||rr>=ROWS||cc<0||cc>=COLS) continue;
-      const t=S.board[rr][cc]; if(t) removeTile(t);
+      const t=S.board[rr][cc]; if(t){ Game.creditTile(t); removeTile(t); }
     }
     S.levelScore += 10; UI.hud();
     await wait(340);
@@ -4812,7 +4840,7 @@ const Game = {
         if(t.kind==="stone"){
           acted=true;
           t.cracks=(t.cracks||0)+1;
-          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("stone"); Game.amber(2); Game.goalTick("boulder"); }
+          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.credit("stone"); }
           else {
             t.inner.classList.add("cracked");
             t.inner.classList.add("jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
@@ -4821,14 +4849,14 @@ const Game = {
           buzz(15);
         } else if(t.kind==="ice"){
           acted=true;
-          t.kind="normal"; thawed.push(t); Game.tallyEv("ice"); Game.amber(2); Game.goalTick("thaw");
+          t.kind="normal"; thawed.push(t); Game.credit("ice");
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#a8dcf5");
           Snd.thaw(); buzz(10);
         } else if(t.kind==="root"){     // cut once it heals, cut twice it yields
           acted=true;
-          if(t.cracks>=1){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("root"); Game.amber(2); }
+          if(t.cracks>=1){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.credit("root"); }
           else { t.cracks=1; t.cutDrop=S.drops;
             t.inner.classList.add("cracked","jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
             Snd.crack(false); }
@@ -4836,12 +4864,12 @@ const Game = {
         } else if(t.kind==="shroud"){   // the gloom thins once, lifts the second time
           acted=true;
           t.cracks=(t.cracks||0)+1;
-          if(t.cracks>=2){ removeTile(t); Snd.thaw(); Game.tallyEv("shroud"); Game.amber(2); }
+          if(t.cracks>=2){ removeTile(t); Snd.thaw(); Game.credit("shroud"); }
           else { t.inner.classList.add("cracked","jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220); Snd.crack(false); }
           buzz(10);
         } else if(t.kind==="pest"){     // one clean swat
           acted=true;
-          removeTile(t); S.levelScore+=5; Snd.crack(true); Game.tallyEv("pest"); Game.amber(2);
+          removeTile(t); S.levelScore+=5; Snd.crack(true); Game.credit("pest");
           buzz(15);
         } else if(t.kind==="frost"){    // deep frost sheds a LAYER — ordinary ice remains
           acted=true;
@@ -4852,7 +4880,7 @@ const Game = {
           Snd.crack(false); buzz(10);
         } else if(t.kind==="mist"){     // the mist lifts — the letter shows its face
           acted=true;
-          t.kind="normal"; thawed.push(t); Game.tallyEv("mist"); Game.amber(2); Game.goalTick("lift");
+          t.kind="normal"; thawed.push(t); Game.credit("mist");
           t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
           setTimeout(()=>t.inner.classList.remove("thawpop"),560);
           UI.shards(t.r,t.c,"#c9c2d8");
@@ -4860,7 +4888,7 @@ const Game = {
         } else if(t.kind==="bramble"){  // one clean cut and the tangle falls away
           acted=true;
           removeTile(t); S.levelScore+=5;
-          Snd.crack(true); Game.tallyEv("bramble"); Game.amber(2); Game.goalTick("cut");
+          Snd.crack(true); Game.credit("bramble");
           buzz(15);
         } else if(t.kind==="crate"){
           acted=true;
@@ -4878,7 +4906,7 @@ const Game = {
      meter. Players popped it, watched nothing happen, and concluded the pig's entire
      power was pointless — they were right. A gift has to GIVE, and it has to say so. */
   async openCrate(r,c){
-    Game.tallyEv("crate"); Game.amber(2); Game.goalTick("unravel");
+    Game.credit("crate");
     const got=[];
     S.levelScore+=15; got.push("<b>+15</b>");
     if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
