@@ -2845,13 +2845,36 @@ function noRepeat(cands, last){
   const alt=cands.filter(l=>l!==last);
   return alt.length ? alt : cands;
 }
+/* ONE LETTER OF MEMORY WAS NEVER ENOUGH. The pools this deck steers toward are tiny —
+   often two or three letters — so blocking just the previous draw still yields A B A B A B.
+   Remember the last few and prefer anything outside them, falling back to the whole pool
+   rather than dealing nothing. */
+function notRecent(cands){
+  if(!S || !S._recent || !S._recent.length) return cands;
+  const alt=cands.filter(l=>!S._recent.includes(l));
+  return alt.length ? alt : cands;
+}
+/* EVERY deal gets recorded, whichever path produced it. The old guard compared against
+   S._lastDealt — which the MAIN deck never wrote to — so it was measuring a letter from
+   several drops earlier and waving real repeats straight through. */
+function recordDeal(l){
+  if(!S || !l) return l;
+  S._lastDealt=l;
+  (S._recent = S._recent || []).push(l);
+  while(S._recent.length>3) S._recent.shift();
+  return l;
+}
 function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy to spell
   const w=S.tutorWord; if(!w) return null;
   const need=[...new Set(w.split(""))];
   const best=helpfulByLength();
   // letters that complete something NOW, else any letter the word still wants
   const useful=need.filter(l=>best[l]);
-  const pool=noRepeat(useful.length?useful:need, S._lastDealt);
+  // the school steer deliberately feeds the guest's own letters, but a three-letter name
+  // dealt at 80% still produced runs of six identical tiles. Same memory as the main deck:
+  // prefer a letter of the name we have NOT just dealt, and only repeat when there is no
+  // other choice left.
+  const pool=notRecent(noRepeat(useful.length?useful:need, S._lastDealt));
   return rand(pool);
 }
 function makePiece(){
@@ -2859,7 +2882,7 @@ function makePiece(){
   // The steer is SCHOOL-ONLY: past level 6 the ceremony deck is stone-normal. Feeding
   // the name's letters to grown players spammed the same letter over and over — the
   // wood gives one foothold on the board and nothing else; powers do the rest.
-  if(S && S.tutorWord && P.level<=6 && Math.random()<0.8){ const l=tutorLetter(); if(l){ S._lastDealt=l; return {letter:l, kind:"normal"}; } }
+  if(S && S.tutorWord && P.level<=6 && Math.random()<0.8){ const l=tutorLetter(); if(l){ recordDeal(l); return {letter:l, kind:"normal"}; } }
   // MERCY is deterministic, not a dice roll: after two wordless drops the deck ALWAYS
   // deals a completion if one exists. And in the ENDGAME (few moves left) even ONE dead
   // drop triggers it — a drought on your last moves is what quietly loses winnable levels.
@@ -2867,11 +2890,11 @@ function makePiece(){
   if(mercy){
     const best=helpfulByLength(); const ks=Object.keys(best);
     if(ks.length){ const longs=ks.filter(l=>best[l]>=4);
-      const L=rand(noRepeat(longs.length?longs:ks, S._lastDealt));
-      S._lastDealt=L; return {letter:L, kind:"normal"}; }
+      const L=rand(notRecent(noRepeat(longs.length?longs:ks, S._lastDealt)));
+      recordDeal(L); return {letter:L, kind:"normal"}; }
     // no completion exists (a scattered board) — force a BUILDER so one appears next drop.
     const b=builderLetters();
-    if(b.length){ const L=rand(noRepeat(b, S._lastDealt)); S._lastDealt=L; return {letter:L, kind:"normal"}; }
+    if(b.length){ const L=rand(notRecent(noRepeat(b, S._lastDealt))); recordDeal(L); return {letter:L, kind:"normal"}; }
     // still nothing makeable in a real drought — a star falls in to rescue you.
     // it matches ANY letter, so beside almost any pair it completes a word. skill-proof.
     if(S.deadDrops>=3 || S.movesLeft<=5) return {letter:"★", kind:"wild"};
@@ -2882,14 +2905,14 @@ function makePiece(){
   const shiftOK = S && S.level>=16;            // 🌀 restless tiles much later
   const goldP = (S && S.milestone) ? 0.25 : 0;
   if(shiftOK && roll<0.02)  return {letter:drawLetter(), kind:"shift"};
-  if(roll<goldP)            return {letter:riggedLetter(), kind:"gold"};
+  if(roll<goldP)            return {letter:recordDeal(riggedLetter()), kind:"gold"};
   let l=riggedLetter();
   if(Game && Game.hasPassive && S && Game.hasPassive("skipJunk") && "qzxjv".includes(l)){
     l=riggedLetter(); // 🧠 Clever Beak rerolls once
     if(pairOn("skipJunkHard") && "qzxjv".includes(l)) l=riggedLetter(); // 🌙 Wise Flock: and again, and again
     if(pairOn("skipJunkHard") && "qzxjv".includes(l)) l=riggedLetter();
   }
-  return {letter:l, kind:"normal"};
+  return {letter:recordDeal(l), kind:"normal"};
 }
 
 /* =================== BOARD DOM =================== */
@@ -3045,14 +3068,27 @@ function riggedLetter(){
   // not quietly starve you at level 12 the way playtesters experienced.
   let gen = S.level<=8 ? 1 : S.level<=14 ? 0.8 : S.level<=22 ? 0.62 : 0.5;
   if(Game && Game.hasPassive && Game.hasPassive("helpDeck")) gen=Math.min(1, gen+0.25); // 📐 Tiny Planner
+  /* THE SPAM LIVED HERE. These pools are usually tiny — the letters that finish a long word
+     are often a single letter — and taking one at ~90% meant the deck locked onto the same
+     two or three letters for as long as the board held still. Measured on a static board it
+     dealt three letters for 94% of 400 draws, with runs of nine identical tiles. A player
+     stuck on a level, which is exactly when the board stops changing, got the worst of it.
+
+     Two changes. The narrower the choice, the less hard we steer — a pool of one or two is
+     not guidance, it is a rut. And whatever pool we do use, letters dealt in the last few
+     drops go to the back of the queue. */
+  const pick=(pool, p)=>{
+    if(!pool.length) return null;
+    const narrow = pool.length<=1 ? 0.35 : pool.length<=2 ? 0.55 : pool.length<=3 ? 0.78 : 1;
+    return Math.random() < p*narrow ? rand(notRecent(pool)) : null;
+  };
   const best=helpfulByLength();
   // long words FIRST and most often — 3-letter pops got boring; 4+ is where the joy is
   const longs=Object.keys(best).filter(l=>best[l]>=4);
-  if(longs.length && Math.random()<0.66+0.24*gen) return rand(longs);              // finish a long word
-  const b=builderLetters();
-  if(b.length && Math.random()<0.56+0.24*gen) return rand(b);                      // grow a fragment toward a long word
-  if(Object.keys(best).length && Math.random()<0.30+0.30*gen) return rand(Object.keys(best)); // any completion at all
-  return drawLetter();
+  return pick(longs, 0.66+0.24*gen)                    // finish a long word
+      ?? pick(builderLetters(), 0.56+0.24*gen)         // grow a fragment toward a long word
+      ?? pick(Object.keys(best), 0.30+0.30*gen)        // any completion at all
+      ?? drawLetter();
 }
 
 /* =================== GAME =================== */
