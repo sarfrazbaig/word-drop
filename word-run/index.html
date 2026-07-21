@@ -1442,6 +1442,15 @@
                                        bleeding off both edges — it is bounded now and wraps */
     display:flex; flex-direction:column; align-items:center; gap:9px; pointer-events:none; animation:bannerin .3s; }
   .whosthat.fade{ transition:opacity .35s; opacity:0; }
+  /* A SILHOUETTE IS A SHAPE, and a shape can only be read against something plain.
+     Branches lean in at exactly the height the silhouette stands, so the one moment in
+     the game that depends on a clean read had the busiest background in it. Everything
+     growing at the edges steps back for a naming and grows again when it is over. */
+  #board.naming #biodecor span.edge{ opacity:.05; }
+  #board.naming #biodecor::before{ opacity:.2; }
+  #board.naming #biodecor span:not(.edge){ opacity:.28; }
+  #board #biodecor span.edge, #board #biodecor::before, #board #biodecor span{
+    transition:opacity .55s ease; }
   /* it ARRIVES rather than appearing — the shape was snapping in at full size on frame one,
      which is a pop, not a stir. Swells past its size and settles, then picks up the bob. */
   /* SIZED AGAINST THE TILES, not against the empty space. At 92px the creature was over two
@@ -4550,6 +4559,13 @@ const Game = {
   async reveal(g){
     S.lastAction=Date.now();
     const nm=$("namer"); if(nm){ nm.style.transition="opacity .3s"; nm.style.opacity="0"; setTimeout(()=>nm.remove(),350); }
+    /* THE WOOD HOLDS STILL WHILE A NAME IS SPOKEN. The silhouette is a shape — a black
+       cut-out you are being asked to recognise — and a shape can only be read against
+       something plain. Branches leaning in at the top corners land exactly where it
+       stands, so the one moment in the game that depends on a clean read had the busiest
+       background in it. Everything growing at the edges steps back for the reveal, and
+       comes back the moment the ritual is over. */
+    boardEl.classList.add("naming");
     const big=document.createElement("div"); big.className="whosthat";
     // the player JUST spelled the name — repeating it here made the reveal answer its
     // own question ("who answers to BAT? …the BAT"). The question builds the hush;
@@ -4585,6 +4601,7 @@ const Game = {
     await UI.waitTap(big, 12000);   // a creature waking is a moment — hold it until they tap
     big.classList.add("fade");
     await wait(350); big.remove();
+    boardEl.classList.remove("naming");   // the wood breathes out and the edges grow back
     // the ritual — through the SAME door showPendingMeet uses: _meetWord must be set,
     // or closeMeet never marks the meeting and the pending sweep runs the whole
     // ceremony a second time (caught live by the user).
@@ -4664,6 +4681,7 @@ const Game = {
         if(S.swapSel){ try{ S.swapSel.inner.classList.remove("selswap"); }catch(e){} S.swapSel=null; }
         $("breezepill").classList.remove("armed"); $("wishbtn").classList.remove("armed");
         document.querySelectorAll(".whosthat").forEach(e=>e.remove());
+        boardEl.classList.remove("naming");
         S.lastAction=Date.now();
         UI.all();
         UI.toast("🌿 that took a moment — the board is <b>ready again</b>.<br><small>nothing was lost — carry on</small>");
