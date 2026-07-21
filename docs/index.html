@@ -2028,58 +2028,58 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
    while on duty (passives don't use the paw meter — they just work). */
 const GROVE = [
   // your first friends — taught in the early levels (f: = the little plaque on their album card)
-  {w:"cat",e:"🐱",z:"ground",pn:"Golden Paw",pi:"✨",pd:"turns <b>your next letter golden</b> — ×3 wherever you drop it",fx:{t:"goldHand"},f:"naps wherever the golden tiles are warmest"},
-  {w:"dog",e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
+  {w:"cat",wake:{on:"word3",n:2},e:"🐱",z:"ground",pn:"Golden Paw",pi:"✨",pd:"turns <b>your next letter golden</b> — ×3 wherever you drop it",fx:{t:"goldHand"},f:"naps wherever the golden tiles are warmest"},
+  {w:"dog",wake:{on:"word3",n:3},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
-  {w:"bee",e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
-  {w:"moth",e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
+  {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
+  {w:"moth",wake:{on:"vowel",n:6},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
   {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁️",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
-  {w:"crow",e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
-  {w:"dove",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
-  {w:"robin",e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"},f:"wakes the vowels up every morning"},
-  {w:"duck",e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2},f:"paddles hard so your moves float easy"},
-  {w:"swan",e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
-  {w:"goose",e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
+  {w:"crow",wake:{on:"rare",n:1},e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
+  {w:"dove",wake:{on:"vowel",n:4},e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
+  {w:"robin",wake:{on:"consonant",n:6},e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"},f:"wakes the vowels up every morning"},
+  {w:"duck",wake:{on:"drop",n:6},e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2},f:"paddles hard so your moves float easy"},
+  {w:"swan",wake:{on:"word4",n:1},e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
+  {w:"goose",wake:{on:"vowel",n:3},e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
-  {w:"bat",e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"},f:"reads the bottom row backwards for fun"},
-  {w:"heron",e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
-  {w:"beetle",e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"rolls boulders away like morning chores"},
-  {w:"fly",e:"🪰",z:"sky",pn:"Little Nibble",pi:"😋",pd:"eats the single <b>most awkward letter</b>",fx:{t:"eatWorst",n:1},f:"eats the letters nobody wanted, happily"},
-  {w:"ladybug",e:"🐞",z:"sky",pn:"Lucky Spots",pi:"🍀",pd:"your next <b>3 words each score +5</b>",fx:{t:"flatBonus",n:3},f:"lands a little luck on everything"},
-  {w:"cricket",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
+  {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"},f:"reads the bottom row backwards for fun"},
+  {w:"heron",wake:{on:"word4",n:2},e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
+  {w:"beetle",wake:{on:"word5",n:1},e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"rolls boulders away like morning chores"},
+  {w:"fly",wake:{on:"drop",n:12},e:"🪰",z:"sky",pn:"Little Nibble",pi:"😋",pd:"eats the single <b>most awkward letter</b>",fx:{t:"eatWorst",n:1},f:"eats the letters nobody wanted, happily"},
+  {w:"ladybug",wake:{on:"anyWord",n:4},e:"🐞",z:"sky",pn:"Lucky Spots",pi:"🍀",pd:"your next <b>3 words each score +5</b>",fx:{t:"flatBonus",n:3},f:"lands a little luck on everything"},
+  {w:"cricket",wake:{on:"anyWord",n:4},e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
-  {w:"fox",e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
-  {w:"frog",e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
-  {w:"deer",e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"},f:"grazes the bottom row down to fresh grass"},
-  {w:"bear",e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"},f:"hugs a little too hard, helpfully"},
-  {w:"wolf",e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3},f:"howls and the awkward letters scatter"},
-  {w:"hare",e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"},f:"runs so fast the move comes right back"},
-  {w:"mouse",e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"},f:"saves every crumb — they add up"},
-  {w:"pig",e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"},f:"can smell a gift crate a mile away"},
-  {w:"snail",e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6},f:"slow, sure, and never wastes a step"},
-  {w:"worm",e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3},f:"keeps the soil soft and the letters fresh"},
+  {w:"fox",wake:{on:"drop",n:7},e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
+  {w:"frog",wake:{on:"anyWord",n:5},e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
+  {w:"deer",wake:{on:"anyWord",n:5},e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"},f:"grazes the bottom row down to fresh grass"},
+  {w:"bear",wake:{on:"obstacle",n:2},e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"},f:"hugs a little too hard, helpfully"},
+  {w:"wolf",wake:{on:"consonant",n:10},e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3},f:"howls and the awkward letters scatter"},
+  {w:"hare",wake:{on:"word4",n:1},e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"},f:"runs so fast the move comes right back"},
+  {w:"mouse",wake:{on:"word3",n:3},e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"},f:"saves every crumb — they add up"},
+  {w:"pig",wake:{on:"obstacle",n:1},e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"},f:"can smell a gift crate a mile away"},
+  {w:"snail",wake:{on:"drop",n:3},e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6},f:"slow, sure, and never wastes a step"},
+  {w:"worm",wake:{on:"drop",n:10},e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3},f:"keeps the soil soft and the letters fresh"},
   {w:"ant",e:"🐜",z:"ground",ps:true,pn:"Tiny Planner",pi:"📐",pd:"the deck <b>leans extra helpful</b>",fx:{t:"helpDeck"},f:"plans your deck three drops ahead"},
-  {w:"crab",e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"},f:"tidies the bottom row walking sideways"},
-  {w:"fish",e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"},f:"makes the whole school shimmer gold"},
-  {w:"snake",e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
-  {w:"chick",e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
-  {w:"goat",e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
-  {w:"otter",e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"warms the pond until every ice lets go"},
-  {w:"boar",e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
-  {w:"moose",e:"🫎",z:"ground",pn:"Antler Sweep",pi:"🌬️",pd:"knocks the <b>top letter off every column</b>",fx:{t:"sweepTops"},f:"sweeps the treetops with one shake"},
-  {w:"seal",e:"🦭",z:"ground",pn:"Playful Splash",pi:"💦",pd:"your next <b>2 words score +50%</b>",fx:{t:"splash",n:2},f:"claps for your words — they score better for it"},
+  {w:"crab",wake:{on:"drop",n:8},e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"},f:"tidies the bottom row walking sideways"},
+  {w:"fish",wake:{on:"gold",n:1},e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"},f:"makes the whole school shimmer gold"},
+  {w:"snake",wake:{on:"consonant",n:8},e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
+  {w:"chick",wake:{on:"anyWord",n:6},e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
+  {w:"goat",wake:{on:"word3",n:3},e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
+  {w:"otter",wake:{on:"obstacle",n:2},e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"warms the pond until every ice lets go"},
+  {w:"boar",wake:{on:"consonant",n:12},e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
+  {w:"moose",wake:{on:"drop",n:11},e:"🫎",z:"ground",pn:"Antler Sweep",pi:"🌬️",pd:"knocks the <b>top letter off every column</b>",fx:{t:"sweepTops"},f:"sweeps the treetops with one shake"},
+  {w:"seal",wake:{on:"anyWord",n:5},e:"🦭",z:"ground",pn:"Playful Splash",pi:"💦",pd:"your next <b>2 words score +50%</b>",fx:{t:"splash",n:2},f:"claps for your words — they score better for it"},
   {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"},f:"carries your first step, every level, free"},
-  {w:"beaver",e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
-  {w:"badger",e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"will dig any letter out, no questions asked"},
-  {w:"lizard",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
-  {w:"pony",e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
-  {w:"lamb",e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
+  {w:"beaver",wake:{on:"drop",n:10},e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
+  {w:"badger",wake:{on:"consonant",n:10},e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"will dig any letter out, no questions asked"},
+  {w:"lizard",wake:{on:"obstacle",n:1},e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
+  {w:"pony",wake:{on:"drop",n:12},e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
+  {w:"lamb",wake:{on:"consonant",n:5},e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
   {w:"bunny",e:"🐰",z:"ground",ps:true,pn:"Daily Whisper",pi:"🥕",pd:"sniffs out the <b>daily word's first letter</b> (see the Book)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
-  {w:"skunk",e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room — every last copy of it"},
-  {w:"raccoon",e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
-  {w:"squirrel",e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"stashes acorns that go off with a pop"},
-  {w:"spider",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
-  {w:"bison",e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"},f:"charges through the middle row, politely"},
+  {w:"skunk",wake:{on:"rare",n:1},e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room — every last copy of it"},
+  {w:"raccoon",wake:{on:"crate",n:1},e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
+  {w:"squirrel",wake:{on:"word5",n:1},e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"stashes acorns that go off with a pop"},
+  {w:"spider",wake:{on:"word3",n:2},e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
+  {w:"bison",wake:{on:"drop",n:9},e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"},f:"charges through the middle row, politely"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 /* ============ CALLINGS — how a creature notices you ============
@@ -2497,6 +2497,7 @@ function saveRun(){
     cur:S.cur, next:S.next, movesLeft:S.movesLeft, levelScore:S.levelScore,
     drops:S.drops, revived:S.revived, bestWord:S.bestWord, bestWordPts:S.bestWordPts,
     maxChain:S.maxChain, newGrove:S.newGrove, tutorWord:S.tutorWord, petCharge:S.petCharge, petTurn:S.petTurn, petActs:S.petActs||0, charm:S.charm||0,
+    wake:S.wake||{},   // how close each friend is to stirring survives a reload mid-round
     goal:S.goal, goal2:S.goal2||null };
   save();
 }
@@ -2510,6 +2511,7 @@ function loadRun(){
       revived:!!r.revived, bestWord:r.bestWord||"", bestWordPts:r.bestWordPts||0,
       maxChain:r.maxChain||1, newGrove:(r.newGrove||[]).filter(w=>GROVE_BY_WORD[w]), cur:r.cur, next:r.next, tutorWord:r.tutorWord||null,
       petCharge:r.petCharge||0, petTurn:r.petTurn||0, petActs:r.petActs||0, charm:r.charm||0,
+      wake:r.wake||{}, _woke:[],
       goal:r.goal||{t:"hush",need:0,have:0}, goal2:r.goal2||null });
     r.board.forEach((row,ri)=>row.forEach((cell,ci)=>{
       if(!cell) return;
@@ -2544,6 +2546,7 @@ function newState(level){
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
     petCharge:0, petTurn:0, petReady:false, petActing:false, petActs:0, charm:0,
+    wake:{}, _woke:[],          // how close each friend is to stirring, and who just did
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -3593,13 +3596,22 @@ const Game = {
     if(S.tutorWord && !S.over && !S.won && !tutorAlive()) tutorPrefill(S.tutorWord);
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
-    await Game.tryPetAct();
     if(Game.hasPassive("alwaysHint")) Game.petHint(false); // 🎯 Keen Eye: the hawk points, quietly, every time
 
     // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
     if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
     else { S.deadDrops++; if(S.deadDrops===2 && S.level<=2 && !S.guide) setTimeout(()=>UI.nudge(), 350); } // lessons coach themselves
     S.drops++;
+    // A DROP IS AN EVENT, and so is the letter itself. This is what keeps something
+    // ticking even on a turn that spells nothing — the friend counting consonants took
+    // a step, so the round never feels like a wasted move.
+    Game.sees("drop");
+    if(piece && piece.letter) Game.sees("aeiou".includes(piece.letter) ? "vowel" : "consonant");
+    // THE DRAIN MUST FOLLOW THE SIGNS, not precede them. This sat above the sees() calls
+    // at first, so a friend woken by the drop itself queued up after the drainer had
+    // already gone by and sat there until the NEXT drop — the bee counted to four and
+    // then did nothing at all.
+    await Game.tryPetAct();
     if(S.drops % 3 === 0){ await Game.stirShifters(); await Game.brambleSpread(); }
     await Game.woodTick();
     S.busy=false;
@@ -4001,6 +4013,8 @@ const Game = {
   credit(kind){
     if(!OBSTACLE_KINDS.includes(kind)) return false;
     Game.tallyEv(kind==="frost" ? "ice" : kind);
+    Game.sees("obstacle");
+    if(kind==="crate") Game.sees("crate");
     Game.amber(2);
     const g=OBSTACLE_GOAL[kind];
     if(g) Game.goalTick(g);
@@ -4118,36 +4132,76 @@ const Game = {
     save();
   },
 
-  cheer(n){ // rewards (crates, quests, daily word, cascades) excite your pets — extra paw charge
+  cheer(n){ // a crate, a quest, a cascade — the shelf reacts, but nothing is charged any
+    // more. Friends wake to their own signs now; this is the sound of them noticing.
     if(!S || !UI.equipped().length) return;
-    S.petCharge=(S.petCharge||0)+(n||1);
-    if(S.petCharge>=Game.petNeed()){ S.petCharge=0; if((S.petActs||0)<Game.petCap()) S.petReady=true; }
     UI.petMeter();
     const pb=$("petbar"); pb.classList.remove("pulse"); void pb.offsetWidth; pb.classList.add("pulse");
     setTimeout(()=>pb.classList.remove("pulse"),520);
     Snd.tone(880,{dur:.08,type:"triangle",gain:.06});
   },
 
-  /* ============ PET POWERS — 50 friends, 50 powers ============
-     Actives take turns on the paw meter; passives (g.ps) are simply always on. */
+  /* ============ FRIENDS WAKE TO THE WORDS YOU MAKE ============
+     Every friend watches its OWN event and stirs when it has seen enough of them.
+     There is no shared meter and no rotation: the word you choose to make is the friend
+     you choose to wake, which is agency without another tap or another pause.
+
+     Because the events differ, something is always ticking — a drop that spells nothing
+     still wakes whoever is counting consonants. And because one friend's gift is another
+     friend's trigger, the chains write themselves: the dog hands you a four-letter word,
+     which is exactly what the swan is waiting for.
+
+     THE LAW, enforced by how often a trigger fires rather than by hand: a consonant lands
+     roughly fifteen times a round and a five-letter word about once, so a friend watching
+     consonants must need MANY of them or give very little. Wake counts below are set from
+     those frequencies — get this wrong and the friend watching the commonest event is
+     simply the best friend in the game, and nothing else is ever worth a seat. */
+  WAKE_FREQ:{ drop:25, consonant:15, vowel:10, anyWord:9, word3:7, word4:3, word5:1.2,
+              gold:2, obstacle:3, cascade:2, rare:1, tool:3, crate:1.2 },
+
+  /* one event just happened — every friend counting it takes a step toward waking */
+  sees(ev, n){
+    if(!S || S.over || S.won || !ev) return;
+    S.wake = S.wake || {};
+    for(const g of Game.petActives()){
+      const w=g.wake; if(!w || w.on!==ev) continue;
+      S.wake[g.w] = (S.wake[g.w]||0) + (n||1);
+      if(S.wake[g.w] >= w.n){ S.wake[g.w]=0; S._woke = S._woke || []; S._woke.push(g.w); }
+    }
+    if(S._woke && S._woke.length) UI.petMeter();
+  },
+  /* how far along a friend is, for the sleep dots on its card */
+  wakeAt(g){ if(!g.wake) return null;
+    return { have: (S && S.wake && S.wake[g.w]) || 0, need: g.wake.n }; },
+
   petActives(){ return UI.equipped().filter(g=>!g.ps); },
   hasPassive(t){ return UI.equipped().some(g=>g.ps && g.fx.t===t); },
   petNeed(){ const n=Game.petActives().length; return n>=2 ? 2 : 3; },
-  petCap(){ return S.level<30 ? 1 : S.level<80 ? 2 : 3; },  // acts per ROUND — powers are a moment, not a faucet
+  // petCap() lived here — acts per round, 1/2/3 by level. Deleted with the shared meter:
+  // it threw away charge the player had already earned (3-5 wasted charges a round for a
+  // strong player), and the wake counts pace the friends far better than a cap ever did.
   async tryPetAct(){
-    if(!S.petReady || S.over || S.won) return;
+    if(S.over || S.won) return;
+    if(!S._woke || !S._woke.length) return;
     // a decided round takes no more help — firing a power into a finished board
     // reads as the game wasting YOUR charge. The win it was saving arrives anyway.
     const decided = (S.goal && S.goal.t!=="hush")
       ? (S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need))
       : (S.levelScore>=S.target && !S.tutorWord);
-    if(decided) return;
-    // rituals own the stage: a reveal or a meet in progress means the pet WAITS —
-    // petReady stays armed and the power fires on the next quiet drop.
+    if(decided){ S._woke.length=0; return; }
+    // rituals own the stage: a reveal or a meet in progress means the friend WAITS —
+    // it stays awake in the queue and acts on the next quiet drop.
     if(S.pendingReveal || document.querySelector(".whosthat") || $("ov-meet").classList.contains("active")) return;
-    if((S.petActs||0) >= Game.petCap()) return;
-    S.petReady=false; S.petActs=(S.petActs||0)+1;
-    await Game.petAct();
+    // no per-round cap any more: the wake counts ARE the pacing, and a cap on top of
+    // them threw away charge the player had earned (measured at 3-5 wasted charges a
+    // round for a strong player, which punished exactly the people playing best).
+    while(S._woke.length){
+      const g=GROVE_BY_WORD[S._woke.shift()];
+      if(!g || !UI.equipped().includes(g)) continue;
+      S.petActs=(S.petActs||0)+1;
+      await Game.petAct(g);
+      if(S.over || S.won) break;
+    }
   },
   petBoost(pet){ // same-home synergy: this pet is ×2 if another duty friend shares its home
     return UI.equipped().some(g=>g!==pet && g.z===pet.z);
@@ -4171,9 +4225,11 @@ const Game = {
     t.inner.classList.add("thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); },
   handPop(){ const cw=document.querySelector("#currentwrap .tile"); if(cw){ cw.classList.add("thawpop"); setTimeout(()=>cw.classList.remove("thawpop"),560); } },
 
-  async petAct(){
+  async petAct(pet){
     const actives=Game.petActives(); if(!actives.length) return;
-    const pet=actives[S.petTurn % actives.length]; S.petTurn++;
+    // the friend is named by whoever woke — no rotation, because the player chose it
+    // by choosing what to spell
+    if(!pet) pet=actives[0];
     S.lastAction=Date.now();
     Game.tallyEv("act");
     const eq=UI.equipped(), boost=Game.petBoost(pet);
@@ -4432,15 +4488,19 @@ const Game = {
     P.stats.words++;
     Game.tallyEv("words");
     const wl=word.cells.length;
+    // WORD-SHAPED WAKES. Longer counts as shorter — a five-letter word satisfies a friend
+    // waiting on four — so reaching further never costs you a wake you had already earned.
+    Game.sees("anyWord");
+    if(wl===3) Game.sees("word3");
+    if(wl>=4)  Game.sees("word4");
+    if(wl>=5)  Game.sees("word5");
+    if(/[qzxjv]/.test(word.word)) Game.sees("rare");
     Game.tallyEv(wl>=6?"word6":"word"+wl);
     if(/[qzxjv]/.test(word.word)) Game.tallyEv("qzxjv");
     S.wordsMade=(S.wordsMade||0)+1;
-    // every word charges your ACTIVE pets' powers (passives are always on)
-    if(Game.petActives().length && !S.petActing){
-      S.petCharge=(S.petCharge||0)+1;
-      if(word.cells.length===3 && pairOn("crumbCharge")) S.petCharge++; // 🧀 The Truce: cat & mouse split the crumbs
-      UI.petMeter();
-      if(S.petCharge>=Game.petNeed()){ S.petCharge=0; if((S.petActs||0)<Game.petCap()) S.petReady=true; UI.petMeter(); } }
+    // words no longer feed a shared meter — Game.sees() above already woke whichever
+    // friends were counting this word's shape
+    if(Game.petActives().length && !S.petActing) UI.petMeter();
     // the grove and the daily word must be EARNED: only words YOU made (chain 1 count).
     // A friend is UNLOCKED here but you MEET them (the ritual) at the start of the next round.
     if(chain===1){
@@ -5108,40 +5168,41 @@ const UI = {
     el.classList.toggle("empty", wn<=0);
     el.title="every 4-letter word earns a wish · tap to choose any letter for your next tile";
   },
-  petMeter(){ // paw-prints fill as you spell; full → your pet uses its power
+  /* what each sign is CALLED, in the wood's own voice — these are the words a player
+     reads on a friend's card, so they name the thing that happens, not the event id */
+  WAKE_WORDS:{ drop:"tiles dropped", consonant:"hard letters", vowel:"soft letters",
+    anyWord:"words", word3:"small words", word4:"four-letter words",
+    word5:"five-letter words", gold:"golden letters cleared", obstacle:"things cleared away",
+    crate:"gifts opened", rare:"rare letters", cascade:"tumbles", tool:"tools used" },
+  petMeter(){
+    // EVERY FRIEND CARRIES ITS OWN COUNT. There is no shared meter to read any more —
+    // one friend may be two consonants from stirring while another waits on a word you
+    // have not spelled yet, and both have to be legible at a glance.
     if(UI.equipped().length && S){
-      const need=Game.petNeed(), t=Math.min(S.petCharge||0, need);
-      const resting=(S.petActs||0)>=Game.petCap() && !S.petReady;
-      const ppr=$("pawpips"); if(ppr){ ppr.classList.toggle("resting", resting);
-        if(resting) ppr.title="your friends have had their moment this round — fresh paws next level"; }
-      const frac=t/need, bar=$("petbar");
-      bar.style.setProperty("--pawglow",(frac*16)+"px");
-      bar.style.setProperty("--pawalpha",(frac*0.75).toFixed(2));
-      bar.style.setProperty("--pawring",(frac*0.9).toFixed(2));
-      bar.title="the shelf glows as your pets charge up — they act every "+need+" words · same-home friends: powers ×2";
-      // the literal meter: one 🐾 per word needed, filling as you spell
-      const pp=$("pawpips");
-      if(Game.petActives().length){
-        if(pp.childElementCount!==need){ pp.innerHTML=""; for(let i=0;i<need;i++){ const s=document.createElement("span"); s.className="pip"; s.textContent="🐾"; pp.appendChild(s); } }
-        [...pp.children].forEach((s,i)=>s.classList.toggle("fill", S.petReady || i<t));
-        pp.classList.toggle("ready", !!S.petReady);
-      } else pp.innerHTML="";
-      // one word away (or ready): the pets can barely contain themselves
-      const excited = S.petReady || t>=need-1;
-      const eq=UI.equipped(), actives=Game.petActives();
-      const nextSlot = actives.length ? eq.indexOf(actives[S.petTurn % actives.length]) : -1;
-      for(let s=0;s<4;s++){ const el=$("pet-"+s); if(!el) continue;
+      const eq=UI.equipped();
+      // the shelf glows for whoever is closest to waking
+      let closest=0;
+      for(const g of Game.petActives()){
+        const w=Game.wakeAt(g); if(!w) continue;
+        closest=Math.max(closest, w.have/w.need);
+      }
+      const bar=$("petbar");
+      bar.style.setProperty("--pawglow",(closest*16)+"px");
+      bar.style.setProperty("--pawalpha",(closest*0.75).toFixed(2));
+      bar.style.setProperty("--pawring",(closest*0.9).toFixed(2));
+      bar.title="each friend stirs to its own sign — the shelf warms as one of them gets close";
+      const pp=$("pawpips"); if(pp) pp.innerHTML="";   // the shared meter is gone
+      for(let s=0;s<5;s++){ const el=$("pet-"+s); if(!el) continue;
         const g=eq[s];
-        el.classList.toggle("excited", excited && !!g && !g.ps);
-        // NO MYSTERY: the next pet to act wears a countdown; passives wear their "always on" mark
         let b=el.querySelector(".petcount");
-        if(g && (s===nextSlot || g.ps)){
-          if(!b){ b=document.createElement("span"); b.className="petcount"; el.appendChild(b); }
-          if(g.ps){ b.textContent="∞"; b.classList.add("ready"); }
-          else { const togo = S.petReady ? 0 : need-t;
-            b.textContent = togo<=0 ? "✨" : togo;
-            b.classList.toggle("ready", togo<=0); }
-        } else if(b) b.remove();
+        if(!g){ if(b) b.remove(); el.classList.remove("excited"); continue; }
+        if(!b){ b=document.createElement("span"); b.className="petcount"; el.appendChild(b); }
+        if(g.ps){ b.textContent="∞"; b.classList.add("ready"); el.classList.remove("excited"); continue; }
+        const w=Game.wakeAt(g);
+        const togo = w ? Math.max(0, w.need-w.have) : 0;
+        b.textContent = togo<=0 ? "✨" : togo;
+        b.classList.toggle("ready", togo<=0);
+        el.classList.toggle("excited", togo<=1);     // one sign away and it can hardly wait
       }
     }
   },
@@ -5160,10 +5221,13 @@ const UI = {
     let turn;
     if(g.ps) turn="<b>always on</b> while on duty";
     else {
-      const actives=Game.petActives(), need=Game.petNeed(), togo=Math.max(0, need-(S.petCharge||0));
-      const nxt=actives[S.petTurn % actives.length];
-      turn = nxt===g ? (togo<=0 ? "acting now!" : "acts in <b>"+togo+" word"+(togo>1?"s":"")+"</b>")
-                     : "acts after "+nxt.e;
+      // THE TRIGGER IS STATED, THE STRATEGY IS NOT. A player choosing a party has to know
+      // what wakes a friend; nothing anywhere tells them which round wants which friend.
+      const w=Game.wakeAt(g);
+      const sign=UI.WAKE_WORDS[g.wake&&g.wake.on] || "you play on";
+      const togo=w ? Math.max(0, w.need-w.have) : 0;
+      turn = "wakes on <b>"+(g.wake&&g.wake.n>1 ? g.wake.n+" "+sign : sign)+"</b>"
+           + (togo<=0 ? " — <b>stirring now!</b>" : "<br><small>"+togo+" to go</small>");
     }
     // best-friend line: brag when the duo is live, tease the hunt when it isn't
     const pr=pairFor(g.w); let mate="";
