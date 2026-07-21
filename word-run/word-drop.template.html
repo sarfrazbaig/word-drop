@@ -1165,14 +1165,42 @@
   @keyframes namerjig{ 0%,100%{ transform:rotate(-6deg) translateY(0) } 25%{ transform:rotate(5deg) translateY(-3px) }
     55%{ transform:rotate(-4deg) translateY(1px) } 80%{ transform:rotate(6deg) translateY(-2px) } }
   .sil{ filter:brightness(0) opacity(.62) drop-shadow(0 0 7px rgba(255,255,255,.4)); }
-  .whosthat{ position:absolute; left:50%; top:38%; transform:translate(-50%,-50%); z-index:95;
+  /* ANCHORED AT THE TOP, NOT THE MIDDLE. This used to be translate(-50%,-50%), which centres
+     the block on its own box — so when the caption changed from one line to three at the
+     face-turn, the box grew in BOTH directions and the creature visibly jumped 13px while
+     the pill slid 37px sideways. Anchoring the top means the creature is placed once and
+     stays there; only the words underneath grow downward. */
+  .whosthat{ position:absolute; left:50%; top:20%; transform:translate(-50%,0); z-index:95;
+    width:min(68%,246px);           /* the caption used to be 379px wide inside a 362px board,
+                                       bleeding off both edges — it is bounded now and wraps */
     display:flex; flex-direction:column; align-items:center; gap:9px; pointer-events:none; animation:bannerin .3s; }
   .whosthat.fade{ transition:opacity .35s; opacity:0; }
-  .whosthat .wt-e{ font-size:86px; line-height:1; transition:filter .5s; animation:wtbob 1s ease-in-out infinite; }
-  .whosthat .wt-e.sil{ filter:brightness(0) opacity(.72) drop-shadow(0 0 12px rgba(255,255,255,.55)); }
-  .whosthat .wt-q{ font-family:var(--font-story); font-size:17px; font-weight:750; color:#fff;
-    background:rgba(30,25,60,.72); border-radius:999px; padding:6px 16px; white-space:nowrap;
+  /* it ARRIVES rather than appearing — the shape was snapping in at full size on frame one,
+     which is a pop, not a stir. Swells past its size and settles, then picks up the bob. */
+  /* SIZED AGAINST THE TILES, not against the empty space. At 92px the creature was over two
+     tiles wide and read as a different game briefly barging in; ~1.5 tiles sits inside the
+     board's own scale. */
+  .whosthat .wt-e{ font-size:64px; line-height:1; transition:filter .6s;
+    animation:wtin .5s cubic-bezier(.2,.9,.3,1.35) both, wtbob 1s ease-in-out .5s infinite; }
+  /* LUMINOUS, not black. brightness(0) painted a dark shape onto a dark night board — the
+     creature was a smudge you could barely find, which read as unfinished more than anything
+     else here. Inverted, it is a moonlit cut-out: still featureless, still a question, but
+     unmistakably a creature. */
+  .whosthat .wt-e.sil{ filter:brightness(0) invert(1) opacity(.9)
+    drop-shadow(0 0 12px rgba(255,240,205,.62)) drop-shadow(0 0 26px rgba(190,175,255,.4)); }
+  /* wraps, centres, and is a rounded label rather than a stadium pill — a 999px radius only
+     ever looked right on the single line it was designed for */
+  .whosthat .wt-q{ font-family:var(--font-story); font-size:13.5px; font-weight:750; color:#fff;
+    background:rgba(26,22,52,.66); border-radius:12px; padding:6px 12px; white-space:normal;
+    text-align:center; line-height:1.34; max-width:100%; transition:opacity .22s;
+    text-wrap:balance;   /* names run from BEE to BUTTERFLY, so the caption wraps at some
+                            length no matter how wide it is — balanced beats orphaning "name!"
+                            onto a line by itself */
+    backdrop-filter:blur(3px); box-shadow:0 3px 14px rgba(0,0,0,.3);
     text-shadow:0 1px 2px rgba(0,0,0,.5); }
+  .whosthat .wt-q.swap{ opacity:0; }   /* the caption crossfades instead of snapping */
+  @keyframes wtin{ 0%{ transform:scale(.55); opacity:0 } 60%{ transform:scale(1.06); opacity:1 }
+    100%{ transform:scale(1); opacity:1 } }
   @keyframes wtbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-7px) } }
   .meetspark{ position:absolute; font-size:15px; pointer-events:none; animation:sparkpop 1.5s ease-out forwards; }
   @keyframes sparkpop{ 0%{ transform:scale(.2) translateY(4px); opacity:0 } 25%{ opacity:1; transform:scale(1.15) }
@@ -1246,8 +1274,11 @@
   #iv-goals div{ font-size:13px; color:var(--dim); }
   #iv-goals b{ display:block; font-size:30px; color:var(--ink); font-variant-numeric:tabular-nums; }
   #iv-tap{ font-size:12px; font-weight:800; color:var(--accent-deep); letter-spacing:2px; animation:tapblink 1.4s infinite; }
-  .wt-tap{ margin-top:12px; font-size:12px; font-weight:800; letter-spacing:2px; color:#ffe9a8;
-    text-transform:uppercase; animation:tapblink 1.4s infinite; }
+  /* a sibling of the caption now, not a block crammed inside a nowrap pill. The flex gap
+     spaces it, so the old margin-top would double up. */
+  .wt-tap{ font-size:10.5px; font-weight:800; letter-spacing:1.8px; color:#ffe9a8;
+    text-transform:uppercase; animation:tapblink 1.4s infinite;
+    text-shadow:0 1px 3px rgba(0,0,0,.7); }
   #toast.tapwait{ pointer-events:auto; cursor:pointer; }  /* ID specificity beats #toast{pointer-events:none} */
   .toast-tap{ margin-top:8px; font-size:11px; font-weight:800; letter-spacing:2px; color:var(--gold-deep);
     text-transform:uppercase; animation:tapblink 1.4s infinite; }
@@ -3919,9 +3950,20 @@ const Game = {
     await wait(1400);                                    // the whole wood holds its breath
     big.querySelector(".wt-e").classList.remove("sil");
     const bon=S._revealBonus||0; S._revealBonus=0;
-    big.querySelector(".wt-q").innerHTML="the <b>"+g.w.toUpperCase()+"</b> heard its true name!"
-      +(bon?'<br><span class="wt-b">+'+bon+' ✨ the wood is grateful</span>':"")
-      +'<div class="wt-tap">tap to continue</div>';
+    // the caption CROSSFADES. Swapping innerHTML outright made the words snap to the new
+    // line while the creature was still fading out of shadow — two different clocks in one
+    // moment, which is most of why the beat read as unfinished.
+    const q=big.querySelector(".wt-q");
+    q.classList.add("swap");
+    await wait(200);
+    q.innerHTML="the <b>"+g.w.toUpperCase()+"</b> heard its true name!"
+      +(bon?'<br><span class="wt-b">+'+bon+' ✨ the wood is grateful</span>':"");
+    q.classList.remove("swap");
+    // the prompt is a SIBLING of the caption. As a block inside a white-space:nowrap pill it
+    // stretched the pill into a shape it was never styled for.
+    const tap=document.createElement("div");
+    tap.className="wt-tap"; tap.textContent="tap to continue";
+    big.appendChild(tap);
     // the name is spoken: the ceremony releases and the board wakes back into the night
     if(!S.tutorWord && boardEl.classList.contains("ceremony")){
       boardEl.classList.remove("ceremony");
