@@ -2451,6 +2451,56 @@ const KEYSTONE={
   300:"phoenix" /* the hoard, at the summit                                */
 };
 const KEYSTONE_SET=new Set(Object.values(KEYSTONE));
+
+/* ═══ THE THIRTY GATES ═══
+   Two per country: a rehearsal at +10 and the door at +20. A gate never introduces a
+   trouble — the country supplies those — it takes something AWAY, and every rule is on
+   the card before you commit.
+
+   THE ONE RULE THAT GOVERNS ALL OF THEM: a gate may only take away something the player
+   has a surplus of. The first draft of this opened with "three seats" at level 10, where
+   a player owns about three friends and has three seats — a rule that reads like a
+   challenge and is a no-op. The number that decides it is the BENCH: friends owned minus
+   seats available. It is zero at L10, four at L40, thirteen at L100, and forty-five at
+   L300. So seat cuts do not begin until the Mosswood, and the early gates take moves and
+   tools instead.
+
+   Losing a door costs three levels, not the run — and those three levels are where a
+   calling finishes and the friend you were missing arrives. L10 costs nothing at all: it
+   is the card teaching you what a gate looks like, at zero stakes. */
+const GATE={
+   10:{n:"The First Branch",      moves:16, free:1},
+   20:{n:"Out of the Clearing",   moves:16, door:1},
+   30:{n:"The Short Breath",      moves:20, small:1},
+   40:{n:"Out of the Bramblewood",seats:4,  door:1},
+   50:{n:"The Stubborn Ground",   noWish:1},
+   60:{n:"Out of the Mosswood",   seats:4,  door:1},
+   70:{n:"The Drifting Air",      moves:18},
+   80:{n:"Out of the Spore Hollow",seats:3, door:1},
+   90:{n:"The Blocked Way",       moves:20},
+  100:{n:"Out of the Pond",       noTools:1, door:1},
+  110:{n:"The Ground That Holds", seats:3},
+  120:{n:"Out of the Reedmarsh",  seats:3, moves:18, door:1},
+  130:{n:"The Moving Board",      moves:20},
+  140:{n:"Out of the River",      noWish:1, door:1},
+  150:{n:"The Hopping Dark",      seats:3},
+  160:{n:"Out of the Thunderfalls",bars:"spider", door:1},
+  170:{n:"The Weight of Rock",    moves:18},
+  180:{n:"Out of the Undercave",  seats:3, door:1},
+  190:{n:"The Unread Board",      moves:20},
+  200:{n:"Out of the Deep Dark",  noTools:1, seats:3, door:1},
+  210:{n:"The Bright Seam",       small:1},
+  220:{n:"Out of the Glimmer Seams",seats:3, small:1, door:1},
+  230:{n:"The Sliding Slope",     moves:20},
+  240:{n:"Out of the Scree Slopes",seats:3, moves:18, door:1},
+  250:{n:"The Gale",              bars:"dragon"},
+  260:{n:"Out of the Windward Ridge",bars:"dragon", door:1},
+  270:{n:"The First Snow",        moves:20},
+  280:{n:"Out of the Snowline",   seats:2, door:1},
+  290:{n:"The Last Climb",        seats:3, moves:18, small:1},
+  300:{n:"The Frozen Crown",      seats:2, moves:20, noTools:1, door:1},
+};
+function gateAt(L){ return GATE[L]||null; }
 /* a keystone is never called for — it is given, so it must not also sit in the calling
    queue waiting to be spelled */
 const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w));
@@ -2530,13 +2580,16 @@ function seatsByLevel(L){ return L>=20 ? 5 : L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 
    had only the cat — a fanfare for nothing, and it reads as the game losing track of who
    you are. A seat now needs BOTH the level and a friend to sit in it. */
 function slotsFor(L){
+  // a gate may take a chair away — but never more than the bench can carry, which is the
+  // whole reason no seat cut appears before the Mosswood
+  const _g=gateAt(L), cap=(_g&&_g.seats)||99;
   // COUNT THE ONES YOU HAVE ACTUALLY MET, not the names you have spoken. A creature enters
   // the grove the moment its name is spelled, but you meet it — and may only then bring it
   // on duty — at the start of the NEXT round. Counting the grove opened a third seat while
   // the third friend was still a name on a page, so the seat sat empty and the fanfare was
   // for nobody. equipToggle gates on metGrove, so this must agree with it.
   const friends = Object.keys((typeof P!=="undefined" && P.metGrove) || {}).length;
-  return Math.max(1, Math.min(seatsByLevel(L), friends));
+  return Math.max(1, Math.min(seatsByLevel(L), friends, cap));
 }
 const SLOT_MSG={
   2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Each one stirs to its own sign, so two of them means two different things to watch for."},
@@ -2841,7 +2894,9 @@ function loadRun(){
 /* =================== STATE =================== */
 function newState(level){
   return { level, milestone:isMilestone(level), board:Array.from({length:ROWS},()=>Array(COLS).fill(null)),
-    tiles:{}, seq:0, levelScore:0, target:TARGET(level), movesLeft:MOVES(level),
+    tiles:{}, seq:0, levelScore:0, target:TARGET(level),
+    // a gate hands you a shorter round; everything else about the level is unchanged
+    movesLeft:(gateAt(level)&&gateAt(level).moves)||MOVES(level),
     drops:0, chain:1, maxChain:1, cascadeMax:1, playerMove:false, guide:null,
     goal:{t:"hush",need:0,have:0},
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
@@ -3593,6 +3648,17 @@ const Game = {
     // same rule as the seeder: the card shows whatever is actually on the board, so a new
     // trouble cannot arrive unannounced
     for(const kind in rec) if(rec[kind]>0) parts.push((TROUBLE_ICON[kind]||"•")+"×"+rec[kind]);
+    // A GATE IS A PUZZLE, NEVER AN AMBUSH. Every rule it imposes is on this card, before
+    // you commit — you should be able to lose a gate in the Book and know exactly why.
+    { const g=gateAt(level);
+      if(g){
+        if(g.seats)   parts.push("🪑 "+g.seats+" seats");
+        if(g.moves)   parts.push("👣 "+g.moves+" only");
+        if(g.bars)    parts.push("🚫 "+g.bars+" stays home");
+        if(g.noTools) parts.push("🚫 no tools");
+        else if(g.noWish) parts.push("🚫 no wishes");
+        if(g.small)   parts.push("📏 small words score 0");
+      } }
     if(parts.length){ ob.style.display="block"; ob.textContent=parts.join("  "); }
     else ob.style.display="none";
     const iv=$("iv-visitor");
@@ -4084,6 +4150,19 @@ const Game = {
       why: S.movesLeft<=0 ? "out_of_moves" : "board_full",
       short: Math.max(0, S.target-S.levelScore), target:S.target, got:S.levelScore,
       words:S.wordsMade||0, amber:(typeof P!=="undefined"?P.amber:0)||0 });
+    /* LOSING A DOOR COSTS THREE LEVELS, NOT THE RUN. You keep every friend, every growing
+       and every coin — you walk back three, and those three are exactly where a calling
+       finishes and the friend you were missing finally arrives. The wood is not punishing
+       you; it is telling you what to go and fetch.
+       Three, not one: at one you bounce straight back into the same door with nothing
+       changed, which is a treadmill rather than a lesson. And the practice gate at L10
+       costs nothing at all — it exists to teach what a gate IS, at zero stakes. */
+    { const g=gateAt(S.level);
+      if(g && !g.free && P.level>3){
+        S._pushedBack=Math.min(3, P.level-1);
+        P.level=Math.max(1, P.level-S._pushedBack); save();
+        Game.track("gate_pushback",{ L:S.level, back:S._pushedBack, gate:g.n });
+      } }
     // a letdown at a ceremony is counted — after two, the wood starts lending letters
     if(S.tutorWord){ P.nameFails[S.tutorWord]=(P.nameFails[S.tutorWord]||0)+1; }
     S.over=true; P.run=null;
@@ -4127,6 +4206,12 @@ const Game = {
   },
   armBreeze(){
     if(!S || S.busy || S.over || S.won) return;
+    // a no-tools gate does not TAKE your breezes — they are still in your pocket after,
+    // and they still count. They simply do not answer inside this round.
+    { const g=gateAt(S.level);
+      if(g && g.noTools){ Snd.reject(); buzz(40);
+        UI.say("gate-notools","🌿 this gate asks for <b>no tools</b> — your breezes are safe, they just do not answer here",3);
+        return; } }
     Snd.init(); S.lastAction=Date.now();
     // during a lesson the breeze answers ONLY when the lesson says so. A curious tap
     // used to ARM it silently and then "drop the T" was impossible — a built-in fail
@@ -4209,6 +4294,10 @@ const Game = {
   },
   openWish(){
     if(!S || S.busy || S.over || S.won) return;
+    { const g=gateAt(S.level);
+      if(g && (g.noTools||g.noWish)){ Snd.reject(); buzz(40);
+        UI.say("gate-nowish","🌿 this gate asks for <b>no wishes</b> — your stars are safe, they just do not answer here",3);
+        return; } }
     Snd.init(); S.lastAction=Date.now();
     if(S.guide){ // lessons own the stage — the star waits its turn
       const el=$("wishbtn");
@@ -4545,7 +4634,10 @@ const Game = {
   wakeNeed(g){ if(!g.wake) return 0;
     return Math.max(1, Math.round(g.wake.n / Game.tierMul())); },
 
-  petActives(){ return UI.equipped().filter(g=>!g.ps); },
+  petActives(){
+    // a gate can bar one named friend — telegraphed on the card, never the only answer
+    { const g=gateAt(S?S.level:0);
+      if(g&&g.bars) return UI.equipped().filter(x=>x.w!==g.bars); } return UI.equipped().filter(g=>!g.ps); },
   hasPassive(t){ return UI.equipped().some(g=>g.ps && g.fx.t===t); },
   petNeed(){ const n=Game.petActives().length; return n>=2 ? 2 : 3; },
   // petCap() lived here — acts per round, 1/2/3 by level. Deleted with the shared meter:
@@ -5314,6 +5406,8 @@ const Game = {
       if(wildN){ Game.tallyEv("star"); for(let wi=0;wi<wildN;wi++) Game.goalTick("star"); }
       if(len>=4) Game.goalTick("long");                       // 🏔️ the long trial hears you
       if(w.dir==="up") Game.tallyEv("upword");
+      { const g=gateAt(S.level);
+        if(g && g.small && w.cells.length<4) pts=0; }   // it still clears; it just does not pay
       Game.recordWord(w, pts, S.chain);
       // THE announcement of this game — the word you made and what it paid — used to sit
       // for 700ms and vanish. Nobody could read it, and the bigger the word the more
