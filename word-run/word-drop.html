@@ -2071,7 +2071,7 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
    while on duty (passives don't use the paw meter — they just work). */
 const GROVE = [
   // your first friends — taught in the early levels (f: = the little plaque on their album card)
-  {w:"cat",wake:{on:"word3",n:2},e:"🐱",z:"ground",pn:"Golden Paw",pi:"✨",pd:"turns <b>your next letter golden</b> — ×3 wherever you drop it",fx:{t:"goldHand"},f:"naps wherever the golden tiles are warmest"},
+  {w:"cat",wake:{on:"anyWord",n:1},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
   {w:"dog",wake:{on:"word3",n:3},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
   {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
@@ -4352,9 +4352,24 @@ const Game = {
     const cols=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0; for(let r=0;r<8;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
     const rowTiles=(r)=>{ const out=[]; for(let c=0;c<COLS;c++){ const t=S.board[r][c]; if(t&&(t.kind==="normal"||t.kind==="gold"||t.kind==="wild")) out.push(t); } return out; };
     switch(fx.t){
-      case "goldHand": { if(S.cur && S.cur.kind==="normal") S.cur.kind="gold";
-        if(boost && S.next && S.next.kind==="normal") S.next.kind="gold";
-        UI.piece(); Snd.gold(); Game.handPop(); break; }
+      /* 🐱 THE FIRST FRIEND ANYONE MEETS, so it has to be the most legible thing in the
+         game. Golden Paw gilded your next letter and paid off later, somewhere, if you
+         cleared it — a player finished two whole rounds without ever seeing the cat do
+         anything. A first power must be small, frequent, and visible in the same breath:
+         one letter on the board changes, and often a word falls out of it right there.
+         Gold moved out entirely; the fox, the fish, the lizard and the goose all carry it,
+         and the first rounds are short enough not to need it. */
+      case "pawPat": {
+        const ns=normals();
+        if(!ns.length){ Game.addMoves(1); break; }
+        // prefer a tile with a neighbour beside it — a changed letter in open space can
+        // spell nothing, and the whole point is that the player SEES it work
+        const social=ns.filter(t=>(t.c>0 && S.board[t.r][t.c-1]) || (t.c<COLS-1 && S.board[t.r][t.c+1]));
+        const pool=social.length?social:ns;
+        const picks=pool.sort(()=>Math.random()-.5).slice(0, 1*m);
+        for(const t of picks){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#ffd9a8"); }
+        Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
+        S.chain=1; await Game.resolve(picks); break; }
       case "weave": { const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
         // no word to dig up on this board — rather than nothing, the dog brings back a
         // star. Players saw their letter silently become ★ and had no idea why.
