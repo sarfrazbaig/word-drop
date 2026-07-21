@@ -2192,6 +2192,11 @@ const Shop={
   DEV:{ name:"dev-test", async purchase(it){ await wait(450); return {test:true}; }, async restore(){ return []; } },
   open(){
     if(S && S.guide) return;                    // lessons keep their focus
+    // ANYTHING OPENED FROM THE SIDEBAR MUST CLOSE IT FIRST. Menu actions that switch SCENE
+    // get this for free — UI.scene() drops the panel on its way out — but an overlay does
+    // not, so the panel stayed open on top of the Trading Post and hid the thing you just
+    // asked for. statsShow already closed it by hand; this one never did.
+    UI.menuToggle(false);
     Game.track("shop_open",{L:S?S.level:0, amber:P.amber||0});
     Shop.render(); $("ov-shop").classList.add("active");
   },
