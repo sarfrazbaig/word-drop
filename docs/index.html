@@ -2247,10 +2247,19 @@ function dailyWord(){
 /* FIVE SEATS, not four. The fifth arrives at L20, where the bench first genuinely
    outgrows it: by then a player owns eight or nine friends, and choosing between them
    is the beginning of the game having a strategy at all. */
-function slotsFor(L){ return L>=20 ? 5 : L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 1; }
+/* what the LEVEL would allow — the ladder, before the wood checks your pockets */
+function seatsByLevel(L){ return L>=20 ? 5 : L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 1; }
+/* A SEAT YOU CANNOT FILL IS NOT A SEAT. The level opened a second one at L7 whether or
+   not the player had met anyone to put in it, so "Room for two!" arrived while they still
+   had only the cat — a fanfare for nothing, and it reads as the game losing track of who
+   you are. A seat now needs BOTH the level and a friend to sit in it. */
+function slotsFor(L){
+  const friends = Object.keys((typeof P!=="undefined" && P.grove) || {}).length;
+  return Math.max(1, Math.min(seatsByLevel(L), friends));
+}
 const SLOT_MSG={
-  2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Same-home friends make each other's powers twice as strong."},
-  3:{t:"The pack grows! 🐾", b:"Three friends can join you now — more friends means their powers come faster."},
+  2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Each one stirs to its own sign, so two of them means two different things to watch for."},
+  3:{t:"The pack grows! 🐾", b:"Three friends can join you now. Bring ones that answer to different signs and something is always about to happen."},
   4:{t:"The pack grows! 🐾", b:"Four friends at once — and they each stir to their own sign. Pick who walks with you in the Book of Names."},
   5:{t:"Full party! 🐾", b:"Five friends at once. Now the wood is asking you a real question: whose signs suit the round ahead?"},
 };
@@ -5298,6 +5307,8 @@ const UI = {
       if(!S) return;
       const slots=slotsFor(P.level);
       if(slot<slots) UI.say("seat-open", "🐾 an open seat — wake more friends to fill it!", 3);
+      else if(slot < seatsByLevel(P.level))
+        UI.say("seat-ready", "🐾 this seat is ready — <b>wake another friend</b> to fill it", 3);
       else UI.toast("🔒 this seat unlocks at <b>level "+UI.SLOT_LV[slot]+"</b>");
       Snd.tone(520,{dur:.08,type:"triangle",gain:.05});
       return;
@@ -5452,6 +5463,12 @@ const UI = {
         el.innerHTML='<span class="pawghost">🐾</span>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="24px";
         el.title="an open seat — meet more friends!"; }
+      else if(s < seatsByLevel(P.level)){
+        // the LEVEL has opened this one; what is missing is somebody to sit in it. Saying
+        // "unlocks at level 7" to a player who is already level 12 is just wrong.
+        el.innerHTML='<span class="pawghost">🐾</span><small class="slotlv">wake a friend</small>';
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="24px";
+        el.title="this seat is ready — meet another friend to fill it"; }
       else { // a locked seat — you can SEE what's coming
         el.innerHTML='<span class="pawghost">🐾</span><i class="slotlock">🔒</i><small class="slotlv">LV '+UI.SLOT_LV[s]+'</small>';
         el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="24px";
@@ -5697,7 +5714,10 @@ const UI = {
     $("pet-sheet-swap").classList.remove("on");
     UI.visitor(); UI.groveShow(); UI.petSheet(inW);
   },
-  nextSlotAt(){ const m=slotsFor(P.level); return m>=5?null : m===4?20 : m===3?14 : m===2?10 : 7; },
+  // "another seat opens at level N" is about the LADDER, so it reads the level, not the
+  // seats you can currently fill — otherwise a player with one friend is told the next
+  // seat comes at 7 while they stand on level 15
+  nextSlotAt(){ const m=seatsByLevel(P.level); return m>=5?null : m===4?20 : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
     if(!P.metGrove[w]) return;
     P.equip = P.equip||[];
