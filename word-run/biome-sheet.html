@@ -1,0 +1,343 @@
+<title>Hushwood — all fifteen countries</title>
+<style>
+:root{
+    /* ===== "HUSHWOOD DUSK" — a storybook at the edge of evening. warm parchment,
+       moss and ember, and the hush itself: a soft violet that marks quiet things. ===== */
+    --font-story:"Fraunces", Georgia, "Times New Roman", serif;   /* the book's voice */
+    --font-ui:"Nunito", "Segoe UI", system-ui, sans-serif;        /* the friendly hand */
+    --bg0:#b9aa96;            /* worn table behind the page */
+    --bg1:#ddd8e6;            /* app: dusk air (cool, so nothing reads as stark white) */
+    --bg2:#f0e5d0;            /* app: warm parchment at the foot of the page */
+    --surface:rgba(101,78,48,.07);
+    --surface-border:rgba(101,78,48,.16);
+    --ink:#3d3226; --dim:#7d6849;
+    --accent:#6f9e63; --accent-deep:#4c7a46;
+    --hush:#8b93c7; --hush-deep:#5d6494;   /* the colour of the quiet */
+    --gold:#e8b64c; --gold-deep:#bd8619;
+    --blush:#d98ba6;
+    --danger:#d95f4a;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:26px;
+    --sp1:4px; --sp2:8px; --sp3:12px; --sp4:16px; --sp5:24px;
+    --fs-num:34px; --fs-big:22px; --fs-md:15px; --fs-sm:12px; --fs-xs:10px;
+    --shadow-panel:0 10px 26px -12px rgba(90,70,45,.42);
+    --tile-face:linear-gradient(150deg,#fff4d6 0%, #f6e2ac 44%, #eccf88 100%);
+    --tile-edge:#c69a52;
+    --tile-ink:#6a4a1c;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(150,105,40,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#e7d3ab;
+    --board-dot:rgba(120,88,45,.28);
+    --grass:#79c268;
+    --board-tint:linear-gradient(180deg, rgba(255,236,150,.32) 0%, rgba(168,214,130,.16) 55%, rgba(120,175,95,.14) 100%);
+    --frame1:#caa26a; --frame2:#9a6f3c;
+    /* the board is the SKY of the wood — a twilight that each region tints its own way.
+       (top → mid → horizon-glow). deep at first, brightening toward dawn as you wake it. */
+    --spec:255,246,222; --sky-glow:#f0c9a0; --sky-top:#4a4a78; --sky-mid:#8878a4; --sky-low:#e6c39a; --moon:#fff4d2;
+  }
+.board{ position:relative;
+    background-image:
+      radial-gradient(1.4px 1.4px at 18% 14%, rgba(var(--spec),.95), transparent 60%),
+      radial-gradient(1.2px 1.2px at 62% 9%, rgba(var(--spec),.85), transparent 60%),
+      radial-gradient(1px 1px at 84% 20%, rgba(var(--spec),.8), transparent 60%),
+      radial-gradient(1.3px 1.3px at 33% 27%, rgba(var(--spec),.75), transparent 60%),
+      radial-gradient(1px 1px at 8% 34%, rgba(var(--spec),.7), transparent 60%),
+      radial-gradient(1.2px 1.2px at 50% 22%, rgba(var(--spec),.7), transparent 60%),
+      radial-gradient(1px 1px at 74% 33%, rgba(var(--spec),.65), transparent 60%),
+      radial-gradient(1.3px 1.3px at 92% 40%, rgba(var(--spec),.6), transparent 60%),
+      radial-gradient(1px 1px at 26% 44%, rgba(var(--spec),.55), transparent 60%),
+      /* the horizon glows before it meets the ground — this is the difference between a
+         gradient and a sky */
+      radial-gradient(120% 46% at 50% 92%, color-mix(in srgb, var(--sky-glow) 52%, transparent), transparent 74%),
+      radial-gradient(90% 40% at 78% 8%, color-mix(in srgb, var(--sky-top) 60%, transparent), transparent 70%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-top) 14%, var(--sky-mid) 50%, var(--sky-low) 86%, var(--sky-low) 100%);
+    background-repeat:no-repeat;
+    border-radius:var(--r-lg); overflow:hidden;
+    transition:filter .8s ease;
+    box-shadow:
+      0 0 0 2px rgba(255,250,235,.5), 0 0 0 4px rgba(90,80,120,.4),
+      0 22px 46px -16px rgba(25,22,48,.7),
+      inset 0 0 46px -6px rgba(20,16,44,.5),
+      inset 0 2px 0 rgba(255,255,255,.18); }
+.board::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:38%;
+    z-index:0; pointer-events:none; border-radius:inherit;
+    /* eased the whole way in — the ground used to arrive at 42% strongly enough to leave a
+       seam across the board, and a seam is exactly what you notice behind letters */
+    background:linear-gradient(180deg,
+      transparent 0%,
+      color-mix(in srgb, var(--grass) 8%,  transparent) 22%,
+      color-mix(in srgb, var(--grass) 26%, transparent) 46%,
+      color-mix(in srgb, var(--grass) 52%, transparent) 72%,
+      color-mix(in srgb, var(--grass) 70%, transparent) 100%); }
+.board::after{ content:""; position:absolute; top:var(--orb-y,9%); right:var(--orb-x,11%);
+    width:var(--orb-size,48px); height:var(--orb-size,48px); border-radius:50%;
+    z-index:0; pointer-events:none;
+    background:radial-gradient(circle at 40% 38%, var(--moon), color-mix(in srgb, var(--moon) 70%, transparent) 62%, transparent 74%);
+    box-shadow:0 0 32px 10px color-mix(in srgb, var(--moon) 55%, transparent);
+    animation:moonglow 6s ease-in-out infinite; }
+.app[class*="bio"] .board{
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--frame1) 82%, transparent),
+      0 0 0 5px color-mix(in srgb, var(--frame2) 55%, transparent),
+      0 10px 26px rgba(20,16,30,.34),
+      inset 0 0 44px color-mix(in srgb, var(--frame2) 30%, transparent); }
+.biodecor::before{ content:""; position:absolute; left:-4%; right:-4%; bottom:31%; height:26%;
+    pointer-events:none; opacity:.62; z-index:0;
+    background:
+      radial-gradient(58% 118% at 14% 100%, var(--sil,#3f5a44) 34%, transparent 82%),
+      radial-gradient(44% 96%  at 39% 100%, var(--sil,#3f5a44) 34%, transparent 82%),
+      radial-gradient(62% 126% at 66% 100%, var(--sil,#3f5a44) 34%, transparent 82%),
+      radial-gradient(40% 88%  at 90% 100%, var(--sil,#3f5a44) 34%, transparent 82%);
+    /* haze: distant ground has no edge, and nothing may draw a line where the letters are */
+    filter:blur(9px);
+    -webkit-mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 52%, transparent 96%);
+    mask-image:linear-gradient(180deg, transparent 0%, #000 26%, #000 52%, transparent 96%); }
+.biodecor span.edge{ opacity:.46; filter:blur(.2px) drop-shadow(0 4px 7px rgba(0,0,0,.32)); }
+.biodecor{ position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; border-radius:inherit; }
+.biodecor span{ position:absolute; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.12)); }
+.hushmist{ position:absolute; left:0; right:0; top:0; height:44%; z-index:26; pointer-events:none;
+    border-radius:inherit; transition:opacity .7s ease;
+    background:linear-gradient(180deg,
+      color-mix(in srgb, var(--hush, #cfd6ee) 30%, transparent) 0%,
+      color-mix(in srgb, var(--hush, #cfd6ee) 15%, transparent) 48%,
+      transparent 100%); }
+.app.bio0, .app.bio1, .app.bio2{ --orb-size:62px; --orb-y:7%; --orb-x:13%; }
+.app.bio0 .board::after, .app.bio1 .board::after, .app.bio2 .board::after{
+    background:radial-gradient(circle at 44% 42%, #fffefa 0%, #ffe07a 34%, #ffc23f 58%, rgba(255,170,50,.5) 74%, transparent 84%);
+    box-shadow:0 0 22px 6px rgba(255,196,80,.5), 0 0 46px 16px rgba(255,168,56,.2);
+    animation:sunglow 7s ease-in-out infinite; }
+.app.bio10{ --hush:#cdefff; --sil:#173a4e; --sky-glow:#9fe4fa; --spec:180,240,255; /* 💎 the Glimmer Seams — the wood being generous on purpose */
+    --tile-face:linear-gradient(148deg,#eafaff 0%, #c9ecfb 52%, #a2d8f2 100%);
+    --tile-edge:#5fa7cc; --tile-ink:#173a51;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(40,125,175,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#c3e8f7; --board-dot:rgba(255,255,255,.46); --grass:#6bc0e0;
+    --board-tint:linear-gradient(180deg, rgba(165, 230,250,.34),rgba(80,165,215,.20));
+    --frame1:#8fcbe6; --frame2:#57a3c6;
+    --sky-top:#1b3348; --sky-mid:#3d7fa8; --sky-low:#a5d6ee; --moon:#f0fdff; }
+.app.bio12, .app.bio13, .app.bio14{ --orb-size:58px; --orb-y:5%; --orb-x:14%; }
+.app.bio11 .biodecor::before, .app.bio12 .biodecor::before,
+  .app.bio13 .biodecor::before, .app.bio14 .biodecor::before{
+    background:
+      conic-gradient(from 202deg at 18% 100%, transparent 0 40%, var(--sil) 40% 60%, transparent 60%),
+      conic-gradient(from 202deg at 50% 100%, transparent 0 42%, var(--sil) 42% 58%, transparent 58%),
+      conic-gradient(from 202deg at 82% 100%, transparent 0 41%, var(--sil) 41% 59%, transparent 59%);
+    filter:blur(7px); }
+.app.bio8 .biodecor::before, .app.bio9 .biodecor::before{
+    bottom:0; height:100%; opacity:.5;
+    background:radial-gradient(120% 78% at 50% 118%, var(--sil) 40%, transparent 76%); }
+.app.bio8 .board::after, .app.bio9 .board::after{ display:none; }
+.app.bio10 .board::after{ top:auto; bottom:14%; right:auto; left:12%; width:34px; height:34px;
+    animation-duration:4s; }
+@keyframes moonglow{ 50%{ box-shadow:0 0 44px 16px color-mix(in srgb, var(--moon) 65%, transparent); } }
+@keyframes sunglow{ 50%{ box-shadow:0 0 30px 10px rgba(255,214,120,.56), 0 0 58px 22px rgba(255,180,70,.24); } }
+.app.bio0{ --hush:#fff0cf; --sil:#3f6b44; /* 🌼 the First Clearing — a sunny gap in the wood, and where everyone begins */
+    --tile-face:linear-gradient(148deg,#fffdf4 0%, #f2e6c8 52%, #e2d0a4 100%);
+    --tile-edge:#c2a068; --tile-ink:#4a3a1e;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(150,105,40,.09) 0 2px, transparent 2px 7px);
+    --grass:#5fae52;
+    --frame1:#caa26a; --frame2:#9a6f3c;
+    --spec:255,246,222; --sky-glow:#f0c9a0;
+    --sky-top:#4e93d6; --sky-mid:#a8cfe8; --sky-low:#efdfae; --moon:#fff6dc; }
+.app.bio1{ --hush:#f2f4d4; --sil:#2f5334; --sky-glow:#dcd07e; --spec:236,250,214; /* 🌿 the Bramblewood — deeper in, and the green closes over */
+    --tile-face:linear-gradient(148deg,#f2f8ec 0%, #d7e8c6 52%, #b4d0a0 100%);
+    --tile-edge:#78a066; --tile-ink:#2f4a26;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(70,120,55,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#cfe0c0; --board-dot:rgba(255,255,255,.28); --grass:#54923f;
+    --board-tint:linear-gradient(180deg, rgba(160, 205,140,.30),rgba(95,150,80,.18));
+    --frame1:#9dc189; --frame2:#6d9c5c;
+    --sky-top:#3f7fae; --sky-mid:#8fb894; --sky-low:#d3d99e; --moon:#fdf8e2; }
+.app.bio2{ --hush:#e2f0e2; --sil:#2b4a3c; --sky-glow:#c8cf92; --spec:226,246,232; /* 🌱 the Mosswood — damp, close, everything soft with moss */
+    --tile-face:linear-gradient(148deg,#eef6ea 0%, #cfe3cd 52%, #a9cbaa 100%);
+    --tile-edge:#6f9b7c; --tile-ink:#28453a;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(55,105,80,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#c4dcc8; --board-dot:rgba(255,255,255,.22); --grass:#4a8a6a;
+    --board-tint:linear-gradient(180deg, rgba(150, 200,175,.30),rgba(85,140,115,.20));
+    --frame1:#94bfa4; --frame2:#628f74;
+    --sky-top:#356b78; --sky-mid:#6fa08c; --sky-low:#bcd0a4; --moon:#f6fbe8; }
+.app.bio3{ --hush:#eddcf6; --sil:#42305c; --sky-glow:#e0c2f0; --spec:240,222,252; /* 🍄 the Spore Hollow — low ground, and the air is full of drift */
+    --tile-face:linear-gradient(148deg,#f6eefa 0%, #e2cfec 52%, #c9aedb 100%);
+    --tile-edge:#9878b4; --tile-ink:#3f2a52;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(110,70,145,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#dcc8e6; --board-dot:rgba(255,255,255,.26); --grass:#a884c0;
+    --board-tint:linear-gradient(180deg, rgba(200, 165,225,.30),rgba(140,100,175,.20));
+    --frame1:#bb9bd0; --frame2:#8e6cab;
+    --sky-top:#2c1f3d; --sky-mid:#5a4079; --sky-low:#a98cc4; --moon:#f4e9fb; }
+.app.bio4{ --hush:#d8f0ea; --sil:#27564a; --sky-glow:#b6e4d6; --spec:224,250,242; /* 🌊 the Listening Pond — lily-pad tiles floating on still water */
+    --tile-face:linear-gradient(148deg,#eefaf0 0%, #cfe9d3 52%, #a9d4b2 100%);
+    --tile-edge:#6da283; --tile-ink:#26513a;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(50,115,80,.08) 0 2px, transparent 2px 7px);
+    --board-bg:#bfe2dd; --board-dot:rgba(255,255,255,.0); --grass:#6fbf9e;
+    --board-tint:linear-gradient(180deg, rgba(150, 220,235,.30),rgba(90,180,160,.18));
+    --frame1:#8fc3ae; --frame2:#5e9e86;
+    --sky-top:#2b3f5e; --sky-mid:#4a7d86; --sky-low:#9fcbba; --moon:#eafff4; }
+.app.bio5{ --hush:#eef2cf; --sil:#4a5530; --sky-glow:#dfe6b0; --spec:244,248,214; /* 🪷 the Reedmarsh — olive water, soft ground, wading birds */
+    --tile-face:linear-gradient(148deg,#f4f5e6 0%, #dfe2c2 52%, #c2c79c 100%);
+    --tile-edge:#95a06a; --tile-ink:#3b4026;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(110,120,60,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#d3d8b4; --board-dot:rgba(255,255,255,.20); --grass:#8a9a4e;
+    --board-tint:linear-gradient(180deg, rgba(195, 205,150,.30),rgba(130,145,90,.20));
+    --frame1:#b2bb8a; --frame2:#87935e;
+    --sky-top:#5a6a48; --sky-mid:#8f9a5e; --sky-low:#c8cf92; --moon:#f1f6de; }
+.app.bio6{ --hush:#d6ecfa; --sil:#1f4a5e; --sky-glow:#a8dcf4; --spec:216,242,255; /* 🌀 the Running River — bright, fast, nothing sits still */
+    --tile-face:linear-gradient(148deg,#eaf6fd 0%, #c8e5f6 52%, #9fd0ee 100%);
+    --tile-edge:#5f9dc4; --tile-ink:#1e3f57;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(40,110,160,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#bfe0f2; --board-dot:rgba(255,255,255,.36); --grass:#63b5d8;
+    --board-tint:linear-gradient(180deg, rgba(150, 215,245,.32),rgba(75,150,200,.20));
+    --frame1:#8dc2dd; --frame2:#5794bb;
+    --sky-top:#1f3a55; --sky-mid:#3f7ba3; --sky-low:#9ccce6; --moon:#ecfaff; }
+.app.bio7{ --hush:#d8faf4; --sil:#1c4f4a; --sky-glow:#b4f0e6; --spec:222,255,250; /* 💦 the Thunderfalls — spray, noise, and a rainbow in it */
+    --tile-face:linear-gradient(148deg,#eafcfa 0%, #c6efeb 52%, #9adcd6 100%);
+    --tile-edge:#5aa9a2; --tile-ink:#16453f;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(35,140,130,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#bdeae6; --board-dot:rgba(255,255,255,.42); --grass:#5fc4b8;
+    --board-tint:linear-gradient(180deg, rgba(150, 240,232,.32),rgba(70,175,165,.20));
+    --frame1:#8bd0c8; --frame2:#54a79d;
+    --sky-top:#173f45; --sky-mid:#39868a; --sky-low:#96d8d0; --moon:#e9fffc; }
+.app.bio8{ --hush:#f0cf9e; --sil:#2a2119; --sky-glow:#e0a860; --spec:255,206,128; /* 🕳️ the Undercave — the sky is gone; stone and lamplight */
+    --tile-face:linear-gradient(148deg,#f0e9df 0%, #d8caba 52%, #bda893 100%);
+    --tile-edge:#8b7460; --tile-ink:#3a2c20;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(120,90,60,.11) 0 2px, transparent 2px 7px);
+    --board-bg:#cbbdae; --board-dot:rgba(255,255,255,.14); --grass:#a08a72;
+    --board-tint:linear-gradient(180deg, rgba(215, 195,170,.24),rgba(140,115,90,.24));
+    --frame1:#a89279; --frame2:#826b53;
+    --sky-top:#241c16; --sky-mid:#4a3a2c; --sky-low:#8d7660; --moon:#f6e6cc; }
+.app.bio9{ --hush:#6b6088; --sil:#0f0c18; --sky-glow:#4a3f66; --spec:120,108,150; /* 🌑 the Deep Dark — almost nothing, and that is the point */
+    --tile-face:linear-gradient(148deg,#e6e3ec 0%, #c7c2d4 52%, #a9a2bd 100%);
+    --tile-edge:#736c8a; --tile-ink:#241f33;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(70,60,100,.12) 0 2px, transparent 2px 7px);
+    --board-bg:#b8b2c6; --board-dot:rgba(255,255,255,.10); --grass:#8b83a3;
+    --board-tint:linear-gradient(180deg, rgba(160, 150,190,.20),rgba(90,80,120,.28));
+    --frame1:#948ca8; --frame2:#6d6484;
+    --sky-top:#15111f; --sky-mid:#2e2743; --sky-low:#6a6284; --moon:#cfc9e0; }
+.app.bio10{ --hush:#cdefff; --sil:#173a4e; --sky-glow:#9fe4fa; --spec:180,240,255; /* 💎 the Glimmer Seams — the wood being generous on purpose */
+    --tile-face:linear-gradient(148deg,#eafaff 0%, #c9ecfb 52%, #a2d8f2 100%);
+    --tile-edge:#5fa7cc; --tile-ink:#173a51;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(40,125,175,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#c3e8f7; --board-dot:rgba(255,255,255,.46); --grass:#6bc0e0;
+    --board-tint:linear-gradient(180deg, rgba(165, 230,250,.34),rgba(80,165,215,.20));
+    --frame1:#8fcbe6; --frame2:#57a3c6;
+    --sky-top:#1b3348; --sky-mid:#3d7fa8; --sky-low:#a5d6ee; --moon:#f0fdff; }
+.app.bio11{ --hush:#efe6d8; --sil:#3f4750; --sky-glow:#e6d8c0; --spec:236,228,214; /* 🪨 the Scree Slopes — loose rock, open air, climbing */
+    --tile-face:linear-gradient(148deg,#f4f1ec 0%, #ded8cf 52%, #c2b9ac 100%);
+    --tile-edge:#948a7c; --tile-ink:#3b352d;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(110,100,85,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#d5cec4; --board-dot:rgba(255,255,255,.26); --grass:#8e9490;
+    --board-tint:linear-gradient(180deg, rgba(215, 205,190,.26),rgba(140,130,115,.22));
+    --frame1:#b3a996; --frame2:#8b8170;
+    --sky-top:#4a5766; --sky-mid:#8f9aa4; --sky-low:#cfd4d2; --moon:#f3efe6; }
+.app.bio12{ --hush:#e6f2ff; --sil:#3a5170; --sky-glow:#dcecfa; --spec:236,246,255; /* 🌬️ the Windward Ridge — high, exposed, the cloud is back */
+    --tile-face:linear-gradient(148deg,#f2f7fb 0%, #dbe6f0 52%, #bccfe2 100%);
+    --tile-edge:#8aa3bd; --tile-ink:#2c3c4f;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(80,110,150,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#d5e3f0; --board-dot:rgba(255,255,255,.40); --grass:#a4bcd4;
+    --board-tint:linear-gradient(180deg, rgba(210, 230,248,.34),rgba(130,165,205,.18));
+    --frame1:#adc3d8; --frame2:#82a0bd;
+    --sky-top:#39537a; --sky-mid:#7098c0; --sky-low:#c3daec; --moon:#f7fdff; }
+.app.bio13{ --hush:#f4fbff; --sil:#4e6478; --sky-glow:#e8f4ff; --spec:255,255,255; /* ❄️ the Snowline — the first snow, at last */
+    --tile-face:linear-gradient(148deg,#fdfeff 0%, #e4f0fa 52%, #cbdff0 100%);
+    --tile-edge:#87a4be; --tile-ink:#2f4459;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(90,130,170,.08) 0 2px, transparent 2px 7px);
+    --board-bg:#e6f0f8; --board-dot:rgba(255,255,255,.50); --grass:#a9c4d8;
+    --board-tint:linear-gradient(180deg, rgba(215, 235,248,.40),rgba(140,175,205,.18));
+    --frame1:#a9c0d4; --frame2:#7d9bb4;
+    --sky-top:#2b3550; --sky-mid:#5f7a9a; --sky-low:#bcd4e4; --moon:#f2fbff; }
+.app.bio14{ --hush:#d8c8f4; --sil:#2a2352; --sky-glow:#b79ae8; --spec:228,214,255; /* 👑 the Frozen Crown — the summit, and the sky puts on a show */
+    --tile-face:linear-gradient(148deg,#f6f2ff 0%, #ddd4f4 52%, #bfb2e6 100%);
+    --tile-edge:#8577b8; --tile-ink:#2b2450;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(95,75,165,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#ddd6f2; --board-dot:rgba(255,255,255,.38); --grass:#a99ad6;
+    --board-tint:linear-gradient(180deg, rgba(200, 185,245,.32),rgba(120,100,190,.20));
+    --frame1:#b0a2dc; --frame2:#8172b6;
+    --sky-top:#1a1436; --sky-mid:#4b3d86; --sky-low:#a897dc; --moon:#fbf6ff; }
+
+.deco-twinkle{ animation:decotwinkle 2.8s ease-in-out infinite; }
+
+.deco-twinkle2{ animation:decotwinkle 3.6s ease-in-out infinite 1.2s; }
+
+.deco-bob{ animation:decobob 5.5s ease-in-out infinite; }
+
+.deco-sway{ animation:decosway 5s ease-in-out infinite; transform-origin:top center; }
+
+.deco-fall{ animation:decofall 13s linear infinite; }
+
+.deco-fall2{ animation:decofall 17s linear infinite 5s; }
+body{ background:#14121a; color:#e8e4ef; font:13px/1.4 system-ui,sans-serif; margin:0; padding:20px; }
+h1{ font:600 20px/1.2 Georgia,serif; margin:0 0 4px; }
+p.note{ color:#9a92ab; margin:0 0 18px; max-width:70ch; }
+.grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+figure{ margin:0; }
+.board{ position:relative; height:190px; border-radius:14px; overflow:hidden; }
+.biodecor{ position:absolute; inset:0; overflow:hidden; border-radius:inherit; z-index:0; }
+.biodecor span{ position:absolute; line-height:1; }
+.tiles{ position:absolute; left:5%; right:5%; bottom:5%; display:grid; grid-template-columns:repeat(7,1fr);
+  gap:3px; z-index:20; }
+.tiles i{ font:700 10px/1 system-ui; font-style:normal; display:grid; place-items:center; aspect-ratio:1;
+  border-radius:4px; background:var(--tile-face); color:var(--tile-ink);
+  box-shadow:0 2px 0 var(--tile-edge), inset 0 1px 0 rgba(255,255,255,.7); }
+figcaption{ padding:6px 2px; font-size:11.5px; color:#c7c0d6; }
+figcaption b{ color:#8b83a3; margin-right:5px; }
+figcaption small{ display:block; color:#7b7290; font-size:10px; }
+</style>
+<h1>Hushwood — all fifteen countries</h1>
+<p class="note">Lifted from the shipped CSS: same sky, horizon glow, mid-ground, frame, edge scenery, hush and tile faces the game draws. Judged side by side rather than one at a time.</p>
+<div class="grid">
+<figure class="app bio0">
+    <div class="board"><div class="biodecor"><span class="edge tilt" style="left:-6%;top:-4%;font-size:52px">🌿</span><span class="edge tiltl" style="left:82%;top:-8%;font-size:43px">🍃</span><span class="edge" style="left:-4%;top:74%;font-size:38px">🌱</span><span class="deco-twinkle" style="left:30%;top:20%;font-size:6px">✨</span><span class="deco-sway" style="left:70%;top:26%;font-size:8px">🦋</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>1</b> The First Clearing<small>L1–20</small></figcaption>
+  </figure>
+<figure class="app bio1">
+    <div class="board"><div class="biodecor"><span class="edge tilt" style="left:-8%;top:-6%;font-size:60px">🌿</span><span class="edge tiltl" style="left:78%;top:-6%;font-size:56px">🌿</span><span class="edge" style="left:-6%;top:70%;font-size:42px">🍂</span><span class="deco-bob" style="left:54%;top:22%;font-size:7px">🦋</span><span class="deco-twinkle" style="left:28%;top:14%;font-size:6px">✨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>2</b> The Bramblewood<small>L21–40</small></figcaption>
+  </figure>
+<figure class="app bio2">
+    <div class="board"><div class="biodecor"><span class="edge tilt" style="left:-7%;top:-5%;font-size:55px">🌱</span><span class="edge tiltl" style="left:80%;top:-4%;font-size:47px">🍃</span><span class="edge" style="left:84%;top:72%;font-size:33px">🍄</span><span class="deco-fall" style="left:36%;top:6%;font-size:7px">🍃</span><span class="deco-sway" style="left:62%;top:26%;font-size:7px">🐛</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>3</b> The Mosswood<small>L41–60</small></figcaption>
+  </figure>
+<figure class="app bio3">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-8%;top:62%;font-size:57px">🍄</span><span class="edge flip" style="left:78%;top:68%;font-size:50px">🍄</span><span class="edge tilt" style="left:-4%;top:-6%;font-size:43px">🌿</span><span class="deco-twinkle2" style="left:46%;top:12%;font-size:6px">✨</span><span class="deco-bob" style="left:30%;top:28%;font-size:7px">🍄</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>4</b> The Spore Hollow<small>L61–80</small></figcaption>
+  </figure>
+<figure class="app bio4">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-6%;top:70%;font-size:52px">🪷</span><span class="edge flip" style="left:80%;top:74%;font-size:43px">🪷</span><span class="edge tiltl" style="left:86%;top:-2%;font-size:41px">🌾</span><span class="deco-twinkle" style="left:40%;top:14%;font-size:6px">✨</span><span class="deco-twinkle2" style="left:72%;top:10%;font-size:9px">🌙</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>5</b> The Listening Pond<small>L81–100</small></figcaption>
+  </figure>
+<figure class="app bio5">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-7%;top:36%;font-size:64px">🌾</span><span class="edge flip" style="left:82%;top:32%;font-size:60px">🌾</span><span class="edge" style="left:40%;top:78%;font-size:36px">🪷</span><span class="deco-bob" style="left:58%;top:20%;font-size:6px">🪰</span><span class="deco-twinkle" style="left:24%;top:12%;font-size:5px">✨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>6</b> The Reedmarsh<small>L101–120</small></figcaption>
+  </figure>
+<figure class="app bio6">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-9%;top:54%;font-size:60px">🌀</span><span class="edge flip" style="left:80%;top:20%;font-size:48px">🌀</span><span class="edge" style="left:44%;top:-6%;font-size:37px">💧</span><span class="deco-fall" style="left:30%;top:10%;font-size:7px">💧</span><span class="deco-fall2" style="left:68%;top:6%;font-size:6px">💧</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>7</b> The Running River<small>L121–140</small></figcaption>
+  </figure>
+<figure class="app bio7">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-8%;top:-8%;font-size:62px">💦</span><span class="edge flip" style="left:80%;top:-6%;font-size:57px">💦</span><span class="edge" style="left:32%;top:62%;font-size:47px">🌈</span><span class="deco-fall" style="left:46%;top:4%;font-size:7px">💦</span><span class="deco-twinkle2" style="left:64%;top:24%;font-size:6px">✨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>8</b> The Thunderfalls<small>L141–160</small></figcaption>
+  </figure>
+<figure class="app bio8">
+    <div class="board"><div class="biodecor"><span class="edge tilt" style="left:-8%;top:-10%;font-size:60px">🪨</span><span class="edge tiltl" style="left:78%;top:-12%;font-size:55px">🪨</span><span class="edge" style="left:40%;top:74%;font-size:40px">🕳️</span><span class="deco-bob" style="left:62%;top:18%;font-size:8px">🦇</span><span class="deco-twinkle" style="left:26%;top:24%;font-size:5px">✨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>9</b> The Undercave<small>L161–180</small></figcaption>
+  </figure>
+<figure class="app bio9">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:74%;top:-6%;font-size:48px">🌑</span><span class="edge" style="left:-8%;top:66%;font-size:52px">🕳️</span><span class="deco-twinkle2" style="left:44%;top:30%;font-size:4px">✨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>10</b> The Deep Dark<small>L181–200</small></figcaption>
+  </figure>
+<figure class="app bio10">
+    <div class="board"><div class="biodecor"><span class="edge tilt" style="left:-7%;top:-6%;font-size:53px">💎</span><span class="edge flip" style="left:80%;top:66%;font-size:48px">💎</span><span class="edge tiltl" style="left:78%;top:-8%;font-size:40px">💎</span><span class="deco-twinkle" style="left:40%;top:22%;font-size:7px">✨</span><span class="deco-twinkle2" style="left:62%;top:10%;font-size:6px">✨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>11</b> The Glimmer Seams<small>L201–220</small></figcaption>
+  </figure>
+<figure class="app bio11">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-8%;top:68%;font-size:55px">🪨</span><span class="edge flip" style="left:76%;top:72%;font-size:47px">🪨</span><span class="edge" style="left:36%;top:-8%;font-size:51px">⛰️</span><span class="deco-twinkle" style="left:58%;top:18%;font-size:5px">✨</span><span class="deco-bob" style="left:24%;top:26%;font-size:7px">🪨</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>12</b> The Scree Slopes<small>L221–240</small></figcaption>
+  </figure>
+<figure class="app bio12">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-10%;top:14%;font-size:62px">☁️</span><span class="edge flip" style="left:78%;top:54%;font-size:55px">☁️</span><span class="edge" style="left:36%;top:-8%;font-size:47px">🌬️</span><span class="deco-sway" style="left:56%;top:20%;font-size:8px">🦅</span><span class="deco-bob" style="left:20%;top:40%;font-size:9px">☁️</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>13</b> The Windward Ridge<small>L241–260</small></figcaption>
+  </figure>
+<figure class="app bio13">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-8%;top:60%;font-size:60px">🏔️</span><span class="edge tiltl" style="left:80%;top:-8%;font-size:51px">❄️</span><span class="edge" style="left:82%;top:62%;font-size:43px">🌲</span><span class="deco-fall" style="left:30%;top:2%;font-size:7px">❄️</span><span class="deco-fall2" style="left:64%;top:4%;font-size:6px">❄️</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>14</b> The Snowline<small>L261–280</small></figcaption>
+  </figure>
+<figure class="app bio14">
+    <div class="board"><div class="biodecor"><span class="edge" style="left:-9%;top:54%;font-size:64px">🏔️</span><span class="edge" style="left:70%;top:-8%;font-size:60px">🌌</span><span class="edge tilt" style="left:-6%;top:-6%;font-size:45px">❄️</span><span class="deco-fall" style="left:24%;top:4%;font-size:7px">❄️</span><span class="deco-twinkle2" style="left:48%;top:16%;font-size:7px">⭐</span></div><div class="hushmist"></div><div class="tiles"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i>F</i><i>G</i><i>H</i><i>I</i><i>J</i><i>K</i><i>L</i><i>M</i><i>N</i><i>O</i><i>P</i><i>Q</i><i>R</i><i>S</i><i>T</i><i>U</i></div></div>
+    <figcaption><b>15</b> The Frozen Crown<small>L281–300</small></figcaption>
+  </figure>
+</div>
