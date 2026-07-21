@@ -443,6 +443,16 @@
     0%,100%{ opacity:0; transform:scale(.5) rotate(-18deg); }
     45%    { opacity:1; transform:scale(1.15) rotate(10deg); }
   }
+  /* the ceremony's one rule, stated on the intro card — a quiet band, not another flourish,
+     so it reads as terms of the round rather than more atmosphere */
+  .ivstake{ display:block; margin-top:7px; padding:6px 10px; border-radius:9px;
+    font-size:11.5px; font-weight:700; line-height:1.45; color:#5b4a7a;
+    background:rgba(124,92,180,.12); border:1px solid rgba(124,92,180,.28); }
+  /* The guest line styles its own <b> at 20px so the creature's name looms — and that rule
+     reached in here too, blowing "name is spoken" up to twice the size of the sentence
+     around it. It has to be beaten on specificity: #iv-visitor b is an ID selector, which
+     no number of classes can outrank, so the id has to appear here as well. */
+  #iv-visitor .ivstake b{ color:#4a3868; font-size:11.5px; font-weight:800; letter-spacing:0; }
   .nexttag{ display:block; font-size:9.5px; font-weight:800; letter-spacing:.7px;
     text-transform:uppercase; color:#8a5a00; margin-bottom:1px;
     text-shadow:0 1px 0 rgba(255,255,255,.7); }
@@ -3156,7 +3166,13 @@ const Game = {
       // a silhouette, the first letter, and blanks (the board's fragment gives the rest)
       const tw=S.tutorWord, full=P.level<=6;
       const disp = full ? tw.toUpperCase() : tw[0].toUpperCase()+"&thinsp;▁".repeat(tw.length-1);
-      iv.innerHTML='<span class="sil">'+GROVE_BY_WORD[tw].e+'</span> someone is hiding here — spell <b>'+disp+'</b>'; }
+      // SAY THE STAKES BEFORE THEY BITE. The rule — that a naming round ends only when the
+    // name is spoken — used to be revealed the first time a player hit the score target and
+    // sat there wondering why nothing happened. Learning a rule as a correction to a
+    // surprise is the wrong way round; it belongs here, before the first drop, where it
+    // reframes the whole round from "clear the target" to "find this creature".
+    iv.innerHTML='<span class="sil">'+GROVE_BY_WORD[tw].e+'</span> someone is hiding here — spell <b>'+disp+'</b>'
+      + '<small class="ivstake">🎭 points alone won\'t finish this round — it ends when the <b>name is spoken</b></small>'; }
     else iv.style.display="none";
     $("ov-unlock").classList.remove("active"); $("ov-intro").classList.remove("active");
     // did the grove grow a new duty slot at this level? celebrate it BEFORE the level begins
