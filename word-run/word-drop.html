@@ -936,6 +936,17 @@
     box-shadow:0 5px 0 #6f6884, 0 7px 12px rgba(60,52,80,.35), inset 0 2px 0 rgba(255,255,255,.7), inset 0 -5px 8px rgba(90,80,110,.4); }
   .tile.mist::after{ content:"🌫️"; position:absolute; top:-2px; right:0; font-size:12px; opacity:.9; }
   /* 🌿 BRAMBLES — a green tangle strangling the letter; left alone, it SPREADS */
+  /* 🪾 BRANCH — the very first trouble, at level 10. Deadwood: pale, dry, obviously not a
+     letter, and obviously lighter than the stone that comes a hundred and fifty levels
+     later. One word beside it and it is gone. */
+  .tile.branch{ background:linear-gradient(160deg,#b08553 0%, #8d6539 45%, #6b4a28 100%); color:transparent;
+    border-radius:8px 14px 9px 13px; font-size:22px!important;
+    box-shadow:0 4px 0 #4d3520, 0 6px 10px rgba(0,0,0,.38), inset 0 2px 3px rgba(255,229,190,.34), inset 0 -5px 7px rgba(0,0,0,.4); }
+  .tile.branch::before{ content:""; position:absolute; left:12%; top:44%; width:76%; height:11%;
+    background:linear-gradient(90deg,transparent, #5c3f22 20%, #6d4c2a 80%, transparent);
+    border-radius:99px; transform:rotate(-13deg); opacity:.9; }
+  .tile.branch::after{ content:"🪾"; position:absolute; top:-2px; right:0; font-size:14px; opacity:.9;
+    background:none; width:auto; height:auto; border-radius:0; }
   .tile.bramble{ background:radial-gradient(120% 120% at 40% 30%, #5d7a48, #40573a 55%, #2b3c27); color:transparent;
     border-radius:40% 48% 44% 46%; font-size:22px!important;
     box-shadow:0 5px 0 #1d2a1a, 0 7px 12px rgba(0,0,0,.45), inset 0 3px 4px rgba(190,220,150,.28), inset 0 -6px 8px rgba(0,0,0,.5); }
@@ -1764,16 +1775,26 @@ const MIN_LEN = 3;
 /* Level design is a RHYTHM, not a ramp: gentle → breather → build → breather → 🔥SPIKE.
    Every 10th level is a 👑 golden milestone. Targets grow sub-linearly so the wall never comes. */
 const RHYTHM=[1.0, 0.88, 1.02, 0.92, 1.16];
-const BIOMES=["🌼","🌊","🍂","🌙","❄️"]; // the world changes every 5 levels
-const BIOME_NAMES=["The First Clearing","The Listening Pond","The Amber Thicket","The Moonquiet","The Snowhush"];
+/* FIFTEEN COUNTRIES, ONE WALK. It never doubles back: you wake on the wood floor and you
+   end on a frozen summit, and every country is plausibly walkable from the last. Five
+   places that cycled every twenty-five levels meant none of them was anywhere — there was
+   no cold country for a friend who answers cold to belong to, and ice, the most familiar
+   trouble in the game, was spent in the tutorial. Now the game climbs two hundred and
+   sixty levels to earn it. */
+const BIOMES=["🌼","🌿","🌱","🍄","🌊","🪷","🌀","💦","🕳️","🌑","💎","🪨","🌬️","❄️","👑"];
+const BIOME_NAMES=["The First Clearing","The Bramblewood","The Mosswood","The Spore Hollow",
+  "The Listening Pond","The Reedmarsh","The Running River","The Thunderfalls","The Undercave",
+  "The Deep Dark","The Glimmer Seams","The Scree Slopes","The Windward Ridge","The Snowline",
+  "The Frozen Crown"];
 /* A PLACE YOU STAY IN, not a backdrop that changes every five levels.
    Biomes used to rotate every 5, so a player passed through all five of them every 25
    levels and none of them was anywhere — there was no "ice place" for a friend who
    answers ice to belong to. Eighteen levels each makes a biome a chapter: meet its
    trouble, struggle with words alone, find the friend who answers it, then master it.
    Five chapters is 90 levels, and the ring beyond that is the same wood walked again. */
-const BIOME_LEN=18;
-function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%5; }
+const BIOME_LEN=20;                          // a country is a chapter, not a backdrop
+const RING_LEN=BIOME_LEN*BIOME_NAMES.length; // 300 — one whole walk, floor to summit
+function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%BIOME_NAMES.length; }
 // each place gets living scenery on the plot — quiet, behind the tiles, never in the way
 // scenery that drifts across the NIGHT SKY of each place — fireflies, moths, falling
 // leaves, snow — quiet, behind the letters, tuned to each region's twilight.
@@ -1862,10 +1883,46 @@ function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
   return L<=14 ? 20 : L<=24 ? 25 : 30;
 }
-/* the level each trouble first shows its face — kept as data because the ceremony needs
-   to know what a player has already been taught */
-const OBSTACLE_DEBUT={ ice:8, stone:12, crate:13, frost:27, mist:51, bramble:77,
-  root:102, shroud:127, pest:141 };
+/* ═══ WHERE EACH TROUBLE LIVES ═══
+   Troubles used to have a single debut level and then simply accumulate forever, so by the
+   late game every board carried the same seven things and the countries were wallpaper.
+   Now each one has a HABITAT — the countries it is native to — and it fades in and out
+   along the walk. Mountains still have stones: stone is native from the Undercave to the
+   summit, seven countries, which is what makes it worth building well.
+
+     at    — the level it first shows its face, ALONE, on an otherwise clean board
+     homes — biome indices it lives in. Two ranges means it appears twice in the walk:
+             the mist is cave-dark underground and cloud at altitude — same trouble,
+             completely different meaning.
+     max   — how thick it ever gets
+     todo  — behaviour not built yet; the table is the plan, and each one is a flag flip
+
+   The seven new troubles are here so the shape of the whole walk is visible and testable
+   before any of them exist. Three are re-skins of things that already work (spore spreads
+   like the bramble, crystal is stone that pays gold, scree is stone that splits); the
+   genuinely new behaviours are mire, current and wind — and current and wind are one
+   engine pointed two ways. */
+const TROUBLE={
+  branch : { at:10,  homes:[[0,2]],          max:3 },
+  bramble: { at:22,  homes:[[1,4]],          max:3 },
+  root   : { at:42,  homes:[[2,6]],          max:2 },
+  spore  : { at:62,  homes:[[3,5]],          max:3, todo:1 },
+  reed   : { at:82,  homes:[[4,7]],          max:2, todo:1 },
+  mire   : { at:102, homes:[[5,8]],          max:2, todo:1 },
+  current: { at:122, homes:[[6,8]],          max:2, todo:1 },
+  pest   : { at:142, homes:[[7,9]],          max:2 },
+  stone  : { at:162, homes:[[8,14]],         max:3 },
+  mist   : { at:182, homes:[[9,10],[12,14]], max:3 },
+  shroud : { at:186, homes:[[9,10]],         max:2 },   // darkness stays underground
+  crystal: { at:202, homes:[[10,12]],        max:3, todo:1 },
+  scree  : { at:222, homes:[[11,13]],        max:3, todo:1 },
+  wind   : { at:242, homes:[[12,14]],        max:2, todo:1 },
+  ice    : { at:262, homes:[[13,14]],        max:3 },
+  frost  : { at:282, homes:[[14,14]],        max:2 },
+};
+/* the ceremony still needs to know what a player has already been taught */
+const OBSTACLE_DEBUT={ crate:13 };
+for(const k in TROUBLE) OBSTACLE_DEBUT[k]=TROUBLE[k].at;
 /* A NAMING CEREMONY TEACHES EXACTLY ONE THING, AND IT IS THE NAME.
    A player meeting the ice for the first time while also being asked to spell a friend
    into being is being taught two things at once, and the ceremony is the one that loses —
@@ -1880,33 +1937,38 @@ function recipeFor(L, ceremony){
   for(const k of Object.keys(r)) if(!(L > (OBSTACLE_DEBUT[k]||0))) r[k]=0;
   return r;
 }
-function recipe(L){ // obstacles arrive slowly — and every newcomer debuts ALONE
-  const r={stone:0,crate:0,ice:0,frost:0,mist:0,bramble:0};
-  if(L===8)  { r.ice=2;     return r; }   // 🧊 meets you by itself…
-  if(L===12) { r.stone=2;   return r; }   // 🪨 …then the stone…
-  if(L===27) { r.frost=2;   return r; }   // ❄❄ …the deep frost…
-  if(L===51) { r.mist=2;    return r; }   // 🌫️ …the mist…
-  if(L===77) { r.bramble=2; return r; }   // 🌿 …the brambles…
-  if(L===102){ r.root=2;    return r; }   // 🪵 …the stubborn root…
-  if(L===127){ r.shroud=2;  return r; }   // 🌑 …the shroud…
-  if(L===141){ r.pest=2;    return r; }   // 🐛 …and at last, the pest
-  r.ice     = L>=8  ? Math.min(3, 1+Math.floor((L-8)/4))   : 0;
-  r.stone   = L>=12 ? Math.min(3, 1+Math.floor((L-12)/3))  : 0;
-  r.crate   = (L>=13 && L%3===0) ? 1 : 0;
-  r.frost   = L>=27 ? Math.min(2, 1+Math.floor((L-27)/25)) : 0;
-  r.mist    = L>=51 ? Math.min(2, 1+Math.floor((L-51)/30)) : 0;
-  r.bramble = L>=77 ? 1 : 0;              // one seed is plenty — it spreads on its own
-  r.root    = L>=102 ? 1 : 0;
-  r.shroud  = L>=127 ? 1 : 0;
-  r.pest    = L>=141 ? 1 : 0;
-  // a prefill holds ~18 tiles: cap the blockers at 6 so play stays possible.
-  // veterans step back first — and the trim order rotates each ring, so different
-  // stretches of the wood drop different troubles instead of always the same ones.
-  const age=["ice","stone","frost","mist","bramble","root","shroud"];
-  const rot=Math.floor(L/25)%age.length;
-  const order=age.slice(rot).concat(age.slice(0,rot));
-  let total=r.ice+r.stone+r.frost+r.mist+r.bramble+r.root+r.shroud+r.pest;
-  for(const k of order){ while(total>6 && r[k]>0){ r[k]--; total--; } }
+const TROUBLE_KEYS=Object.keys(TROUBLE);
+/* the face each trouble wears on a level card */
+const TROUBLE_ICON={ branch:"🪾", bramble:"🌿", root:"🪵", spore:"🍄", reed:"🌾", mire:"🟤",
+  current:"🌀", pest:"🐛", stone:"🪨", mist:"🌫️", shroud:"🌑", crystal:"💎", scree:"🪨",
+  wind:"🌬️", ice:"🧊", frost:"❄❄", crate:"🎁" };
+function livesHere(k, b){ return TROUBLE[k].homes.some(h=>b>=h[0] && b<=h[1]); }
+
+function recipe(L){
+  const b=biomeOf(L), r={crate:0};
+  for(const k of TROUBLE_KEYS) r[k]=0;
+
+  // THE SOLO DEBUT. A trouble meets you by itself, on an otherwise clean board, so it can
+  // be understood alone before it ever has to be understood alongside anything else.
+  for(const k of TROUBLE_KEYS)
+    if(TROUBLE[k].at===L && !TROUBLE[k].todo){ r[k]=2; return r; }
+
+  // then: everything native to this country that you have already met, thickening slowly
+  for(const k of TROUBLE_KEYS){
+    const t=TROUBLE[k];
+    if(t.todo || L<t.at || !livesHere(k,b)) continue;
+    r[k]=Math.min(t.max, 1+Math.floor((L-t.at)/22));
+  }
+  r.crate = (L>=13 && L%3===0) ? 1 : 0;
+
+  // A prefill holds ~18 tiles, so cap the blockers at six and play stays possible. The
+  // trim rotates PER COUNTRY now — it used to rotate every twenty-five levels, which was
+  // tuned for the old five-place cycle and would have left one trouble permanently first
+  // in line to be thrown away.
+  const rot=b%TROUBLE_KEYS.length;
+  const trim=TROUBLE_KEYS.slice(rot).concat(TROUBLE_KEYS.slice(0,rot));
+  let total=0; for(const k of TROUBLE_KEYS) total+=r[k];
+  for(const k of trim){ while(total>6 && r[k]>0){ r[k]--; total--; } }
   return r;
 }
 
@@ -2227,7 +2289,9 @@ const GOALS={
    of their own; they still pay their amber. */
 const OBSTACLE_GOAL={ ice:"thaw", frost:"thaw", stone:"boulder", crate:"unravel",
   mist:"lift", bramble:"cut" };
-const OBSTACLE_KINDS=["ice","frost","stone","crate","mist","bramble","root","shroud","pest"];
+/* derived from the habitat table, so a trouble starts crediting the round the moment its
+   behaviour lands — one place to add a trouble, not two */
+const OBSTACLE_KINDS=TROUBLE_KEYS.concat("crate");
 function goalFor(L){
   // authored solo introductions, then one obstacle-goal level per 5-beat cycle.
   // every new goal debuts a few levels after its obstacle does — meet the trouble
@@ -3018,7 +3082,7 @@ function xy(r,c){ return "translate("+(c*STEP)+"px,"+(r*STEP)+"px)"; }
 function tileFace(t){
   if(t.kind==="bomb") return "🌰";              // acorn
   if(t.kind==="wild") return "★";              // the TEXT star — it takes our silver, emoji won't
-  if(t.kind==="stone" || t.kind==="bramble") return ""; // the CSS renders rock and tangle
+  if(t.kind==="stone" || t.kind==="bramble" || t.kind==="branch") return ""; // the CSS renders rock, tangle and deadwood
   if(t.kind==="crate") return "🎁";
   if(t.kind==="root") return "🪵";
   if(t.kind==="shroud") return "🌑";
@@ -3244,9 +3308,10 @@ const Game = {
         t.inner.className="tile "+kind; t.inner.innerHTML=tileFace(t);
       }
     };
-    convert("stone",rec.stone); convert("ice",rec.ice); convert("crate",rec.crate);
-    convert("frost",rec.frost); convert("mist",rec.mist); convert("bramble",rec.bramble);
-    convert("root",rec.root); convert("shroud",rec.shroud); convert("pest",rec.pest);
+    // seed whatever the recipe asked for, WHATEVER it asked for. This was nine hardcoded
+    // lines, so a trouble could be fully designed, tabled and tested and still never reach
+    // a board — the branch was seeded zero times at level 10 for exactly that reason.
+    for(const kind in rec) if(rec[kind]>0) convert(kind, rec[kind]);
     // the round's ASK: ceremonies keep the hush (their contract is the name); other
     // levels may ask for obstacles instead — and the board seeds enough to ask fairly
     S.goal={t:"hush",need:0,have:0}; S.goal2=null;
@@ -3322,7 +3387,7 @@ const Game = {
     const step=(level-1)%5;
     $("iv-path").innerHTML = Array.from({length:5},(_,i)=>
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
-    const ring=Math.floor((level-1)/(BIOME_LEN*5))+1; // one ring = all five places walked
+    const ring=Math.floor((level-1)/RING_LEN)+1;   // one ring = all fifteen countries walked
     $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
     // …and label it for what it actually is. On an obstacle round this number is a count of
     // things to clear, not a score — calling it "target" directly under a band saying the
@@ -3334,15 +3399,9 @@ const Game = {
     $("iv-moves").textContent = S.movesLeft;
     const ob=$("iv-obstacles");
     const parts=[];
-    if(rec.stone) parts.push("🪨×"+rec.stone);
-    if(rec.ice) parts.push("🧊×"+rec.ice);
-    if(rec.crate) parts.push("🎁×"+rec.crate);
-    if(rec.frost) parts.push("❄❄×"+rec.frost);
-    if(rec.mist) parts.push("🌫️×"+rec.mist);
-    if(rec.bramble) parts.push("🌿×"+rec.bramble);
-    if(rec.root) parts.push("🪵×"+rec.root);
-    if(rec.shroud) parts.push("🌑×"+rec.shroud);
-    if(rec.pest) parts.push("🐛×"+rec.pest);
+    // same rule as the seeder: the card shows whatever is actually on the board, so a new
+    // trouble cannot arrive unannounced
+    for(const kind in rec) if(rec[kind]>0) parts.push((TROUBLE_ICON[kind]||"•")+"×"+rec[kind]);
     if(parts.length){ ob.style.display="block"; ob.textContent=parts.join("  "); }
     else ob.style.display="none";
     const iv=$("iv-visitor");
@@ -3550,7 +3609,7 @@ const Game = {
     if((P.pow.swap||0)>0) order.push("breeze");
     if((P.pow.wild||0)>0) order.push("wish");
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
-    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
+    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
@@ -5134,7 +5193,16 @@ const Game = {
         const t=S.board[r][c];
         if(!t || seen.has(t.id)) continue;
         seen.add(t.id);
-        if(t.kind==="stone"){
+        if(t.kind==="branch"){
+          // THE FIRST TROUBLE ANYBODY MEETS, so it asks for exactly one thing: spell a word
+          // beside it. One touch and it is gone. Everything harder in three hundred levels
+          // is a variation on this, and it is deliberately the only one you can clear
+          // without understanding anything else.
+          acted=true;
+          removeTile(t); S.levelScore+=4; Game.credit("branch");
+          UI.shards(t.r,t.c,"#a8794e");
+          Snd.crack(true); buzz(12);
+        } else if(t.kind==="stone"){
           acted=true;
           t.cracks=(t.cracks||0)+1;
           if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.credit("stone"); }
@@ -5259,7 +5327,7 @@ const UI = {
     ["hb1","hb2","hb3","hb4"].forEach(c=>sh.classList.remove(c));
     if(hb) sh.classList.add("hb"+hb);
     $("play-lvl").textContent = "LV "+P.level;
-    const ring=Math.floor((P.level-1)/(BIOME_LEN*5))+1;
+    const ring=Math.floor((P.level-1)/RING_LEN)+1;
     $("home-place").textContent = "— "+(ring>1?"Ring "+ring+" · ":"")+BIOME_NAMES[biomeOf(P.level)]+" —";
     // the ladder from the Book, on the door — the reason to come back, before you press play
     { const hp=$("home-prog");
@@ -6101,6 +6169,7 @@ const UI = {
   TIPS:{
     breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3). Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
     wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
+    branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter — but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
