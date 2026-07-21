@@ -445,9 +445,53 @@
   }
   /* the ceremony's one rule, stated on the intro card — a quiet band, not another flourish,
      so it reads as terms of the round rather than more atmosphere */
+  /* ── THREE KINDS OF ROUND, THREE KINDS OF CARD ──────────────────────────────────
+     Every round used to open on the same cream card, so nothing about the next few minutes
+     was legible until you were already in them. A naming ceremony now arrives moonlit, an
+     obstacle trial in weathered amber.
+
+     Both stay in the cream family the whole game is built from — a card that went fully
+     dark read as a different app rather than a different round. The signal is carried by a
+     tint, a coloured rim and a ribbon across the top edge, so the type is unmistakable at a
+     glance while the page still looks like itself. */
+  #ov-intro .card.ceremony, #ov-intro .card.trial{ overflow:hidden; }
+  #ov-intro .card.ceremony::before, #ov-intro .card.trial::before{
+    content:""; position:absolute; left:0; right:0; top:0; height:5px; }
+
+  /* the hush: a moonlit tint over cream, violet rim, violet ribbon */
+  #ov-intro .card.ceremony{
+    background:linear-gradient(180deg,#f7f2ff 0%,#efe7fb 55%,#e6dcf5 100%);
+    border-color:rgba(124,92,180,.42);
+    box-shadow:0 22px 48px -14px rgba(45,30,80,.5), inset 0 0 0 1px rgba(255,252,255,.75),
+      inset 0 2px 0 rgba(255,255,255,.8), 0 0 26px -8px rgba(140,110,210,.45); }
+  #ov-intro .card.ceremony::before{ background:linear-gradient(90deg,#8f6fd0,#b79ae8,#8f6fd0); }
+  #ov-intro .card.ceremony #iv-placename{ color:#5b3f96; }
+  #ov-intro .card.ceremony #iv-tap{ color:#6f52ad; }
+
+  /* the trial: weathered amber parchment, amber rim, amber ribbon */
+  #ov-intro .card.trial{
+    background:linear-gradient(180deg,#fdf3dd 0%,#f8e8c4 60%,#f2ddac 100%);
+    border-color:rgba(170,125,30,.42);
+    box-shadow:0 22px 48px -14px rgba(70,45,10,.5), inset 0 0 0 1px rgba(255,250,235,.75),
+      inset 0 2px 0 rgba(255,255,255,.8); }
+  #ov-intro .card.trial::before{ background:linear-gradient(90deg,#c8901c,#e5b74a,#c8901c); }
+  #ov-intro .card.trial #iv-placename{ color:#7a5410; }
+  #ov-intro .card.trial #iv-tap{ color:#8a5f14; }
+
+  /* the round's name, right under the place — so the shape of the next few minutes is known
+     before the first drop. Two families: a ceremony reads violet like the hush, an obstacle
+     trial reads amber like the board it asks you to clear. */
+  #iv-type{ font-size:11px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase;
+    margin:3px 0 2px; }
+  #iv-type.ceremony{ color:#7c5cb4; }
+  #iv-type.special{ color:#b07d18; letter-spacing:.6px; text-transform:none; font-size:12px;
+    font-family:var(--font-story,serif); font-style:italic; font-weight:700; }
   .ivstake{ display:block; margin-top:7px; padding:6px 10px; border-radius:9px;
     font-size:11.5px; font-weight:700; line-height:1.45; color:#5b4a7a;
     background:rgba(124,92,180,.12); border:1px solid rgba(124,92,180,.28); }
+  /* same band, amber key, for rounds decided by the board rather than by a name */
+  .ivstake.special{ color:#6d5220; background:rgba(200,150,40,.14); border-color:rgba(200,150,40,.32); }
+  #iv-visitor .ivstake.special b{ color:#4f3a10; }
   /* The guest line styles its own <b> at 20px so the creature's name looms — and that rule
      reached in here too, blowing "name is spoken" up to twice the size of the sentence
      around it. It has to be beaten on specificity: #iv-visitor b is an ID selector, which
@@ -1596,10 +1640,11 @@
   <div class="overlay" id="ov-intro" onclick="Game.beginLevel()">
     <div class="card">
       <div id="iv-place"><span id="iv-placeicon">🌼</span><span id="iv-placename">Sunny Meadow</span></div>
+      <div id="iv-type" style="display:none"></div>
       <div id="iv-path"></div>
       <div id="iv-level">LEVEL 1</div>
       <div id="iv-goals">
-        <div>🎯 target<b id="iv-target">60</b></div>
+        <div><span id="iv-targetlbl">🎯 target</span><b id="iv-target">60</b></div>
         <div>👣 moves<b id="iv-moves">15</b></div>
       </div>
       <div id="iv-obstacles" style="display:none"></div>
@@ -3136,12 +3181,31 @@ const Game = {
     const bi=biomeOf(level);
     $("iv-placeicon").textContent = BIOMES[bi];
     $("iv-placename").textContent = BIOME_NAMES[bi];
+    // WHAT KIND OF ROUND IS THIS? Every card looked identical whether the round was an
+    // ordinary one, a naming ceremony or an obstacle trial — so the player had to infer the
+    // shape of the next few minutes from a changed number. Name it under the place, and let
+    // the band below spell out the terms. A guest outranks everything: if a creature hides
+    // here, that is what this round IS, whatever else it also asks for.
+    { const ty=$("iv-type"); const sp = S.goal && S.goal.t!=="hush";
+      const card=$("ov-intro").querySelector(".card");
+      card.classList.remove("ceremony","trial");     // the card itself changes clothes
+      if(S.tutorWord)  { ty.style.display="block"; ty.className="ceremony"; ty.textContent="🎭 naming ceremony";
+                         card.classList.add("ceremony"); }
+      else if(sp)      { ty.style.display="block"; ty.className="special";
+                         ty.textContent=GOALS[S.goal.t].i+" special round · "+GOALS[S.goal.t].n;
+                         card.classList.add("trial"); }
+      else             { ty.style.display="none"; ty.textContent=""; } }
     // the garden path: 5 stepping stones through this stretch, you standing on today's
     const step=(level-1)%5;
     $("iv-path").innerHTML = Array.from({length:5},(_,i)=>
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
     const ring=Math.floor((level-1)/25)+1; // each 25 levels = one ring deeper into the wood
     $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
+    // …and label it for what it actually is. On an obstacle round this number is a count of
+    // things to clear, not a score — calling it "target" directly under a band saying the
+    // score will not end the round was the card arguing with itself.
+    { const sp = S.goal && S.goal.t!=="hush";
+      $("iv-targetlbl").textContent = sp ? "🧹 to clear" : "🎯 target"; }
     $("iv-target").textContent = (S.goal&&S.goal.t!=="hush")
       ? GOALS[S.goal.t].i+" "+S.goal.need+(S.goal2 ? "  "+GOALS[S.goal2.t].i+" "+S.goal2.need : "") : S.target;
     $("iv-moves").textContent = S.movesLeft;
@@ -3171,8 +3235,21 @@ const Game = {
     // sat there wondering why nothing happened. Learning a rule as a correction to a
     // surprise is the wrong way round; it belongs here, before the first drop, where it
     // reframes the whole round from "clear the target" to "find this creature".
+    const spg = S.goal && S.goal.t!=="hush";
     iv.innerHTML='<span class="sil">'+GROVE_BY_WORD[tw].e+'</span> someone is hiding here — spell <b>'+disp+'</b>'
-      + '<small class="ivstake">🎭 points alone won\'t finish this round — it ends when the <b>name is spoken</b></small>'; }
+      + '<small class="ivstake">🎭 '+(spg
+          ? 'this round asks for both: <b>'+GOALS[S.goal.t].n+'</b>, and the <b>name spoken</b>'
+          : 'points alone won\'t finish this round — it ends when the <b>name is spoken</b>')
+      + '</small>'; }
+  // A SPECIAL ROUND IS NOT WON ON POINTS. Its win condition is the goal itself — melt every
+  // ice, smash every stone — and the score target is scenery. The card showed the same big
+  // "target" number as always, so a player could chase points on a round where points do not
+  // end anything. Say what actually finishes it, in the same band the ceremony uses.
+  else if(S.goal && S.goal.t!=="hush"){ iv.style.display="block";
+    const g=GOALS[S.goal.t];
+    iv.innerHTML='<small class="ivstake special">'+g.i+' the score won\'t end this round — '
+      + 'it finishes when you <b>'+g.n+'</b>'
+      + (S.goal2 ? ' and <b>'+GOALS[S.goal2.t].n+'</b>' : '')+'</small>'; }
     else iv.style.display="none";
     $("ov-unlock").classList.remove("active"); $("ov-intro").classList.remove("active");
     // did the grove grow a new duty slot at this level? celebrate it BEFORE the level begins
