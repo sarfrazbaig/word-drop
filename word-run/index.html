@@ -434,11 +434,27 @@
     box-shadow:0 3px 0 #8a7048, 0 6px 12px rgba(40,35,60,.4), inset 0 2px 0 rgba(255,250,235,.7);
     cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
   #home-menu-btn{ position:absolute; top:calc(14px + env(safe-area-inset-top)); left:16px; z-index:4; }
-  /* on the play screen it rides in the flow, first thing on the strip — and smaller than
-     the door's, which has a whole screen to itself and no round to report. */
-  #game-menu-btn{ position:relative; flex:none; z-index:4;
-    width:33px; height:33px; border-radius:10px; font-size:16px; }
-  #home-menu-btn:active, #game-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
+  /* INSIDE THE PILL it is a glyph, not a button — a raised face nested in another raised
+     face reads as a mistake. It keeps the pill's own ink and is divided from the level by
+     the same hairline that divides the level from the moves. */
+  /* A SEGMENT, NOT A LABEL: the pill's left end is tinted and rounded to the pill's own
+     edge, with the hairline as its seam — the shape of a segmented control, which reads as
+     pressable without nesting a raised button inside a raised pill. The negative margins
+     pull it out to those edges; without them the tint floats inside the pill's padding and
+     the tap target stays 18px tall. */
+  #game-menu-btn{ position:relative; flex:none; z-index:4; cursor:pointer;
+    width:auto; height:auto; border:none !important; box-shadow:none !important;
+    align-self:stretch; display:flex; align-items:center; justify-content:center;
+    font-size:17px; line-height:1;
+    padding:0 11px 0 14px; margin:-7px 9px -7px -13px;
+    border-radius:999px 0 0 999px;
+    background:color-mix(in srgb, var(--frame2,#9a6f3c) 15%, transparent) !important;
+    border-right:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent) !important;
+    color:color-mix(in srgb, var(--frame2,#9a6f3c) 88%, #3a2a12);
+    transition:background .15s; }
+  #game-menu-btn:active{ transform:none !important; box-shadow:none !important;
+    background:color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent) !important; }
+  #home-menu-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #8a7048; }
   #home-menu-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
     font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
@@ -1074,9 +1090,8 @@
   .gseg .gs-i .ui-ic{ width:21px; height:21px; }
   .gseg .gs-i{ display:flex; align-items:center; }
 
-  /* it takes the whole gap and centres in it, so it sits BETWEEN the menu and the purse
-     instead of against the menu with every spare pixel falling to its right. */
-  #movesbox{ flex:1 1 auto; display:flex; align-items:center; justify-content:center; min-width:0; }
+  /* one object now, hard against the left edge, with the purse alone on the right */
+  #movesbox{ flex:0 0 auto; display:flex; align-items:center; justify-content:flex-start; min-width:0; }
   /* the level, inside the pill, divided from the moves by a hairline rather than a dot */
   #lvlcap{ font-family:var(--font-story); font-size:13px; font-weight:600;
     letter-spacing:.3px; cursor:pointer; padding-right:10px; margin-right:2px;
@@ -1084,7 +1099,7 @@
     color:color-mix(in srgb, var(--frame2,#9a6f3c) 78%, #4a3a24); }
   #lvlcap b{ font-weight:700; color:inherit; }
   /* tinted by the country, like every other surface on this screen */
-  #movespill{ display:flex; align-items:baseline; gap:7px; padding:8px 20px 9px;
+  #movespill{ display:flex; align-items:center; gap:7px; padding:7px 18px 7px 13px;
     background:color-mix(in srgb, var(--frame1,#caa26a) 16%, #fffdf6);
     border:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 42%, transparent);
     border-radius:999px;
@@ -2053,10 +2068,9 @@
          read while playing: what the round wants, how many moves are left, where you
          are, the book, and the amber. The strip this frees belongs to the friends. -->
     <div id="topbar">
-      <!-- the same button, in the same corner, as the one on the door -->
-      <button id="game-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰</button>
       <div id="movesbox">
         <div id="movespill">
+          <button id="game-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰</button>
           <span id="lvlcap" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
           <span class="mv-lbl">Moves:</span><span id="movesbig">15</span>
         </div>
