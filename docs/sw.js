@@ -4,8 +4,11 @@
 // each deploy, never installs a new worker, and never clears the old cache — so a
 // playtester can sit on a stale build while you push fixes they never receive. A changed
 // stamp makes the file differ, which triggers install → activate → old caches deleted.
-const CACHE = "hushwood-20260721042940";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "hushwood-20260721052317";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg",
+  // the raster set the launcher and the install prompt actually use — cached so an
+  // offline install still shows a proper icon instead of a blank tile
+  "./icon-192.png", "./icon-512.png", "./icon-192-maskable.png", "./icon-512-maskable.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
