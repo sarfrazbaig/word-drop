@@ -30,15 +30,24 @@
   .cell canvas{ display:block; margin:0 auto 7px; border-radius:6px;
     background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0 0h8v8H0zM8 8h8v8H8z' fill='%23eee'/%3E%3C/svg%3E"); }
   .cell b{ font-size:12.5px; } .cell i{ font-style:normal; color:#8f8799; font-size:11.5px; display:block; }
+  button.save{ margin-top:9px; padding:6px 16px; font-size:13px; background:#faf6ee;
+    color:#2b2535; border:1px solid #dcd2c0; }
+  button.save:hover{ background:#f1ece2; }
+  #all{ margin-left:9px; background:#faf6ee; color:#2b2535; border:1px solid #dcd2c0; }
   code{ background:#e9e2d4; padding:1px 6px; border-radius:5px; font-size:13px; }
 </style>
 
 <div class="wrap">
   <h1>Icon Forge</h1>
   <p>Renders every PNG Google Play and Android need, from the single source SVG.
-     Click <b>Forge</b> — each file downloads automatically. Drop them next to
-     <code>manifest.webmanifest</code> in <code>word-run/</code>, then rebuild.</p>
+     Click <b>Forge</b> to generate them, then save each one.</p>
   <button id="go">Forge all icons</button>
+  <button id="all" style="display:none">Save all 4</button>
+  <p id="hint" style="display:none; margin-top:12px; font-size:13.5px">
+    Use <b>Save</b> on each tile &mdash; that always works. <b>Save all 4</b> is quicker, but
+    Chrome may ask permission to download multiple files; if it does, allow it, or just use the
+    four buttons. Then move the PNGs into <code>word-run/</code> and run <code>node build.js</code>.
+  </p>
   <div class="grid" id="out"></div>
 </div>
 
@@ -93,13 +102,34 @@ function draw(img, size, maskable){
   return c;
 }
 
+/* toBlob is ASYNCHRONOUS. Firing it in a loop and sleeping afterwards does not wait for it —
+   the callbacks land whenever they land. Promisify so each file is genuinely ready before
+   the next step. */
+const toBlob = canvas => new Promise(res => canvas.toBlob(res, "image/png"));
+
+/* A detached anchor's click can be ignored, and the object URL leaks if never revoked.
+   Attach, click, detach, revoke. */
+function saveBlob(blob, filename){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 document.getElementById("go").onclick = async () => {
   const img = await loadSVG();
   const out = document.getElementById("out");
   out.innerHTML = "";
+  const made = [];
+
   for(const job of JOBS){
     const c = draw(img, job.size, job.maskable);
-    // preview at a sane on-screen size
+    const blob = await toBlob(c);
+    made.push({ job, blob });
+
     const view = document.createElement("canvas");
     const vs = Math.min(job.size, 128);
     view.width = view.height = vs;
@@ -109,15 +139,23 @@ document.getElementById("go").onclick = async () => {
     cell.className = "cell";
     cell.appendChild(view);
     cell.insertAdjacentHTML("beforeend", `<b>${job.name}</b><i>${job.size}px &middot; ${job.note}</i>`);
+    // EVERY icon gets its own button. A click the person actually made is never throttled,
+    // which is the only way to be sure all four arrive — Chrome blocks bulk auto-downloads.
+    const btn = document.createElement("button");
+    btn.className = "save";
+    btn.textContent = "Save";
+    btn.onclick = () => { saveBlob(blob, job.name); btn.textContent = "Saved ✓"; };
+    cell.appendChild(btn);
     out.appendChild(cell);
-
-    c.toBlob(blob => {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = job.name;
-      a.click();
-    }, "image/png");
-    await new Promise(r => setTimeout(r, 250));   // browsers throttle rapid downloads
   }
+
+  document.getElementById("all").style.display = "inline-block";
+  document.getElementById("all").onclick = async () => {
+    for(const { job, blob } of made){
+      saveBlob(blob, job.name);
+      await new Promise(r => setTimeout(r, 600));   // give the browser room between files
+    }
+  };
+  document.getElementById("hint").style.display = "block";
 };
 </script>
