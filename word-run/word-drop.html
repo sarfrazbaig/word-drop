@@ -3441,14 +3441,21 @@ const FT = {
     $("toast").classList.remove("on");             // the Book toast has had its moment
     const seat=UI.equipped().findIndex(g=>g.w==="cat");
     await FT.callout("#pet-"+(seat<0?0:seat), "🐱 <b>CAT walks with you now</b><br><small>your party lives on this shelf — tap a friend anytime to see its power</small>", "below");
-    await FT.callout("#pet-2", "🔒 <b>more seats open as you journey</b><br><small>every friend you wake can join the walk</small>", "below");
-    await FT.callout("#pawpips", "every word fills a 🐾<br><small>when the paws are full, CAT steps onto the board and turns a letter <b>golden</b> ✨</small>", "below");
+    await FT.callout("#pet-2", "🔒 <b>more friends can walk with you later</b><br><small>a seat opens when you have somebody to fill it</small>", "below");
+    // THE SIGN, AND THE BADGE THAT COUNTS IT. This is the one idea the whole game rests
+    // on, and it was the one thing never taught. Every friend listens for something
+    // different and the little number on its portrait is how many more it needs.
+    const catSeat="#pet-"+(seat<0?0:seat);
+    await FT.callout(catSeat,
+      "🐾 <b>every friend listens for something different</b><br><small>the cat watches the letters you <b>drop</b> \u2014 the number on its face is how many more it needs</small>", "below");
+    await FT.callout(catSeat,
+      "😴 <b>when that number reaches nothing, it wakes</b><br><small>it walks out onto the board on its own and pats a letter into <b>one that fits</b> \u2014 you never tap a friend to use it</small>", "below");
     // …and finally, the thing that keeps them playing: WHO IS NEXT. The lesson used to end
     // on the paw meter, leaving the player with a pet but no notion that fifty more could be
     // earned or how. Point at the Book once, by name, while the cat is still fresh.
     await FT.callout(".chip.bookchip",
       "📔 <b>the Book of Names</b><br><small>every friend still hushed, and what each is listening for — <b>your next one is in there</b></small>", "below");
-    FT.note("spell words — watch the paws fill 🐾");
+    FT.note("keep dropping — the cat is counting 🐾");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null;
   },
