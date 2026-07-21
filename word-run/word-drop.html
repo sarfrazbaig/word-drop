@@ -2078,10 +2078,10 @@ const GROVE = [
      Note the dog does NOT chase the cat: it chases the WORD, whoever made it. Wiring one
      friend to another would make the dog dead weight the moment the cat rests, and would
      teach "these two are a pair" — which is the authored-pair thinking we removed. */
-  {w:"cat",wake:{on:"drop",n:3},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
+  {w:"cat",wake:{on:"drop",n:5},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
   {w:"dog",wake:{on:"word3",n:2},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a longer word</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
-  {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
+  {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"lifts the <b>top letter off the tallest pile</b>",fx:{t:"liftTop"},f:"hums the alphabet while she works"},
   {w:"moth",wake:{on:"vowel",n:6},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
   {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁️",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
   {w:"crow",wake:{on:"rare",n:1},e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
@@ -2091,14 +2091,14 @@ const GROVE = [
   {w:"swan",wake:{on:"word4",n:1},e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
   {w:"goose",wake:{on:"vowel",n:3},e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
-  {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"},f:"reads the bottom row backwards for fun"},
+  {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Nudge",pi:"🔄",pd:"slides <b>one letter</b> into the space beside it",fx:{t:"nudge"},f:"reads the bottom row backwards for fun"},
   {w:"heron",wake:{on:"word4",n:2},e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
   {w:"beetle",wake:{on:"word5",n:1},e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"rolls boulders away like morning chores"},
   {w:"fly",wake:{on:"drop",n:12},e:"🪰",z:"sky",pn:"Vowel Swarm",pi:"🍃",pd:"every <b>awkward letter softens into a vowel</b>",fx:{t:"vowelSwarm"},f:"turns the awkward letters soft and speakable"},
   {w:"ladybug",wake:{on:"anyWord",n:4},e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"a tile on the board <b>turns into a ⭐ star</b>",fx:{t:"luckyTile"},f:"lands on a tile and leaves a star behind"},
   {w:"cricket",wake:{on:"anyWord",n:4},e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
-  {w:"fox",wake:{on:"drop",n:7},e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
+  {w:"fox",wake:{on:"drop",n:7},e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the shortest pile",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
   {w:"frog",wake:{on:"anyWord",n:5},e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
   {w:"deer",wake:{on:"anyWord",n:5},e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"},f:"grazes the bottom row down to fresh grass"},
   {w:"bear",wake:{on:"obstacle",n:2},e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"},f:"hugs a little too hard, helpfully"},
@@ -4386,14 +4386,9 @@ const Game = {
         // star. Players saw their letter silently become ★ and had no idea why.
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
           UI.toast("🐶 no word to dig up — so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
-      case "rainHelp": { const added=[];
-        for(let i=0;i<fx.n*m;i++){ const open=[]; for(let c=0;c<COLS;c++){ let land=ROWS-1; while(land>=0&&S.board[land][c])land--; if(land>=2) open.push({c,land}); }
-          if(!open.length) break; const p=rand(open);
-          const t=newTile(riggedLetter(),"normal",p.land,p.c,false); added.push(t);
-          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,p.c); void t.el.offsetWidth;
-          t.el.style.transition="transform 240ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(p.land,p.c);
-          Snd.tone(600+i*90,{dur:.07,type:"triangle",gain:.05}); await wait(260); t.el.style.transition=""; }
-        S.chain=1; await Game.resolve(added); break; }
+      // rainHelp lived here — the bee's old power, two helpful tiles a fire. It went with
+      // the bee's rethink: at six fires a round it buried a small board, and burying the
+      // board is how a beginner loses. Nothing else used it.
       case "wildHand": { if(S.cur) S.cur={letter:"★",kind:"wild"};
         if(boost && S.next) S.next={letter:"★",kind:"wild"};
         UI.piece(); UI.stardrift(); Game.handPop(); break; }
@@ -4409,10 +4404,50 @@ const Game = {
         UI.stardrift(); S.chain=1; await Game.resolve(old); break; }
       case "goldenEgg": { S.cur={letter:"e",kind:"gold"}; if(boost) S.next={letter:"e",kind:"gold"};
         UI.piece(); Snd.gold(); Game.handPop(); break; }
-      case "flipRow": { const ts=rowTiles(ROWS-1); const letters=ts.map(t=>({l:t.letter,k:t.kind})).reverse();
-        ts.forEach((t,i)=>{ t.letter=letters[i].l; t.kind=letters[i].k;
-          t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
-        UI.breeze(); S.chain=1; await Game.resolve(ts); break; }
+      /* 🦇 ECHO NUDGE. Reversing the whole bottom row could shred letters a player was
+         deliberately assembling — a friend that undoes your plan is anti-magical, and at
+         two and a half fires a round it would have happened most rounds. One letter slides
+         one space instead, and it looks for a slide that MAKES a word before settling for
+         any slide at all. */
+      case "nudge": {
+        const slides=[];
+        for(const t of Object.values(S.tiles)){
+          if(t.kind!=="normal") continue;
+          for(const dc of [-1,1]){ const c=t.c+dc;
+            if(c<0 || c>=COLS || S.board[t.r][c]) continue;
+            slides.push({t, to:c}); }
+        }
+        if(!slides.length){ Game.addMoves(1); break; }
+        // does this slide spell something? try them all before taking a blind one
+        const move=(s,back)=>{ const from=back?s.to:s.t.c, to=back?s.t.c0:s.to;
+          S.board[s.t.r][from]=null; S.board[s.t.r][to]=s.t; s.t.c=to; };
+        let chosen=null;
+        for(const s of slides){
+          s.t.c0=s.t.c; move(s,false);
+          if(findWords().some(w=>w.cells.includes(s.t) && !w.cells.every(c=>c.heldWord===w.word))){ chosen=s; break; }
+          move(s,true);
+        }
+        if(!chosen){ chosen=rand(slides); chosen.t.c0=chosen.t.c; move(chosen,false); }
+        chosen.t.el.style.transition="transform .42s cubic-bezier(.4,.05,.35,1)";
+        placeTile(chosen.t, chosen.t.r, chosen.t.c, false);
+        UI.breeze(); await wait(440); chosen.t.el.style.transition="";
+        S.chain=1; await Game.settle([chosen.t]); break; }
+
+      /* 🐝 THE BEE MAKES SPACE, it does not make letters. Two helpful tiles a fire at six
+         fires a round was about twelve extra tiles per round, which buries a small board —
+         and burying the board is exactly how a beginner loses. It was also the cat's beat
+         wearing a different coat: both handed you a letter you could use. Lifting the top
+         off the tallest pile is the opposite of the cat, and answers the real failure. */
+      case "liftTop": {
+        const h=cols(); const c=h.indexOf(Math.max(...h));
+        if(!h[c]){ Game.addMoves(1); break; }
+        let r=0; while(r<ROWS && !S.board[r][c]) r++;
+        const t=S.board[r] && S.board[r][c];
+        if(!t){ Game.addMoves(1); break; }
+        Game.creditTile(t);            // if the bee lifts a trouble, the round is paid for it
+        UI.shards(t.r,t.c,"#ffe9a8"); removeTile(t);
+        Snd.collapse(1); buzz(12);
+        await Game.settle(); break; }
       case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); break;
       case "crackAll": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
@@ -4426,7 +4461,15 @@ const Game = {
         await Game.settle(); break; }
       case "flatBonus": S.flatB=(S.flatB||0)+fx.n*m; break;
       case "chainBoost": S.chainBoost=true; break;
-      case "goldCol": { const h=cols(); const c=h.indexOf(Math.max(...h));
+      // gilds the SHORTEST column, not the tallest. Gold on the tallest pile is the
+      // hardest gold on the board to ever reach — measured earlier, a fox-gilded column
+      // sat untouched for twenty-six drops. Down in the low ground it gets spent.
+      // the shortest column that actually HAS something in it. Plain Math.min picks an
+      // empty column on a sparse early board, and gilding nothing at all is a worse
+      // failure than gilding the unreachable tallest pile was.
+      case "goldCol": { const h=cols(); let c=-1, low=Infinity;
+        for(let i=0;i<COLS;i++) if(h[i]>0 && h[i]<low){ low=h[i]; c=i; }
+        if(c<0){ Game.addMoves(1); break; }
         const changed=[]; for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t&&t.kind==="normal"){ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); changed.push(t); UI.shards(t.r,t.c,"#ffd54f"); } }
         Snd.gold(); break; }
       case "swapCols": { const h=cols(); const opts=[]; for(let c=0;c<COLS-1;c++) if(h[c]&&h[c+1]) opts.push(c);
