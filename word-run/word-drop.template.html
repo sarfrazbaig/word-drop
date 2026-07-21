@@ -365,8 +365,21 @@
   #charm-in.show{ display:block; }
   #charm-msg{ font-family:var(--font-ui); font-size:12px; font-weight:700; line-height:1.45; color:var(--ink); min-height:0; }
   /* 🎬 the picture-show's three doors */
-  #homegift{ position:absolute; right:20%; bottom:26px; font-size:30px; cursor:pointer; display:none;
-    filter:drop-shadow(0 3px 6px rgba(60,30,0,.4)); animation:peekbob 2.2s ease-in-out infinite; z-index:3; }
+  /* THE CHEST SITS WITH THE PLAY BUTTON, NOT ON TOP OF THE TEXT. It used to be pinned to
+     bottom:26px while the place name and progress ladder were pinned to 88%/92% of the
+     stage — three things positioned from different edges, so on most screens the chest
+     landed squarely on the words. It now hangs beside the play button, well clear of the
+     copy, and reads as the tappable thing it is: a real tap target with a lifted rim. */
+  /* NOTE the anchor: this sits inside #hill-near, which begins partway down the stage — so a
+     percentage here is a percentage of the HILL, not of the screen. Reading it as the screen
+     is what put the chest on top of the place name and the progress ladder. 14% of the hill
+     lands it beside the play button, clear of every line of copy below. */
+  #homegift{ position:absolute; right:16%; top:14%; font-size:34px; cursor:pointer; display:none;
+    width:56px; height:56px; line-height:56px; text-align:center; border-radius:50%;
+    background:radial-gradient(circle at 50% 35%, rgba(255,246,222,.95), rgba(240,214,160,.9));
+    box-shadow:0 3px 10px -2px rgba(60,30,0,.45), inset 0 -2px 0 rgba(140,100,40,.25);
+    animation:peekbob 2.2s ease-in-out infinite; z-index:4; }
+  #homegift:active{ transform:translateY(2px) scale(.96); }
   #homegift.on{ display:block; }
   #homegift:active{ transform:scale(.92); }
   #ev-blessed{ font-size:12px; font-weight:800; color:var(--gold-deep); }
@@ -397,6 +410,17 @@
   .shoprow.owned{ opacity:.72; }
   .shoprow.owned .sp{ background:linear-gradient(180deg,#c9bda5,#a89a7e); }
   #shop-note{ font-size:11px; color:var(--dim); line-height:1.4; }
+  /* the journey panel's headline: the collection, and the road to the next milestone */
+  #st-grove{ margin:2px 0 10px; }
+  #st-grovehead{ font-size:14.5px; font-weight:700; color:var(--ink); }
+  #st-grovehead b{ color:var(--gold-deep,#b87a15); font-size:17px; }
+  #st-grove .hbar{ width:100%; height:7px; margin:6px 0 5px; border-radius:999px;
+    background:rgba(120,100,70,.18); overflow:hidden; }
+  #st-grove .hbar i{ display:block; height:100%; border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),var(--gold)); }
+  #st-mile{ font-size:12px; color:var(--dim); font-weight:700; }
+  #st-place{ font-size:12.5px; color:var(--dim); font-weight:700; margin-bottom:10px; }
+  #st-place b{ color:var(--ink); }
   /* 🔧 the keeper's toolbox — dev-only, opened by a secret knock */
   #dbg-title{ font-family:var(--font-story); font-weight:800; font-size:19px; color:var(--ink); }
   #dbg-state{ font-size:12px; color:var(--dim); font-weight:700; margin:2px 0 8px; }
@@ -1370,7 +1394,12 @@
     <div class="menu-stat" id="hm-quest-row"><span id="hm-quest">🌤️ today's quest</span></div>
     <button class="menu-item" onclick="UI.groveShow()"><span><svg class="bookicon menubook" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg></span> The Book of Names <em id="menu-grove-n">0 / 50</em></button>
     <button class="menu-item" onclick="UI.statsShow()"><span>📊</span> Your journey</button>
-    <button class="menu-item" onclick="Shop.open()"><span>🟠</span> The Trading Post <em>amber &amp; bundles</em></button>
+    <button class="menu-item" onclick="Shop.open()"><span>🟠</span> The Trading Post <em>what amber buys</em></button>
+    <!-- THE TWO WAYS BACK, SIDE BY SIDE. "Start over from level 1" used to sit inside the
+         journey panel with no hint of how it differed from wiping everything — two
+         destructive-looking buttons in different rooms, neither explaining itself. They live
+         together now, and each says exactly what it keeps and what it costs. -->
+    <button class="menu-item" id="btn-restart1" onclick="Game.restartFromOne()"><span>↺</span> Walk it again <em>back to level 1 &middot; friends and names stay</em></button>
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
     <button class="menu-item" id="menu-sound" onclick="Snd.toggle()"><span class="soundbtn">🔊</span> Sound <em id="menu-snd-state">on</em></button>
     <button class="menu-item" onclick="UI.charmToggle()"><span>🧿</span> Keeper's charm <em>save &amp; restore</em></button>
@@ -1555,6 +1584,16 @@
     <div class="card">
       <button class="cardx" onclick="UI.statsHide()" aria-label="close">✕</button>
       <h2 style="font-family:var(--font-story);font-style:italic;font-size:20px">Your journey</h2>
+      <!-- THE SPINE FIRST. This panel used to open on six small numbers, which made a game of
+           fifty names, five woods and a whole milestone ladder read like a pocket score sheet.
+           What the player is actually doing here is waking a wood — so that leads, with the
+           collection, the road to the next milestone, and where they currently stand. -->
+      <div id="st-grove">
+        <div id="st-grovehead"></div>
+        <div class="hbar"><i id="st-grovebar"></i></div>
+        <div id="st-mile"></div>
+      </div>
+      <div id="st-place"></div>
       <div class="statgrid">
         <div class="stat">⭐<b id="st-level">1</b><small>level</small></div>
         <div class="stat">🏁<b id="st-wins">0</b><small>levels won</small></div>
@@ -1562,9 +1601,10 @@
         <div class="stat">🔥<b id="st-streak">0</b><small>day streak</small></div>
         <div class="stat">⛓️<b id="st-chain">×1</b><small>best chain</small></div>
         <div class="stat">👑<b id="st-word" style="font-size:14px">—</b><small>best word</small></div>
+        <div class="stat">🟠<b id="st-amber">0</b><small>amber</small></div>
+        <div class="stat">🐾<b id="st-party">0</b><small>friends on duty</small></div>
       </div>
       <button class="btn-primary" onclick="UI.statsHide()">✓</button>
-      <button class="btn-primary btn-ghost" id="btn-restart1" onclick="Game.restartFromOne()">↺ Start over from level 1</button>
     </div>
   </div>
 
@@ -2156,8 +2196,35 @@ const Shop={
     Shop.render(); $("ov-shop").classList.add("active");
   },
   close(){ $("ov-shop").classList.remove("active"); },
+  // WHAT AMBER BUYS — the honest version. With no till wired (and v1 ships free), this used
+  // to render five priced rows whose buy handler could only apologise. A shelf of things you
+  // cannot buy reads as a broken shop, not a coming-soon one. Until a provider exists it
+  // shows what amber genuinely does IN PLAY, which is the thing players were failing to
+  // discover anyway. The moment a till is wired, the real rows come back untouched.
+  SPENDS:[
+    { i:"🍃", n:"A fresh breeze",  d:"swap any two tiles",              p:20 },
+    { i:"🌟", n:"A wish",          d:"turn your letter into any other", p:25 },
+    { i:"🪶", n:"Five more moves", d:"when a round runs out",           p:30 },
+  ],
   render(){
     const r=$("shop-rows"); if(!r) return;
+    const amber=(P&&P.amber)||0;
+
+    if(!Shop.provider){
+      $("shop-sub").innerHTML = "you have <b>🟠 "+amber+"</b> amber<br>"
+        + "earned in play, spent on comfort — <b>never on power</b>.";
+      r.innerHTML = Shop.SPENDS.map(s=>{
+        const afford = amber>=s.p;
+        return '<div class="shoprow'+(afford?"":" owned")+'">'
+          +'<span class="si">'+s.i+'</span>'
+          +'<span class="sn">'+s.n+'<small>'+s.d+'</small></span>'
+          +'<span class="sp">'+s.p+'🟠</span></div>';
+      }).join("");
+      $("shop-note").innerHTML = "spend it where you need it: when a 🍃 or 🌟 runs dry, "
+        + "<b>tap it on the board</b> and your amber buys a fresh one.";
+      return;
+    }
+
     r.innerHTML=SHOP_ITEMS.map(it=>{
       const owned=it.once && P.purchases[it.sku];
       return '<button class="shoprow'+(it.best?" best":"")+(owned?" owned":"")+'" onclick="Shop.buy(\''+it.sku+'\')">'
@@ -2166,9 +2233,7 @@ const Shop={
         +'<small>'+(it.d ? it.d : (it.amber?"🟠 "+it.amber:"")+(it.extras?"  +  🍃×"+it.extras.swap+"  🌟×"+it.extras.wild:""))+'</small></span>'
         +'<span class="sp">'+(owned?"yours ✓":it.price)+'</span></button>';
     }).join("");
-    $("shop-note").innerHTML = Shop.provider
-      ? "💳 <b>test payments on</b> — no real money moves"
-      : "the till opens with the full release — prices are placeholders until then";
+    $("shop-note").innerHTML = "💳 <b>test payments on</b> — no real money moves";
   },
   async buy(sku){
     const it=SHOP_ITEMS.find(x=>x.sku===sku); if(!it) return;
@@ -2632,10 +2697,18 @@ const FT = {
     // the lesson cleared the whole board — free play from BARE ground is the hardest
     // state in the game (nothing to complete). Seed level ground like every real level.
     for(let c=0;c<COLS;c++) if(!S.board[ROWS-1][c]) newTile(drawLetter(),"normal",ROWS-1,c);
+    // A HELD WORD BELONGS TO THE PLAYER. This tidy-up rerolls a letter out of any word the
+    // seeding happened to create, so the board doesn't open with free points sitting on it.
+    // It used to pick from findWords() blindly — and the beat above literally invites you to
+    // "hold to keep growing", so the word it reached for first was often the TENS you had
+    // just chosen to keep. It overwrote one of its letters: TENS sat there refusing to clear
+    // while unrelated tiles bloomed around it. Held tiles are now off limits, always.
     let guard=0;
-    while(findWords().length && guard++<40){
-      const w=findWords()[0]; const t=rand(w.cells);
-      t.letter=drawLetter(); t.inner.innerHTML=t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
+    while(guard++<40){
+      const w = findWords().find(w=>!w.cells.some(c=>c.heldWord));
+      if(!w) break;
+      const c=rand(w.cells);
+      c.letter=drawLetter(); c.inner.innerHTML=c.letter.toUpperCase()+"<small>"+VAL[c.letter]+"</small>";
     }
     FT.note("the board is yours — clear "+S.target+" with drops, breezes, holds 🌿");
     setTimeout(()=>FT.clearNote(), 4200);
@@ -2892,7 +2965,7 @@ const Game = {
     if(Date.now()-Game.restart1Ask < 2500){
       Game.restart1Ask=0; b.classList.remove("armed-danger");
       P.level=1; P.run=null; save();
-      UI.statsHide(); UI.home();
+      UI.menuToggle(false); UI.home();   // the button lives in the sidebar now, not the journey panel
       UI.toast("🌱 back to level 1 — a fresh path");
       Snd.tone(392,{dur:.2,type:"triangle",gain:.1}); buzz(25);
     } else {
@@ -5212,12 +5285,24 @@ const UI = {
   },
   statsShow(){
     UI.menuToggle(false);
+    // the collection leads — it is what the game is actually about
+    const found=Object.keys(P.metGrove||{}).length, total=GROVE.length;
+    const mile=UI.GROVE_MILES.find(mi=>found<mi.n);
+    $("st-grovehead").innerHTML = "🐾 <b>"+found+"</b> of "+total+" names remembered";
+    $("st-grovebar").style.width = (100*found/total)+"%";
+    $("st-mile").innerHTML = mile
+      ? "<b>"+(mile.n-found)+"</b> more until "+mile.i+" "+mile.t.toLowerCase()
+      : "🌈 every name is home — the hush is over";
+    const bi=biomeOf(P.level);
+    $("st-place").innerHTML = BIOMES[bi]+" &nbsp;<b>"+BIOME_NAMES[bi]+"</b> &nbsp;·&nbsp; level "+P.level;
     $("st-level").textContent=P.level;
     $("st-wins").textContent=P.stats.wins;
     $("st-words").textContent=P.stats.words;
     $("st-streak").textContent=P.streak||0;
     $("st-chain").textContent="×"+P.stats.bestChain;
     $("st-word").textContent=P.bestWord||"—";
+    $("st-amber").textContent=P.amber||0;
+    $("st-party").textContent=(P.equip||[]).length;
     $("m-stats").classList.add("active");
   },
   statsHide(e){
