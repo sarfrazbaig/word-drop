@@ -2583,7 +2583,7 @@ const CALLINGS={
   dog:     {t:"act",      n:3,  c:"watch a friend use its power 3 times",     s:"🐾 something wants to <b>fetch</b> too…"},
   owl:     {t:"hold",     n:4,  c:"hold 4 words with 🌱",                     s:"🌙 something admires your <b>patience</b>…"},
   bee:     {t:"words",    n:35, c:"clear 35 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
-  fox:     {t:"gold",     n:8,  c:"clear 8 golden letters",                   s:"✨ something is following your <b>gilded trail</b>…"},
+  fox:     {t:"score",    n:400,c:"earn 400 points in all",             s:"✨ something is following your <b>gilded trail</b>…"},
   bat:     {t:"upword",   n:2,  c:"clear 2 words that read UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
   /* TIER 2 — the walk: clean 3-4 letter names, moderate callings */
   pig:     {t:"pluck",    n:3,  c:"pluck 3 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
@@ -3018,6 +3018,16 @@ function load(){
     const out = Object.assign({}, defaults, p||{});
     out.seenUnlock = out.seenUnlock||{};
     out.seenTip = out.seenTip||{}; out.seenChapter = out.seenChapter||{};
+    // A LIFE-COUNTED TALLY THAT DID NOT EXIST YESTERDAY. The fox counts every point you
+    // have ever scored, and a tester at level thirty has scored thousands with no counter
+    // running. Seed the ledger from the levels they have actually cleared — the sum of
+    // those targets is the least they can possibly have scored — so a life-counted meter
+    // does not open at nothing for the people who have played the most.
+    out.tally = out.tally||{};
+    if(out.tally.score==null){
+      let est=0; for(let l=1;l<(out.level||1);l++) est+=TARGET(l);
+      out.tally.score=est;
+    }
     out.metGrove = out.metGrove||{};
     out.said = out.said||{};
     out.groveMile = out.groveMile||{};
@@ -5338,6 +5348,10 @@ const Game = {
       chain, by: S.petActing ? "pet" : "player", L:S.level });
     P.stats.words++;
     Game.tallyEv("words");
+    // THE FOX'S TRAIL. Points are what its Gilded Trail multiplies, so points are what
+    // it listens for. Guarded above zero because a gate can zero a word's pay, and
+    // tallyEv treats a zero as a one.
+    if(points>0) Game.tallyEv("score", points);
     const wl=word.cells.length;
     // WORD-SHAPED WAKES. Longer counts as shorter — a five-letter word satisfies a friend
     // waiting on four — so reaching further never costs you a wake you had already earned.
