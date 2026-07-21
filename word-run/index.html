@@ -2080,7 +2080,7 @@ const GROVE = [
   {w:"cat",wake:{on:"drop",n:5},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
   {w:"dog",wake:{on:"word3",n:2},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a longer word</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
-  {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"lifts the <b>top letter off the tallest pile</b>",fx:{t:"liftTop"},f:"hums the alphabet while she works"},
+  {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"buzzes a friend <b>closer to waking</b>",fx:{t:"buzz"},f:"hums the alphabet while she works"},
   {w:"moth",wake:{on:"vowel",n:6},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
   {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁️",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
   {w:"crow",wake:{on:"rare",n:1},e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
@@ -4427,16 +4427,31 @@ const Game = {
          and burying the board is exactly how a beginner loses. It was also the cat's beat
          wearing a different coat: both handed you a letter you could use. Lifting the top
          off the tallest pile is the opposite of the cat, and answers the real failure. */
-      case "liftTop": {
-        const h=cols(); const c=h.indexOf(Math.max(...h));
-        if(!h[c]){ Game.addMoves(1); break; }
-        let r=0; while(r<ROWS && !S.board[r][c]) r++;
-        const t=S.board[r] && S.board[r][c];
-        if(!t){ Game.addMoves(1); break; }
-        Game.creditTile(t);            // if the bee lifts a trouble, the round is paid for it
-        UI.shards(t.r,t.c,"#ffe9a8"); removeTile(t);
-        Snd.collapse(1); buzz(12);
-        await Game.settle(); break; }
+      /* 🐝 THE ONLY POWER THAT IS PURELY ABOUT THE OTHERS.
+         Lifting a tile off a pile was correct and dull: it ended in silence, while the cat
+         and the dog both end in a word. And an automatic pluck was worse than useless
+         beside the wish, which plucks whatever the PLAYER chooses.
+         So the bee does what a bee does — it goes friend to friend. Its whole power is
+         other friends, which makes it the one pet that grows with every creature you ever
+         meet, and it teaches the second lesson of the wood out loud: your friends are not
+         five separate powers, they are a party.
+         It nudges whoever is CLOSEST to stirring, so the buzz is felt now rather than
+         banked — and if that tips them over, they act inside this same turn. The drain
+         loop in tryPetAct is still running, so the chain resolves as one moment. */
+      case "buzz": {
+        const others=Game.petActives().filter(g=>g!==pet && g.wake);
+        if(!others.length){ Game.addMoves(1); break; }
+        const togo=g=>Game.wakeNeed(g)-((S.wake&&S.wake[g.w])||0);
+        others.sort((a,b)=>togo(a)-togo(b));
+        const friend=others[0];
+        S.wake=S.wake||{};
+        S.wake[friend.w]=(S.wake[friend.w]||0)+1*m;
+        const woke = S.wake[friend.w] >= Game.wakeNeed(friend);
+        if(woke){ S.wake[friend.w]=0; S._woke=S._woke||[];
+          if(!S._woke.includes(friend.w)) S._woke.push(friend.w); }
+        UI.petSay(pet.e+" buzzes — "+friend.e+(woke?" <b>wakes!</b>":" stirs"));
+        Snd.tone(woke?990:760,{dur:.11,type:"triangle",gain:.06,verb:true}); buzz(10);
+        UI.petMeter(); break; }
       case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); break;
       case "crackAll": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
