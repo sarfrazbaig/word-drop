@@ -968,7 +968,12 @@
     0 22px 46px -16px rgba(25,22,48,.7); } }
 
   /* -------- dock: the hand -------- */
-  #dock{ width:100%; position:relative; display:flex; align-items:flex-end; justify-content:center; gap:10px;
+  /* THE PANEL IS THE PLAY CONTROLS, nothing more. It was full width with everything it
+     holds bunched in the middle. min-width leaves room for a third letter slot. */
+  #dockrow{ width:100%; display:flex; align-items:center; justify-content:space-between;
+    gap:6px; z-index:2; }
+  #dock{ flex:0 1 auto; min-width:0; position:relative; display:flex; align-items:flex-end;
+    justify-content:center; gap:10px;
     background:var(--surface); border:1px solid var(--surface-border);
     border-radius:var(--r-xl); padding:10px 12px 12px; z-index:2; box-shadow:var(--shadow-panel); }
   .slotlabel{ display:block; text-align:center; font-size:10px; letter-spacing:1.5px;
@@ -1050,7 +1055,9 @@
   #topbar #amberchip b{ font-size:12px; color:var(--dim); }
   #topbar .bookchip .bookicon{ width:21px; height:21px; }
   /* ══ ROW ONE ══ gear, the round, the purse. */
-  #topbar{ width:100%; display:flex; align-items:center; gap:8px; z-index:2; padding:0 2px; }
+  /* the round to the left edge, the purse to the right */
+  #topbar{ position:relative; width:100%; display:flex; align-items:center;
+    justify-content:space-between; gap:8px; z-index:2; padding:0 2px; min-height:44px; }
   /* --frame2 alone is a surface tint, too light to carry a small glyph; deepened here so
      the icons still follow the country without dissolving into the background. */
   .ui-ic{ width:24px; height:24px; display:block;
@@ -1060,7 +1067,7 @@
   .gseg .gs-i .ui-ic{ width:21px; height:21px; }
   .gseg .gs-i{ display:flex; align-items:center; }
 
-  #movesbox{ flex:1; display:flex; align-items:center; justify-content:center; min-width:0; }
+  #movesbox{ flex:0 1 auto; display:flex; align-items:center; justify-content:flex-start; min-width:0; }
   /* the level, inside the pill, divided from the moves by a hairline rather than a dot */
   #lvlcap{ font-family:var(--font-story); font-size:13px; font-weight:600;
     letter-spacing:.3px; cursor:pointer; padding-right:10px; margin-right:2px;
@@ -1123,18 +1130,24 @@
   .gseg.gname{ gap:6px; font-size:13px; }
   .gseg.gname b{ font-size:15px; letter-spacing:2.5px; color:var(--gold-deep); }
 
-  /* ══ ROW THREE ══ the Book now lives on the shelf, at its left edge. */
-  #petbar .bookchip{ position:absolute; left:9px; top:50%; transform:translateY(-50%);
+  /* ══ THE DOCK ══ the four play controls span x80–x296 of a 347 panel; the gear and the
+     Book take the empty 66px on its left and 51px on its right, absolutely placed so the
+     controls between them keep the centring they already had. */
+  #dockrow > #btn-menu, #dockrow > .bookchip{ flex:none; margin:0; z-index:3;
     background:none !important; border:none !important; box-shadow:none !important;
-    padding:0; z-index:3; }
-  #petbar .bookchip .bookicon{ width:30px; height:30px; }
-  #petbar{ display:none; width:100%; height:92px; z-index:2; position:relative; overflow:visible;
+    padding:6px; display:flex; align-items:center; }
+  #dockrow > .bookchip .bookicon{ width:33px; height:33px; }
+  #dockrow > .bookchip b{ display:none; }   /* the count belongs inside the Book */
+  #dockrow > #btn-menu .ui-ic{ width:29px; height:29px; }
+  /* 92px held 41px of seats and 33px of nothing beneath them; the labels want about half
+     of that, so twenty go back to the board. */
+  #petbar{ display:none; width:100%; height:72px; z-index:2; position:relative; overflow:visible;
     /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
        355px of usable bar and overflowed by 15. At 26 they fit with room to spare. */
     /* seats sit CENTRED in the taller bar, not welded to its floor: bottom-aligning them in
        92px pooled all the new room above their heads and left the shelf looking half-empty.
        The bottom padding is the labels' room, measured against the -14px they hang at. */
-    border-radius:16px; padding:0 12px 14px; align-items:center; justify-content:center; gap:20px;
+    border-radius:16px; padding:0 12px 12px; align-items:center; justify-content:center; gap:20px;
     border:1px solid var(--surface-border);
     background-color:#fbf6e8;
     background-image:
@@ -2002,7 +2015,6 @@
          read while playing: what the round wants, how many moves are left, where you
          are, the book, and the amber. The strip this frees belongs to the friends. -->
     <div id="topbar">
-      <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu"><svg class="ui-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><circle cx="12" cy="12" r="6.6"/></g><circle cx="12" cy="12" r="2.9" fill="#fdf8ec"/></svg></button>
       <div id="movesbox">
         <div id="movespill">
           <span id="lvlcap" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
@@ -2017,7 +2029,6 @@
       <div id="gs-name"></div>
     </div>
     <div id="petbar">
-      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names"><span class="bookwrap"><svg class="bookicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg><i class="booksheen"></i></span></button>
       <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
       <span class="petcompanion" id="pet-0" onclick="UI.petInfo(0)"></span>
       <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
@@ -2030,11 +2041,16 @@
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
     </div>
-    <div id="dock">
+    <!-- the two doors flank the dock, outside its outline, under the thumbs -->
+    <div id="dockrow">
+      <button class="iconbtn sm" id="btn-menu" onclick="UI.menuToggle(true)" aria-label="menu"><svg class="ui-ic gear-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(45 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(90 12 12)"/><rect x="10.7" y="1.1" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><rect x="10.7" y="18.3" width="2.6" height="4.6" rx="1.3" transform="rotate(135 12 12)"/><circle cx="12" cy="12" r="6.6"/></g><circle cx="12" cy="12" r="2.9" fill="#fdf8ec"/></svg></button>
+      <div id="dock">
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <div id="currentwrap"></div>
       <div id="nextwrap"><span class="slotlabel">next</span><span id="nextslot"></span></div>
       <button class="toolbtn wish" id="wishbtn" onclick="Game.openWish()"><span class="starglyph">★</span><span class="cnt" id="wish-cnt">0</span></button>
+      </div>
+      <button class="chip bookchip" onclick="UI.groveShow()" title="the Book of Names — every friend and what wakes them" aria-label="Book of Names"><span class="bookwrap"><svg class="bookicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7.6" y="3.4" width="12.4" height="17.4" rx="1.5" fill="#f7efdc"/><path d="M9.9 7h7.3M9.9 10h7.3M9.9 13h5.2" stroke="#d9c9a6" stroke-width="1" stroke-linecap="round"/><rect x="3.6" y="2.6" width="14.6" height="19" rx="2.1" fill="#8b5e34"/><rect x="3.6" y="2.6" width="3.6" height="19" rx="1.7" fill="#6b4324"/><rect x="8.3" y="2.6" width="0.9" height="19" fill="rgba(0,0,0,.16)"/><circle cx="13.2" cy="12.1" r="2.5" fill="none" stroke="#e8b64c" stroke-width="1.25"/><circle cx="13.2" cy="12.1" r="0.75" fill="#e8b64c"/><path d="M15.4 2.6h2.5v7.6l-1.25-1.55-1.25 1.55z" fill="#c2506a"/></svg><i class="booksheen"></i></span></button>
     </div>
 
     <!-- 🌟 WISH: wish on a star for the letter you need -->
