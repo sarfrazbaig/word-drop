@@ -4183,7 +4183,10 @@ const Game = {
     for(const g of Game.petActives()){
       const w=g.wake; if(!w || w.on!==ev) continue;
       S.wake[g.w] = (S.wake[g.w]||0) + (n||1);
-      if(S.wake[g.w] >= Game.wakeNeed(g)){ S.wake[g.w]=0; S._woke = S._woke || []; S._woke.push(g.w); }
+      if(S.wake[g.w] >= Game.wakeNeed(g)){ S.wake[g.w]=0; S._woke = S._woke || [];
+        // never queue the same friend twice — through a long lesson a drop-counter would
+        // otherwise stack up and then empty itself all at once the moment teaching stopped
+        if(!S._woke.includes(g.w)) S._woke.push(g.w); }
     }
     if(S._woke && S._woke.length) UI.petMeter();
   },
@@ -4225,6 +4228,12 @@ const Game = {
       ? (S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need))
       : (S.levelScore>=S.target && !S.tutorWord);
     if(decided){ S._woke.length=0; return; }
+    // THE WOOD IS TEACHING. A lesson is a scripted board with one right answer, and a
+    // friend acting inside it changes the board under the player mid-sentence — measured:
+    // the cat gilded a letter during lesson one, while the game was still saying "tap this
+    // column". Friends keep counting through a lesson and act the moment it ends, which
+    // reads as them waiting politely rather than as them being switched off.
+    if(S.guide) return;
     // rituals own the stage: a reveal or a meet in progress means the friend WAITS —
     // it stays awake in the queue and acts on the next quiet drop.
     if(S.pendingReveal || document.querySelector(".whosthat") || $("ov-meet").classList.contains("active")) return;
