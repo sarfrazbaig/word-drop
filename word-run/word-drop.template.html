@@ -2071,8 +2071,15 @@ function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
    while on duty (passives don't use the paw meter — they just work). */
 const GROVE = [
   // your first friends — taught in the early levels (f: = the little plaque on their album card)
-  {w:"cat",wake:{on:"anyWord",n:1},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
-  {w:"dog",wake:{on:"word3",n:3},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a word for you</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
+  /* THE OPENING PAIR, and the first lesson in how friends work together.
+     The cat counts DROPS, not words — that is what lets it act whether or not you just
+     succeeded, so it can CAUSE a word instead of only reacting to one. The dog wakes on
+     the small word that follows and reaches for a longer one. Cat makes it, dog grows it.
+     Note the dog does NOT chase the cat: it chases the WORD, whoever made it. Wiring one
+     friend to another would make the dog dead weight the moment the cat rests, and would
+     teach "these two are a pair" — which is the authored-pair thinking we removed. */
+  {w:"cat",wake:{on:"drop",n:3},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
+  {w:"dog",wake:{on:"word3",n:2},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a longer word</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
   {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"<b>two helpful letters</b> rain onto the board",fx:{t:"rainHelp",n:2},f:"hums the alphabet while she works"},
   {w:"moth",wake:{on:"vowel",n:6},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
@@ -4370,7 +4377,11 @@ const Game = {
         for(const t of picks){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#ffd9a8"); }
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
         S.chain=1; await Game.resolve(picks); break; }
-      case "weave": { const done = await Game.petAlign(boost?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
+      // reaches as far as it has grown: a maxed dog fishes for FIVE first, which is exactly
+      // the length that wakes a legend. `boost?5:4` was left over from the same-home
+      // doubling — with boost gone it read 4, so the dog scanned the whole board for a
+      // four twice over and the first pass was pure waste.
+      case "weave": { const done = await Game.petAlign(m>=2?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
         // no word to dig up on this board — rather than nothing, the dog brings back a
         // star. Players saw their letter silently become ★ and had no idea why.
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
