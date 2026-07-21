@@ -712,30 +712,49 @@
 
   /* ================= GAME SCENE ================= */
   #scene-game{ padding-top:calc(10px + env(safe-area-inset-top)); gap:var(--sp2); }
-  #topbar{ width:100%; display:flex; align-items:center; gap:6px; z-index:2; }
+  /* A SHELF, LIKE THE ONE BELOW IT — same cream, same warm border, same inset highlight,
+     same biome tint. The round used to sit in a flat white box floating on a painted
+     screen; it belongs to the wood now, and the emphasis comes from type. */
+  #topbar{ width:100%; display:flex; align-items:center; gap:9px; z-index:2;
+    min-height:56px; padding:4px 13px; border-radius:16px;
+    border:1px solid var(--surface-border);
+    background-color:#fbf6e8;
+    background-image:linear-gradient(180deg, rgba(255,253,246,.95), #f6efdc);
+    box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
+  #app[class*="bio"] #topbar{
+    background:linear-gradient(180deg,
+      color-mix(in srgb, var(--frame1) 20%, #fbf6e8),
+      color-mix(in srgb, var(--frame2) 26%, #f1e9d4));
+    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2) 45%, transparent),
+               0 6px 14px rgba(40,30,20,.16); }
   /* CORNERS: quiet, no chrome, no competing with the board. */
-  .tb-side{ display:flex; align-items:center; gap:1px; flex:0 0 auto; }
-  .tb-side.tb-right{ margin-left:auto; }
+  /* the two corners are given the SAME width so the round sits on the true centre of the
+     strip. Left measured 67px against the right’s 85, which pulled the numbers 9px off
+     centre — not enough to name, exactly enough to look accidental. */
+  .tb-side{ display:flex; align-items:center; gap:3px; flex:0 0 auto; min-width:86px; }
+  .tb-side.tb-right{ justify-content:flex-end; }
   /* THE ROUND, CENTRED. The only container on the strip, because it is the only thing
      here that is read every move. */
+  /* no chrome of its own: the shelf is the container, and these two numbers are simply
+     the largest, darkest things standing on it. */
   #statusblock{ flex:1 1 auto; min-width:0; display:flex; align-items:center;
-    flex-wrap:wrap; justify-content:center; gap:4px 16px; padding:4px 14px; border-radius:14px;
-    background:rgba(255,253,246,.86); border:1px solid rgba(121,92,55,.24);
-    box-shadow:0 2px 7px -4px rgba(90,60,30,.35); }
+    flex-wrap:wrap; justify-content:center; gap:3px 20px; padding:0; }
   #statusblock #movesbox{ flex:0 0 auto; text-align:center; }
   #statusblock #gs-goals{ flex:0 1 auto; min-width:0; overflow:hidden; }
   /* full width, so it drops below the numbers instead of squeezing in beside them */
-  #gs-name{ flex:0 0 100%; display:none; justify-content:center; align-items:center;
-    border-top:1px solid rgba(121,92,55,.16); padding-top:3px; margin-top:1px; }
+  /* no rule above it — the hairline made the blanks read as an empty text input */
+  #gs-name{ flex:0 0 100%; display:none; justify-content:center; align-items:center; }
   #gs-name.on{ display:flex; }
   .ingame-only{ display:none !important; }
   #menu-panel.ingame .ingame-only{ display:flex !important; }
   /* A CAPTION, NOT A CHIP. It was 70px wide with pill chrome — the second widest object
      on the strip — for a number that cannot change during a round. */
-  #lvlchip{ background:none; border:none; box-shadow:none; padding:0 1px 0 0;
-    font-weight:800; font-size:9px; letter-spacing:.5px; color:var(--dim); opacity:.7;
-    display:flex; flex-direction:column; align-items:center; line-height:1.1; cursor:pointer; }
-  #lvlchip b{ color:var(--dim); font-size:13px; }
+  /* ONE line, on the gear's baseline. Stacking "LV" over "12" in 9px type beside a 40px
+     button was two ragged lines of nothing where the eye lands first. */
+  #lvlchip{ background:none; border:none; box-shadow:none; padding:0;
+    font-weight:800; font-size:10px; letter-spacing:.5px; color:var(--dim); opacity:.7;
+    white-space:nowrap; line-height:1; cursor:pointer; }
+  #lvlchip b{ color:var(--dim); font-size:12px; margin-left:1px; }
   #movesbox{ flex:1; text-align:center; }
   /* matched to the goal beside it: these two are read together, so neither outranks
      the other. It was 34px against the goal’s 12.5px. */
@@ -1500,17 +1519,21 @@
   .gseg{ position:relative; display:flex; flex-direction:column; align-items:center;
     gap:1px; background:none; border:none; padding:0; overflow:visible;
     font-weight:800; color:var(--ink); white-space:nowrap; }
-  .gseg b{ order:1; font-size:24px; line-height:1; color:var(--ink);
+  .gseg{ gap:3px; }
+  .gseg b{ order:1; font-size:25px; line-height:1; color:var(--ink);
     font-variant-numeric:tabular-nums; }
-  .gseg > span{ order:2; font-size:11px; line-height:1; opacity:.85; }
+  /* the same small-caps label the moves wears. A bare emoji floating under a number
+     read as a rendering accident beside "MOVES" set in type. */
+  .gseg .glbl{ order:2; font-size:var(--fs-xs); letter-spacing:1.4px; line-height:1;
+    color:var(--dim); text-transform:uppercase; white-space:nowrap; }
   .gseg.metdone b{ color:var(--good, #4f7a52); }
   /* the fill was the chip’s progress shading; there is no chip now, and a bar that
      repeats the number beside it is decoration. */
   .gsfill{ display:none !important; }
   /* the naming word is a sentence, not a counter — it keeps its own shape */
-  .gseg.gname{ flex-direction:row; gap:5px; font-size:12.5px; }
-  .gseg.gname b{ order:0; font-size:14px; letter-spacing:1px; }
-  .gseg.gname > span{ order:0; font-size:14px; }
+  .gseg.gname{ flex-direction:row; align-items:center; gap:7px; font-size:13px; }
+  .gseg.gname b{ order:0; font-size:15px; letter-spacing:2.5px; color:var(--gold-deep); }
+  .gseg.gname > span{ order:0; font-size:16px; }
   .gseg .gsfill{ position:absolute; inset:0; z-index:0; background:linear-gradient(90deg,rgba(125,216,125,.35),rgba(240,169,46,.3));
     transform-origin:left; transform:scaleX(0); transition:transform .4s; border-radius:999px; }
   .gseg span, .gseg b{ position:relative; z-index:1; }
@@ -2837,17 +2860,17 @@ const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w));
    Candy-Crush style: melt every ice, smash every stone, or lose the round. Each type
    introduces itself SOLO at an authored level, then joins a slow rotation. */
 const GOALS={
-  hush:   {i:"🎯", n:"still the hush"},
-  thaw:   {i:"🧊", n:"melt every ice",    seed:"ice",   base:3},
-  boulder:{i:"🪨", n:"smash every stone", seed:"stone", base:3},
-  harvest:{i:"✨", n:"harvest the gold",  seed:"gold",  base:4},
-  unravel:{i:"🎁", n:"open every gift",   seed:"crate", base:2},
-  lift:   {i:"🌫️", n:"lift the mist",     seed:"mist",  base:3},
+  hush:   {i:"🎯", s:"points",  n:"still the hush"},
+  thaw:   {i:"🧊", s:"ice",     n:"melt every ice",    seed:"ice",   base:3},
+  boulder:{i:"🪨", s:"stone",   n:"smash every stone", seed:"stone", base:3},
+  harvest:{i:"✨", s:"gold",    n:"harvest the gold",  seed:"gold",  base:4},
+  unravel:{i:"🎁", s:"gifts",   n:"open every gift",   seed:"crate", base:2},
+  lift:   {i:"🌫️", s:"mist",    n:"lift the mist",     seed:"mist",  base:3},
   // cut counts DEEDS, not pieces: seed a few tangles and the spread supplies the rest
-  cut:    {i:"🌿", n:"cut the tangles",   seed:"bramble", base:5, fixedSeed:3, slowScale:50},
-  long:   {i:"🏔️", n:"speak long words",  base:3},
-  star:   {i:"⭐", n:"walk the star course", seed:"wild", base:3},
-  gauntlet:{i:"👑", n:"the crown trial"},
+  cut:    {i:"🌿", s:"tangles", n:"cut the tangles",   seed:"bramble", base:5, fixedSeed:3, slowScale:50},
+  long:   {i:"🏔️", s:"long words", n:"speak long words",  base:3},
+  star:   {i:"⭐", s:"stars",   n:"walk the star course", seed:"wild", base:3},
+  gauntlet:{i:"👑", s:"trial",  n:"the crown trial"},
 };
 /* WHICH ASK AN OBSTACLE ANSWERS TO. Frost is listed as a thaw because a frost destroyed
    outright never gets to shed its layer into ordinary ice — the round should not punish
@@ -6223,14 +6246,14 @@ const UI = {
     const goalMode=S.goal && S.goal.t!=="hush";
     if(goalMode){
       const done=S.goal.have>=S.goal.need;
-      segs.push('<div class="gseg'+(done?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+(S.goal.have/Math.max(1,S.goal.need))+')"></div><span>'+GOALS[S.goal.t].i+'</span> <b>'+S.goal.have+'/'+S.goal.need+'</b></div>');
+      segs.push('<div class="gseg'+(done?" metdone":"")+'"><b>'+S.goal.have+'/'+S.goal.need+'</b><span class="glbl">'+GOALS[S.goal.t].i+' '+GOALS[S.goal.t].s+'</span></div>');
     } else {
       const done=S.levelScore>=S.target;
-      segs.push('<div class="gseg'+(done?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+Math.min(1,S.levelScore/Math.max(1,S.target))+')"></div><span>🎯</span> <b>'+S.levelScore+'/'+S.target+'</b></div>');
+      segs.push('<div class="gseg'+(done?" metdone":"")+'"><b>'+S.levelScore+'/'+S.target+'</b><span class="glbl">'+'🎯'+' '+'points'+'</span></div>');
     }
     if(S.goal2){
       const d2=S.goal2.have>=S.goal2.need;
-      segs.push('<div class="gseg'+(d2?" metdone":"")+'"><div class="gsfill" style="transform:scaleX('+(S.goal2.have/Math.max(1,S.goal2.need))+')"></div><span>'+GOALS[S.goal2.t].i+'</span> <b>'+S.goal2.have+'/'+S.goal2.need+'</b></div>');
+      segs.push('<div class="gseg'+(d2?" metdone":"")+'"><b>'+S.goal2.have+'/'+S.goal2.need+'</b><span class="glbl">'+GOALS[S.goal2.t].i+' '+GOALS[S.goal2.t].s+'</span></div>');
     }
     if(S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord], full=P.level<=6;
