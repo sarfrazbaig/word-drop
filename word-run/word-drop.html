@@ -1163,7 +1163,15 @@
   #dockrow > .bookchip{ flex:none; margin:0; z-index:3; padding:2px;
     background:none !important; border:none !important; box-shadow:none !important;
     display:flex; align-items:center; cursor:pointer; }
-  #dockrow > .bookchip .bookicon{ width:50px; height:50px;
+  /* THE BOX IS NOT THE BOOK. The artwork carries transparent padding — measured on its
+     own alpha, it fills 84% of the canvas across and 91% down — so a 50px box drew a
+     42px book beside 46px powers and read as the smallest thing in the row. Sized so
+     the VISIBLE artwork leads instead: 68 of box gives about 57 of book. */
+  /* THE WRAPPER WAS THE CEILING. .bookwrap is a hard 29x29 with overflow:hidden, built
+     for the old inline SVG — so every size I gave the image was being clipped by it and
+     the Book stayed small no matter what the img said. Both are sized here. */
+  #dockrow > .bookchip .bookwrap{ width:60px; height:60px; overflow:visible; border-radius:0; }
+  #dockrow > .bookchip .bookicon{ width:60px; height:60px;
     filter:drop-shadow(0 3px 4px rgba(90,60,30,.4)); }
   #dockrow > .bookchip:active{ transform:translateY(2px); }
   #dockrow > .bookchip b{ display:none; }   /* the count belongs inside the Book */
