@@ -2254,13 +2254,18 @@ function seatsByLevel(L){ return L>=20 ? 5 : L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 
    had only the cat — a fanfare for nothing, and it reads as the game losing track of who
    you are. A seat now needs BOTH the level and a friend to sit in it. */
 function slotsFor(L){
-  const friends = Object.keys((typeof P!=="undefined" && P.grove) || {}).length;
+  // COUNT THE ONES YOU HAVE ACTUALLY MET, not the names you have spoken. A creature enters
+  // the grove the moment its name is spelled, but you meet it — and may only then bring it
+  // on duty — at the start of the NEXT round. Counting the grove opened a third seat while
+  // the third friend was still a name on a page, so the seat sat empty and the fanfare was
+  // for nobody. equipToggle gates on metGrove, so this must agree with it.
+  const friends = Object.keys((typeof P!=="undefined" && P.metGrove) || {}).length;
   return Math.max(1, Math.min(seatsByLevel(L), friends));
 }
 const SLOT_MSG={
   2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Each one stirs to its own sign, so two of them means two different things to watch for."},
   3:{t:"The pack grows! 🐾", b:"Three friends can join you now. Bring ones that answer to different signs and something is always about to happen."},
-  4:{t:"The pack grows! 🐾", b:"Four friends at once — and they each stir to their own sign. Pick who walks with you in the Book of Names."},
+  4:{t:"A fourth walks with you 🐾", b:"Four friends at once, four signs to watch for. Pick who comes along in the Book of Names."},
   5:{t:"Full party! 🐾", b:"Five friends at once. Now the wood is asking you a real question: whose signs suit the round ahead?"},
 };
 /* The three growings. Every friend you own steps up together — the ones resting at home
