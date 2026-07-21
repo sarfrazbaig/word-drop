@@ -1863,6 +1863,24 @@ function MOVES(L){
   if(EARLY[L]) return EARLY[L][1];
   return L<=14 ? 20 : L<=24 ? 25 : 30;
 }
+/* the level each trouble first shows its face — kept as data because the ceremony needs
+   to know what a player has already been taught */
+const OBSTACLE_DEBUT={ ice:8, stone:12, crate:13, frost:27, mist:51, bramble:77,
+  root:102, shroud:127, pest:141 };
+/* A NAMING CEREMONY TEACHES EXACTLY ONE THING, AND IT IS THE NAME.
+   A player meeting the ice for the first time while also being asked to spell a friend
+   into being is being taught two things at once, and the ceremony is the one that loses —
+   they read the new tile, not the blanks. Worse, the debut levels seed a trouble ALONE
+   precisely so it can be understood alone, and a ceremony landing there wrecks both
+   lessons at the same time.
+   So a ceremony board carries only troubles this player has already met and beaten.
+   Strictly already: on the debut level itself the trouble is still new. */
+function recipeFor(L, ceremony){
+  const r=recipe(L);
+  if(!ceremony) return r;
+  for(const k of Object.keys(r)) if(!(L > (OBSTACLE_DEBUT[k]||0))) r[k]=0;
+  return r;
+}
 function recipe(L){ // obstacles arrive slowly — and every newcomer debuts ALONE
   const r={stone:0,crate:0,ice:0,frost:0,mist:0,bramble:0};
   if(L===8)  { r.ice=2;     return r; }   // 🧊 meets you by itself…
@@ -3204,8 +3222,13 @@ const Game = {
       const w=findWords()[0]; const t=rand(w.cells);
       t.letter = drawLetter(); t.inner.innerHTML = t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
     }
-    // level recipe: convert some prefill tiles into this level's obstacles
-    const rec=recipe(level);
+    // level recipe: convert some prefill tiles into this level's obstacles — but a naming
+    // round only ever carries troubles this player already knows how to answer.
+    // The guest is decided HERE rather than read off S.tutorWord, which is not assigned
+    // until fifty lines below this: reading it early made the flag permanently false and
+    // the whole filter silently inert.
+    const naming = (P.summon && !P.grove[P.summon]) || (level===4 && !P.grove.cat);
+    const rec=recipeFor(level, !!naming);
     const pool=Object.values(S.tiles).filter(t=>t.kind==="normal");
     const convert=(kind,n)=>{
       for(let i=0;i<n;i++){
