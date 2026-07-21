@@ -1,0 +1,123 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Hushwood — Icon Forge</title>
+<!--
+  ICON FORGE — turns the one source SVG into every raster Google Play wants.
+  Open this file directly (no server needed; the SVG is inlined below) and click Forge.
+
+  Why this exists: Play and Android launchers need PNGs, and the project only carries a
+  vector. Rather than hand-produce them once, this makes them reproducible — when the
+  placeholder icon is finally replaced by a commissioned one, paste the new SVG into
+  SOURCE below, click once, and every size regenerates consistently.
+
+  MASKABLE is the subtle one. Android crops maskable icons to whatever shape the launcher
+  likes (circle, squircle, teardrop), so anything near the edge gets eaten. The maskable
+  variants below paint the background full-bleed and scale the artwork to 80% in the middle,
+  which is the documented safe zone.
+-->
+<style>
+  body{ margin:0; font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:#f1ece2; color:#2b2535; padding:34px 22px 60px; }
+  .wrap{ max-width:820px; margin:0 auto; }
+  h1{ font:600 30px/1.2 "Iowan Old Style",Palatino,Georgia,serif; margin:0 0 4px; }
+  p{ max-width:66ch; color:#645c72; margin:0 0 14px; }
+  button{ font:650 15px system-ui; padding:11px 22px; border-radius:9px; cursor:pointer;
+    background:#e0a02c; color:#2a1f08; border:1px solid #b87a15; }
+  button:hover{ filter:brightness(1.06); }
+  .grid{ display:flex; flex-wrap:wrap; gap:16px; margin-top:24px; }
+  .cell{ background:#faf6ee; border:1px solid #dcd2c0; border-radius:12px; padding:12px;
+    text-align:center; }
+  .cell canvas{ display:block; margin:0 auto 7px; border-radius:6px;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0 0h8v8H0zM8 8h8v8H8z' fill='%23eee'/%3E%3C/svg%3E"); }
+  .cell b{ font-size:12.5px; } .cell i{ font-style:normal; color:#8f8799; font-size:11.5px; display:block; }
+  code{ background:#e9e2d4; padding:1px 6px; border-radius:5px; font-size:13px; }
+</style>
+
+<div class="wrap">
+  <h1>Icon Forge</h1>
+  <p>Renders every PNG Google Play and Android need, from the single source SVG.
+     Click <b>Forge</b> — each file downloads automatically. Drop them next to
+     <code>manifest.webmanifest</code> in <code>word-run/</code>, then rebuild.</p>
+  <button id="go">Forge all icons</button>
+  <div class="grid" id="out"></div>
+</div>
+
+<script>
+/* The source artwork, inlined so this tool works from file:// with no server. */
+const SOURCE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#fdf8ee"/>
+  <circle cx="256" cy="256" r="200" fill="#eaf3e2"/>
+  <g transform="rotate(-5 256 262)">
+    <rect x="150" y="150" width="212" height="224" rx="34" fill="#f7ecd6" stroke="#b3a685" stroke-width="10"/>
+    <rect x="150" y="150" width="212" height="224" rx="34" fill="url(#g)"/>
+    <text x="256" y="312" font-family="Segoe UI, Arial, sans-serif" font-size="168" font-weight="800" fill="#4a3b28" text-anchor="middle">H</text>
+    <text x="330" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="700" fill="#8d8064" text-anchor="middle">4</text>
+  </g>
+  <text x="256" y="150" font-size="70" text-anchor="middle">&#127794;</text>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf4"/><stop offset="1" stop-color="#eadbba"/>
+    </linearGradient>
+  </defs>
+</svg>`;
+
+const BG = "#fdf8ee";          // matches the manifest background_color
+const SAFE = 0.80;             // Android's documented maskable safe zone
+
+/* every raster the store and the launcher ask for */
+const JOBS = [
+  { name:"icon-192.png",          size:192,  maskable:false, note:"manifest · launcher" },
+  { name:"icon-512.png",          size:512,  maskable:false, note:"manifest · Play listing" },
+  { name:"icon-192-maskable.png", size:192,  maskable:true,  note:"adaptive, safe-zoned" },
+  { name:"icon-512-maskable.png", size:512,  maskable:true,  note:"adaptive, safe-zoned" },
+];
+
+function loadSVG(){
+  const url = URL.createObjectURL(new Blob([SOURCE], {type:"image/svg+xml"}));
+  const img = new Image();
+  return new Promise((res, rej) => { img.onload = () => res(img); img.onerror = rej; img.src = url; });
+}
+
+function draw(img, size, maskable){
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const x = c.getContext("2d");
+  if(maskable){
+    // full-bleed background, artwork shrunk into the safe zone so no launcher crop eats it
+    x.fillStyle = BG; x.fillRect(0, 0, size, size);
+    const inner = Math.round(size * SAFE), off = Math.round((size - inner) / 2);
+    x.drawImage(img, off, off, inner, inner);
+  } else {
+    x.drawImage(img, 0, 0, size, size);
+  }
+  return c;
+}
+
+document.getElementById("go").onclick = async () => {
+  const img = await loadSVG();
+  const out = document.getElementById("out");
+  out.innerHTML = "";
+  for(const job of JOBS){
+    const c = draw(img, job.size, job.maskable);
+    // preview at a sane on-screen size
+    const view = document.createElement("canvas");
+    const vs = Math.min(job.size, 128);
+    view.width = view.height = vs;
+    view.getContext("2d").drawImage(c, 0, 0, vs, vs);
+
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.appendChild(view);
+    cell.insertAdjacentHTML("beforeend", `<b>${job.name}</b><i>${job.size}px &middot; ${job.note}</i>`);
+    out.appendChild(cell);
+
+    c.toBlob(blob => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = job.name;
+      a.click();
+    }, "image/png");
+    await new Promise(r => setTimeout(r, 250));   // browsers throttle rapid downloads
+  }
+};
+</script>

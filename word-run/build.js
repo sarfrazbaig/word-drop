@@ -75,9 +75,21 @@ const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on
 if (!fs.existsSync(docs)) fs.mkdirSync(docs);
 fs.writeFileSync(path.join(docs, "index.html"), dropOut);
 // PWA layer: ship manifest, service worker, and icon alongside the game
-["manifest.webmanifest", "icon.svg"].forEach(f => {
-  fs.copyFileSync(path.join(__dirname, f), path.join(docs, f));
+// Icons ship as PNG because Play and Android launchers need raster, not vector. The set is
+// regenerated from the one source SVG by tools/icon-forge.html — missing ones are warned
+// about rather than fatal, so a build never breaks just because an icon hasn't been forged.
+const ASSETS = ["manifest.webmanifest", "icon.svg",
+  "icon-192.png", "icon-512.png", "icon-192-maskable.png", "icon-512-maskable.png"];
+const missingIcons = [];
+ASSETS.forEach(f => {
+  const src = path.join(__dirname, f);
+  if (!fs.existsSync(src)) { missingIcons.push(f); return; }
+  fs.copyFileSync(src, path.join(docs, f));
 });
+if (missingIcons.length) {
+  console.warn("!! icons not forged yet: " + missingIcons.join(", "));
+  console.warn("   open tools/icon-forge.html, click Forge, and move the PNGs into word-run/");
+}
 // the service worker is STAMPED, not copied: a fixed cache name means the browser sees an
 // identical sw.js each deploy, never installs a new worker, and never drops the old cache —
 // so a playtester keeps a stale build while you push fixes they never get. Stamping the
