@@ -44,38 +44,118 @@
   }
   /* ===== BIOMES: the world changes every 5 levels — the whole plot takes on the place.
      letter tiles keep readable; special tiles keep their identity. ===== */
-  #app.bio1{ /* 🌊 lily pond — lily-pad green tiles floating on water */
+  #app.bio1{ /* 🌿 the Bramblewood — deeper in, and the green closes over */
+    --tile-face:linear-gradient(148deg,#f2f8ec 0%, #d7e8c6 52%, #b4d0a0 100%);
+    --tile-edge:#78a066; --tile-ink:#2f4a26;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(70,120,55,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#cfe0c0; --board-dot:rgba(255,255,255,.28); --grass:#7fb069;
+    --board-tint:linear-gradient(180deg, rgba(160, 205,140,.30),rgba(95,150,80,.18));
+    --frame1:#9dc189; --frame2:#6d9c5c;
+    --sky-top:#26382f; --sky-mid:#456b4c; --sky-low:#93b98d; --moon:#eef7e6; }
+  #app.bio2{ /* 🌱 the Mosswood — damp, close, everything soft with moss */
+    --tile-face:linear-gradient(148deg,#eef6ea 0%, #cfe3cd 52%, #a9cbaa 100%);
+    --tile-edge:#6f9b7c; --tile-ink:#28453a;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(55,105,80,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#c4dcc8; --board-dot:rgba(255,255,255,.22); --grass:#74ab8a;
+    --board-tint:linear-gradient(180deg, rgba(150, 200,175,.30),rgba(85,140,115,.20));
+    --frame1:#94bfa4; --frame2:#628f74;
+    --sky-top:#1f3630; --sky-mid:#3d6455; --sky-low:#8db69c; --moon:#e8f5ee; }
+  #app.bio3{ /* 🍄 the Spore Hollow — low ground, and the air is full of drift */
+    --tile-face:linear-gradient(148deg,#f6eefa 0%, #e2cfec 52%, #c9aedb 100%);
+    --tile-edge:#9878b4; --tile-ink:#3f2a52;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(110,70,145,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#dcc8e6; --board-dot:rgba(255,255,255,.26); --grass:#a884c0;
+    --board-tint:linear-gradient(180deg, rgba(200, 165,225,.30),rgba(140,100,175,.20));
+    --frame1:#bb9bd0; --frame2:#8e6cab;
+    --sky-top:#2c1f3d; --sky-mid:#5a4079; --sky-low:#a98cc4; --moon:#f4e9fb; }
+  #app.bio4{ /* 🌊 the Listening Pond — lily-pad tiles floating on still water */
     --tile-face:linear-gradient(148deg,#eefaf0 0%, #cfe9d3 52%, #a9d4b2 100%);
     --tile-edge:#6da283; --tile-ink:#26513a;
     --tile-grain:repeating-linear-gradient(94deg, rgba(50,115,80,.08) 0 2px, transparent 2px 7px);
     --board-bg:#bfe2dd; --board-dot:rgba(255,255,255,.0); --grass:#6fbf9e;
-    --board-tint:linear-gradient(180deg, rgba(150,220,235,.3), rgba(90,180,160,.18));
+    --board-tint:linear-gradient(180deg, rgba(150, 220,235,.30),rgba(90,180,160,.18));
     --frame1:#8fc3ae; --frame2:#5e9e86;
     --sky-top:#2b3f5e; --sky-mid:#4a7d86; --sky-low:#9fcbba; --moon:#eafff4; }
-  #app.bio2{ /* 🍂 autumn wood */
-    --tile-face:linear-gradient(148deg,#fff3de 0%, #f9dca8 52%, #ecbe74 100%);
-    --tile-edge:#b58240; --tile-ink:#5c3d17;
-    --tile-grain:repeating-linear-gradient(94deg, rgba(150,85,25,.1) 0 2px, transparent 2px 7px);
-    --board-bg:#f0dcba; --board-dot:rgba(160,100,40,.24); --grass:#d09a4a;
-    --board-tint:linear-gradient(180deg, rgba(245,185,100,.28), rgba(195,125,55,.16));
-    --frame1:#c99a55; --frame2:#9c6f33;
-    --sky-top:#40325a; --sky-mid:#8a5f52; --sky-low:#e0ad6a; --moon:#ffe9c2; }
-  #app.bio3{ /* 🌙 moonlit glade */
-    --tile-face:linear-gradient(148deg,#faf6ff 0%, #e5d8f4 52%, #cbb8e2 100%);
-    --tile-edge:#947cb4; --tile-ink:#42305a;
-    --tile-grain:repeating-linear-gradient(94deg, rgba(95,70,140,.08) 0 2px, transparent 2px 7px);
-    --board-bg:#ded4ee; --board-dot:rgba(255,255,255,.35); --grass:#9f88c0;
-    --board-tint:linear-gradient(180deg, rgba(120,95,175,.26), rgba(70,50,110,.2));
-    --frame1:#a893c8; --frame2:#7d63b8;
-    --sky-top:#211d3e; --sky-mid:#3d3568; --sky-low:#6a5794; --moon:#f3ecff; }
-  #app.bio4{ /* ❄ winter grove */
+  #app.bio5{ /* 🪷 the Reedmarsh — olive water, soft ground, wading birds */
+    --tile-face:linear-gradient(148deg,#f4f5e6 0%, #dfe2c2 52%, #c2c79c 100%);
+    --tile-edge:#95a06a; --tile-ink:#3b4026;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(110,120,60,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#d3d8b4; --board-dot:rgba(255,255,255,.20); --grass:#9fae74;
+    --board-tint:linear-gradient(180deg, rgba(195, 205,150,.30),rgba(130,145,90,.20));
+    --frame1:#b2bb8a; --frame2:#87935e;
+    --sky-top:#33402f; --sky-mid:#5d6f4a; --sky-low:#a8b591; --moon:#f1f6de; }
+  #app.bio6{ /* 🌀 the Running River — bright, fast, nothing sits still */
+    --tile-face:linear-gradient(148deg,#eaf6fd 0%, #c8e5f6 52%, #9fd0ee 100%);
+    --tile-edge:#5f9dc4; --tile-ink:#1e3f57;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(40,110,160,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#bfe0f2; --board-dot:rgba(255,255,255,.36); --grass:#63b5d8;
+    --board-tint:linear-gradient(180deg, rgba(150, 215,245,.32),rgba(75,150,200,.20));
+    --frame1:#8dc2dd; --frame2:#5794bb;
+    --sky-top:#1f3a55; --sky-mid:#3f7ba3; --sky-low:#9ccce6; --moon:#ecfaff; }
+  #app.bio7{ /* 💦 the Thunderfalls — spray, noise, and a rainbow in it */
+    --tile-face:linear-gradient(148deg,#eafcfa 0%, #c6efeb 52%, #9adcd6 100%);
+    --tile-edge:#5aa9a2; --tile-ink:#16453f;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(35,140,130,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#bdeae6; --board-dot:rgba(255,255,255,.42); --grass:#5fc4b8;
+    --board-tint:linear-gradient(180deg, rgba(150, 240,232,.32),rgba(70,175,165,.20));
+    --frame1:#8bd0c8; --frame2:#54a79d;
+    --sky-top:#173f45; --sky-mid:#39868a; --sky-low:#96d8d0; --moon:#e9fffc; }
+  #app.bio8{ /* 🕳️ the Undercave — the sky is gone; stone and lamplight */
+    --tile-face:linear-gradient(148deg,#f0e9df 0%, #d8caba 52%, #bda893 100%);
+    --tile-edge:#8b7460; --tile-ink:#3a2c20;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(120,90,60,.11) 0 2px, transparent 2px 7px);
+    --board-bg:#cbbdae; --board-dot:rgba(255,255,255,.14); --grass:#a08a72;
+    --board-tint:linear-gradient(180deg, rgba(215, 195,170,.24),rgba(140,115,90,.24));
+    --frame1:#a89279; --frame2:#826b53;
+    --sky-top:#241c16; --sky-mid:#4a3a2c; --sky-low:#8d7660; --moon:#f6e6cc; }
+  #app.bio9{ /* 🌑 the Deep Dark — almost nothing, and that is the point */
+    --tile-face:linear-gradient(148deg,#e6e3ec 0%, #c7c2d4 52%, #a9a2bd 100%);
+    --tile-edge:#736c8a; --tile-ink:#241f33;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(70,60,100,.12) 0 2px, transparent 2px 7px);
+    --board-bg:#b8b2c6; --board-dot:rgba(255,255,255,.10); --grass:#8b83a3;
+    --board-tint:linear-gradient(180deg, rgba(160, 150,190,.20),rgba(90,80,120,.28));
+    --frame1:#948ca8; --frame2:#6d6484;
+    --sky-top:#15111f; --sky-mid:#2e2743; --sky-low:#6a6284; --moon:#cfc9e0; }
+  #app.bio10{ /* 💎 the Glimmer Seams — the wood being generous on purpose */
+    --tile-face:linear-gradient(148deg,#eafaff 0%, #c9ecfb 52%, #a2d8f2 100%);
+    --tile-edge:#5fa7cc; --tile-ink:#173a51;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(40,125,175,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#c3e8f7; --board-dot:rgba(255,255,255,.46); --grass:#6bc0e0;
+    --board-tint:linear-gradient(180deg, rgba(165, 230,250,.34),rgba(80,165,215,.20));
+    --frame1:#8fcbe6; --frame2:#57a3c6;
+    --sky-top:#1b3348; --sky-mid:#3d7fa8; --sky-low:#a5d6ee; --moon:#f0fdff; }
+  #app.bio11{ /* 🪨 the Scree Slopes — loose rock, open air, climbing */
+    --tile-face:linear-gradient(148deg,#f4f1ec 0%, #ded8cf 52%, #c2b9ac 100%);
+    --tile-edge:#948a7c; --tile-ink:#3b352d;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(110,100,85,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#d5cec4; --board-dot:rgba(255,255,255,.26); --grass:#a89e90;
+    --board-tint:linear-gradient(180deg, rgba(215, 205,190,.26),rgba(140,130,115,.22));
+    --frame1:#b3a996; --frame2:#8b8170;
+    --sky-top:#33302c; --sky-mid:#615a50; --sky-low:#a79d8d; --moon:#f3efe6; }
+  #app.bio12{ /* 🌬️ the Windward Ridge — high, exposed, the cloud is back */
+    --tile-face:linear-gradient(148deg,#f2f7fb 0%, #dbe6f0 52%, #bccfe2 100%);
+    --tile-edge:#8aa3bd; --tile-ink:#2c3c4f;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(80,110,150,.09) 0 2px, transparent 2px 7px);
+    --board-bg:#d5e3f0; --board-dot:rgba(255,255,255,.40); --grass:#a4bcd4;
+    --board-tint:linear-gradient(180deg, rgba(210, 230,248,.34),rgba(130,165,205,.18));
+    --frame1:#adc3d8; --frame2:#82a0bd;
+    --sky-top:#39537a; --sky-mid:#7098c0; --sky-low:#c3daec; --moon:#f7fdff; }
+  #app.bio13{ /* ❄️ the Snowline — the first snow, at last */
     --tile-face:linear-gradient(148deg,#fdfeff 0%, #e4f0fa 52%, #cbdff0 100%);
     --tile-edge:#87a4be; --tile-ink:#2f4459;
     --tile-grain:repeating-linear-gradient(94deg, rgba(90,130,170,.08) 0 2px, transparent 2px 7px);
-    --board-bg:#e6f0f8; --board-dot:rgba(255,255,255,.5); --grass:#a9c4d8;
-    --board-tint:linear-gradient(180deg, rgba(215,235,248,.4), rgba(140,175,205,.18));
+    --board-bg:#e6f0f8; --board-dot:rgba(255,255,255,.50); --grass:#a9c4d8;
+    --board-tint:linear-gradient(180deg, rgba(215, 235,248,.40),rgba(140,175,205,.18));
     --frame1:#a9c0d4; --frame2:#7d9bb4;
     --sky-top:#2b3550; --sky-mid:#5f7a9a; --sky-low:#bcd4e4; --moon:#f2fbff; }
+  #app.bio14{ /* 👑 the Frozen Crown — the summit, and the sky puts on a show */
+    --tile-face:linear-gradient(148deg,#f6f2ff 0%, #ddd4f4 52%, #bfb2e6 100%);
+    --tile-edge:#8577b8; --tile-ink:#2b2450;
+    --tile-grain:repeating-linear-gradient(94deg, rgba(95,75,165,.10) 0 2px, transparent 2px 7px);
+    --board-bg:#ddd6f2; --board-dot:rgba(255,255,255,.38); --grass:#a99ad6;
+    --board-tint:linear-gradient(180deg, rgba(200, 185,245,.32),rgba(120,100,190,.20));
+    --frame1:#b0a2dc; --frame2:#8172b6;
+    --sky-top:#1a1436; --sky-mid:#4b3d86; --sky-low:#a897dc; --moon:#fbf6ff; }
   /* the living touches: lily pads bob, leaves fall, stars twinkle, snow drifts */
   #biodecor{ position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; border-radius:inherit; }
   #biodecor span{ position:absolute; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.12)); }
@@ -947,6 +1027,50 @@
     border-radius:99px; transform:rotate(-13deg); opacity:.9; }
   .tile.branch::after{ content:"🪾"; position:absolute; top:-2px; right:0; font-size:14px; opacity:.9;
     background:none; width:auto; height:auto; border-radius:0; }
+  /* 🍄 SPORE — the tangle's cousin, but airborne: paler, softer, and it lands anywhere */
+  .tile.spore{ background:radial-gradient(115% 115% at 38% 28%, #b98fd0, #8a5fa8 55%, #5c3d72); color:transparent;
+    border-radius:46% 42% 48% 44%; font-size:22px!important;
+    box-shadow:0 5px 0 #3d2650, 0 7px 12px rgba(0,0,0,.42), inset 0 3px 4px rgba(238,205,255,.3), inset 0 -6px 8px rgba(0,0,0,.45); }
+  .tile.spore::before{ content:"🍄"; position:absolute; top:-1px; left:1px; font-size:15px; opacity:.95;
+    background:none; width:auto; height:auto; border-radius:0; }
+  .tile.spore::after{ content:"🍄"; position:absolute; bottom:-1px; right:0; font-size:11px; transform:scaleX(-1); opacity:.8; }
+
+  /* 🌾 REED — tall and upright, and it owns the whole column behind it */
+  .tile.reed{ background:linear-gradient(180deg,#8fa85c 0%, #6d8544 48%, #46592c 100%); color:transparent;
+    border-radius:9px; font-size:22px!important;
+    box-shadow:0 4px 0 #33421f, 0 6px 10px rgba(0,0,0,.4), inset 0 2px 3px rgba(226,244,178,.32), inset 0 -5px 7px rgba(0,0,0,.42); }
+  .tile.reed::before{ content:""; position:absolute; left:26%; top:6%; width:8%; height:88%;
+    background:linear-gradient(180deg,#c3d98c,#7d954f); border-radius:99px; opacity:.85; }
+  .tile.reed::after{ content:""; position:absolute; left:58%; top:14%; width:8%; height:80%;
+    background:linear-gradient(180deg,#b3cb7c,#6c8443); border-radius:99px; opacity:.75; }
+
+  /* 🟤 MIRE — wet ground that will not fall. Heavy, matte, and it hangs in the air */
+  .tile.mire{ background:radial-gradient(110% 110% at 45% 30%, #8a6a45, #5f472c 55%, #3b2b19); color:transparent;
+    border-radius:44% 40% 46% 42%; font-size:22px!important;
+    box-shadow:0 3px 0 #241a0f, 0 5px 14px rgba(0,0,0,.5), inset 0 3px 5px rgba(210,180,140,.2), inset 0 -7px 9px rgba(0,0,0,.55); }
+  .tile.mire::after{ content:""; position:absolute; left:22%; top:56%; width:56%; height:16%;
+    background:radial-gradient(60% 100% at 50% 50%, rgba(255,240,210,.22), transparent 70%); border-radius:99px; }
+
+  /* 💎 CRYSTAL — the one trouble that pays. It should already look like a reward */
+  .tile.crystal{ background:linear-gradient(150deg,#9fe8ff 0%, #58b6e0 40%, #2f7fa8 72%, #1d5675 100%); color:transparent;
+    border-radius:14% 30% 16% 28%; font-size:22px!important;
+    box-shadow:0 4px 0 #123f57, 0 7px 14px rgba(0,0,0,.4), inset 0 3px 6px rgba(255,255,255,.55), inset 0 -6px 9px rgba(0,0,0,.35); }
+  .tile.crystal::before{ content:""; position:absolute; left:18%; top:12%; width:26%; height:52%;
+    background:linear-gradient(160deg, rgba(255,255,255,.8), rgba(255,255,255,0)); transform:rotate(12deg); border-radius:40%; }
+  .tile.crystal.cracked{ filter:saturate(.7) brightness(.9); }
+
+  /* 🪨 SCREE — loose rock. Paler and more broken-looking than stone, because it breaks WRONG */
+  .tile.scree{ background:linear-gradient(155deg,#bdb3a7 0%, #948a7e 45%, #6b6259 100%); color:transparent;
+    border-radius:22% 12% 26% 14%; font-size:22px!important;
+    box-shadow:0 4px 0 #45403a, 0 6px 11px rgba(0,0,0,.38), inset 0 2px 4px rgba(255,250,240,.4), inset 0 -5px 8px rgba(0,0,0,.4); }
+  .tile.scree::before{ content:""; position:absolute; left:14%; top:52%; width:34%; height:9%;
+    background:#5d554d; border-radius:99px; transform:rotate(-18deg); opacity:.75; }
+  .tile.scree::after{ content:""; position:absolute; right:16%; top:26%; width:26%; height:8%;
+    background:#5d554d; border-radius:99px; transform:rotate(24deg); opacity:.6; }
+
+  .tile.current, .tile.wind{ background:linear-gradient(160deg,#cfe6f2,#93bed6 55%, #5d8ba6);
+    border-radius:12px; box-shadow:0 4px 0 #3c6076, 0 6px 10px rgba(0,0,0,.32), inset 0 2px 4px rgba(255,255,255,.5); }
+
   .tile.bramble{ background:radial-gradient(120% 120% at 40% 30%, #5d7a48, #40573a 55%, #2b3c27); color:transparent;
     border-radius:40% 48% 44% 46%; font-size:22px!important;
     box-shadow:0 5px 0 #1d2a1a, 0 7px 12px rgba(0,0,0,.45), inset 0 3px 4px rgba(190,220,150,.28), inset 0 -6px 8px rgba(0,0,0,.5); }
@@ -1798,14 +1922,44 @@ function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%BIOME_NAMES.length; }
 // each place gets living scenery on the plot — quiet, behind the tiles, never in the way
 // scenery that drifts across the NIGHT SKY of each place — fireflies, moths, falling
 // leaves, snow — quiet, behind the letters, tuned to each region's twilight.
+/* WHAT DRIFTS ACROSS EACH SKY. Fifteen countries, fifteen airs — and the walk is legible
+   in the scenery alone: butterflies, then falling leaves, then spores, then dragonflies
+   over water, then spray, then no sky at all underground, then crystal light, then dust
+   off the slope, then snow, then the aurora at the top. The old array had five, so the
+   moment there were fifteen countries the board threw on every level past L100. */
 const BIOME_DECOR=[
+  /* 1 First Clearing — a bright, safe morning */
   [ {e:"✨",x:"14%",y:"12%",s:10,a:"deco-twinkle"},{e:"🦋",x:"78%",y:"14%",s:13,a:"deco-sway"},{e:"✨",x:"52%",y:"8%",s:8,a:"deco-twinkle2"} ],
-  [ {e:"✨",x:"18%",y:"10%",s:9,a:"deco-twinkle"},{e:"🌙",x:"12%",y:"18%",s:15,a:"deco-bob"},{e:"✨",x:"70%",y:"8%",s:9,a:"deco-twinkle2"} ],
-  [ {e:"🍂",x:"72%",y:"2%",s:14,a:"deco-fall"},{e:"🍂",x:"30%",y:"2%",s:12,a:"deco-fall2"},{e:"✨",x:"84%",y:"16%",s:9,a:"deco-twinkle"} ],
-  [ {e:"✨",x:"16%",y:"10%",s:11,a:"deco-twinkle"},{e:"⭐",x:"72%",y:"16%",s:11,a:"deco-twinkle2"},
-    {e:"✨",x:"44%",y:"7%",s:9,a:"deco-twinkle2"},{e:"🦉",x:"88%",y:"12%",s:14,a:"deco-bob"} ],
+  /* 2 Bramblewood — deeper in, and something is growing */
+  [ {e:"🌿",x:"12%",y:"16%",s:13,a:"deco-sway"},{e:"🦋",x:"70%",y:"10%",s:11,a:"deco-bob"},{e:"✨",x:"44%",y:"7%",s:8,a:"deco-twinkle"} ],
+  /* 3 Mosswood — damp, green, close */
+  [ {e:"🍃",x:"74%",y:"3%",s:13,a:"deco-fall"},{e:"🍃",x:"28%",y:"2%",s:11,a:"deco-fall2"},{e:"🐛",x:"88%",y:"18%",s:11,a:"deco-sway"} ],
+  /* 4 Spore Hollow — low, fungal, drifting */
+  [ {e:"🍄",x:"16%",y:"16%",s:13,a:"deco-bob"},{e:"✨",x:"58%",y:"6%",s:9,a:"deco-twinkle"},{e:"🍄",x:"84%",y:"12%",s:10,a:"deco-sway"} ],
+  /* 5 Listening Pond — water at last */
+  [ {e:"🪷",x:"18%",y:"18%",s:14,a:"deco-bob"},{e:"🌙",x:"78%",y:"9%",s:14,a:"deco-twinkle"},{e:"✨",x:"48%",y:"7%",s:8,a:"deco-twinkle2"} ],
+  /* 6 Reedmarsh — still, muddy, alive with wings */
+  [ {e:"🌾",x:"10%",y:"14%",s:14,a:"deco-sway"},{e:"🪰",x:"66%",y:"12%",s:10,a:"deco-bob"},{e:"🌾",x:"86%",y:"17%",s:12,a:"deco-sway"} ],
+  /* 7 Running River — everything is moving */
+  [ {e:"💧",x:"24%",y:"4%",s:11,a:"deco-fall"},{e:"💧",x:"70%",y:"2%",s:9,a:"deco-fall2"},{e:"🌀",x:"12%",y:"18%",s:12,a:"deco-sway"} ],
+  /* 8 Thunderfalls — loud and wet */
+  [ {e:"💦",x:"20%",y:"3%",s:13,a:"deco-fall"},{e:"💦",x:"74%",y:"2%",s:11,a:"deco-fall2"},{e:"🌈",x:"50%",y:"16%",s:13,a:"deco-twinkle"} ],
+  /* 9 Undercave — the sky is gone; only what glows */
+  [ {e:"✨",x:"22%",y:"10%",s:8,a:"deco-twinkle"},{e:"🦇",x:"72%",y:"13%",s:12,a:"deco-bob"},{e:"✨",x:"52%",y:"17%",s:7,a:"deco-twinkle2"} ],
+  /* 10 Deep Dark — almost nothing, and that is the point */
+  [ {e:"✨",x:"34%",y:"14%",s:7,a:"deco-twinkle2"},{e:"🌑",x:"80%",y:"10%",s:13,a:"deco-bob"} ],
+  /* 11 Glimmer Seams — the wood being generous */
+  [ {e:"💎",x:"16%",y:"14%",s:12,a:"deco-twinkle"},{e:"✨",x:"58%",y:"8%",s:10,a:"deco-twinkle2"},{e:"💎",x:"84%",y:"17%",s:10,a:"deco-bob"} ],
+  /* 12 Scree Slopes — out of the caves, climbing */
+  [ {e:"🪨",x:"14%",y:"17%",s:11,a:"deco-bob"},{e:"✨",x:"66%",y:"9%",s:8,a:"deco-twinkle"},{e:"🪨",x:"86%",y:"13%",s:9,a:"deco-sway"} ],
+  /* 13 Windward Ridge — high, exposed, and the cloud is back */
+  [ {e:"🌬️",x:"18%",y:"11%",s:14,a:"deco-sway"},{e:"☁️",x:"72%",y:"15%",s:15,a:"deco-bob"},{e:"🦅",x:"46%",y:"7%",s:12,a:"deco-sway"} ],
+  /* 14 Snowline — the first snow, at last */
   [ {e:"❄️",x:"22%",y:"2%",s:12,a:"deco-fall"},{e:"❄️",x:"64%",y:"2%",s:10,a:"deco-fall2"},
     {e:"❄️",x:"8%",y:"14%",s:9,a:"deco-twinkle"},{e:"✨",x:"80%",y:"18%",s:9,a:"deco-twinkle2"} ],
+  /* 15 Frozen Crown — the summit, and the sky puts on a show */
+  [ {e:"❄️",x:"18%",y:"2%",s:11,a:"deco-fall"},{e:"🌌",x:"70%",y:"11%",s:16,a:"deco-twinkle"},
+    {e:"⭐",x:"40%",y:"8%",s:11,a:"deco-twinkle2"},{e:"❄️",x:"88%",y:"4%",s:9,a:"deco-fall2"} ],
 ];
 function applyBiome(L){
   const app=document.getElementById("app");
@@ -1906,17 +2060,17 @@ const TROUBLE={
   branch : { at:10,  homes:[[0,2]],          max:3 },
   bramble: { at:22,  homes:[[1,4]],          max:3 },
   root   : { at:42,  homes:[[2,6]],          max:2 },
-  spore  : { at:62,  homes:[[3,5]],          max:3, todo:1 },
-  reed   : { at:82,  homes:[[4,7]],          max:2, todo:1 },
-  mire   : { at:102, homes:[[5,8]],          max:2, todo:1 },
-  current: { at:122, homes:[[6,8]],          max:2, todo:1 },
+  spore  : { at:62,  homes:[[3,5]],          max:3 },
+  reed   : { at:82,  homes:[[4,7]],          max:2 },
+  mire   : { at:102, homes:[[5,8]],          max:2 },
+  current: { at:122, homes:[[6,8]],          max:2 },
   pest   : { at:142, homes:[[7,9]],          max:2 },
   stone  : { at:162, homes:[[8,14]],         max:3 },
   mist   : { at:182, homes:[[9,10],[12,14]], max:3 },
   shroud : { at:186, homes:[[9,10]],         max:2 },   // darkness stays underground
-  crystal: { at:202, homes:[[10,12]],        max:3, todo:1 },
-  scree  : { at:222, homes:[[11,13]],        max:3, todo:1 },
-  wind   : { at:242, homes:[[12,14]],        max:2, todo:1 },
+  crystal: { at:202, homes:[[10,12]],        max:3 },
+  scree  : { at:222, homes:[[11,13]],        max:3 },
+  wind   : { at:242, homes:[[12,14]],        max:2 },
   ice    : { at:262, homes:[[13,14]],        max:3 },
   frost  : { at:282, homes:[[14,14]],        max:2 },
 };
@@ -1961,12 +2115,12 @@ function recipe(L){
   }
   r.crate = (L>=13 && L%3===0) ? 1 : 0;
 
-  // A prefill holds ~18 tiles, so cap the blockers at six and play stays possible. The
-  // trim rotates PER COUNTRY now — it used to rotate every twenty-five levels, which was
-  // tuned for the old five-place cycle and would have left one trouble permanently first
-  // in line to be thrown away.
-  const rot=b%TROUBLE_KEYS.length;
-  const trim=TROUBLE_KEYS.slice(rot).concat(TROUBLE_KEYS.slice(0,rot));
+  // A prefill holds ~18 tiles, so cap the blockers at six and play stays possible.
+  // THE OLDEST TROUBLE STEPS BACK FIRST. A rotating trim was arbitrary — it stripped the
+  // scree off the Scree Slopes' own neighbour and left one stone on a mountain. Thinning
+  // by age instead means a country's SIGNATURE always survives, whatever else is crowding
+  // the board, and the things you have known for two hundred levels quietly make room.
+  const trim=TROUBLE_KEYS.slice().sort((a,z)=>TROUBLE[a].at-TROUBLE[z].at);
   let total=0; for(const k of TROUBLE_KEYS) total+=r[k];
   for(const k of trim){ while(total>6 && r[k]>0){ r[k]--; total--; } }
   return r;
@@ -3082,7 +3236,10 @@ function xy(r,c){ return "translate("+(c*STEP)+"px,"+(r*STEP)+"px)"; }
 function tileFace(t){
   if(t.kind==="bomb") return "🌰";              // acorn
   if(t.kind==="wild") return "★";              // the TEXT star — it takes our silver, emoji won't
-  if(t.kind==="stone" || t.kind==="bramble" || t.kind==="branch") return ""; // the CSS renders rock, tangle and deadwood
+  // the CSS renders these — rock, tangle, deadwood, fungus, reed, mud, crystal and scree
+  if(["stone","bramble","branch","spore","reed","mire","crystal","scree"].includes(t.kind)) return "";
+  if(t.kind==="current") return "🌀";
+  if(t.kind==="wind") return "🌬️";
   if(t.kind==="crate") return "🎁";
   if(t.kind==="root") return "🪵";
   if(t.kind==="shroud") return "🌑";
@@ -3609,7 +3766,7 @@ const Game = {
     if((P.pow.swap||0)>0) order.push("breeze");
     if((P.pow.wild||0)>0) order.push("wish");
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
-    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
+    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="spore"||t.kind==="reed"||t.kind==="mire"||t.kind==="current"||t.kind==="wind"||t.kind==="crystal"||t.kind==="scree"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
   retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
@@ -3676,6 +3833,15 @@ const Game = {
     // school rules: during a lesson the only legal column is the one being taught.
     // everywhere else bounces — an idiot-proof lesson permits no wrong answers.
     if(S.guide && S.guide.allowCol!=null && col!==S.guide.allowCol){ FT.deny(); return; }
+    // 🌾 A REED STANDS IN THE WHOLE COLUMN. The first trouble that is about SHAPE rather
+    // than tiles — nothing drops past it, so a seven-wide board quietly becomes six.
+    if(S.board.some(row=>row[col] && row[col].kind==="reed")){
+      Snd.reject(); buzz(50);
+      UI.say("reed-block","🌾 a <b>reed</b> stands in that column — clear it from the side",2);
+      boardEl.classList.remove("shake"); void boardEl.offsetWidth; boardEl.classList.add("shake");
+      setTimeout(()=>boardEl.classList.remove("shake"),420);
+      return;
+    }
     if(S.board[0][col]){ Snd.reject(); buzz(60);
       boardEl.classList.remove("shake"); void boardEl.offsetWidth; boardEl.classList.add("shake");
       setTimeout(()=>boardEl.classList.remove("shake"),420);
@@ -3745,6 +3911,7 @@ const Game = {
     // then did nothing at all.
     await Game.tryPetAct();
     if(S.drops % 3 === 0){ await Game.stirShifters(); await Game.brambleSpread(); }
+    await Game.boardDrift();   // the river and the ridge move the board on their own
     await Game.woodTick();
     S.busy=false;
     UI.all();
@@ -5163,25 +5330,89 @@ const Game = {
     }
   },
 
-  async brambleSpread(){ // every 3rd drop the tangle reaches for ONE more letter — capped at 6
+  /* every 3rd drop the growing things reach for ONE more letter — capped at 6 each.
+     The bramble CREEPS: it only takes a letter it is already touching. The spore DRIFTS:
+     it can land anywhere on the board. Same lesson, different grammar, which is why the
+     Spore Hollow is not just the Bramblewood again with new paint. */
+  async brambleSpread(){
     if(!S || S.over || S.won) return;
-    const brs=Object.values(S.tiles).filter(t=>t.kind==="bramble");
-    if(!brs.length || brs.length>=6) return;
-    const spots=[];
-    for(const b of brs) for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
-      const r=b.r+d[0], c=b.c+d[1];
-      if(r<0||r>=ROWS||c<0||c>=COLS) continue;
-      const t=S.board[r][c];
-      if(t && t.kind==="normal" && !t.heldWord) spots.push(t); // specials and held words are safe
+    for(const kind of ["bramble","spore"]){
+      const src=Object.values(S.tiles).filter(t=>t.kind===kind);
+      if(!src.length || src.length>=6) continue;
+      let spots=[];
+      if(kind==="bramble"){
+        for(const b of src) for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const r=b.r+d[0], c=b.c+d[1];
+          if(r<0||r>=ROWS||c<0||c>=COLS) continue;
+          const t=S.board[r][c];
+          if(t && t.kind==="normal" && !t.heldWord) spots.push(t); // specials and held words are safe
+        }
+      } else {
+        spots=Object.values(S.tiles).filter(t=>t.kind==="normal" && !t.heldWord);
+      }
+      if(!spots.length) continue;
+      const t=rand(spots);
+      t.kind=kind; t.cracks=0;
+      t.inner.className="tile "+kind+" jostle"; t.inner.innerHTML=tileFace(t);
+      setTimeout(()=>t.inner.classList.remove("jostle"),260);
+      UI.shards(t.r,t.c, kind==="spore" ? "#c9a6d8" : "#6f8a52");
+      Snd.tone(kind==="spore"?300:180,{dur:.14,type:"triangle",gain:.05,verb:true}); buzz(8);
+      await wait(220);
     }
-    if(!spots.length) return;
-    const t=rand(spots);
-    t.kind="bramble"; t.cracks=0;
-    t.inner.className="tile bramble jostle"; t.inner.innerHTML=tileFace(t);
-    setTimeout(()=>t.inner.classList.remove("jostle"),260);
-    UI.shards(t.r,t.c,"#6f8a52");
-    Snd.tone(180,{dur:.14,type:"triangle",gain:.05,verb:true}); buzz(8);
-    await wait(220);
+  },
+
+  /* 🌀 THE CURRENT and 🌬️ THE WIND are one engine pointed two ways: the board moves on its
+     own, and everything you knew about placement gets an asterisk. The river shoves a whole
+     row sideways; the ridge takes the top off your tallest pile and drops it elsewhere.
+     Both step every 4th drop so a player can feel the beat and plan around it. */
+  async boardDrift(){
+    if(!S || S.over || S.won || S.drops%4!==0) return;
+
+    if(Object.values(S.tiles).some(t=>t.kind==="current")){
+      const rows=[];
+      for(let r=0;r<ROWS;r++){
+        const line=[]; for(let c=0;c<COLS;c++) line.push(S.board[r][c]);
+        const n=line.filter(Boolean).length;
+        if(n>=2 && (!line[0] || !line[COLS-1])) rows.push({r,line,right:!line[COLS-1]});
+      }
+      const pick=rand(rows);
+      if(pick){
+        const {r,right}=pick, order = right ? [...Array(COLS).keys()].reverse() : [...Array(COLS).keys()];
+        for(const c of order){
+          const t=S.board[r][c]; if(!t || t.kind==="mire") continue;
+          const nc=c+(right?1:-1);
+          if(nc<0||nc>=COLS||S.board[r][nc]) continue;
+          S.board[r][c]=null; S.board[r][nc]=t; t.c=nc;
+          t.el.style.transition="transform .34s cubic-bezier(.4,.05,.35,1)";
+          placeTile(t,t.r,t.c,false);
+          setTimeout(()=>{ t.el.style.transition=""; },360);
+        }
+        UI.breeze(); Snd.tone(200,{dur:.2,type:"sine",gain:.05,verb:true}); buzz(12);
+        await wait(360); await Game.settle();
+      }
+    }
+
+    if(Object.values(S.tiles).some(t=>t.kind==="wind")){
+      const h=[]; for(let c=0;c<COLS;c++){ let n=0; for(let r=0;r<ROWS;r++) if(S.board[r][c]) n++; h.push(n); }
+      const from=h.indexOf(Math.max(...h));
+      let top=0; while(top<ROWS && !S.board[top][from]) top++;
+      const t=S.board[top] && S.board[top][from];
+      if(t && t.kind!=="mire" && !t.heldWord){
+        const to=h.map((n,c)=>({n,c})).filter(x=>x.c!==from && x.n<h[from] && !S.board[0][x.c]);
+        const dest=rand(to);
+        if(dest){
+          let land=ROWS-1; while(land>=0 && S.board[land][dest.c]) land--;
+          if(land>=0){
+            S.board[top][from]=null; S.board[land][dest.c]=t; t.r=land; t.c=dest.c;
+            t.el.style.transition="transform .42s cubic-bezier(.35,.9,.4,1)";
+            placeTile(t,t.r,t.c,false);
+            setTimeout(()=>{ t.el.style.transition=""; },440);
+            UI.breeze(); Snd.tone(760,{dur:.22,type:"sine",gain:.05,verb:true}); buzz(10);
+            await wait(440); await Game.settle();
+          }
+        }
+      }
+    }
   },
 
   async hitNeighbors(cells){ // clearing beside stone cracks it, beside ice thaws it, beside a crate pops it
@@ -5202,6 +5433,59 @@ const Game = {
           removeTile(t); S.levelScore+=4; Game.credit("branch");
           UI.shards(t.r,t.c,"#a8794e");
           Snd.crack(true); buzz(12);
+        } else if(t.kind==="crystal"){
+          // 💎 THE ONLY TROUBLE THAT LEAVES YOU BETTER OFF. It takes two, like stone, and
+          // then it does not vanish — it PAYS. After the Deep Dark the game is being
+          // generous on purpose, and the gold engine finally has a country of its own.
+          acted=true;
+          t.cracks=(t.cracks||0)+1;
+          if(t.cracks>=2){
+            t.kind="gold"; t.letter=riggedLetter(); t.cracks=0;
+            t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t);
+            setTimeout(()=>t.inner.classList.remove("thawpop"),560);
+            UI.shards(t.r,t.c,"#ffd54f"); Snd.gold(); Game.credit("crystal");
+          } else {
+            t.inner.classList.add("cracked","jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
+            Snd.crack(false);
+          }
+          buzz(14);
+        } else if(t.kind==="scree"){
+          // 🪨 IT GETS WORSE WHEN YOU ANSWER IT — the only trouble in three hundred levels
+          // that does. Loose rock breaks into more loose rock. The child cannot break
+          // again, so the slope always ends, but the first hit never feels like progress.
+          acted=true;
+          const first=!t.split;
+          removeTile(t); S.levelScore+=3; Game.credit("scree");
+          UI.shards(t.r,t.c,"#a49a90"); Snd.crack(true); buzz(15);
+          if(first){
+            const open=[]; for(let c=0;c<COLS;c++) if(!S.board[0][c]) open.push(c);
+            if(open.length){
+              const c=rand(open); let land=ROWS-1;
+              while(land>=0 && S.board[land][c]) land--;
+              if(land>=0){ const n=newTile(riggedLetter(),"scree",land,c,false); n.split=true; }
+            }
+          }
+        } else if(t.kind==="reed"){
+          // 🌾 two cuts, because a reed is not in your way by accident — it is standing in
+          // a whole column and nothing drops through it until it falls
+          acted=true;
+          t.cracks=(t.cracks||0)+1;
+          if(t.cracks>=2){ removeTile(t); S.levelScore+=5; Snd.crack(true); Game.credit("reed"); }
+          else { t.inner.classList.add("cracked","jostle"); setTimeout(()=>t.inner.classList.remove("jostle"),220);
+            Snd.crack(false); }
+          buzz(15);
+        } else if(t.kind==="mire"){
+          // 🟤 one pull frees it, and the moment it is gone the column remembers gravity
+          acted=true;
+          removeTile(t); S.levelScore+=5; Game.credit("mire");
+          UI.shards(t.r,t.c,"#7a5c3a"); Snd.crack(true); buzz(14);
+        } else if(t.kind==="spore"){
+          // 🍄 one clean swipe, same as the tangle — but it drifts rather than creeps
+          acted=true;
+          t.kind="normal"; thawed.push(t); Game.credit("spore");
+          t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t);
+          setTimeout(()=>t.inner.classList.remove("thawpop"),560);
+          UI.shards(t.r,t.c,"#c9a6d8"); Snd.thaw(); buzz(10);
         } else if(t.kind==="stone"){
           acted=true;
           t.cracks=(t.cracks||0)+1;
@@ -5289,10 +5573,19 @@ const Game = {
   async gravity(){
     let moved=false; const movedTiles=[];
     for(let c=0;c<COLS;c++){
-      const stack=[];
-      for(let r=ROWS-1;r>=0;r--){ const t=S.board[r][c]; if(t) stack.push(t); S.board[r][c]=null; }
-      stack.forEach((t,i)=>{
-        const nr=ROWS-1-i;
+      // 🟤 MIRE DOES NOT FALL. Gravity has been the one reliable thing in this game for a
+      // hundred levels, and in the marsh it stops being. Anchored tiles keep their exact
+      // row and everything else settles around them, so a mire leaves a shelf in the air.
+      const stack=[], anchor=[];
+      for(let r=ROWS-1;r>=0;r--){ const t=S.board[r][c]; if(!t) continue;
+        (t.kind==="mire" ? anchor : stack).push(t); }
+      for(let r=0;r<ROWS;r++) S.board[r][c]=null;
+      for(const a of anchor) S.board[a.r][c]=a;
+      let slot=ROWS-1;
+      stack.forEach((t,i)=>{      // i still staggers the fall — the cascade reads as weight
+        while(slot>=0 && S.board[slot][c]) slot--;
+        if(slot<0){ S.board[t.r][c]=t; return; }   // nowhere to go — leave it where it is
+        const nr=slot--;
         const dist = nr - t.r;
         const falling = dist>0;
         if(falling){ moved=true; movedTiles.push(t); }
@@ -6170,6 +6463,13 @@ const UI = {
     breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3). Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
     wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
     branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter — but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
+    spore: {i:"🍄", t:"<b>Spores</b> drift. Like the tangle they spread every few drops — but they do not creep along, they <b>land anywhere on the board</b>. One word beside one clears it."},
+    reed:  {i:"🌾", t:"A <b>reed</b> stands in the whole column — <b>nothing drops past it</b>. You cannot go through, so go around: clear a word beside it, <b>twice</b>."},
+    mire:  {i:"🟤", t:"<b>Mire</b> does not fall. Everything else settles around it and it hangs where it is, holding a shelf in the air. One word beside it pulls it free."},
+    current:{i:"🌀",t:"The <b>current</b> runs. Every few drops it <b>shoves a whole row sideways</b> — the board will not be where you left it."},
+    wind:  {i:"🌬️", t:"The <b>wind</b> is up here. Every few drops it lifts the top letter off your <b>tallest pile</b> and drops it somewhere else."},
+    crystal:{i:"💎",t:"<b>Crystal.</b> Two clears to break — and it does not vanish, it <b>turns to gold</b>. The only trouble in the wood that leaves you better off."},
+    scree: {i:"🪨", t:"<b>Scree</b> is loose rock. Clear it and it <b>breaks into more</b>, once. The slope always ends — but the first swing never feels like winning."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
