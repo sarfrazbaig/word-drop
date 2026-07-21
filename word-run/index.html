@@ -2046,8 +2046,8 @@ const GROVE = [
   {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Flip",pi:"🔄",pd:"<b>reverses the bottom row</b> — new words appear",fx:{t:"flipRow"},f:"reads the bottom row backwards for fun"},
   {w:"heron",wake:{on:"word4",n:2},e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
   {w:"beetle",wake:{on:"word5",n:1},e:"🪲",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"rolls boulders away like morning chores"},
-  {w:"fly",wake:{on:"drop",n:12},e:"🪰",z:"sky",pn:"Little Nibble",pi:"😋",pd:"eats the single <b>most awkward letter</b>",fx:{t:"eatWorst",n:1},f:"eats the letters nobody wanted, happily"},
-  {w:"ladybug",wake:{on:"anyWord",n:4},e:"🐞",z:"sky",pn:"Lucky Spots",pi:"🍀",pd:"your next <b>3 words each score +5</b>",fx:{t:"flatBonus",n:3},f:"lands a little luck on everything"},
+  {w:"fly",wake:{on:"drop",n:12},e:"🪰",z:"sky",pn:"Vowel Swarm",pi:"🍃",pd:"every <b>awkward letter softens into a vowel</b>",fx:{t:"vowelSwarm"},f:"turns the awkward letters soft and speakable"},
+  {w:"ladybug",wake:{on:"anyWord",n:4},e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"a tile on the board <b>turns into a ⭐ star</b>",fx:{t:"luckyTile"},f:"lands on a tile and leaves a star behind"},
   {w:"cricket",wake:{on:"anyWord",n:4},e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
   {w:"fox",wake:{on:"drop",n:7},e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the tallest column",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
@@ -2068,8 +2068,8 @@ const GROVE = [
   {w:"goat",wake:{on:"word3",n:3},e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
   {w:"otter",wake:{on:"obstacle",n:2},e:"🦦",z:"ground",pn:"Warm Current",pi:"♨️",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"warms the pond until every ice lets go"},
   {w:"boar",wake:{on:"consonant",n:12},e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
-  {w:"moose",wake:{on:"drop",n:11},e:"🫎",z:"ground",pn:"Antler Sweep",pi:"🌬️",pd:"knocks the <b>top letter off every column</b>",fx:{t:"sweepTops"},f:"sweeps the treetops with one shake"},
-  {w:"seal",wake:{on:"anyWord",n:5},e:"🦭",z:"ground",pn:"Playful Splash",pi:"💦",pd:"your next <b>2 words score +50%</b>",fx:{t:"splash",n:2},f:"claps for your words — they score better for it"},
+  {w:"moose",wake:{on:"drop",n:11},e:"🫎",z:"ground",pn:"Antler Sort",pi:"🌬️",pd:"the <b>top letter of every column</b> becomes one that fits",fx:{t:"antlerSort"},f:"shakes the treetops until the letters make sense"},
+  {w:"seal",wake:{on:"anyWord",n:5},e:"🦭",z:"ground",pn:"Tide Pool",pi:"💦",pd:"the <b>two shortest columns</b> fill with vowels",fx:{t:"tidePool"},f:"splashes the shallow places full again"},
   {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"},f:"carries your first step, every level, free"},
   {w:"beaver",wake:{on:"drop",n:10},e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
   {w:"badger",wake:{on:"consonant",n:10},e:"🦡",z:"ground",pn:"Digger",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"will dig any letter out, no questions asked"},
@@ -2081,7 +2081,7 @@ const GROVE = [
   {w:"raccoon",wake:{on:"crate",n:1},e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
   {w:"squirrel",wake:{on:"word5",n:1},e:"🐿️",z:"ground",pn:"Acorn Stash",pi:"🌰",pd:"drops an <b>acorn that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"stashes acorns that go off with a pop"},
   {w:"spider",wake:{on:"word3",n:2},e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
-  {w:"bison",wake:{on:"drop",n:9},e:"🦬",z:"ground",pn:"Stampede",pi:"🦬",pd:"charges through, <b>clearing the middle row</b>",fx:{t:"midRow"},f:"charges through the middle row, politely"},
+  {w:"bison",wake:{on:"drop",n:9},e:"🦬",z:"ground",pn:"Herd Call",pi:"📣",pd:"your <b>next three letters are chosen</b>, not drawn",fx:{t:"herdCall"},f:"calls the herd, and the good letters come"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 /* ============ CALLINGS — how a creature notices you ============
@@ -2907,6 +2907,8 @@ function makePiece(){
   // the name's letters to grown players spammed the same letter over and over — the
   // wood gives one foothold on the board and nothing else; powers do the rest.
   if(S && S.tutorWord && P.level<=6 && Math.random()<0.8){ const l=tutorLetter(); if(l){ recordDeal(l); return {letter:l, kind:"normal"}; } }
+  // 🦬 the herd was called: these next few letters are chosen rather than drawn
+  if(S && S._helpNext>0){ S._helpNext--; return {letter:recordDeal(riggedLetter()), kind:"normal"}; }
   // MERCY is deterministic, not a dice roll: after two wordless drops the deck ALWAYS
   // deals a completion if one exists. And in the ENDGAME (few moves left) even ONE dead
   // drop triggers it — a drought on your last moves is what quietly loses winnable levels.
@@ -4384,6 +4386,52 @@ const Game = {
         const fell=await Game.explode(t);
         S.chain=1; await Game.resolve(fell); break; }
       case "webWrap": S.web=(S.web||0)+1*m; break;
+
+      /* ---- the five re-aimed powers ------------------------------------------------
+         The roster was fourteen ways to clear things and two ways to build a word, which
+         is why a party could never be built toward anything. These five were the weakest
+         or the most duplicated, and each becomes a distinct way to MAKE a word possible. */
+
+      // 🪰 the fly's old power was wolf's, at a third the strength — an exact duplicate
+      case "vowelSwarm": { const junk=normals().filter(t=>"qzxjv".includes(t.letter));
+        if(!junk.length){ Game.addMoves(2); break; }
+        for(const t of junk){ Game.retype(t, rand(["a","e","i","o","u"])); UI.shards(t.r,t.c,"#c9e29a"); }
+        Snd.thaw(); S.chain=1; await Game.resolve(junk); break; }
+
+      // 🦬 the herd calls ahead: the next three letters are all ones that fit
+      case "herdCall": { S._helpNext=(S._helpNext||0)+3*m;
+        if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
+        UI.say("herd-call", pet.e+" calls the herd — the next letters are <b>chosen for you</b>", 3);
+        break; }
+
+      // 🫎 the sweep only ever touched plain tiles and read as a weaker row clear
+      case "antlerSort": { const tops=[];
+        for(let c=0;c<COLS;c++){ for(let r=0;r<ROWS;r++){ const t=S.board[r][c];
+          if(t){ if(t.kind==="normal") tops.push(t); break; } } }
+        if(!tops.length){ Game.addMoves(2); break; }
+        for(const t of tops){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#9fd4f2"); }
+        Snd.gold(); S.chain=1; await Game.resolve(tops); break; }
+
+      // 🐞 a flat +5 on three words was the thinnest power in the wood
+      case "luckyTile": { const ns=normals();
+        if(!ns.length){ Game.addMoves(2); break; }
+        const picks=ns.sort(()=>Math.random()-.5).slice(0, 1*m);
+        for(const t of picks){ t.kind="wild"; t.inner.className="tile wild thawpop";
+          t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#e8b64c"); }
+        Snd.gold(); S.chain=1; await Game.resolve(picks); break; }
+
+      // 🦭 "next two words score half again" sat on top of three other score powers
+      case "tidePool": { const h=cols();
+        const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0, 2);
+        const added=[];
+        for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+          if(land<2) continue;
+          const t=newTile(rand(["a","e","i","o","u"]),"normal",land,c,false); added.push(t);
+          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,c); void t.el.offsetWidth;
+          t.el.style.transition="transform 260ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(land,c); }
+        if(!added.length){ Game.addMoves(2); break; }
+        await wait(300); added.forEach(t=>t.el.style.transition="");
+        Snd.thaw(); S.chain=1; await Game.resolve(added); break; }
       case "whisper": case "next2": case "skipJunk": case "vowelDeck": case "alwaysHint":
       case "refund4": case "crumb": case "freeStep": case "helpDeck": case "kindred": case "firstFree":
         break; // passives never reach here (filtered), but stay safe
