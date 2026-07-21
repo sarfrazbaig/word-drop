@@ -2010,7 +2010,8 @@
            collection, the road to the next milestone, and where they currently stand. -->
       <div id="st-grove">
         <div id="st-grovehead"></div>
-        <div class="hbar"><i id="st-grovebar"></i></div>
+            ;   // no bar: the line above already gives the number, and a bar that
+                // repeats a sentence is decoration rather than information
         <div id="st-mile"></div>
       </div>
       <div id="st-place"></div>
@@ -2093,6 +2094,12 @@ const CHAPTER_LINE=[
   "the top of the wood, and the last name",     /* 15 Frozen Crown    */
 ];
 const PROLOGUE_END=5;   // the taught levels are the page before chapter one
+/* WHAT THE PLAYER SEES ON A LEVEL NUMBER. The five taught rounds are the prologue and
+   carry no level number at all; the story starts counting at the first round you play
+   unaided, so a player's first real level reads Level 1 and not Level 6. */
+function levelLabel(L){ return L<=PROLOGUE_END ? "Prologue "+L+" of "+PROLOGUE_END
+                                               : "Level "+(L-PROLOGUE_END); }
+function levelShort(L){ return L<=PROLOGUE_END ? "P"+L : String(L-PROLOGUE_END); }
 function chapterOf(L){
   if(L<=PROLOGUE_END) return { pre:"PROLOGUE", name:"The Awakening",
     line:"a hush fell, and every name was forgotten", from:1, to:PROLOGUE_END };
@@ -2999,7 +3006,7 @@ function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"", finale:0,
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
-    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, grove:{}, metGrove:{}, equip:[], run:null };
+    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, seenChapter:{}, grove:{}, metGrove:{}, equip:[], run:null };
   try{
     let p = JSON.parse(localStorage.getItem("worddrop_v3"));
     if(!p){ // fresh brand: keep the grove & habits worth carrying, but relearn the powers
@@ -3010,7 +3017,7 @@ function load(){
     }
     const out = Object.assign({}, defaults, p||{});
     out.seenUnlock = out.seenUnlock||{};
-    out.seenTip = out.seenTip||{};
+    out.seenTip = out.seenTip||{}; out.seenChapter = out.seenChapter||{};
     out.metGrove = out.metGrove||{};
     out.said = out.said||{};
     out.groveMile = out.groveMile||{};
@@ -3843,7 +3850,7 @@ const Game = {
     $("iv-path").innerHTML = Array.from({length:5},(_,i)=>
       '<span class="stone'+(i<step?" done":i===step?" here":"")+'">'+(i===step?"🚶":"")+'</span>').join("<span class='dash'></span>");
     const ring=Math.floor((level-1)/RING_LEN)+1;   // one ring = all fifteen countries walked
-    $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+"Level "+level + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
+    $("iv-level").textContent = (ring>1?"Ring "+ring+" · ":"")+levelLabel(level) + (isMilestone(level)?" 👑":isSpike(level)?" 🔥":"");
     // …and label it for what it actually is. On an obstacle round this number is a count of
     // things to clear, not a score — calling it "target" directly under a band saying the
     // score will not end the round was the card arguing with itself.
@@ -3907,6 +3914,22 @@ const Game = {
     // them at once — it has to be a moment, not a number that quietly changed.
     const tier=Game.petTier();
     P.seenTier=P.seenTier||{};
+    // THE BOOK TURNS A PAGE. Walking into a new country used to be silent — the palette
+    // simply changed and nothing said why you were somewhere else. Every one of the
+    // fifteen now opens with its chapter, once.
+    P.seenChapter=P.seenChapter||{};
+    if(level>PROLOGUE_END && level%BIOME_LEN===1 && !P.seenChapter[biomeOf(level)]){
+      const ch=chapterOf(level);
+      P.seenChapter[biomeOf(level)]=1; save();
+      $("un-burst").textContent=BIOMES[biomeOf(level)];
+      $("un-title").textContent=ch.pre;
+      $("un-body").innerHTML="<b>"+ch.name+"</b><br>"+ch.line
+        +"<br><small>a new country of the wood \u2014 its own trouble waits here</small>";
+      $("un-try").style.display="none";
+      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      Game.track("chapter_open",{ b:biomeOf(level), L:level });
+    }
+    else
     if(tier>0 && !P.seenTier[tier] && Object.keys(P.metGrove).length){
       P.seenTier[tier]=true; save();
       $("un-burst").textContent="🌿";
@@ -5980,7 +6003,7 @@ const UI = {
     // past the Listening Pond opened onto the same sky
     for(let i=0;i<BIOME_NAMES.length;i++) sh.classList.remove("hb"+i);
     if(hb) sh.classList.add("hb"+hb);
-    $("play-lvl").textContent = "LV "+P.level;
+    $("play-lvl").textContent = P.level<=PROLOGUE_END ? "P"+P.level : "LV "+(P.level-PROLOGUE_END);
     const ring=Math.floor((P.level-1)/RING_LEN)+1;
     { const ch=chapterOf(P.level);
           // a place name alone told you nothing about being partway through a story
@@ -6001,7 +6024,7 @@ const UI = {
           : '<span class="hp-line"><b>'+found+'</b> of '+GROVE.length+' names'
             + (mile ? ' \u00b7 '+(mile.n-found)+' to '+mile.i : ' \u00b7 all home')
             + '</span>'
-            + '<div class="hbar"><i style="width:'+(100*found/GROVE.length)+'%"></i></div>';
+        ;   // no bar: the line above it already says the number, and a bar that repeats a
       } }
     $("hm-streak").textContent=P.streak||0;
     $("menu-grove-n").textContent=Object.keys(P.grove).length+" / "+GROVE.length;
