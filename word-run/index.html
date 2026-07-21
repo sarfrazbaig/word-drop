@@ -5226,6 +5226,14 @@ const UI = {
   },
   /* what each sign is CALLED, in the wood's own voice — these are the words a player
      reads on a friend's card, so they name the thing that happens, not the event id */
+  /* the Book's section headings — the same signs, said as a place on the shelf */
+  SIGN_TITLE:{ drop:"🍂 they stir as you drop", consonant:"🪵 they listen for hard letters",
+    vowel:"🌾 they listen for soft letters", anyWord:"📖 they stir at any word",
+    word3:"🌱 they stir at small words", word4:"🌿 they wait for four letters",
+    word5:"🌟 they wait for five", gold:"✨ they follow the gold",
+    obstacle:"🪨 they wake when the way clears", crate:"🎁 they wake at an opened gift",
+    cascade:"💫 they wake on a tumble", rare:"💎 they wake at a rare letter",
+    passive:"♾️ always awake" },
   WAKE_WORDS:{ drop:"tiles dropped", consonant:"hard letters", vowel:"soft letters",
     anyWord:"words", word3:"small words", word4:"four-letter words",
     word5:"five-letter words", gold:"golden letters cleared", obstacle:"things cleared away",
@@ -5559,7 +5567,12 @@ const UI = {
             +'<span class="ge">'+g.e+'</span><span class="mound"></span>'
             +'<span class="gn">'+g.w.toUpperCase()+'</span>'
             +'<span class="gp">'+g.pi+' '+g.pn+'</span>'
-            +'<span class="gd">since '+fmt(P.grove[g.w])+'</span>';
+            // the SIGN, on the face of the card. The date it joined is a keepsake and it
+            // lives on the friend's own page; what a player needs while choosing a party
+            // is what wakes this one.
+            +'<span class="gd">'+(g.ps ? "always awake"
+                : "wakes at "+(Game.wakeNeed(g)>1 ? Game.wakeNeed(g)+" " : "")
+                  +(UI.WAKE_WORDS[g.wake&&g.wake.on]||"play"))+'</span>';
           el.onclick=()=>UI.petSheet(g.w);
         } else {
           const isNext = g.w===UI.teachingQuarry();      // the one-time lesson, and nothing else
@@ -5588,8 +5601,21 @@ const UI = {
     // the sky above them buried the one card that matters (your next friend) below the fold,
     // so a beginner had to scroll past thirty strangers to find the creature they were
     // being told to chase.
-    section("🌱 On the Ground", GROVE.filter(g=>g.z!=="sky"));
-    section("🌤️ In the Sky", GROVE.filter(g=>g.z==="sky"));
+    /* GROUPED BY SIGN, not by habitat. Ground and sky meant something when same-home
+       friends doubled each other; now it is trivia, and it could never answer the one
+       question a player has at the shelf — "who answers a four-letter word?" Fifty
+       portraits sorted by where they live made that unanswerable without opening fifty
+       cards. Sorted by sign, it is one glance.
+       The hushed ones stay together at the end: that section is the hunt, not the shelf. */
+    const owned=GROVE.filter(g=>P.grove[g.w]), hushed=GROVE.filter(g=>!P.grove[g.w]);
+    const bySign={};
+    owned.forEach(g=>{ const k = g.ps ? "passive" : ((g.wake&&g.wake.on)||"passive");
+      (bySign[k]=bySign[k]||[]).push(g); });
+    // everyday signs first, rare ones last — the order a player meets them in
+    ["drop","consonant","vowel","anyWord","word3","word4","word5",
+     "gold","obstacle","crate","cascade","rare","passive"]
+      .filter(k=>bySign[k]).forEach(k=>section(UI.SIGN_TITLE[k]||"🐾 friends", bySign[k]));
+    if(hushed.length) section("🌙 Still hushed &mdash; names not yet spoken", hushed);
     // …and if the one-time lesson card has fallen below the fold, lift it into view. Only
     // then — nobody wants the party shelf yanked out from under them when it was already
     // in plain sight. Once the lesson retires there is nothing here to chase the player to.
