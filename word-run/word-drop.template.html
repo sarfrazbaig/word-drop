@@ -4261,16 +4261,17 @@ const Game = {
       // a silhouette, the first letter, and blanks (the board's fragment gives the rest)
       const tw=S.tutorWord, full=P.level<=6;
       const disp = full ? tw.toUpperCase() : tw[0].toUpperCase()+"&thinsp;▁".repeat(tw.length-1);
-      // SAY THE STAKES BEFORE THEY BITE. The rule — that a naming round ends only when the
-    // name is spoken — used to be revealed the first time a player hit the score target and
-    // sat there wondering why nothing happened. Learning a rule as a correction to a
-    // surprise is the wrong way round; it belongs here, before the first drop, where it
-    // reframes the whole round from "clear the target" to "find this creature".
+      // SAY THE STAKES BEFORE THEY BITE. A naming round ends when the name is spoken and
+    // at no other moment — it belongs here, before the first drop, where it reframes the
+    // round from "clear the target" to "find this creature", rather than arriving as a
+    // correction the first time somebody hits the target and nothing happens.
+    // It used to read as a WARNING — points alone will not finish this, you must also do
+    // the name — which is the exact opposite of the deal now. The name is the whole ask.
     const spg = S.goal && S.goal.t!=="hush";
     iv.innerHTML='<span class="sil">'+GROVE_BY_WORD[tw].e+'</span> someone is hiding here — spell <b>'+disp+'</b>'
       + '<small class="ivstake">🎭 '+(spg
-          ? 'this round asks for both: <b>'+GOALS[S.goal.t].n+'</b>, and the <b>name spoken</b>'
-          : 'points alone won\'t finish this round — it ends when the <b>name is spoken</b>')
+          ? 'the <b>name is all this round asks</b> — spell it and the round is yours, whatever else is on the board'
+          : 'the <b>name alone ends this round</b> — you do not have to reach the target')
       + '</small>'; }
   // A SPECIAL ROUND IS NOT WON ON POINTS. Its win condition is the goal itself — melt every
   // ice, smash every stone — and the score target is scenery. The card showed the same big
@@ -4660,18 +4661,20 @@ const Game = {
     // has had its reveal.
     if(S.guestNamed && !S.pendingReveal && !document.querySelector(".whosthat")){
       Game.winLevel(); return; }
-    // THE CEREMONY CONTRACT: beat the level AND speak the name. Points alone cannot
-    // close a naming round — the hush holds until the guest is named.
+    // THE CEREMONY CONTRACT IS THE NAME, AND ONLY THE NAME. It used to be "beat the level
+    // AND speak the name", which meant a player could spell RACCOON and still lose on
+    // points. Reaching the target does not close a naming round; speaking the name does,
+    // and it does so on its own.
     if(S.goal && S.goal.t!=="hush"){
       // an obstacle round asks ONLY for its obstacles — a 👑 gauntlet asks for BOTH lists.
       // THE NAME STILL COMES FIRST: a guest in the round outranks any other ask, so a
       // thaw round with a creature in it can never be cleared by melting ice alone.
       if(S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need)){
-        if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
+        if(S.tutorWord){ UI.say("name-first","🎭 the target is not what ends this one — <b>speak the name</b> and it is yours", 2); }
         else { Game.winLevel(); return; }
       }
     } else if(S.levelScore >= S.target){
-      if(S.tutorWord){ UI.say("name-first","🎭 the hush holds — this round only ends when the <b>name is spoken</b>", 2); }
+      if(S.tutorWord){ UI.say("name-first","🎭 the target is not what ends this one — <b>speak the name</b> and it is yours", 2); }
       else { Game.winLevel(); return; }
     }
     if(S.movesLeft <= 0 || boardFull()){ Game.failLevel(); return; }
