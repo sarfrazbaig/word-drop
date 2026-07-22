@@ -2814,8 +2814,8 @@ const GROVE = [
      Note the dog does NOT chase the cat: it chases the WORD, whoever made it. Wiring one
      friend to another would make the dog dead weight the moment the cat rests, and would
      teach "these two are a pair" — which is the authored-pair thinking we removed. */
-  {w:"cat",wake:{on:"drop",n:5},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
-  {w:"dog",wake:{on:"word3",n:2},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a longer word</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
+  {w:"cat",wake:{on:"drop",n:8},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
+  {w:"dog",wake:{on:"word3",n:4},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a longer word</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
   {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"buzzes a friend <b>closer to waking</b>",fx:{t:"buzz"},f:"hums the alphabet while she works"},
   {w:"moth",wake:{on:"vowel",n:6},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
@@ -4635,6 +4635,12 @@ const Game = {
   checkEnd(){
     if(S.over || S.won) return;
     if($("ov-meet").classList.contains("active")) return; // the ritual owns the stage — closeMeet re-checks
+    // THE NAME IS THE WHOLE ASK. The contract used to be "beat the level AND speak the
+    // name", so a player could spell RACCOON — the hardest thing the game asks of anyone —
+    // and still lose the round on points. Speaking it ends the round, once the silhouette
+    // has had its reveal.
+    if(S.guestNamed && !S.pendingReveal && !document.querySelector(".whosthat")){
+      Game.winLevel(); return; }
     // THE CEREMONY CONTRACT: beat the level AND speak the name. Points alone cannot
     // close a naming round — the hush holds until the guest is named.
     if(S.goal && S.goal.t!=="hush"){
@@ -5286,6 +5292,11 @@ const Game = {
     // scripts nothing and its whole subject is the cat waking up, so switching the cat
     // off inside it left a player dropping letters at a promise that never arrived.
     if(S.guide && !S.guide.letFriendsAct) return;
+    // A NAMING IS A SCRIPTED ANSWER, exactly like a lesson. Building RACCOON means holding
+    // seven letters in place across several turns, and a friend that pats a letter into
+    // "one that fits" or rearranges tiles into a longer word is dismantling the very name
+    // the round is asking for. They keep counting and act the moment the round ends.
+    if(S.tutorWord) return;
     // rituals own the stage: a reveal or a meet in progress means the friend WAITS —
     // it stays awake in the queue and acts on the next quiet drop.
     if(S.pendingReveal || document.querySelector(".whosthat") || $("ov-meet").classList.contains("active")) return;
@@ -5763,6 +5774,7 @@ const Game = {
           Game.track("wake",{w:g.w, L:S.level});
           if(guest){
             S.tutorWord=null;
+            S.guestNamed=true;   // the round's whole contract, met
             // the naming gift: the wood pays +5 a letter, so the ceremony funds the level
             S._revealBonus=g.w.length*5;
             S.levelScore+=S._revealBonus; UI.hud();
