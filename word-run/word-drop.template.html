@@ -6719,7 +6719,10 @@ const UI = {
   SLOT_LV:[null,7,10,14,20], // the level each seat (index 1-4) unlocks at
   visitor(){ // the meadow shows ALL FIVE seats: pets, open seats, and locked ones with their level
     const eq = UI.equipped(), slots=slotsFor(P.level);
-    $("petbar").classList.toggle("on", eq.length>0);
+    // ALWAYS ON. It used to appear only once a friend was equipped, which meant the whole
+    // tutorial ran without a shelf and then the board and dock shifted the moment one
+    // arrived — furniture moving under a player mid-lesson.
+    $("petbar").classList.add("on");
     // the friends the wood will offer next, in the order it will offer them
     const coming=CALLING_ORDER.filter(w=>!P.metGrove[w]);
     let queued=0;
@@ -6729,17 +6732,29 @@ const UI = {
       if(g){ el.dataset.w=g.w; el.style.fontSize="40px";
         el.innerHTML='<span class="petbody">'+g.e+'</span>';
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
-      else if(s<slots){ // an open seat — an invitation
-        el.innerHTML='<span class="pawghost">🐾</span>';
+      else if(s<slots){
+        // AN INVITATION ONLY IF THERE IS SOMEBODY TO INVITE. slotsFor floors at one, so
+        // this chair exists even for a player who owns nobody — and through the tutorial
+        // it offered a paw and "meet more friends!", which is an action they cannot take.
+        // With a friend on the bench the paw still invites; with nobody, the seat shows
+        // who is walking towards it.
+        const bench=Object.keys(P.metGrove||{}).length - eq.length;
+        const soon=bench>0 ? null : GROVE_BY_WORD[coming[queued++]];
+        el.innerHTML = soon ? '<span class="petsil">'+soon.e+'</span>'
+                            : '<span class="pawghost">🐾</span>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
-        el.title="an open seat — meet more friends!"; }
+        el.title = soon ? soon.w.toUpperCase()+" is out there somewhere…"
+                        : "an open seat — bring a friend to it"; }
       else if(s < seatsByLevel(P.level)){
-        // the LEVEL has opened this one; what is missing is somebody to sit in it. Saying
-        // "unlocks at level 7" to a player who is already level 12 is just wrong.
-        // a mark, not a sentence: the seat is plainly empty, and the tooltip carries the rest
-        el.innerHTML='<span class="pawghost">🐾</span><i class="slotplus">＋</i>';
+        // the LEVEL has opened this one; what is missing is somebody to sit in it — so it
+        // shows the somebody. The ＋ that used to live here promised an action a player
+        // with nobody spare cannot take; the silhouette says the true thing instead.
+        const soon=GROVE_BY_WORD[coming[queued++]];
+        el.innerHTML = soon ? '<span class="petsil">'+soon.e+'</span>'
+                            : '<span class="pawghost">🐾</span>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
-        el.title="this seat is ready — meet another friend to fill it"; }
+        el.title = soon ? "this seat is waiting for a friend to walk out of the wood"
+                        : "this seat is ready — meet another friend to fill it"; }
       else { // a locked seat — somebody still out there, and the level they can join you
         // THE FRIEND WHO WILL ACTUALLY FILL IT. A random stranger spoiled somebody the
         // player might not meet for a hundred levels, and said nothing true about the seat
