@@ -833,7 +833,11 @@
      on the board, which is where the player is looking. So this is only the button:
      one thing to find, in the same spot every round, sitting in the 54px gap above the
      tray so it can never cover the bottom row of letters. */
-  .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 4px);
+  /* CENTRED IN THE GAP, not hung off the dock. At 4px it sat 20 below the board and 3
+     above the tray — measured — which reads as stuck to the dock rather than floating
+     between the two. The board moving up made the gap 67 and the imbalance obvious;
+     12 puts a 44px bubble in its middle. */
+  .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 12px);
     z-index:70; display:flex; align-items:center; justify-content:center;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:4px;
     box-shadow:0 6px 16px rgba(90,60,30,.42); animation:bannerin .2s; overflow:hidden; }
