@@ -2381,6 +2381,11 @@ const CHAPTER_LINE=[
   "the top of the wood, and the last name",     /* 15 Frozen Crown    */
 ];
 const PROLOGUE_END=5;   // the taught levels are the page before chapter one
+/* THE ADVENTURE'S OWN COUNT. The lessons are the page before the story, so the first
+   round you play unaided is 1 — and every authored schedule below is written in these
+   numbers, which are the numbers on the chip. Returns 0 or less during the prologue,
+   which every schedule reads as 'not yet'. */
+function advOf(L){ return L - PROLOGUE_END; }
 /* WHAT THE PLAYER SEES ON A LEVEL NUMBER. The five taught rounds are the prologue and
    carry no level number at all; the story starts counting at the first round you play
    unaided, so a player's first real level reads Level 1 and not Level 6. */
@@ -2390,14 +2395,15 @@ function levelShort(L){ return L<=PROLOGUE_END ? "P"+L : String(L-PROLOGUE_END);
 function chapterOf(L){
   if(L<=PROLOGUE_END) return { pre:"PROLOGUE", name:"The Awakening",
     line:"a hush fell, and every name was forgotten", from:1, to:PROLOGUE_END };
-  const b=biomeOf(L), ring=Math.floor((L-1)/RING_LEN)+1;
+  const A=advOf(L), b=biomeOf(L), ring=Math.floor((A-1)/RING_LEN)+1;
   return { pre:"CHAPTER "+NUMERAL[b]+(ring>1?" \u00b7 RING "+ring:""),
     name:BIOME_NAMES[b], line:CHAPTER_LINE[b],
     from:b*BIOME_LEN+1, to:(b+1)*BIOME_LEN };
 }
 const BIOME_LEN=20;                          // a country is a chapter, not a backdrop
 const RING_LEN=BIOME_LEN*BIOME_NAMES.length; // 300 — one whole walk, floor to summit
-function biomeOf(L){ return Math.floor((L-1)/BIOME_LEN)%BIOME_NAMES.length; }
+function biomeOf(L){ const A=Math.max(1, advOf(L));
+  return Math.floor((A-1)/BIOME_LEN)%BIOME_NAMES.length; }
 // each place gets living scenery on the plot — quiet, behind the tiles, never in the way
 // scenery that drifts across the NIGHT SKY of each place — fireflies, moths, falling
 // leaves, snow — quiet, behind the letters, tuned to each region's twilight.
@@ -2488,8 +2494,8 @@ function applyBiome(L){
      dark on purpose rather than by subtraction. Nothing dims the board any more. */
   boardEl.style.filter = "";
 }
-function isSpike(L){ return L%5===0; }
-function isMilestone(L){ return L%10===0; }
+function isSpike(L){ const A=advOf(L); return A>0 && A%5===0; }
+function isMilestone(L){ const A=advOf(L); return A>0 && A%10===0; }
 // The first eight levels are hand-tuned — this is the funnel that decides if anyone
 // stays. L1 is nearly unloseable; each new power gets an easy level to play with.
 /* Retuned after the honest-play audit (50% loss rate at L4-7 was churning the cozy
@@ -2591,7 +2597,7 @@ for(const k in TROUBLE) OBSTACLE_DEBUT[k]=TROUBLE[k].at;
 function recipeFor(L, ceremony){
   const r=recipe(L);
   if(!ceremony) return r;
-  for(const k of Object.keys(r)) if(!(L > (OBSTACLE_DEBUT[k]||0))) r[k]=0;
+  for(const k of Object.keys(r)) if(!(advOf(L) > (OBSTACLE_DEBUT[k]||0))) r[k]=0;
   return r;
 }
 const TROUBLE_KEYS=Object.keys(TROUBLE);
@@ -2607,16 +2613,17 @@ function recipe(L){
 
   // THE SOLO DEBUT. A trouble meets you by itself, on an otherwise clean board, so it can
   // be understood alone before it ever has to be understood alongside anything else.
+  const A=advOf(L);          // every .at below is a player level
   for(const k of TROUBLE_KEYS)
-    if(TROUBLE[k].at===L && !TROUBLE[k].todo){ r[k]=2; return r; }
+    if(TROUBLE[k].at===A && !TROUBLE[k].todo){ r[k]=2; return r; }
 
   // then: everything native to this country that you have already met, thickening slowly
   for(const k of TROUBLE_KEYS){
     const t=TROUBLE[k];
-    if(t.todo || L<t.at || !livesHere(k,b)) continue;
-    r[k]=Math.min(t.max, 1+Math.floor((L-t.at)/22));
+    if(t.todo || A<t.at || !livesHere(k,b)) continue;
+    r[k]=Math.min(t.max, 1+Math.floor((A-t.at)/22));
   }
-  r.crate = (L>=13 && L%3===0) ? 1 : 0;
+  r.crate = (A>=13 && A%3===0) ? 1 : 0;
 
   // A prefill holds ~18 tiles, so cap the blockers at six and play stays possible.
   // THE OLDEST TROUBLE STEPS BACK FIRST. A rotating trim was arbitrary — it stripped the
@@ -3003,7 +3010,7 @@ const GATE={
   290:{n:"The Last Climb",        seats:3, moves:18, small:1},
   300:{n:"The Frozen Crown",      seats:2, moves:20, noTools:1, door:1},
 };
-function gateAt(L){ return GATE[L]||null; }
+function gateAt(L){ const A=advOf(L); return A>0 ? (GATE[A]||null) : null; }
 /* a keystone is never called for — it is given, so it must not also sit in the calling
    queue waiting to be spelled */
 const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w));
@@ -3034,6 +3041,7 @@ const OBSTACLE_GOAL={ ice:"thaw", frost:"thaw", stone:"boulder", crate:"unravel"
    behaviour lands — one place to add a trouble, not two */
 const OBSTACLE_KINDS=TROUBLE_KEYS.concat("crate");
 function goalFor(L){
+  L = advOf(L);   // the rounds below are the player's, not the raw counter's
   // authored solo introductions, then one obstacle-goal level per 5-beat cycle.
   // every new goal debuts a few levels after its obstacle does — meet the trouble
   // first, then be asked about it.
@@ -3077,7 +3085,10 @@ function dailyWord(){
    outgrows it: by then a player owns eight or nine friends, and choosing between them
    is the beginning of the game having a strategy at all. */
 /* what the LEVEL would allow — the ladder, before the wood checks your pockets */
-function seatsByLevel(L){ return L>=20 ? 5 : L>=14 ? 4 : L>=10 ? 3 : L>=7 ? 2 : 1; }
+// the locked seats print these very numbers on their silhouettes, so they must be the
+// player's levels or the shelf is lying about itself.
+function seatsByLevel(L){ const A=advOf(L);
+  return A>=20 ? 5 : A>=14 ? 4 : A>=10 ? 3 : A>=7 ? 2 : 1; }
 /* A SEAT YOU CANNOT FILL IS NOT A SEAT. The level opened a second one at L7 whether or
    not the player had met anyone to put in it, so "Room for two!" arrived while they still
    had only the cat — a fanfare for nothing, and it reads as the game losing track of who
@@ -3885,7 +3896,15 @@ function makeTileEl(t){
   boardEl.appendChild(outer);
   return {outer, inner:el};
 }
-const NONWORD = new Set(["bomb","stone","crate","ice","frost","mist","bramble","root","shroud","pest"]); // these break words apart
+/* THESE BREAK WORDS APART. Anything the wood describes as cleared FROM BESIDE belongs
+   here: it is a wall, not a letter. branch, spore, reed, mire, crystal and scree were all
+   missing — and because the seeder only swaps t.kind, each of them kept the letter it was
+   made from. A branch reading "x" sat silently inside any word crossing it, and
+   cellsToPattern rendered it as nothing, so [branch]+l+o matched the pattern "lo" and the
+   branch cleared as part of a word it was never supposed to join.
+   current and wind stay OUT: they move letters around, they are not walls. */
+const NONWORD = new Set(["bomb","stone","crate","ice","frost","mist","bramble","root","shroud","pest",
+                         "branch","spore","reed","mire","crystal","scree"]);
 function placeTile(t,r,c,instant){
   t.r=r; t.c=c;
   if(instant){ t.el.style.transition="none"; t.el.style.transform=xy(r,c); void t.el.offsetWidth; t.el.style.transition=""; }
@@ -4159,8 +4178,15 @@ const Game = {
     { const ty=$("iv-type"); const sp = S.goal && S.goal.t!=="hush";
       const card=$("ov-intro").querySelector(".card");
       card.classList.remove("ceremony","trial");     // the card itself changes clothes
+      const waiting = KEYSTONE[advOf(level)];   // a friend handed over at the end of this road
       if(S.tutorWord)  { ty.style.display="block"; ty.className="ceremony"; ty.textContent="🎭 naming ceremony";
                          card.classList.add("ceremony"); }
+      else if(waiting && GROVE_BY_WORD[waiting] && !P.grove[waiting]){
+        // it used to arrive with no warning at all — the player met the worm and had no
+        // idea what had earned it.
+        ty.style.display="block"; ty.className="ceremony";
+        ty.textContent=GROVE_BY_WORD[waiting].e+" someone is waiting at the end of this road";
+        card.classList.add("ceremony"); }
       else if(sp)      { ty.style.display="block"; ty.className="special";
                          ty.textContent=GOALS[S.goal.t].i+" special round · "+GOALS[S.goal.t].n;
                          card.classList.add("trial"); }
@@ -4662,7 +4688,7 @@ const Game = {
     // finishing level 5 means the lessons are behind you FOR GOOD — the mark lives outside
     // the save file, so a wipe cannot make you sit through them a second time
     if(S.level>=5) UI.markTutorialSeen();
-    { const key=KEYSTONE[S.level];
+    { const key=KEYSTONE[advOf(S.level)];
       if(key && GROVE_BY_WORD[key] && !P.grove[key]){
         P.grove[key]=Date.now(); S.newGrove.push(key);
         delete P.nameFails[key]; P.quietLvls=0; save();
@@ -5676,13 +5702,22 @@ const Game = {
     // tallyEv treats a zero as a one.
     if(points>0) Game.tallyEv("score", points);
     const wl=word.cells.length;
-    // WORD-SHAPED WAKES. Longer counts as shorter — a five-letter word satisfies a friend
-    // waiting on four — so reaching further never costs you a wake you had already earned.
-    Game.sees("anyWord");
-    if(wl===3) Game.sees("word3");
-    if(wl>=4)  Game.sees("word4");
-    if(wl>=5)  Game.sees("word5");
-    if(/[qzxjv]/.test(word.word)) Game.sees("rare");
+    // A FRIEND'S OWN WORD DOES NOT WAKE ANYBODY. S.petActing was tracked and then used
+    // only for telemetry, so a word the dog built counted toward the dog's own two-word
+    // trigger — it acted, and by acting earned its next act. The wakes belong to the
+    // player's play; a friend's work is the reward, not another turn of the crank.
+    // …and ONLY the wakes are withheld. A friend's word is still a word: it still counts
+    // toward callings, still fills the round's word count, still unlocks a name. What it must
+    // not do is buy the next act. An early return here would have taken all of that with it.
+    if(!S.petActing){
+      // WORD-SHAPED WAKES. Longer counts as shorter — a five-letter word satisfies a friend
+      // waiting on four — so reaching further never costs you a wake you had already earned.
+      Game.sees("anyWord");
+      if(wl===3) Game.sees("word3");
+      if(wl>=4)  Game.sees("word4");
+      if(wl>=5)  Game.sees("word5");
+      if(/[qzxjv]/.test(word.word)) Game.sees("rare");
+    }
     Game.tallyEv(wl>=6?"word6":"word"+wl);
     if(/[qzxjv]/.test(word.word)) Game.tallyEv("qzxjv");
     S.wordsMade=(S.wordsMade||0)+1;
