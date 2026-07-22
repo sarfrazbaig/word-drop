@@ -273,7 +273,7 @@
      a full board still reads through it, and slim enough that at its longest it costs about
      one row -- against the 47% the tip card used to take. */
   #skyrail{ position:absolute; left:10px; right:10px; top:8px; z-index:86;
-    background:rgba(26,32,28,.80); color:#f3eee1; border:1px solid rgba(255,255,255,.14);
+    background:rgba(24,30,26,.90); color:#f7f2e6; border:1px solid rgba(255,255,255,.18);
     border-radius:13px; padding:8px 12px; text-align:center;
     font-size:12.5px; line-height:1.42;
     backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
@@ -1550,7 +1550,13 @@
     font-size:22px; font-weight:900; letter-spacing:3px; color:var(--gold-deep); white-space:nowrap;
     max-width:94%; overflow:hidden; text-overflow:ellipsis;
     box-shadow:0 8px 20px rgba(90,60,30,.35); animation:bannerin .2s; }
+  .wordbanner b{ font-weight:900; letter-spacing:3px; }
+  .wordbanner .wb-pts{ font-style:normal; font-weight:900; letter-spacing:.5px;
+    font-size:.62em; margin-left:9px; padding:2px 8px 3px; border-radius:999px;
+    vertical-align:middle; color:#4a3410;
+    background:color-mix(in srgb, var(--gold,#e8b64c) 62%, #fff6df); }
   .wordbanner.done{ color:var(--ink); border-color:var(--accent); }
+  .wordbanner.done .wb-pts{ background:color-mix(in srgb, var(--accent,#7dd87d) 42%, #f2fbef); }
   .wordbanner.fade{ transition:opacity .4s, transform .4s; opacity:0; transform:translateX(-50%) translateY(-16px); }
   @keyframes bannerin{ from{ transform:translateX(-50%) scale(.5); opacity:0 } }
   /* Announcements used to come and go faster than anyone could read them — DOUBLE WORD
@@ -5929,6 +5935,12 @@ const Game = {
       if(w.cells.some(t=>[[1,0],[-1,0],[0,1],[0,-1]].some(d=>{
         const n=(S.board[t.r+d[0]]||[])[t.c+d[1]]; return n && n.kind==="shroud"; })))
         pts=Math.ceil(pts/2);
+      // THE LESSONS KEEP THEIR SHAPE. Every multiplier above is a delight at level forty
+      // and a wrecking ball at level two: one word was paying 95 against a target of 15,
+      // so the round ended before it had taught anything. In the prologue no single word
+      // may carry more than a third of the ask, which keeps a lesson at three words or
+      // more however the multipliers land.
+      if(P.level<=PROLOGUE_END) pts=Math.min(pts, Math.max(4, Math.ceil(S.target/3)));
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
       banner.style.fontSize = Math.min(16+len*2, 28)+"px";
@@ -5943,7 +5955,9 @@ const Game = {
         buzz(8);
         await wait(165);
       }
-      banner.textContent = w.word.toUpperCase()+"  +"+pts+(S.chain>=2 ? "  ×"+S.chain : "")+(charmed?" 💖":"");
+      // the word is the achievement; the number is the receipt. They were the same size.
+      banner.innerHTML = '<b>'+w.word.toUpperCase()+'</b>'
+        +'<i class="wb-pts">+'+pts+(S.chain>=2 ? " ×"+S.chain : "")+(charmed?" 💖":"")+'</i>';
       banner.classList.add("done");
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
@@ -6740,7 +6754,10 @@ const UI = {
         // who is walking towards it.
         const bench=Object.keys(P.metGrove||{}).length - eq.length;
         const soon=bench>0 ? null : GROVE_BY_WORD[coming[queued++]];
+        // it wears its level like the others do — the friend arriving soonest was the
+        // only one on the shelf that did not say when.
         el.innerHTML = soon ? '<span class="petsil">'+soon.e+'</span>'
+                              +'<small class="slotlv">LV '+(UI.SLOT_LV[s]||1)+'</small>'
                             : '<span class="pawghost">🐾</span>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
         el.title = soon ? soon.w.toUpperCase()+" is out there somewhere…"
@@ -7193,6 +7210,12 @@ const UI = {
      queue would only ever delay the one that matters. Tap dismisses. */
   sky(html, ms){
     if(!html) return;
+    // DURING THE LESSONS, THE WOOD WAITS TO BE TAPPED. A prologue line is long and it is
+    // the point of the round; a rail that fades on a timer loses it the moment a player
+    // looks down at the board. Centre stage covers the board — which is exactly right
+    // while the board is not yet the thing being taught. After the prologue the rail
+    // takes over again and never blocks a tile.
+    if(typeof P!=="undefined" && P.level<=PROLOGUE_END){ UI.toast(html, "tap"); return; }
     const host=$("boardwrap"); if(!host) return UI.toast(html);   // no board yet: fall back
     let el=$("skyrail");
     if(!el){ el=document.createElement("div"); el.id="skyrail"; host.appendChild(el); }
