@@ -861,8 +861,12 @@
     animation:goldflash .9s ease-out forwards; }
   @keyframes goldflash{ 0%{ opacity:0 } 25%{ opacity:1 } 100%{ opacity:0 } }
 
+  /* THE HAND NEEDS THE ROOM MORE THAN THE SKY DOES. Centred, the board left the same 46px
+     above it as below, and below is where the letter you are holding has to sit. The
+     padding pushes the board up and hands that space down to the dock. */
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
-    display:flex; align-items:center; justify-content:center; z-index:1; }
+    display:flex; align-items:center; justify-content:center; z-index:1;
+    padding-bottom:34px; }
   /* THE BOARD IS THE NIGHT SKY OF THE WOOD — a twilight the letters float on.
      stars scattered, a soft moon aglow, a gentle horizon light. no soil, no wood. */
   #board{ position:relative;
@@ -1111,6 +1115,10 @@
   /* one object now, hard against the left edge, with the purse alone on the right */
   #movesbox{ flex:0 0 auto; display:flex; align-items:center; justify-content:flex-start; min-width:0; }
   /* the level, inside the pill, divided from the moves by a hairline rather than a dot */
+  #lvlcap #lv-pre{ font-style:normal; }
+  /* PROLOGUE is a long word for a small chip — it shrinks to fit rather than pushing the
+     moves out of the pill. */
+  #lvlcap:has(#lv-pre:not(:empty)) { white-space:nowrap; }
   #lvlcap{ font-family:var(--font-story); font-size:13px; font-weight:600;
     letter-spacing:.3px; cursor:pointer; padding-right:10px; margin-right:2px;
     border-right:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 30%, transparent);
@@ -1545,7 +1553,10 @@
   @keyframes killcell{ 0%,100%{ opacity:.3; transform:scale(.93) } 50%{ opacity:.95; transform:scale(1.02) } }
   .droplabel{ position:absolute; z-index:42; pointer-events:none; font-weight:900; font-size:15px; color:var(--gold-deep);
     text-shadow:0 1px 0 rgba(255,255,255,.9), 0 2px 6px rgba(255,255,255,.6); transform:translate(-50%,-120%); white-space:nowrap; animation:bannerin .2s; }
-  .wordbanner{ position:absolute; left:50%; top:10px; transform:translateX(-50%); z-index:40; pointer-events:none;
+  /* it had no family of its own and inherited a serif, so the word came out in a face
+     that appears nowhere else on the board. */
+  .wordbanner{ font-family:var(--font-ui);
+    position:absolute; left:50%; top:10px; transform:translateX(-50%); z-index:40; pointer-events:none;
     background:rgba(255,253,246,.96); border:2px solid var(--gold); border-radius:var(--r-md); padding:6px 16px;
     font-size:22px; font-weight:900; letter-spacing:3px; color:var(--gold-deep); white-space:nowrap;
     max-width:94%; overflow:hidden; text-overflow:ellipsis;
@@ -1716,6 +1727,13 @@
   @keyframes namerjig{ 0%,100%{ transform:rotate(-6deg) translateY(0) } 25%{ transform:rotate(5deg) translateY(-3px) }
     55%{ transform:rotate(-4deg) translateY(1px) } 80%{ transform:rotate(6deg) translateY(-2px) } }
   .sil{ filter:brightness(0) opacity(.62) drop-shadow(0 0 7px rgba(255,255,255,.4)); }
+  /* THE ONE ON THE BOARD IS STANDING ON A NIGHT SKY. brightness(0) painted a dark shape
+     onto a dark twilight — the creature you are meant to be looking for was the hardest
+     thing on screen to see. This is the same fix .whosthat already made for its own
+     silhouette: inverted, it is a moonlit cut-out. The other two .sil uses stay dark,
+     because they sit on cream cards where white would vanish just as badly. */
+  #namer.sil{ filter:brightness(0) invert(1) opacity(.88)
+    drop-shadow(0 0 12px rgba(255,240,205,.6)) drop-shadow(0 0 26px rgba(190,175,255,.38)); }
   /* ANCHORED AT THE TOP, NOT THE MIDDLE. This used to be translate(-50%,-50%), which centres
      the block on its own box — so when the caption changed from one line to three at the
      face-turn, the box grew in BOTH directions and the creature visibly jumped 13px while
@@ -2118,7 +2136,7 @@
       <div id="movesbox">
         <div id="movespill">
           <button id="game-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰</button>
-          <span id="lvlcap" onclick="UI.dbgTap()">LV <b id="h-level">1</b></span>
+          <span id="lvlcap" onclick="UI.dbgTap()"><i id="lv-pre">LV</i> <b id="h-level">1</b></span>
           <span class="mv-lbl">Moves:</span><span id="movesbig">15</span>
         </div>
       </div>
@@ -5935,12 +5953,10 @@ const Game = {
       if(w.cells.some(t=>[[1,0],[-1,0],[0,1],[0,-1]].some(d=>{
         const n=(S.board[t.r+d[0]]||[])[t.c+d[1]]; return n && n.kind==="shroud"; })))
         pts=Math.ceil(pts/2);
-      // THE LESSONS KEEP THEIR SHAPE. Every multiplier above is a delight at level forty
-      // and a wrecking ball at level two: one word was paying 95 against a target of 15,
-      // so the round ended before it had taught anything. In the prologue no single word
-      // may carry more than a third of the ask, which keeps a lesson at three words or
-      // more however the multipliers land.
-      if(P.level<=PROLOGUE_END) pts=Math.min(pts, Math.max(4, Math.ceil(S.target/3)));
+      // NO CAP HERE. Clamping a prologue word to a third of the target made lesson two
+      // unwinnable: its tiles are scripted, only a few words can be made from them, and
+      // 15 stopped being reachable. The EARLY targets were tuned against these exact
+      // multipliers — changing one without the other is the wrong half of the change.
       gained += pts;
       const banner=document.createElement("div"); banner.className="wordbanner";
       banner.style.fontSize = Math.min(16+len*2, 28)+"px";
@@ -6393,7 +6409,12 @@ const UI = {
   },
   hud(){
     const an=$("amber-n"); if(an) an.textContent=P.amber||0;
-    $("h-level").textContent=S.level;
+    // THE PROLOGUE IS NOT LEVEL ONE. levelLabel() has said so on the level card and the
+    // play button for a while; this chip was still printing the raw number, so the
+    // tutorial read LV 1 and the first round played unaided read LV 6.
+    { const pro = S.level<=PROLOGUE_END;
+      const pre = $("lv-pre"); if(pre) pre.textContent = pro ? "PROLOGUE" : "LV";
+      $("h-level").textContent = pro ? S.level : (S.level-PROLOGUE_END); }
     const m=$("movesbig");
     m.textContent=S.movesLeft;
     const mp=$("movespill"); if(mp) mp.classList.toggle("low", S.movesLeft<=3 && !S.won);
@@ -6414,9 +6435,14 @@ const UI = {
     // THE TEXT IS DRAWN TWICE: once dark for the bare track, once cream clipped to exactly
     // the filled width. That way neither copy is ever caught on the wrong ground as the
     // bar sweeps past it, and no single colour has to survive both.
+    // WHAT IT PRINTS, NOT WHAT IT COUNTS. A big word in a small round could read 95/15,
+    // which looks like a bug rather than a triumph. The score still accumulates in full
+    // underneath — stars and rewards read the real number — the bar just never claims
+    // more than the round asked for.
     const seg=(met, have, need, label)=>{
       const pct=Math.max(0, Math.min(1, have/Math.max(1,need)));
-      const inner='<span class="gs-lbl">'+label+'</span><b>'+have+'/'+need+'</b>';
+      const shown=Math.min(have, need);
+      const inner='<span class="gs-lbl">'+label+'</span><b>'+shown+'/'+need+'</b>';
       return '<div class="gseg'+(met?" metdone":"")+'">'
         +'<div class="gs-track"><i style="transform:scaleX('+pct+')"></i>'
         +'<span class="gs-txt">'+inner+'</span>'
