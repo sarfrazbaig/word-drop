@@ -1094,11 +1094,10 @@
      bar can have the height it always needed, and the labels can live INSIDE it. */
   /* THE DOORS. Book and amber leave the board, so they are quiet: no pill, no border,
      no competing with the round. They are still a comfortable tap target. */
-  #topbar .bookchip, #topbar #amberchip{ background:none !important; border:none !important;
+  #topbar #amberchip{ background:none !important; border:none !important;
     box-shadow:none !important; padding:3px 4px; font-size:11px; font-weight:800;
     color:var(--dim); opacity:.82; }
   #topbar #amberchip b{ font-size:12px; color:var(--dim); }
-  #topbar .bookchip .bookicon{ width:21px; height:21px; }
   /* ══ ROW ONE ══ gear, the round, the purse. */
   /* the round to the left edge, the purse to the right */
   #topbar{ position:relative; width:100%; display:flex; align-items:center;
@@ -1205,20 +1204,9 @@
   #next2wrap.locked{ opacity:.42; }
   #next2wrap.locked .tile{ filter:grayscale(.75); }
   #next2wrap.locked .slotlabel{ letter-spacing:1.2px; }
-  #dock .bookchip{ flex:none; margin:0; padding:0; align-self:center;
-    background:none !important; border:none !important; box-shadow:none !important;
-    display:flex; align-items:center; cursor:pointer; }
   /* the viewBox is cropped to the drawing, so the box IS the book — no padding to guess
      against, and no filter needed to make it belong. Taller than wide, as a book is. */
-  #dock .bookchip .bookwrap{ width:40px; height:46px; overflow:visible; border-radius:0; }
-  #dock .bookchip .bookicon{ width:40px; height:46px; display:block;
-    filter:drop-shadow(0 3px 3px rgba(90,60,30,.32)); }
-  #dock .bookchip b{ display:none; }
-  #dock .bookchip:active{ transform:translateY(2px); }
   /* the Book is a picture, not a control surface — no chrome, just bigger */
-  #dockrow > .bookchip{ flex:none; margin:0; z-index:3; padding:2px;
-    background:none !important; border:none !important; box-shadow:none !important;
-    display:flex; align-items:center; cursor:pointer; }
   /* THE BOX IS NOT THE BOOK. The artwork carries transparent padding — measured on its
      own alpha, it fills 84% of the canvas across and 91% down — so a 50px box drew a
      42px book beside 46px powers and read as the smallest thing in the row. Sized so
@@ -1228,11 +1216,6 @@
      the Book stayed small no matter what the img said. Both are sized here. */
   /* the new artwork is drawn edge to edge — 96% of its canvas across, 100% down, where
      the old one filled 84% — so the same box drew a bigger book. 50 lands it on 45. */
-  #dockrow > .bookchip .bookwrap{ width:50px; height:50px; overflow:visible; border-radius:0; }
-  #dockrow > .bookchip .bookicon{ width:50px; height:50px;
-    filter:drop-shadow(0 3px 4px rgba(90,60,30,.4)); }
-  #dockrow > .bookchip:active{ transform:translateY(2px); }
-  #dockrow > .bookchip b{ display:none; }   /* the count belongs inside the Book */
   /* 92px held 41px of seats and 33px of nothing beneath them; the labels want about half
      of that, so twenty go back to the board. */
   #petbar{ display:none; width:100%; height:78px; z-index:2; position:relative; overflow:visible;
@@ -1971,26 +1954,17 @@
     font-size:16px; font-weight:900; color:var(--dim); line-height:1; padding:0; }
   .cardx:active{ transform:scale(.92); }
   .overlay .card{ position:relative; }
-  .bookchip{ cursor:pointer; border:none; background:none; line-height:1;
-    padding:2px 8px; min-height:32px; display:flex; align-items:center; justify-content:center;
-    filter:drop-shadow(0 2px 2px rgba(70,50,25,.4)); transition:transform .12s, filter .12s; }
   /* deliberately the largest thing in the strip — the top bar is busy, and the Book is
      the one icon there that opens a whole other place rather than toggling a setting. */
   .bookicon{ width:29px; height:29px; display:block; }
   .menubook{ width:24px; height:24px; }
   /* the sheen: a slow light travelling across the cover so the Book catches the eye every
      minute and a half or so — long enough apart to read as "special", never as a nag. */
-  .bookwrap{ position:relative; display:block; width:29px; height:29px; overflow:hidden; border-radius:6px; }
-  .booksheen{ position:absolute; top:-20%; bottom:-20%; left:0; width:55%; pointer-events:none;
-    background:linear-gradient(100deg, transparent, rgba(255,255,255,.9), transparent);
-    transform:translateX(-160%) skewX(-18deg); opacity:0;
-    animation:booksheen 90s linear infinite; }
   @keyframes booksheen{
     0%{ transform:translateX(-160%) skewX(-18deg); opacity:0 }
     0.4%{ opacity:.95 }
     2.2%{ transform:translateX(190%) skewX(-18deg); opacity:0 }
     100%{ transform:translateX(190%) skewX(-18deg); opacity:0 } }
-  .bookchip:active{ transform:translateY(1px) scale(.94); filter:drop-shadow(0 1px 1px rgba(70,50,25,.32)); }
 </style>
 
 <div id="app">
@@ -3568,6 +3542,11 @@ const FT = {
   callout(el, html, side){ // a tap-through teaching bubble with an arrow at its target
     return new Promise(res=>{
       const t=typeof el==="string"?document.querySelector(el):el;
+      // A MISSING TARGET MUST NOT HANG THE CLASS. getBoundingClientRect() on null throws
+      // inside the await chain, which leaves S.guide set for the whole round — friends
+      // stop waking, tools stop answering, and nothing on screen explains it. Skipping
+      // one bubble is a far smaller failure than freezing the lesson around it.
+      if(!t){ console.warn("[hushwood] callout target missing:", el); return res(); }
       const app=$("app"), r=FT.box(t);          // stage coordinates, not screen pixels
       const SW=396, SH=800;                     // the stage's own size — clamp against THIS
       const scrim=FT.bit(document.createElement("div")); scrim.className="ftue-scrim";
@@ -3781,8 +3760,10 @@ const FT = {
     // …and finally, the thing that keeps them playing: WHO IS NEXT. The lesson used to end
     // on the paw meter, leaving the player with a pet but no notion that fifty more could be
     // earned or how. Point at the Book once, by name, while the cat is still fresh.
-    await FT.callout(".chip.bookchip",
-      "📔 <b>the Book of Names</b><br><small>every friend still hushed, and what each is listening for — <b>your next one is in there</b></small>", "below");
+    // the Book lives behind the swap at the shelf's end now — the old ".chip.bookchip"
+    // anchor was deleted along with the icon, and took the rest of this lesson with it.
+    await FT.callout("#petswap",
+      "📔 <b>the Book of Names</b><br><small>every friend still hushed, and what each is listening for — and where you <b>swap who walks with you</b></small>", "below");
     FT.note("keep dropping — the cat is counting 🐾");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null;
@@ -4249,11 +4230,27 @@ const Game = {
     // them at once — it has to be a moment, not a number that quietly changed.
     const tier=Game.petTier();
     P.seenTier=P.seenTier||{};
+    P.seenChapter=P.seenChapter||{};
+    // THE LESSONS ARE OVER, AND SOMEBODY SHOULD SAY SO. Five rounds of being taught, and
+    // then level one used to arrive with no acknowledgement at all. Once, on the way out
+    // of the prologue: a word for finishing, and a purse to walk in with.
+    if(level===PROLOGUE_END+1 && !P.gradued){
+      P.gradued=1; Game.amber(60); save();
+      $("un-burst").textContent="🌿";
+      $("un-title").textContent="THE LESSONS ARE DONE";
+      $("un-body").innerHTML = "<b>the wood is yours to walk</b><br>you know how to drop a letter,"
+        +" hold a word, and let a friend wake on its own \u2014 what is left is fifty names"
+        +" waiting to be spoken."
+        +"<br><small>\uD83D\uDFE0 <b>60 amber</b> for the road \u2014 spend it on a breeze or a"
+        +" wish when a round runs tight</small>";
+      $("un-try").style.display="none";
+      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      Game.track("prologue_done",{ amber:60 });
+    }
     // THE BOOK TURNS A PAGE. Walking into a new country used to be silent — the palette
     // simply changed and nothing said why you were somewhere else. Every one of the
     // fifteen now opens with its chapter, once.
-    P.seenChapter=P.seenChapter||{};
-    if(level>PROLOGUE_END && level%BIOME_LEN===1 && !P.seenChapter[biomeOf(level)]){
+    else if(level>PROLOGUE_END && level%BIOME_LEN===1 && !P.seenChapter[biomeOf(level)]){
       const ch=chapterOf(level);
       P.seenChapter[biomeOf(level)]=1; save();
       $("un-burst").textContent=BIOMES[biomeOf(level)];
