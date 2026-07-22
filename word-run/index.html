@@ -3590,7 +3590,10 @@ const FT = {
       arrow.style.top = above ? (r.top-22)+"px" : (r.bottom+2)+"px";
       app.appendChild(arrow);
       Snd.tone(880,{dur:.09,type:"sine",gain:.05,verb:true});
-      const done=e=>{ e.stopPropagation(); scrim.remove(); b.remove(); arrow.remove(); res(); };
+      // the board reads this: a press that closes this bubble must not also spend a move
+      // when the finger lifts, and the lift is an event this handler never sees.
+      const done=e=>{ e.stopPropagation(); FT.lastDismiss=Date.now();
+        scrim.remove(); b.remove(); arrow.remove(); res(); };
       scrim.addEventListener("pointerdown",done,{once:true});
       b.addEventListener("pointerdown",done,{once:true});
     });
@@ -7222,7 +7225,7 @@ const UI = {
     t.innerHTML = m + (sticky?'<div class="toast-tap">tap to continue</div>':"");
     t.classList.remove("on","tapwait"); void t.offsetWidth; t.classList.add("on");
     clearTimeout(t._h); t.onclick=null;
-    const advance=()=>{ clearTimeout(t._h); t.onclick=null;
+    const advance=()=>{ clearTimeout(t._h); t.onclick=null; FT.lastDismiss=Date.now();
       t.classList.remove("on","tapwait"); setTimeout(()=>UI._tNext(), 280); };
     if(sticky){
       t.classList.add("tapwait");
@@ -7548,6 +7551,11 @@ boardEl.addEventListener("pointerleave", ()=>UI.ghost(-1));
 boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c); });
 boardEl.addEventListener("pointerup", e=>{
   if(!S) return;
+  // A TAP THAT CLOSED A LESSON BUBBLE IS NOT A TAP ON THE BOARD. The scrim closes on
+  // pointerdown, so the matching pointerup arrives here with the scrim already gone and
+  // drops a tile the player never meant to drop. 380ms clears the press-to-release gap
+  // without ever catching a deliberate aim.
+  if(Date.now() - (FT.lastDismiss||0) < 380) return;
   if(S.usingBreeze || S.usingPluck){ // a tool is armed: taps pick tiles instead of dropping
     const r=boardEl.getBoundingClientRect();
     const col=Math.max(0,Math.min(COLS-1,Math.floor((e.clientX-r.left)/(r.width/COLS))));
