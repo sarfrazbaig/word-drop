@@ -3657,7 +3657,13 @@ const FT = {
       // the cat was SPELLED at level 4 and wakes here — after its ritual (and the
       // Book's first page), this lesson shows where friends live: the shelf, the
       // locked seats, and the paw meter that calls them onto the board.
-      S.guide={lesson:5, deferred:true}; // launches after the meet ritual closes
+      // letFriendsAct: this lesson teaches the cat waking, so the cat must be allowed to
+      // wake inside it. It scripts no board — no allowCol, no swapOnly — so there is no
+      // right answer for a friend to spoil.
+      // allowBreeze: the breeze guard exists because a curious tap could arm it mid-
+      // lesson-2 and make "drop the T" impossible. Lesson five scripts no board and has
+      // no right answer to spoil, so its tools stay in the player's hands.
+      S.guide={lesson:5, deferred:true, letFriendsAct:true, allowBreeze:true}; // after the meet ritual
     }
   },
 
@@ -5227,7 +5233,11 @@ const Game = {
     // the cat gilded a letter during lesson one, while the game was still saying "tap this
     // column". Friends keep counting through a lesson and act the moment it ends, which
     // reads as them waiting politely rather than as them being switched off.
-    if(S.guide) return;
+    // …unless the lesson is ABOUT a friend acting. Lessons one to three script the board
+    // and a friend moving a tile there changes the answer mid-sentence; lesson five
+    // scripts nothing and its whole subject is the cat waking up, so switching the cat
+    // off inside it left a player dropping letters at a promise that never arrived.
+    if(S.guide && !S.guide.letFriendsAct) return;
     // rituals own the stage: a reveal or a meet in progress means the friend WAITS —
     // it stays awake in the queue and acts on the next quiet drop.
     if(S.pendingReveal || document.querySelector(".whosthat") || $("ov-meet").classList.contains("active")) return;
