@@ -676,6 +676,17 @@
   #iv-type{ font-size:11px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase;
     margin:3px 0 2px; }
   #iv-type.ceremony{ color:#7c5cb4; }
+  /* THE FRIEND-AT-THE-END BAND. Two lines, because one of them is the reward and the
+     other is the price, and running them together is how the old copy managed to say
+     neither. */
+  #iv-type.keystone{ display:flex; flex-direction:column; align-items:center; gap:2px;
+    text-transform:none; letter-spacing:0; margin:6px 0 4px; }
+  #iv-type.keystone .ks-sil{ font-size:30px; line-height:1;
+    filter:brightness(0) opacity(.42); }
+  #iv-type.keystone b{ font-size:14px; font-weight:900; letter-spacing:.3px;
+    color:var(--accent-deep); }
+  #iv-type.keystone i{ font-style:normal; font-size:11.5px; font-weight:700;
+    color:var(--dim); }
   #iv-type.special{ color:#b07d18; letter-spacing:.6px; text-transform:none; font-size:12px;
     font-family:var(--font-story,serif); font-style:italic; font-weight:700; }
   .ivstake{ display:block; margin-top:7px; padding:6px 10px; border-radius:9px;
@@ -4182,10 +4193,17 @@ const Game = {
       if(S.tutorWord)  { ty.style.display="block"; ty.className="ceremony"; ty.textContent="🎭 naming ceremony";
                          card.classList.add("ceremony"); }
       else if(waiting && GROVE_BY_WORD[waiting] && !P.grove[waiting]){
-        // it used to arrive with no warning at all — the player met the worm and had no
-        // idea what had earned it.
-        ty.style.display="block"; ty.className="ceremony";
-        ty.textContent=GROVE_BY_WORD[waiting].e+" someone is waiting at the end of this road";
+        // IT USED TO ARRIVE WITH NO WARNING AT ALL — the player met the worm and had no
+        // idea what had earned it. Say what the round gives AND what claims it; a player
+        // who loses this one should know exactly what they are coming back for.
+        // The creature is a silhouette, as on the locked seats: somebody is coming, and
+        // who it is still belongs to the meeting.
+        // flex, not block: the inline style wins over the stylesheet, so setting
+        // "block" here silently defeated the two-line shape the class defines.
+        ty.style.display="flex"; ty.className="keystone";
+        ty.innerHTML='<span class="ks-sil">'+GROVE_BY_WORD[waiting].e+'</span>'
+          +'<b>a friend waits here</b>'
+          +'<i>win this round and they walk with you</i>';
         card.classList.add("ceremony"); }
       else if(sp)      { ty.style.display="block"; ty.className="special";
                          ty.textContent=GOALS[S.goal.t].i+" special round · "+GOALS[S.goal.t].n;
