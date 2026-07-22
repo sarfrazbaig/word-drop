@@ -1256,6 +1256,18 @@
     background-size:100% 100%, cover;
     box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
   #petbar.on{ display:flex; }
+  /* ══ DOZING ══ a naming round asks for one exact answer, so the friends stand back.
+     Dimmed and softened, with a 💤 on each of them: asleep, not broken. */
+  #petbar.dozing .petcompanion.has{ filter:grayscale(.55) brightness(.92); opacity:.72;
+    animation:none; }
+  #petbar.dozing .petcompanion.has::after{ content:"💤"; position:absolute;
+    top:-6px; left:-10px; font-size:15px; line-height:1; pointer-events:none;
+    animation:doze 2.6s ease-in-out infinite; }
+  #petbar.dozing .petcount{ opacity:.45; }
+  @keyframes doze{ 0%,100%{ transform:translateY(0) scale(.94); opacity:.55 }
+                   50%    { transform:translateY(-4px) scale(1.06); opacity:.95 } }
+  @media (prefers-reduced-motion:reduce){
+    #petbar.dozing .petcompanion.has::after{ animation:none; opacity:.8; } }
   /* the bar IS the paw meter: its edges warm up as the pets get closer to acting */
   #petbar{ margin-top:10px; margin-bottom:2px; transition:box-shadow .4s; }
   #petbar.on{ box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8),
@@ -4434,6 +4446,13 @@ const Game = {
     // hand. Lesson 1 teaches the drop now — nobody else needs a floating finger.)
     document.querySelectorAll(".coach:not(.ftue-hand)").forEach(h=>h.remove());
     if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins (deferred ones wait for their cue)
+    // THE FIRST TIME THE SHELF GOES QUIET, SAY WHY. Friends standing back is the right
+    // behaviour and the wrong surprise: without a word for it, a player reads their own
+    // party breaking. Said twice, then the 💤 carries it alone.
+    if(S.tutorWord && UI.equipped().length)
+      setTimeout(()=>UI.say("pets-doze",
+        "\uD83D\uDCA4 your friends are <b>asleep</b> for a naming<br>"
+        +"<small>they will not touch the board while you spell the name \u2014 they wake the moment it is spoken</small>", 2), 900);
     // a goal type introduces itself ONCE, full-page, before its first round is played
     if(S.goal && S.goal.t!=="hush" && !P.seenTip["goal-"+S.goal.t])
       setTimeout(()=>UI.tileTip("goal-"+S.goal.t), 500);
@@ -6842,6 +6861,9 @@ const UI = {
     // tutorial ran without a shelf and then the board and dock shifted the moment one
     // arrived — furniture moving under a player mid-lesson.
     $("petbar").classList.add("on");
+    // A NAMING ROUND SENDS THEM TO SLEEP, and a friend that quietly stops working is
+    // indistinguishable from a broken one. The shelf shows it.
+    $("petbar").classList.toggle("dozing", !!(S && S.tutorWord));
     // the friends the wood will offer next, in the order it will offer them
     const coming=CALLING_ORDER.filter(w=>!P.metGrove[w]);
     let queued=0;
