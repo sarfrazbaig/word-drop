@@ -1273,12 +1273,9 @@
   @keyframes petexcited{ 0%,100%{ transform:translateY(0) rotate(0) } 25%{ transform:translateY(-4px) rotate(-6deg) }
     50%{ transform:translateY(0) rotate(5deg) } 75%{ transform:translateY(-3px) rotate(-4deg) } }
   /* decorations are TUCKED at the shelf's corners — small, quiet, clearly not pets */
-  .pbdeco{ position:absolute; font-size:12px; opacity:.85; pointer-events:none; bottom:5px;
-    filter:drop-shadow(0 1px 1px rgba(90,110,60,.25)); }
-  .pbdeco:nth-child(1){ left:9px; }
-  .pbdeco:nth-child(2){ left:26px; bottom:4px; font-size:10px; }
-  .pbdeco:nth-last-child(2){ right:26px; bottom:4px; font-size:10px; }
-  .pbdeco:nth-last-child(1){ right:9px; }
+  /* the shelf right end belongs to the swap segment now (42px of it), and these were
+     sitting at right:9 and right:26 — underneath it. They move in beside the friends,
+     which is where the ones on the left have always been. */
   /* pets are bare friendly faces — no frames, no glow; the character IS the token */
   .petcompanion{ display:none; background:none; border:none; padding:0 0 4px; position:relative; line-height:1;
     cursor:pointer; filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
@@ -1287,11 +1284,13 @@
   .petcompanion.slotopen, .petcompanion.slotlocked{ display:block; position:relative; animation:none; cursor:pointer; }
   .pawghost{ opacity:.28; filter:grayscale(1); }
   .slotlocked .pawghost{ opacity:.2; }
-  .slotlock{ position:absolute; top:-7px; right:-8px; font-size:11px; font-style:normal;
-    filter:drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
   /* WAS: bottom:-13px, white-space:nowrap, and the words "wake a friend" — a 70px label
      hanging below a 46px seat, outside the bar, running into the label of the seat next
      door. It sits inside the bar now and carries a number, not a sentence. */
+  /* THE STRANGER: the emoji flattened to a shape. Warm-dark rather than black, because
+     pure black on a cream shelf reads as a hole rather than as somebody standing back
+     in the trees. */
+  .petsil{ display:block; filter:brightness(0) opacity(.42); }
   .slotlv{ position:absolute; left:50%; bottom:-14px; transform:translateX(-50%);
     font-size:9.5px; font-weight:900; letter-spacing:.3px; color:var(--dim);
     background:rgba(255,253,246,.9); border-radius:8px; padding:1px 5px; line-height:1.3;
@@ -2125,7 +2124,6 @@
       <div id="gs-name"></div>
     </div>
     <div id="petbar">
-      <span class="pbdeco">🌼</span><span class="pbdeco">🌿</span>
       <span class="petcompanion" id="pet-0" onclick="UI.petInfo(0)"></span>
       <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
       <span class="petcompanion" id="pet-2" onclick="UI.petInfo(2)"></span>
@@ -2138,7 +2136,6 @@
           <path d="M4.2 8.6h13M13.4 4.8l3.8 3.8-3.8 3.8"/>
           <path d="M19.8 15.4h-13M10.6 11.6l-3.8 3.8 3.8 3.8"/>
         </svg></button>
-      <span class="pbdeco">🌷</span><span class="pbdeco">🍄</span>
     </div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
@@ -6723,6 +6720,9 @@ const UI = {
   visitor(){ // the meadow shows ALL FIVE seats: pets, open seats, and locked ones with their level
     const eq = UI.equipped(), slots=slotsFor(P.level);
     $("petbar").classList.toggle("on", eq.length>0);
+    // the friends the wood will offer next, in the order it will offer them
+    const coming=CALLING_ORDER.filter(w=>!P.metGrove[w]);
+    let queued=0;
     for(let s=0;s<5;s++){
       const el=$("pet-"+s), g=eq[s];
       el.classList.remove("slotopen","slotlocked");
@@ -6740,8 +6740,14 @@ const UI = {
         el.innerHTML='<span class="pawghost">🐾</span><i class="slotplus">＋</i>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
         el.title="this seat is ready — meet another friend to fill it"; }
-      else { // a locked seat — you can SEE what's coming
-        el.innerHTML='<span class="pawghost">🐾</span><i class="slotlock">🔒</i><small class="slotlv">'+UI.SLOT_LV[s]+'</small>';
+      else { // a locked seat — somebody still out there, and the level they can join you
+        // THE FRIEND WHO WILL ACTUALLY FILL IT. A random stranger spoiled somebody the
+        // player might not meet for a hundred levels, and said nothing true about the seat
+        // they were looking at. CALLING_ORDER is the order the wood offers its friends, so
+        // the next uncalled names in it ARE the next to arrive.
+        const who=GROVE_BY_WORD[coming[queued++]] || GROVE_BY_WORD[coming[coming.length-1]] || GROVE[0];
+        el.innerHTML='<span class="petsil">'+who.e+'</span>'
+                    +'<small class="slotlv">LV '+UI.SLOT_LV[s]+'</small>';
         el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="34px";
         el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
     }
