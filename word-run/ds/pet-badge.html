@@ -1,0 +1,198 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  body{margin:0;padding:30px 26px 44px;background:linear-gradient(#ddd8e6,#f0e5d0);
+    font-family:Nunito,"Segoe UI",system-ui,sans-serif;color:#3d3226}
+  h2{font-family:Fraunces,Georgia,serif;font-size:19px;margin:0 0 3px}
+  .top{font-size:11.5px;color:#7d6849;margin:0 0 26px;max-width:660px;line-height:1.55}
+  h3{font-family:Fraunces,Georgia,serif;font-size:15px;margin:0 0 3px}
+  .lede{font-size:11.5px;color:#7d6849;margin:0 0 15px;line-height:1.5;max-width:660px}
+  section{margin-bottom:31px}
+  .row{display:flex;gap:15px;align-items:flex-start;flex-wrap:wrap}
+  figure{margin:0;text-align:center}
+  figcaption{font-size:9px;color:#7d6849;letter-spacing:1.1px;text-transform:uppercase;margin-top:9px;font-weight:800}
+  .tag{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;
+    background:#e8b64c;color:#4a3308;border-radius:6px;padding:2px 7px;vertical-align:3px;margin-left:6px}
+
+  /* ══ THE BADGE — porcelain and brass, art always in FULL COLOUR ══ */
+  .slot{position:relative;width:68px}
+  .badge{position:relative;width:68px;height:68px;border-radius:15px;overflow:hidden;
+    display:flex;align-items:flex-end;justify-content:center;color:transparent;
+    background:linear-gradient(163deg,#ffffff 0%,#fbf7ef 42%,#eee5d6 100%);
+    box-shadow:0 5px 0 #cbb489,0 8px 12px rgba(85,65,35,.30),
+      inset 0 2px 0 rgba(255,255,255,1),inset 0 -7px 10px rgba(163,133,86,.22),
+      inset 0 0 0 1.5px rgba(199,160,80,.85)}
+  .badge::before{content:"";position:absolute;top:2px;left:6%;right:34%;height:32%;z-index:3;
+    border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.85),transparent);pointer-events:none}
+  .glow{position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(52% 34% at 50% 88%,rgba(140,110,60,.26),transparent 72%)}
+  .body{display:block;width:100%;height:100%;position:relative;z-index:1;object-fit:contain;
+    object-position:center 96%;padding:4px 3px 0;filter:drop-shadow(0 2px 2px rgba(20,32,12,.32))}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes pulse{0%,100%{opacity:.82}50%{opacity:1}}
+
+  /* ── B1 · the lip fills — the badge's OWN bottom edge, no new object ── */
+  .lip{position:absolute;left:0;bottom:-5px;height:5px;border-radius:0 0 5px 5px;z-index:4;
+    background:linear-gradient(90deg,#f0b64a,#dd8b16)}
+  .lipdone{background:linear-gradient(90deg,#ffd27a,#f0a92c);box-shadow:0 0 9px rgba(255,190,90,.95);animation:pulse 1.9s ease-in-out infinite}
+
+  /* ── B2 · a track UNDER the badge, off the tile entirely ── */
+  .track{margin-top:7px;height:5px;border-radius:3px;background:rgba(120,100,60,.18);overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(90,70,35,.2)}
+  .track i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f0b64a,#dd8b16)}
+  .trackdone i{background:linear-gradient(90deg,#ffd98a,#f0a92c);box-shadow:0 0 8px rgba(255,190,90,.9)}
+
+  /* ── B3 · pips under the badge — the exact count, readable ── */
+  .pips{margin-top:8px;display:flex;gap:4px;justify-content:center}
+  .pips i{width:7px;height:7px;border-radius:50%;background:rgba(120,100,60,.22);
+    box-shadow:inset 0 1px 1px rgba(90,70,35,.25)}
+  .pips i.on{background:linear-gradient(180deg,#f6c260,#dd8b16);box-shadow:0 1px 2px rgba(120,80,15,.4)}
+  .pips.done i{background:linear-gradient(180deg,#ffd98a,#f0a92c);box-shadow:0 0 7px rgba(255,190,90,.9)}
+
+  /* ── B4 · a notch cut into the frame's foot ── */
+  .notch{position:absolute;left:50%;transform:translateX(-50%);bottom:-4px;width:34px;height:6px;
+    border-radius:3px;background:rgba(255,253,246,.9);z-index:4;overflow:hidden;
+    box-shadow:0 1px 3px rgba(90,70,35,.3)}
+  .notch i{display:block;height:100%;background:linear-gradient(90deg,#f0b64a,#dd8b16)}
+  .notchdone i{background:linear-gradient(90deg,#ffd98a,#f0a92c)}
+
+  /* ── C1 · sunrise: warm light rises up the face behind the friend ── */
+  .sun{position:absolute;left:0;right:0;bottom:0;z-index:0;pointer-events:none;
+    background:linear-gradient(0deg,rgba(255,190,80,.85),rgba(255,214,130,.35) 55%,transparent)}
+  .sundone{animation:pulse 1.9s ease-in-out infinite}
+
+  /* ── C2 · a halo grows behind the friend ── */
+  .halo{position:absolute;inset:0;z-index:0;pointer-events:none}
+  .h1{background:radial-gradient(30% 26% at 50% 62%,rgba(255,200,95,.5),transparent 72%)}
+  .h2{background:radial-gradient(44% 38% at 50% 60%,rgba(255,198,90,.72),transparent 74%)}
+  .h3{background:radial-gradient(62% 54% at 50% 58%,rgba(255,203,95,.95),transparent 76%);animation:pulse 1.9s ease-in-out infinite}
+
+  /* ── C3 · the brass warms: the rim brightens, no shape added ── */
+  .w1{box-shadow:0 5px 0 #cbb489,0 8px 12px rgba(85,65,35,.3),inset 0 2px 0 rgba(255,255,255,1),
+      inset 0 -7px 10px rgba(163,133,86,.22),inset 0 0 0 2px rgba(214,172,86,.95)}
+  .w2{box-shadow:0 5px 0 #c9a75e,0 8px 12px rgba(110,75,20,.32),inset 0 2px 0 rgba(255,255,255,1),
+      inset 0 -7px 10px rgba(163,133,86,.22),inset 0 0 0 2.5px rgba(233,183,74,1)}
+  .w3{box-shadow:0 5px 0 #c8992e,0 8px 16px rgba(140,95,15,.4),0 0 14px rgba(255,196,80,.75),
+      inset 0 2px 0 rgba(255,255,255,1),inset 0 -7px 10px rgba(163,133,86,.22),
+      inset 0 0 0 3px rgba(255,201,86,1);animation:pulse 2s ease-in-out infinite}
+
+  .note{font-size:11px;color:#7d6849;line-height:1.55;background:rgba(255,253,246,.55);
+    border-radius:11px;padding:11px 14px;max-width:660px;margin-top:14px}
+  .note b{color:#3d3226}
+</style></head><body>
+
+<h2>Wake meter · iterations on B and C</h2>
+<p class="top">Every option here keeps the friend in <b>full colour at all times</b> — the art is never dimmed.
+   Four stages each: three-quarters to go, half, nearly there, ready. Ready is always warm gold, never green.</p>
+
+<section>
+  <h3>B1 · The lip fills <span class="tag">no new object</span></h3>
+  <p class="lede">The badge already stands on a solid brass edge — that edge is what makes it read as a
+     physical block. It fills with amber left to right. Nothing is added to the badge at all; the part of
+     it that already exists simply lights up.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""></div><span class="lip" style="width:22%"></span></div><figcaption>early</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/dog.png" alt=""></div><span class="lip" style="width:50%"></span></div><figcaption>half</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/owl.png" alt=""></div><span class="lip" style="width:80%"></span></div><figcaption>almost</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/penguin.png" alt=""></div><span class="lip lipdone" style="width:100%"></span></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>B2 · A track under the badge <span class="tag">outside the tile</span></h3>
+  <p class="lede">A slim rail in the gap below, completely off the tile. The badge itself is left untouched —
+     no rim, no overlay, no edge change. Costs 12px of shelf height.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""></div><div class="track"><i style="width:22%"></i></div></div><figcaption>early</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/dog.png" alt=""></div><div class="track"><i style="width:50%"></i></div></div><figcaption>half</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/owl.png" alt=""></div><div class="track"><i style="width:80%"></i></div></div><figcaption>almost</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/penguin.png" alt=""></div><div class="track trackdone"><i style="width:100%"></i></div></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>B3 · Pips under the badge <span class="tag">exact count</span></h3>
+  <p class="lede">One dot per sign still needed, lighting up as they land. The only option that tells you
+     <i>exactly</i> how many words to go without tapping — the old number badge's job, moved off the art.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""></div><div class="pips"><i class="on"></i><i></i><i></i><i></i></div></div><figcaption>1 of 4</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/dog.png" alt=""></div><div class="pips"><i class="on"></i><i class="on"></i><i></i><i></i></div></div><figcaption>2 of 4</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/owl.png" alt=""></div><div class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div><figcaption>3 of 4</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/penguin.png" alt=""></div><div class="pips done"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>B4 · A notch set into the foot</h3>
+  <p class="lede">A short inlaid gauge sunk into the bottom of the frame — like a level on a tool. Reads as
+     part of the badge's making rather than a bar laid over it.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""><span class="notch"><i style="width:22%"></i></span></div></div><figcaption>early</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/dog.png" alt=""><span class="notch"><i style="width:50%"></i></span></div></div><figcaption>half</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/owl.png" alt=""><span class="notch"><i style="width:80%"></i></span></div></div><figcaption>almost</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/penguin.png" alt=""><span class="notch notchdone"><i style="width:100%"></i></span></div></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>C1 · Sunrise behind the friend <span class="tag">strongest read</span></h3>
+  <p class="lede">Warm light rises up the face from below, so the friend is standing in a growing dawn.
+     Much more visible than the small pool at its feet, and it is light — not an object.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="sun" style="height:18%"></span><img class="body" src="assets/cat.png" alt=""></div></div><figcaption>early</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="sun" style="height:42%"></span><img class="body" src="assets/dog.png" alt=""></div></div><figcaption>half</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="sun" style="height:68%"></span><img class="body" src="assets/owl.png" alt=""></div></div><figcaption>almost</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="sun sundone" style="height:100%"></span><img class="body" src="assets/penguin.png" alt=""></div></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>C2 · A halo grows behind it</h3>
+  <p class="lede">The pool at its feet becomes a full halo, spreading outward from behind the creature as
+     it nears its sign. Pure atmosphere, no geometry.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""></div></div><figcaption>early</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="halo h1"></span><img class="body" src="assets/dog.png" alt=""></div></div><figcaption>half</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="halo h2"></span><img class="body" src="assets/owl.png" alt=""></div></div><figcaption>almost</figcaption></figure>
+    <figure><div class="slot"><div class="badge"><span class="halo h3"></span><img class="body" src="assets/penguin.png" alt=""></div></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>C3 · The brass warms <span class="tag">no new object</span></h3>
+  <p class="lede">The rim itself thickens and brightens from pewter-brass toward lit gold, and the whole
+     badge finally casts a warm light when ready. Nothing is added or covered — the frame just heats up.</p>
+  <div class="row">
+    <figure><div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""></div></div><figcaption>early</figcaption></figure>
+    <figure><div class="slot"><div class="badge w1"><span class="glow"></span><img class="body" src="assets/dog.png" alt=""></div></div><figcaption>half</figcaption></figure>
+    <figure><div class="slot"><div class="badge w2"><span class="glow"></span><img class="body" src="assets/owl.png" alt=""></div></div><figcaption>almost</figcaption></figure>
+    <figure><div class="slot"><div class="badge w3"><span class="glow"></span><img class="body" src="assets/penguin.png" alt=""></div></div><figcaption>ready</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h3>Shelf test · five friends at mixed stages</h3>
+  <p class="lede">The real question is not how one badge looks but whether you can scan five and find the
+     one that is ready. B1 above, C1 below.</p>
+  <div class="row" style="gap:11px">
+    <div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/cat.png" alt=""></div><span class="lip" style="width:30%"></span></div>
+    <div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/dog.png" alt=""></div><span class="lip" style="width:65%"></span></div>
+    <div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/penguin.png" alt=""></div><span class="lip lipdone" style="width:100%"></span></div>
+    <div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/owl.png" alt=""></div><span class="lip" style="width:15%"></span></div>
+    <div class="slot"><div class="badge"><span class="glow"></span><img class="body" src="assets/lamb.png" alt=""></div><span class="lip" style="width:45%"></span></div>
+  </div>
+  <div class="row" style="gap:11px;margin-top:20px">
+    <div class="slot"><div class="badge"><span class="sun" style="height:26%"></span><img class="body" src="assets/cat.png" alt=""></div></div>
+    <div class="slot"><div class="badge"><span class="sun" style="height:58%"></span><img class="body" src="assets/dog.png" alt=""></div></div>
+    <div class="slot"><div class="badge"><span class="sun sundone" style="height:100%"></span><img class="body" src="assets/penguin.png" alt=""></div></div>
+    <div class="slot"><div class="badge"><span class="sun" style="height:12%"></span><img class="body" src="assets/owl.png" alt=""></div></div>
+    <div class="slot"><div class="badge"><span class="sun" style="height:40%"></span><img class="body" src="assets/lamb.png" alt=""></div></div>
+  </div>
+  <p class="note"><b>My read.</b> <b>B1</b> and <b>C3</b> are the only two that add no object at all — they light
+     up something the badge already has (its foot, its rim). <b>B3 pips</b> is the one that keeps the exact
+     count you lose everywhere else. <b>C1 sunrise</b> has the strongest glance-read of the lot, but it tints
+     the porcelain, so the badge is less white than its neighbours while counting.
+     <br><br>They also combine: <b>B1 + C3</b> would fill the foot and warm the rim on the same beat, which is
+     probably the richest version without putting anything on the art.</p>
+</section>
+
+</body></html>

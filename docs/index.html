@@ -413,8 +413,12 @@
   #hill-near .sprout:nth-child(even){ animation-delay:-2s; }
   @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(6deg) } }
   /* your party peeks from the wood's edge — the cast changes as you wake more names */
-  #hill-near .peek{ position:absolute; top:-14px; font-size:28px; transform-origin:bottom center;
-    filter:drop-shadow(0 3px 5px rgba(30,25,50,.4)); }
+  /* THE SEAT MUST HAVE A BOX. These were sized only by font-size, which is fine for a glyph
+     and catastrophic for an image: with nothing to fill, the portraits rendered at their
+     native 256px and swallowed the hill, the play button and the chapter plate. */
+  #hill-near .peek{ position:absolute; top:-30px; width:52px; height:52px; font-size:28px;
+    display:flex; align-items:flex-end; justify-content:center;
+    transform-origin:bottom center; filter:drop-shadow(0 3px 5px rgba(30,25,50,.4)); }
   #hill-near .peek:nth-of-type(1){ animation:hop 2.8s ease-in-out infinite; }
   #hill-near .peek:nth-of-type(2){ animation:wiggle 3.4s ease-in-out infinite .5s; }
   #hill-near .peek:nth-of-type(3){ animation:hop 3.1s ease-in-out infinite 1.1s; }
@@ -506,7 +510,7 @@
   #home-place .ch-page{ font:600 9px/1.2 var(--font-ui); letter-spacing:.13em;
     color:#cfc6a8; text-transform:uppercase; margin-top:2px; }
   /* the creatures peek from the hill crest, safely ABOVE the play button */
-  #hill-near .peek{ top:-20px; }
+  #hill-near .peek{ top:-36px; }
   /* ===== the slide menu — a simple panel from the left ===== */
   #menu-scrim{ position:absolute; inset:0; z-index:200; background:rgba(40,35,62,.5); backdrop-filter:blur(2px);
     opacity:0; pointer-events:none; transition:opacity .28s; }
@@ -966,12 +970,7 @@
     background:radial-gradient(120% 90% at 50% 62%, transparent 34%, rgba(8,6,14,.55) 100%); }
 
   /* ── the pet bar takes the local light ── */
-  #app[class*="bio"] #petbar{
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--frame1) 20%, #fbf6e8),
-      color-mix(in srgb, var(--frame2) 26%, #f1e9d4));
-    box-shadow:0 2px 0 color-mix(in srgb, var(--frame2) 45%, transparent),
-               0 6px 14px rgba(40,30,20,.16); }
+  #app[class*="bio"] #petbar{ background:none; box-shadow:none; }   /* no shelf — the tiles float free */
   /* THE WOOD BEGINS IN DAYLIGHT. A moon over a sunny clearing was the first thing wrong
      with the opening — you walk into the dark later, and the walk is worth more if it
      starts somewhere bright. */
@@ -1045,16 +1044,7 @@
      segment rounded to the panel's own corner, with a hairline for a seam. The friends
      and the way to change them are one object rather than a panel with an icon parked
      beside it. */
-  #petswap{ position:absolute; right:0; top:0; bottom:0; width:42px; z-index:3;
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    border:none; padding:0; margin:0;
-    border-radius:0 16px 16px 0;
-    background:color-mix(in srgb, var(--frame2,#9a6f3c) 15%, transparent);
-    border-left:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent);
-    color:color-mix(in srgb, var(--frame2,#9a6f3c) 88%, #3a2a12);
-    transition:background .15s; }
-  #petswap:active{ background:color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent); }
-  #petswap .ui-ic{ width:23px; height:23px; }
+  /* #petswap is retired — double-tapping a friend's tile opens the Book for that tile. */
   .dock-sep{ flex:none; align-self:center; width:1.5px; height:40px; border-radius:1px;
     background:color-mix(in srgb, var(--frame2,#9a6f3c) 36%, transparent); }
   @keyframes curbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-5px) } }
@@ -1264,22 +1254,15 @@
        hanging beneath it — bottom-heavy padding put the seats above the bar's top edge. */
     /* the segment takes 42, leaving 314 against the 308 that five friends at this size
        need; the gap comes in from 12 to 10 to turn six spare pixels into fourteen. */
-    border-radius:16px; padding:4px 46px 8px 10px; align-items:center; justify-content:center; gap:10px;
-    border:1px solid var(--surface-border);
-    background-color:#fbf6e8;
-    background-image:
-      linear-gradient(0deg, color-mix(in srgb, var(--grass) 30%, transparent) 0, transparent 14px),
-      linear-gradient(180deg, rgba(255,253,246,.95), #f6efdc);
-    background-repeat:no-repeat, no-repeat;
-    background-size:100% 100%, cover;
-    box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8); }
+    padding:4px 8px 14px; align-items:flex-start; justify-content:center; gap:11px;
+    border:none; background:none; box-shadow:none; perspective:620px; }
   #petbar.on{ display:flex; }
   /* ══ DOZING ══ a naming round asks for one exact answer, so the friends stand back.
      Dimmed and softened, with a 💤 on each of them: asleep, not broken. */
   #petbar.dozing .petcompanion.has{ filter:grayscale(.55) brightness(.92); opacity:.72;
     animation:none; }
   #petbar.dozing .petcompanion.has::after{ content:"💤"; position:absolute;
-    top:-6px; left:-10px; font-size:15px; line-height:1; pointer-events:none;
+    top:2px; left:2px; font-size:14px; line-height:1; pointer-events:none; z-index:3;
     animation:doze 2.6s ease-in-out infinite; }
   #petbar.dozing .petcount{ opacity:.45; }
   @keyframes doze{ 0%,100%{ transform:translateY(0) scale(.94); opacity:.55 }
@@ -1287,10 +1270,8 @@
   @media (prefers-reduced-motion:reduce){
     #petbar.dozing .petcompanion.has::after{ animation:none; opacity:.8; } }
   /* the bar IS the paw meter: its edges warm up as the pets get closer to acting */
-  #petbar{ margin-top:10px; margin-bottom:2px; transition:box-shadow .4s; }
-  #petbar.on{ box-shadow:var(--shadow-panel), inset 0 2px 0 rgba(255,255,255,.8),
-    0 0 var(--pawglow,0px) rgba(255,200,90,var(--pawalpha,0)),
-    inset 0 0 0 1.5px rgba(255,200,90,var(--pawring,0)); }
+  #petbar{ margin-top:8px; margin-bottom:2px; }
+  #petbar.on{ box-shadow:none; }
   #petbar.pulse{ animation:pawpulse .5s; }
   @keyframes pawpulse{ 40%{ transform:scale(1.03); } }
   /* the paw meter, made LITERAL: one paw per word, sitting on the shelf's left edge.
@@ -1305,19 +1286,84 @@
   #petsay.on{ opacity:1; transform:translate(-50%,0); }
   /* the shared paw meter and its pips are gone: friends carry their own counters on
      their own portraits now, so a single bar spoke for nobody. */
-  .petcompanion.excited{ animation:petexcited .55s ease-in-out infinite !important; }
-  @keyframes petexcited{ 0%,100%{ transform:translateY(0) rotate(0) } 25%{ transform:translateY(-4px) rotate(-6deg) }
-    50%{ transform:translateY(0) rotate(5deg) } 75%{ transform:translateY(-3px) rotate(-4deg) } }
+  /* THE "ONE SIGN AWAY" JIG IS RETIRED. A badge shaking twice a second, right beside the
+     board a player is trying to read, was the harshest movement on the screen — and it was
+     saying something the last unlit pip already says, quietly and exactly. The badge holds
+     still; the pips carry the news. */
+  .petcompanion.excited{ animation:none; }
   /* decorations are TUCKED at the shelf's corners — small, quiet, clearly not pets */
   /* the shelf right end belongs to the swap segment now (42px of it), and these were
      sitting at right:9 and right:26 — underneath it. They move in beside the friends,
      which is where the ones on the left have always been. */
-  /* pets are bare friendly faces — no frames, no glow; the character IS the token */
-  .petcompanion{ display:none; background:none; border:none; padding:0 0 4px; position:relative; line-height:1;
-    cursor:pointer; filter:drop-shadow(0 3px 4px rgba(40,60,25,.4)); animation:petidle 3.4s ease-in-out infinite; }
-  .petcompanion.has{ display:block; }
-  /* seats you can SEE: open ones invite, locked ones promise (with their level) */
-  .petcompanion.slotopen, .petcompanion.slotlocked{ display:block; position:relative; animation:none; cursor:pointer; }
+  /* ══ FIVE BADGES, ONE MATERIAL ══ carved dark heartwood with a brass rim.
+     The board's letter tiles are pale cream, so a pale badge disappeared among them — the
+     party has to read as a DIFFERENT CLASS OF OBJECT at a glance. Dark does that in one
+     stroke, and it earns its keep twice over: the painted friends supply every colour on the
+     shelf (a white lamb or a yellow chick finally has something to stand against), and the
+     brass counter that sits on top is legible on all five instead of fighting a different
+     pastel each time. Same physical grammar as a letter tile — raised block, solid bottom
+     edge, glossy top — so it belongs to the world without being mistaken for a game piece. */
+  /* THE SEAT IS A SLOT, NOT THE BADGE. It holds the badge face AND the pips beneath it —
+     the badge clips its own contents (the friend is imprinted on it), so anything that must
+     sit OUTSIDE the tile has to hang off a wrapper instead. */
+  .petcompanion{ display:none; position:relative; flex:0 0 auto; width:68px; cursor:pointer;
+    line-height:1; color:transparent; }
+  .petcompanion.has, .petcompanion.slotopen, .petcompanion.slotlocked{ display:block; }
+  .petface{ position:relative; width:68px; height:68px; border-radius:15px; overflow:hidden;
+    display:flex; align-items:flex-end; justify-content:center;
+    /* PORCELAIN, NOT WOOD. The letter tiles are warm tan timber; this is a cool pearl enamel,
+       so the two read as different materials even though both are pale — which is what keeps
+       the party from looking like five more game pieces. The brass rim is the tell. */
+    background:linear-gradient(163deg,#ffffff 0%,#fbf7ef 42%,#eee5d6 100%);
+    box-shadow:0 5px 0 #cbb489, 0 8px 12px rgba(85,65,35,.30),
+      inset 0 2px 0 rgba(255,255,255,1),            /* the glazed top lip        */
+      inset 0 -7px 10px rgba(163,133,86,.22),       /* the face curving away     */
+      inset 0 0 0 1.5px rgba(199,160,80,.85);       /* the brass rim             */
+  }
+  /* a shallow dish of shadow at the foot of the badge, so a WHITE creature (lamb, swan, dove)
+     has something to stand on instead of dissolving into the enamel */
+  .has .petface::after{ content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(52% 34% at 50% 88%, rgba(140,110,60,.26), transparent 72%); }
+  /* the glossy top sheen of a real tile, laid OVER the imprint */
+  .petface::before{ content:""; position:absolute; top:2px; left:6%; right:34%; height:32%; z-index:2;
+    border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.85), transparent); pointer-events:none; }
+  .petcompanion:active .petface{ transform:translateY(2px);
+    box-shadow:0 3px 0 #cbb489, 0 4px 7px rgba(85,65,35,.3),
+      inset 0 2px 0 rgba(255,255,255,1), inset 0 -7px 10px rgba(163,133,86,.22),
+      inset 0 0 0 1.5px rgba(199,160,80,.85); }
+  /* an EMPTY seat is the same badge left unclaimed: the glaze goes chalky, the brass goes
+     pewter. Still obviously one of the five — just nobody's yet. */
+  .slotopen .petface, .slotlocked .petface{ animation:none;
+    background:linear-gradient(163deg,#f7f4ec 0%,#efeade 42%,#e2dccd 100%);
+    box-shadow:0 5px 0 #c0b8a2, 0 8px 11px rgba(85,72,45,.22),
+      inset 0 2px 0 rgba(255,255,255,.9), inset 0 -7px 10px rgba(150,135,100,.2),
+      inset 0 0 0 1.5px rgba(168,158,132,.75); }
+  .petcompanion.slotlocked{ opacity:.94; }
+  /* ══ THE TILE TURNS OVER WHEN YOU ASK IT TO ══ a locked seat sits still showing the friend
+     who will fill it. TAP it and it flips to the level that unlocks it, then flips back. It
+     does not turn over on its own — a tile flipping unprompted is movement the player did not
+     ask for, right next to the board they are reading. */
+  .petcompanion.flipping .petface{ animation:tileflip 2.6s ease-in-out 1; }
+  /* NO backface-visibility here: the tile flattens its children (transform-style:flat), so a
+     back face carrying its own rotateY(180deg) counted as facing away and vanished — the tile
+     turned over to show nothing at all. The opacity pair below is what swaps the faces. */
+  .ptface{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .ptfront{ opacity:1; }
+  /* the back of the badge: the number engraved into the enamel */
+  .ptback{ transform:rotateY(180deg); opacity:0; flex-direction:column; gap:0;
+    font-family:var(--font-ui); font-size:21px; font-weight:900; color:#9c7420;
+    text-shadow:0 1px 0 rgba(255,255,255,.9); letter-spacing:.2px; }
+  .ptback i{ font-style:normal; font-size:9px; font-weight:900; color:rgba(120,100,66,.8);
+    letter-spacing:.8px; margin-bottom:1px; }
+  .petcompanion.flipping .ptfront{ animation:ptfront 2.6s ease-in-out 1; }
+  .petcompanion.flipping .ptback { animation:ptback  2.6s ease-in-out 1; }
+  @keyframes tileflip{ 0%{ transform:rotateY(0) } 22%,78%{ transform:rotateY(180deg) }
+    100%{ transform:rotateY(360deg) } }
+  @keyframes ptfront{ 0%,14%{ opacity:1 } 24%,76%{ opacity:0 } 86%,100%{ opacity:1 } }
+  @keyframes ptback { 0%,14%{ opacity:0 } 24%,76%{ opacity:1 } 86%,100%{ opacity:0 } }
+  @media (prefers-reduced-motion:reduce){
+    .petcompanion.flipping .petface{ animation:none; }
+    .petcompanion.flipping .ptfront{ animation:none } .petcompanion.flipping .ptback{ animation:none } }
   .pawghost{ opacity:.28; filter:grayscale(1); }
   .slotlocked .pawghost{ opacity:.2; }
   /* WAS: bottom:-13px, white-space:nowrap, and the words "wake a friend" — a 70px label
@@ -1327,20 +1373,47 @@
      pure black on a cream shelf reads as a hole rather than as somebody standing back
      in the trees. */
   .petsil{ display:block; filter:brightness(0) opacity(.42); }
-  .slotlv{ position:absolute; left:50%; bottom:-14px; transform:translateX(-50%);
-    font-size:9.5px; font-weight:900; letter-spacing:.3px; color:var(--dim);
-    background:rgba(255,253,246,.9); border-radius:8px; padding:1px 5px; line-height:1.3;
-    white-space:nowrap; max-width:52px; overflow:hidden; text-overflow:ellipsis; }
+  /* on the pale enamel the shape stays dark, but softer than the Book's — a figure seen
+     through frosted glass rather than a hole cut in the badge */
+  .petcompanion .petsil{ filter:brightness(0) opacity(.3)
+    drop-shadow(0 1px 1px rgba(255,255,255,.5)); }
+  .slotlv{ position:absolute; left:50%; bottom:3px; transform:translateX(-50%); z-index:3;
+    font-size:9px; font-weight:900; letter-spacing:.2px; color:var(--dim);
+    background:rgba(255,253,246,.92); border-radius:7px; padding:0 4px; line-height:1.4;
+    white-space:nowrap; max-width:50px; overflow:hidden; text-overflow:ellipsis; }
   /* an open seat says "somebody could sit here" with a mark, not a sentence */
-  .slotplus{ position:absolute; left:50%; bottom:-13px; transform:translateX(-50%);
-    font-size:13px; font-weight:900; color:var(--accent-deep); font-style:normal; line-height:1; }
+  .slotplus{ position:absolute; left:50%; bottom:2px; transform:translateX(-50%); z-index:3;
+    font-size:12px; font-weight:900; color:var(--accent-deep); font-style:normal; line-height:1; }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
   /* the wake countdown is the most-read number on the shelf and it was 16px wide at 11px
      type — smaller than the seat labels beneath it. */
-  .petcompanion .petcount{ position:absolute; top:-8px; right:-10px; min-width:21px; height:21px; border-radius:11px;
-    background:var(--gold); color:#3a2a00; font-size:12.5px; font-weight:900; display:flex; align-items:center;
-    justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.3); padding:0 3px; }
-  .petcompanion .petcount.ready{ background:var(--accent-deep); color:#fff; }
+  /* ══ PIPS, UNDER THE BADGE ══ one dot per sign the friend still needs, lighting up as they
+     land. It sits OFF the tile entirely: nothing covers the art, and nothing borders the
+     badge (a ring around the edge cost it the dimension that makes it read as a tile).
+     Four is the ceiling and the roster is tuned to it — no friend asks for a fifth sign. */
+  /* THE PIPS HAVE TO SURVIVE A PALE BACKGROUND. At 22% brown on lavender the empty sockets
+     were invisible and the lit ones read as dust, so the meter said nothing at a glance.
+     An empty pip is now a DARK SOCKET — a hole with a rim, obviously a thing waiting to be
+     filled — and a lit one is deep amber with its own dark ring, so both states carry their
+     own contrast wherever the shelf sits. */
+  .pips{ display:flex; gap:5px; justify-content:center; margin-top:7px; height:9px; }
+  .pips i{ width:9px; height:9px; border-radius:50%;
+    background:radial-gradient(circle at 50% 35%, rgba(74,58,34,.5), rgba(58,44,24,.62));
+    box-shadow:inset 0 1.5px 2px rgba(30,20,8,.5), 0 1px 0 rgba(255,255,255,.55);
+    transition:background .25s, box-shadow .25s; }
+  .pips i.on{ background:radial-gradient(circle at 50% 32%, #ffd071 0%, #f0a521 55%, #d07d06 100%);
+    box-shadow:0 0 0 1px rgba(120,72,8,.75), 0 1px 3px rgba(90,55,10,.5),
+      inset 0 1px 0 rgba(255,255,255,.6); }
+  .pips.ready i{ background:radial-gradient(circle at 50% 32%, #fff0c0 0%, #ffc24a 55%, #ef9a10 100%);
+    box-shadow:0 0 0 1px rgba(140,86,10,.8), 0 0 9px rgba(255,186,70,.95),
+      inset 0 1px 0 rgba(255,255,255,.7);
+    animation:pipready 1.6s ease-in-out infinite; }
+  /* AN ALWAYS-AWAKE FRIEND HAS NOTHING TO COUNT. Passives were drawn with four pale pips,
+     which put a second colour on the shelf and implied a progress that does not exist —
+     they simply show none. Empty space under the badge IS the statement: this one never sleeps. */
+  .pips.always{ display:none; }
+  @keyframes pipready{ 0%,100%{ opacity:.82 } 50%{ opacity:1 } }
+  @media (prefers-reduced-motion:reduce){ .pips.ready i{ animation:none; } }
   /* the little shout a pet gives when its power fires — always visible, never modal */
   .petsay{ position:absolute; z-index:80; font-size:12.5px; font-weight:800; color:var(--gold-deep); white-space:nowrap;
     background:#fffdf6; border:1.5px solid var(--gold); border-radius:999px; padding:4px 10px;
@@ -1377,13 +1450,77 @@
      filter (.sil / #namer.sil / .ks-sil / .petsil) turns this img into a clean cut-out shape.
      Sized in em so it matches whatever the silhouette used to be at that spot. */
   .silimg{ height:1.15em; width:1.15em; display:inline-block; vertical-align:-0.22em; object-fit:contain; }
+  .chipimg{ height:1.5em; width:1.5em; display:inline-block; vertical-align:-0.4em; object-fit:contain; }
+  /* PORTRAITS IN RUNNING TEXT — toasts, chips, cards. Sized in em so each one matches the
+     type it sits beside instead of needing a pixel guess per site. */
+  .toastimg{ height:1.55em; width:1.55em; display:inline-block; vertical-align:-0.42em; object-fit:contain; }
+  .peekimg{ width:100%; height:100%; object-fit:contain; display:block; }
+  .peimg{ width:38px; height:38px; object-fit:contain; display:block; margin:0 auto; }
+  .seimg{ width:34px; height:34px; object-fit:contain; display:block; margin:0 auto; }
+  .sheetimg{ width:96px; height:96px; object-fit:contain; display:block; margin:0 auto; }
+  .evimg{ height:34px; width:34px; object-fit:contain; display:inline-block; vertical-align:middle; }
+  .finimg{ height:26px; width:26px; object-fit:contain; display:inline-block; }
+  .critterimg{ width:46px; height:46px; object-fit:contain; display:block; }  /* .critter-run has no box of its own */
+  /* the buy-a-tool card: small, quiet, and it states the price AND what is left in the purse
+     before anything is spent */
+  #ov-buy .card{ max-width:270px; text-align:center; padding:20px 22px 18px; }
+  #buy-icon{ font-size:42px; line-height:1; }
+  #buy-title{ font-family:var(--font-story); font-size:19px; font-weight:800; color:var(--ink); margin:4px 0 2px; }
+  #buy-body{ font-size:12.5px; color:var(--dim); line-height:1.4; }
+  #buy-price{ font-size:26px; font-weight:900; color:var(--gold-deep); margin:10px 0 1px; letter-spacing:.5px; }
+  #buy-purse{ font-size:11px; color:var(--dim); margin-bottom:13px; }
+  .buy-btns{ display:flex; gap:9px; }
+  .buy-btns .btn-primary{ flex:1 1 0; margin:0; font-size:13px; padding:10px 8px; }
+  #ov-buy.poor #buy-yes{ opacity:.4; pointer-events:none; }
+  .tutbig{ height:62px; width:62px; object-fit:contain; display:inline-block; vertical-align:middle; }
+  .tuthill{ width:34px; height:34px; object-fit:contain; display:block; }
   /* BIGGER PAINTED PETS. The seat shares the bar's width with its neighbours (flex, min-width
      0) so five still fit without overflow, while the sprite grows to fill the taller bar —
      tall creatures reach 68px, wide ones are capped by the seat they sit in. */
-  #petbar .petcompanion.has{ flex:1 1 0; min-width:0; display:flex; align-items:center; justify-content:center; }
-  .petcompanion .petimg.petbody{ display:block; margin:0 auto; width:auto; height:auto;
-    max-height:68px; max-width:100%;
-    filter:drop-shadow(0 3px 4px rgba(20,32,12,.5)); }
+  /* IMPRINTED, not stuck on: the friend fills the tile face, clipped to the tile's rounded
+     shape (overflow:hidden on the tile), standing on the floor of it. z-index:1 keeps it under
+     the glossy sheen so the light sits on top of the print. */
+  .petcompanion .petimg.petbody{ display:block; width:100%; height:100%; position:relative; z-index:1;
+    object-fit:contain; object-position:center 96%; padding:4px 3px 0; transform:none;
+    filter:drop-shadow(0 2px 2px rgba(20,32,12,.32)); transform-origin:50% 92%; }
+  /* ══ ONE OF EACH FRIEND, EVER ══ while a creature is out on the board doing its work, its
+     badge stands empty — you saw the cat twice, once in its seat and once over the tiles,
+     which read as two cats rather than one that had gone somewhere. The badge keeps its
+     frame and its shadow dish, so the seat is visibly ITS seat, just vacant. */
+  .petcompanion.away .petimg.petbody{ opacity:0; transition:opacity .18s; }
+  .petcompanion.away .petface{ box-shadow:0 5px 0 #cbb489, 0 8px 12px rgba(85,65,35,.30),
+      inset 0 2px 0 rgba(255,255,255,1), inset 0 -9px 13px rgba(163,133,86,.34),
+      inset 0 0 0 1.5px rgba(199,160,80,.85); }
+  /* the friend being visited leans toward its caller */
+  .petcompanion.hosting .petface{ animation:hostbump 1.5s ease-in-out; }
+  @keyframes hostbump{ 0%,100%{ transform:translateY(0) } 30%,60%{ transform:translateY(-3px) } }
+  /* ══ EVERY FRIEND BREATHES DIFFERENTLY ══ six rhythms so no two badges in a row move
+     together — but QUIETLY. These were built when the badge had to carry the wake state by
+     itself; the pips say it now, so the motion's only job is to keep the shelf from looking
+     dead. Amplitudes are roughly a third of what they were and every cycle is slower: at a
+     glance the row should read as still, with life you notice only if you look. */
+  .pa1 .petimg.petbody{ animation:pa1 5.4s ease-in-out infinite; }      /* a gentle bob      */
+  .pa2 .petimg.petbody{ animation:pa2 6.6s ease-in-out infinite; }      /* a slow sway       */
+  .pa3 .petimg.petbody{ animation:pa3 6.0s ease-in-out infinite; }      /* a quiet shift     */
+  .pa4 .petimg.petbody{ animation:pa4 7.2s ease-in-out infinite; }      /* a deep breath     */
+  .pa5 .petimg.petbody{ animation:pa5 6.2s ease-in-out infinite; }      /* a curious tilt    */
+  .pa6 .petimg.petbody{ animation:pa6 7.0s ease-in-out infinite; }      /* a drifting float  */
+  @keyframes pa1{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-1.5px) } }
+  @keyframes pa2{ 0%,100%{ transform:rotate(-1deg) } 50%{ transform:rotate(1deg) } }
+  /* the hop is gone: a badge that leapt every few seconds was the single most distracting
+     thing on the shelf. It shifts its weight instead. */
+  @keyframes pa3{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-1.5px) scale(1.008) } }
+  @keyframes pa4{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.022) } }
+  @keyframes pa5{ 0%,100%{ transform:rotate(0) translateY(0) }
+                  40%{ transform:rotate(1.5deg) translateY(-1px) } 70%{ transform:rotate(-1.2deg) } }
+  @keyframes pa6{ 0%,100%{ transform:translate(0,0) } 33%{ transform:translate(.8px,-1.5px) }
+                  66%{ transform:translate(-.8px,-.8px) } }
+  @media (prefers-reduced-motion:reduce){ .petcompanion .petimg.petbody{ animation:none !important; } }
+  /* the hushed friend on an open/locked tile: the same imprint, faded into the face */
+  .petcompanion.slotopen .petsil, .petcompanion.slotlocked .petsil{ width:100%; height:100%;
+    display:flex; align-items:flex-end; justify-content:center; }
+  .petcompanion.slotopen .petsil .silimg, .petcompanion.slotlocked .petsil .silimg{
+    height:52px; width:52px; margin-bottom:4px; opacity:.9; }
   .petsprite .petimg{ width:100%; height:100%; object-fit:contain;
     filter:drop-shadow(0 3px 4px rgba(20,32,12,.5)); }
   .petcompanion .zsleep{ position:absolute; top:-6px; right:-8px; font-size:14px; opacity:.7; animation:zfloat 3s ease-in-out infinite; }
@@ -2053,10 +2190,10 @@
     <div id="hill-near">
       <span class="sprout" style="left:24%">🌿</span>
       <span class="sprout" style="right:28%">🌱</span>
-      <span class="peek" id="peek-0" style="left:12%">🐱</span>
-      <span class="peek" id="peek-1" style="left:33%">🐰</span>
-      <span class="peek" id="peek-2" style="right:31%">🦌</span>
-      <span class="peek" id="peek-3" style="right:11%">🐶</span>
+      <span class="peek" id="peek-0" style="left:12%"></span>
+      <span class="peek" id="peek-1" style="left:33%"></span>
+      <span class="peek" id="peek-2" style="right:31%"></span>
+      <span class="peek" id="peek-3" style="right:11%"></span>
     </div>
     <div id="home-content">
       <button id="home-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰<span class="cnt" id="grove-badge">0</span></button>
@@ -2197,18 +2334,12 @@
       <div id="gs-name"></div>
     </div>
     <div id="petbar">
-      <span class="petcompanion" id="pet-0" onclick="UI.petInfo(0)"></span>
-      <span class="petcompanion" id="pet-1" onclick="UI.petInfo(1)"></span>
-      <span class="petcompanion" id="pet-2" onclick="UI.petInfo(2)"></span>
-      <span class="petcompanion" id="pet-3" onclick="UI.petInfo(3)"></span>
-      <span class="petcompanion" id="pet-4" onclick="UI.petInfo(4)"></span>
-      <button id="petswap" onclick="UI.groveShow()" aria-label="swap friends"
-        title="the Book of Names — change who walks with you">
-        <svg class="ui-ic" viewBox="0 0 24 24" aria-hidden="true" fill="none"
-          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4.2 8.6h13M13.4 4.8l3.8 3.8-3.8 3.8"/>
-          <path d="M19.8 15.4h-13M10.6 11.6l-3.8 3.8 3.8 3.8"/>
-        </svg></button>
+      <span class="petcompanion" id="pet-0" onclick="UI.petTap(0)"></span>
+      <span class="petcompanion" id="pet-1" onclick="UI.petTap(1)"></span>
+      <span class="petcompanion" id="pet-2" onclick="UI.petTap(2)"></span>
+      <span class="petcompanion" id="pet-3" onclick="UI.petTap(3)"></span>
+      <span class="petcompanion" id="pet-4" onclick="UI.petTap(4)"></span>
+      <!-- the swap button is gone: double-tap a tile IS the swap. -->
     </div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
@@ -2227,6 +2358,24 @@
     </div>
 
     <!-- 🌟 WISH: wish on a star for the letter you need -->
+    <!-- 🟠 BUYING A TOOL IS A DECISION, NEVER A SIDE-EFFECT OF A TAP. An empty pill used to
+         spend the player's amber the instant it was touched — the same tap that means "use my
+         breeze" when the pill is full meant "buy one" when it was empty. It asks now. -->
+    <div class="overlay" id="ov-buy" onclick="Game.closeBuy()">
+      <div class="card" onclick="event.stopPropagation()">
+        <button class="cardx" onclick="Game.closeBuy()" aria-label="close">✕</button>
+        <div id="buy-icon">🍃</div>
+        <div id="buy-title">Another breeze?</div>
+        <div id="buy-body">your breezes are spent — the wood will sell you one</div>
+        <div id="buy-price"><b id="buy-cost">20</b> 🟠</div>
+        <div id="buy-purse">you have <b id="buy-have">0</b> 🟠</div>
+        <div class="buy-btns">
+          <button class="btn-primary btn-ghost" onclick="Game.closeBuy()">not now</button>
+          <button class="btn-primary" id="buy-yes" onclick="Game.confirmBuy()">buy it</button>
+        </div>
+      </div>
+    </div>
+
     <div class="overlay" id="ov-wish" onclick="Game.closeWish()">
       <div class="card" onclick="event.stopPropagation()">
         <button class="cardx" onclick="Game.closeWish()" aria-label="close">✕</button>
@@ -2253,7 +2402,7 @@
   <div class="overlay" id="ov-pet" onclick="UI.closeSheet()">
     <div class="card" onclick="event.stopPropagation()">
       <button class="cardx" onclick="UI.closeSheet()" aria-label="close">✕</button>
-      <div id="pet-sheet-e">🐱</div>
+      <div id="pet-sheet-e"></div>
       <div id="pet-sheet-n">CAT</div>
       <div id="pet-sheet-f"></div>
       <div id="pet-sheet-p"></div>
@@ -2271,7 +2420,7 @@
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay" id="ov-tut">
     <div id="tut-sky"><div id="tut-sun"></div></div>
-    <div id="tut-hill"><span class="sprout" style="left:10%">🌿</span><span class="peek" style="left:16%;top:-14px;font-size:26px">🦊</span><span class="peek" style="right:15%;top:-14px;font-size:26px">🦉</span><span class="sprout" style="right:9%">🍄</span></div>
+    <div id="tut-hill"><span class="sprout" style="left:10%">🌿</span><span class="peek" style="left:16%;top:-14px"><img class="petimg tuthill" src="art/pets/fox.png" alt="" draggable="false"></span><span class="peek" style="right:15%;top:-14px"><img class="petimg tuthill" src="art/pets/owl.png" alt="" draggable="false"></span><span class="sprout" style="right:9%">🍄</span></div>
     <div class="card">
       <div id="tut-slide"></div>
       <div id="tut-dots"></div>
@@ -2299,7 +2448,7 @@
     <div class="card">
       <div id="meet-halo"></div>
       <div id="meet-label">a name remembered!</div>
-      <div id="meet-creature">🦊</div>
+      <div id="meet-creature"></div>
       <div id="meet-name">FOX</div>
       <div id="meet-line">has come to live in your grove 🌳</div>
       <div id="meet-count"></div>
@@ -2876,58 +3025,58 @@ const GROVE = [
      Note the dog does NOT chase the cat: it chases the WORD, whoever made it. Wiring one
      friend to another would make the dog dead weight the moment the cat rests, and would
      teach "these two are a pair" — which is the authored-pair thinking we removed. */
-  {w:"cat",wake:{on:"drop",n:8},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
+  {w:"cat",wake:{on:"word3",n:2},e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
   {w:"dog",wake:{on:"word3",n:4},e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"rearranges tiles to <b>build a longer word</b>",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
-  {w:"bee",wake:{on:"drop",n:4},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"buzzes a friend <b>closer to waking</b>",fx:{t:"buzz"},f:"hums the alphabet while she works"},
-  {w:"moth",wake:{on:"vowel",n:6},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
+  {w:"bee",wake:{on:"word3",n:2},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"buzzes a friend <b>closer to waking</b>",fx:{t:"buzz"},f:"hums the alphabet while she works"},
+  {w:"moth",wake:{on:"word3",n:4},e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
   {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁️",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
   {w:"crow",wake:{on:"rare",n:1},e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
   {w:"dove",wake:{on:"vowel",n:4},e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
   {w:"robin",wake:{on:"consonant",n:6},e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"},f:"wakes the vowels up every morning"},
-  {w:"duck",wake:{on:"drop",n:6},e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2},f:"paddles hard so your moves float easy"},
+  {w:"duck",wake:{on:"anyWord",n:2},e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2},f:"paddles hard so your moves float easy"},
   {w:"swan",wake:{on:"word4",n:1},e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
   {w:"goose",wake:{on:"vowel",n:3},e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word — <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
   {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Nudge",pi:"🔄",pd:"slides <b>one letter</b> into the space beside it",fx:{t:"nudge"},f:"reads the bottom row backwards for fun"},
   {w:"heron",wake:{on:"word4",n:2},e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
   {w:"golem",wake:{on:"word5",n:1},e:"🗿",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"was a mountain once, and remembers how mountains break"},
-  {w:"fly",wake:{on:"drop",n:12},e:"🪰",z:"sky",pn:"Vowel Swarm",pi:"🍃",pd:"every <b>awkward letter softens into a vowel</b>",fx:{t:"vowelSwarm"},f:"turns the awkward letters soft and speakable"},
+  {w:"fly",wake:{on:"vowel",n:4},e:"🪰",z:"sky",pn:"Vowel Swarm",pi:"🍃",pd:"every <b>awkward letter softens into a vowel</b>",fx:{t:"vowelSwarm"},f:"turns the awkward letters soft and speakable"},
   {w:"ladybug",wake:{on:"anyWord",n:4},e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"a tile on the board <b>turns into a ⭐ star</b>",fx:{t:"luckyTile"},f:"lands on a tile and leaves a star behind"},
   {w:"cricket",wake:{on:"anyWord",n:4},e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
-  {w:"fox",wake:{on:"drop",n:7},e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the shortest pile",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
-  {w:"frog",wake:{on:"anyWord",n:5},e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
-  {w:"deer",wake:{on:"anyWord",n:5},e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"},f:"grazes the bottom row down to fresh grass"},
+  {w:"fox",wake:{on:"cascade",n:2},e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the shortest pile",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
+  {w:"frog",wake:{on:"word3",n:4},e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
+  {w:"deer",wake:{on:"obstacle",n:2},e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"<b>clears the whole bottom row</b>",fx:{t:"eatRow"},f:"grazes the bottom row down to fresh grass"},
   {w:"bear",wake:{on:"obstacle",n:2},e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"},f:"hugs a little too hard, helpfully"},
-  {w:"wolf",wake:{on:"consonant",n:10},e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3},f:"howls and the awkward letters scatter"},
+  {w:"wolf",wake:{on:"word3",n:4},e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3},f:"howls and the awkward letters scatter"},
   {w:"hare",wake:{on:"word4",n:1},e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"},f:"runs so fast the move comes right back"},
   {w:"mouse",wake:{on:"word3",n:3},e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"},f:"saves every crumb — they add up"},
   {w:"pig",wake:{on:"obstacle",n:1},e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"},f:"can smell a gift crate a mile away"},
   {w:"snail",wake:{on:"drop",n:3},e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6},f:"slow, sure, and never wastes a step"},
-  {w:"worm",wake:{on:"drop",n:10},e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3},f:"keeps the soil soft and the letters fresh"},
+  {w:"worm",wake:{on:"cascade",n:3},e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3},f:"keeps the soil soft and the letters fresh"},
   {w:"ant",e:"🐜",z:"ground",ps:true,pn:"Tiny Planner",pi:"📐",pd:"the deck <b>leans extra helpful</b>",fx:{t:"helpDeck"},f:"plans your deck three drops ahead"},
-  {w:"crab",wake:{on:"drop",n:8},e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"},f:"tidies the bottom row walking sideways"},
+  {w:"crab",wake:{on:"obstacle",n:1},e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"},f:"tidies the bottom row walking sideways"},
   {w:"fish",wake:{on:"gold",n:1},e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"},f:"makes the whole school shimmer gold"},
-  {w:"snake",wake:{on:"consonant",n:8},e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
-  {w:"chick",wake:{on:"anyWord",n:6},e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
+  {w:"snake",wake:{on:"word3",n:3},e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
+  {w:"chick",wake:{on:"obstacle",n:3},e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
   {w:"goat",wake:{on:"word3",n:3},e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
   {w:"dragon",wake:{on:"obstacle",n:2},e:"🐉",z:"ground",pn:"Dragonfire",pi:"🔥",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"sleeps under the mountain and dreams of warm water"},
-  {w:"boar",wake:{on:"consonant",n:12},e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
-  {w:"moose",wake:{on:"drop",n:11},e:"🫎",z:"ground",pn:"Antler Sort",pi:"🌬️",pd:"the <b>top letter of every column</b> becomes one that fits",fx:{t:"antlerSort"},f:"shakes the treetops until the letters make sense"},
-  {w:"seal",wake:{on:"anyWord",n:5},e:"🦭",z:"ground",pn:"Tide Pool",pi:"💦",pd:"the <b>two shortest columns</b> fill with vowels",fx:{t:"tidePool"},f:"splashes the shallow places full again"},
+  {w:"boar",wake:{on:"obstacle",n:2},e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
+  {w:"moose",wake:{on:"anyWord",n:3},e:"🫎",z:"ground",pn:"Antler Sort",pi:"🌬️",pd:"the <b>top letter of every column</b> becomes one that fits",fx:{t:"antlerSort"},f:"shakes the treetops until the letters make sense"},
+  {w:"seal",wake:{on:"word3",n:4},e:"🦭",z:"ground",pn:"Tide Pool",pi:"💦",pd:"the <b>two shortest columns</b> fill with vowels",fx:{t:"tidePool"},f:"splashes the shallow places full again"},
   {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"},f:"carries your first step, every level, free"},
-  {w:"beaver",wake:{on:"drop",n:10},e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
-  {w:"wyrm",wake:{on:"consonant",n:10},e:"🐍",z:"ground",pn:"Deepdelve",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"has been under this wood longer than the wood has"},
+  {w:"beaver",wake:{on:"anyWord",n:3},e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
+  {w:"wyrm",wake:{on:"anyWord",n:4},e:"🐍",z:"ground",pn:"Deepdelve",pi:"⛏️",pd:"arms a <b>free pluck</b> — take any letter off the board",fx:{t:"freePluck"},f:"has been under this wood longer than the wood has"},
   {w:"lizard",wake:{on:"obstacle",n:1},e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
-  {w:"pony",wake:{on:"drop",n:12},e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
-  {w:"lamb",wake:{on:"consonant",n:5},e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
+  {w:"pony",wake:{on:"word3",n:3},e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
+  {w:"lamb",wake:{on:"anyWord",n:2},e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
   {w:"penguin",e:"🐧",z:"ground",ps:true,pn:"Daily Whisper",pi:"🐟",pd:"spots the <b>daily word's first letter</b> (see the Book)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
   {w:"skunk",wake:{on:"rare",n:1},e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room — every last copy of it"},
   {w:"raccoon",wake:{on:"crate",n:1},e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
   {w:"phoenix",wake:{on:"word5",n:1},e:"🦅",z:"ground",pn:"Ember Hoard",pi:"🌟",pd:"drops an <b>ember that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"keeps its treasure in the ashes, and always comes back for it"},
   {w:"spider",wake:{on:"word3",n:2},e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
-  {w:"bison",wake:{on:"drop",n:9},e:"🦬",z:"ground",pn:"Herd Call",pi:"📣",pd:"your <b>next three letters are chosen</b>, not drawn",fx:{t:"herdCall"},f:"calls the herd, and the good letters come"},
+  {w:"bison",wake:{on:"vowel",n:3},e:"🦬",z:"ground",pn:"Herd Call",pi:"📣",pd:"your <b>next three letters are chosen</b>, not drawn",fx:{t:"herdCall"},f:"calls the herd, and the good letters come"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 /* ============ CALLINGS — how a creature notices you ============
@@ -2951,13 +3100,13 @@ const CALLINGS={
   owl:     {t:"hold",     n:4,  c:"hold 4 words with 🌱",                     s:"🌙 something admires your <b>patience</b>…"},
   bee:     {t:"words",    n:35, c:"clear 35 words",                           s:"🍯 something hums along with your <b>busy</b> spelling…"},
   fox:     {t:"score",    n:400,c:"earn 400 points in all",             s:"✨ something is following your <b>gilded trail</b>…"},
-  bat:     {t:"upword",   n:2,  c:"clear 2 words that read UPWARD",           s:"🦇 something <b>echoed back</b> from the dark…"},
+  bat:     {t:"upword",   n:2,  c:"clear 2 words that read UPWARD",           s:"🌑 something <b>echoed back</b> from the dark…"},
   /* TIER 2 — the walk: clean 3-4 letter names, moderate callings */
   pig:     {t:"pluck",    n:3,  c:"pluck 3 letters off the board (🌟 wish)",  s:"🍄 something smelled you <b>digging</b>…"},
   moth:    {t:"star",     n:3,  c:"use 3 ⭐ fallen stars in words",           s:"🌌 something is drawn to your <b>starlight</b>…"},
   hare:    {t:"word4",    n:8,  c:"clear 8 four-letter words",                s:"💨 something is racing your <b>quick</b> words…"},
   crow:    {t:"qzxjv",    n:2,  c:"clear 2 words using Q, Z, X, J or V",      s:"⚫ something clever admires your <b>rare letters</b>…"},
-  dove:    {t:"jackpot",  n:2,  c:"clear 2 five-letter words",                s:"🕊️ something cooed at your <b>long, lovely words</b>…"},
+  dove:    {t:"jackpot",  n:2,  c:"clear 2 five-letter words",                s:"💫 something cooed at your <b>long, lovely words</b>…"},
   frog:    {t:"regionwin1",n:3, c:"win 3 times in the Bramblewood",           s:"🪷 something is croaking your name in the <b>brambles</b>…"},
   worm:    {t:"breeze",   n:8,  c:"use 8 breezes",                            s:"🌱 something felt you <b>stirring the soil</b>…"},
   duck:    {t:"closewin", n:1,  c:"win with 2 or fewer moves left",           s:"🌊 something flapped in on your <b>second wind</b>…"},
@@ -2968,29 +3117,29 @@ const CALLINGS={
   lamb:    {t:"word4",    n:20, c:"clear 20 four-letter words",               s:"☁️ something soft follows your <b>steady words</b>…"},
   crab:    {t:"breeze",   n:20, c:"use 20 breezes",                           s:"🌊 something sidles along your <b>sideways winds</b>…"},
   /* TIER 3 — the climb: clean longer names and the gentlest 1-hold names */
-  snail:   {t:"win",      n:12, c:"win 12 levels",                            s:"🐌 something slow and sure has been <b>following you</b>…"},
+  snail:   {t:"win",      n:12, c:"win 12 levels",                            s:"🐾 something slow and sure has been <b>following you</b>…"},
   dragon:   {t:"ice",      n:6,  c:"thaw 6 frozen letters",                    s:"💧 something splashed in your <b>thawed waters</b>…"},
-  snake:   {t:"wish",     n:8,  c:"transform your letter with 8 🌟 wishes",   s:"🐍 something admires how you <b>shed letters</b>…"},
+  snake:   {t:"wish",     n:8,  c:"transform your letter with 8 🌟 wishes",   s:"🍂 something admires how you <b>shed letters</b>…"},
   bear:    {t:"word5",    n:8,  c:"clear 8 five-letter words",                s:"🍯 something big smelled your <b>feast of words</b>…"},
-  goat:    {t:"friends",  n:18, c:"wake 18 friends",                          s:"🐐 something calls to its <b>kindred</b> — you…"},
-  pony:    {t:"win",      n:25, c:"win 25 levels",                            s:"🐴 something gallops alongside your <b>long journey</b>…"},
+  goat:    {t:"friends",  n:18, c:"wake 18 friends",                          s:"🔔 something calls to its <b>kindred</b> — you…"},
+  pony:    {t:"win",      n:25, c:"win 25 levels",                            s:"🌾 something gallops alongside your <b>long journey</b>…"},
   skunk:   {t:"qzxjv",    n:14, c:"clear 14 words with rare letters",         s:"💨 something respects how you <b>clear the room</b>…"},
-  bison:   {t:"act",      n:40, c:"watch friends use their powers 40 times",  s:"🦬 something thunders in step with your <b>herd</b>…"},
+  bison:   {t:"act",      n:40, c:"watch friends use their powers 40 times",  s:"💨 something thunders in step with your <b>herd</b>…"},
   lizard:  {t:"regionwin2",n:6, c:"win 6 times in the Mosswood",         s:"🍂 something is sunbathing in the <b>amber light</b>…"},
   turtle:  {t:"win",      n:30, c:"win 30 levels",                            s:"🛡️ something steady has walked <b>every step</b> with you…"},
   spider:  {t:"jackpot",  n:8,  c:"clear 8 five-letter words",                s:"🕸️ something is weaving beside your <b>long words</b>…"},
   beaver:  {t:"hold",     n:24, c:"hold 24 words with 🌱",                    s:"🪵 something is impressed by your <b>building</b>…"},
   hawk:    {t:"chain",    n:6,  c:"set off 6 chain reactions",                s:"🎯 something sharp-eyed watches your <b>cascades</b>…"},
-  deer:    {t:"star3",    n:6,  c:"earn 6 ⭐⭐⭐ wins",                       s:"🦌 something gentle grazes near your <b>quiet wins</b>…"},
+  deer:    {t:"star3",    n:6,  c:"earn 6 ⭐⭐⭐ wins",                       s:"🌱 something gentle grazes near your <b>quiet wins</b>…"},
   seal:    {t:"twin",     n:6,  c:"clear 6 DOUBLE WORDs",                     s:"⚪ something claps for your <b>playful doubles</b>…"},
   /* TIER 4 — the legends: long names, hidden-word names, and the true grinds */
   boar:    {t:"stone",    n:12, c:"smash 12 mossy stones",                    s:"💢 something charges toward the <b>rubble</b>…"},
   robin:   {t:"word4",    n:30, c:"clear 30 four-letter words",               s:"🎶 something sings back at your morning words…"},
-  penguin: {t:"day",      n:3,  c:"visit the wood on 3 different days",     s:"🐧 something waddles in when you keep <b>coming back</b>…"},
+  penguin: {t:"day",      n:3,  c:"visit the wood on 3 different days",     s:"❄️ something waddles in when you keep <b>coming back</b>…"},
   goose:   {t:"gold",     n:25, c:"clear 25 golden letters",                  s:"🥚 something golden waddles toward your <b>treasure</b>…"},
   moose:   {t:"word6",    n:3,  c:"clear 3 six-letter words",                 s:"🌲 something MIGHTY bows to your <b>great words</b>…"},
   fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
-  ant:     {t:"words",    n:300,c:"clear 300 words",                          s:"🐜 something industrious salutes your <b>work</b>…"},
+  ant:     {t:"words",    n:300,c:"clear 300 words",                          s:"🪵 something industrious salutes your <b>work</b>…"},
   raccoon: {t:"crate",    n:8,  c:"burst open 8 gift crates",                 s:"🗑️ something heard you <b>rummaging</b>…"},
   phoenix:{t:"hold",     n:30, c:"hold 30 words with 🌱",                    s:"🌰 something envies your <b>stash</b>…"},
   cricket: {t:"chain3",   n:3,  c:"set off 3 triple chains",                  s:"🎻 something joined your <b>night chorus</b>…"},
@@ -3024,7 +3173,6 @@ const CALL_MINL={
 };
 Object.keys(CALL_MINL).forEach(w=>{ if(CALLINGS[w]) CALLINGS[w].minL=CALL_MINL[w]; });
 const CALL_GAP=3;   // never two callings summoned within this many player-levels
-const WISH_WORDS=4; // 🌟 the wish is a cooldown, not a purchase: this many words recharge it
 /* ═══ KEYSTONES — the friend you are HANDED at a door, never the one you spell ═══
    Two reasons, and the second is the one that matters.
 
@@ -3525,7 +3673,7 @@ function newState(level){
     goal:{t:"hush",need:0,have:0},
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
-    wishProg:0, breezeUsedThisDrop:false,   // 🌟 wish recharges over words · 🍃 breeze is one-per-drop
+    _noWishGrant:false, _noBreezeGrant:false,   // a tool never pays for itself — see resolve()
     petCharge:0, petTurn:0, petReady:false, petActing:false, petActs:0, charm:0,
     wake:{}, _woke:[],          // how close each friend is to stirring, and who just did
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
@@ -3863,7 +4011,7 @@ const FT = {
     if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points — no lesson to give
     $("toast").classList.remove("on");             // the Book toast has had its moment
     const seat=UI.equipped().findIndex(g=>g.w==="cat");
-    await FT.callout("#pet-"+(seat<0?0:seat), "🐱 <b>CAT walks with you now</b><br><small>your party lives on this shelf — tap a friend anytime to see its power</small>", "below");
+    await FT.callout("#pet-"+(seat<0?0:seat), (UI.artTag("cat","toastimg")||"🐱")+" <b>CAT walks with you now</b><br><small>your party lives on this shelf — tap a friend anytime to see its power</small>", "below");
     await FT.callout("#pet-2", "🔒 <b>more friends can walk with you later</b><br><small>a seat opens when you have somebody to fill it</small>", "below");
     // THE SIGN, AND THE BADGE THAT COUNTS IT. This is the one idea the whole game rests
     // on, and it was the one thing never taught. Every friend listens for something
@@ -3875,11 +4023,10 @@ const FT = {
       "😴 <b>when that number reaches nothing, it wakes</b><br><small>it walks out onto the board on its own and pats a letter into <b>one that fits</b> \u2014 you never tap a friend to use it</small>", "below");
     // …and finally, the thing that keeps them playing: WHO IS NEXT. The lesson used to end
     // on the paw meter, leaving the player with a pet but no notion that fifty more could be
-    // earned or how. Point at the Book once, by name, while the cat is still fresh.
-    // the Book lives behind the swap at the shelf's end now — the old ".chip.bookchip"
-    // anchor was deleted along with the icon, and took the rest of this lesson with it.
-    await FT.callout("#petswap",
-      "📔 <b>the Book of Names</b><br><small>every friend still hushed, and what each is listening for — and where you <b>swap who walks with you</b></small>", "below");
+    // earned or how. The swap button is gone — the TILE is the control now, so the lesson
+    // points at the friend's own tile and teaches the two taps that live on it.
+    await FT.callout(catSeat,
+      "📔 <b>tap the tile</b> to see what a friend does<br><small><b>double-tap</b> it to open the Book of Names — every friend still hushed, what each is listening for, and who walks with you</small>", "below");
     FT.note("keep dropping — the cat is counting 🐾");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null;
@@ -4436,7 +4583,7 @@ const Game = {
     Snd.init(); $("ov-meet").classList.remove("active");
     if(UI._meetWord){
       P.metGrove[UI._meetWord]=Date.now();
-      UI._lastWake=GROVE_BY_WORD[UI._meetWord] ? GROVE_BY_WORD[UI._meetWord].e : null; // greet them on the home cover
+      UI._lastWake=GROVE_BY_WORD[UI._meetWord] ? UI._meetWord : null; // greet them on the home cover (by NAME — the peeks are images now, so an emoji compare would never match)
       if((P.equip||[]).length<slotsFor(P.level) && !P.equip.includes(UI._meetWord)) P.equip.push(UI._meetWord); // new friends join the party while there's room
       const complete = Object.keys(P.metGrove).length >= GROVE.length && !P.finale;
       if(complete){ P.finale=Date.now(); }
@@ -4456,7 +4603,7 @@ const Game = {
       // friend read as luck rather than something they earned, and nothing taught them the
       // loop was theirs to drive. Three short beats instead: what you did, what happens
       // next, and the one place that tracks it.
-      P.annQ.push("🐱 <b>you cleared the wood's first three lessons</b> — and <b>CAT</b> answered.<br>"
+      P.annQ.push((UI.artTag("cat","toastimg")||"🐱")+" <b>you cleared the wood's first three lessons</b> — and <b>CAT</b> answered.<br>"
         + "<small>that is how every friend is found: play a certain way, and something notices.</small>");
       P.annQ.push("📔 then its name <b>hides in a round</b>, and you <b>spell it</b> to wake it.<br>"
         + "<small>the <b>Book of Names</b> holds all fifty — and what each one is listening for. "
@@ -4475,7 +4622,7 @@ const Game = {
   finale(){
     // gather every name that came home, in the order the wood learned them
     const woken = Object.keys(P.metGrove).sort((a,b)=>(P.metGrove[a]||0)-(P.metGrove[b]||0));
-    const grove = woken.map(w=>GROVE_BY_WORD[w] ? GROVE_BY_WORD[w].e : "🐾");
+    const grove = woken.map(w=>GROVE_BY_WORD[w] ? (UI.artTag(w,"finimg")||GROVE_BY_WORD[w].e) : "🐾");
     $("fin-grove").innerHTML = grove.map((e,i)=>
       '<span style="animation-delay:'+(0.4+i*0.045).toFixed(2)+'s">'+e+'</span>').join("");
     $("fin-body").innerHTML =
@@ -4573,8 +4720,8 @@ const Game = {
     // fired from inside resolve() — where S.busy stays true for whole seconds — so the
     // check never passed and neither tool ever explained itself to anybody. Players had
     // two buttons they'd never been told how to earn or use. They queue like tiles now.
-    order.push("breeze");                       // 🍃 always in the pocket now — always worth explaining once
-    if((P.pow.wild||0)>0) order.push("wish");    // 🌟 the first time a wish finishes charging
+    if((P.pow.swap||0)>0) order.push("breeze");
+    if((P.pow.wild||0)>0) order.push("wish");
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
     for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="spore"||t.kind==="reed"||t.kind==="mire"||t.kind==="current"||t.kind==="wind"||t.kind==="crystal"||t.kind==="scree"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
@@ -4708,7 +4855,8 @@ const Game = {
       setTimeout(()=>boardEl.classList.remove("shake"),420);
       return; }
     S.busy = true;
-    S.breezeUsedThisDrop=false;   // 🍃 a fresh drop frees the breeze again (one swap per drop)
+    // a wished letter is being placed: whatever word it makes must not pay for another wish
+    S._noWishGrant = !!S._wishedHand; S._wishedHand=false;
     UI.ghost(-1);
     if(!P.coach){ P.coach=true; save(); const h=document.querySelector(".coach"); if(h) h.remove(); }
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
@@ -4747,6 +4895,7 @@ const Game = {
     S.playerMove=true;                    // this resolve is YOURS — the grace applies
     await Game.resolve([t]);
     S.playerMove=false;
+    S._noWishGrant=false;   // the wished letter has been spent; later words pay normally
     // 🎭 a name was spelled: the silhouette takes center stage, the wood holds its
     // breath, and the reveal runs into the meet ritual — SAME round, no cliffhanger
     if(S.pendingReveal){ const rg=S.pendingReveal; S.pendingReveal=null; await Game.reveal(rg); }
@@ -5024,6 +5173,38 @@ const Game = {
   },
 
   /* ---- the BREEZE: the player's own hands-on tool. pets act on their own; the wind is YOURS. ---- */
+  /* ══ BUYING A TOOL, WITH THE PLAYER'S CONSENT ══ the empty pill opens this card instead of
+     reaching into the purse. Same tap, different question, and the answer is always theirs. */
+  TOOL_PRICE:{ swap:20, wild:25 },
+  askBuy(kind){
+    if(!S || S.over || S.won) return;
+    const cost=Game.TOOL_PRICE[kind], have=P.amber||0, poor=have<cost;
+    UI._buyKind=kind;
+    $("buy-icon").textContent   = kind==="swap" ? "🍃" : "🌟";
+    $("buy-title").textContent  = kind==="swap" ? "Another breeze?" : "Another wish?";
+    $("buy-body").innerHTML     = poor
+      ? "you do not have enough amber for this yet — <b>win rounds</b> and it gathers"
+      : (kind==="swap" ? "your breezes are spent — the wood will sell you one"
+                       : "your wishes are spent — the wood will sell you one");
+    $("buy-cost").textContent   = cost;
+    $("buy-have").textContent   = have;
+    $("ov-buy").classList.toggle("poor", poor);
+    $("ov-buy").classList.add("active");
+    Snd.tone(700,{dur:.1,type:"sine",gain:.05,verb:true});
+  },
+  closeBuy(){ $("ov-buy").classList.remove("active"); UI._buyKind=null; },
+  confirmBuy(){
+    const kind=UI._buyKind; if(!kind) return;
+    const cost=Game.TOOL_PRICE[kind];
+    if((P.amber||0) < cost){ Snd.reject(); buzz(30); return; }
+    Game.amber(-cost);
+    P.pow[kind]=(P.pow[kind]||0)+1; save();
+    if(kind==="swap"){ UI.breezePill(); UI.chip("−"+cost+" 🟠 · a fresh 🍃 breeze!"); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
+    else             { UI.wishPill();   UI.chip("−"+cost+" 🟠 · a fresh 🌟 wish!");   Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
+    Game.track("tool_bought",{ kind, cost, left:P.amber });
+    buzz(15);
+    Game.closeBuy();
+  },
   earnBreeze(){
     P.pow.swap=Math.min(3,(P.pow.swap||0)+1); save(); // 🌰 Nest & Stash holds more
     UI.breezePill(); UI.pillPop("breezepill");
@@ -5049,17 +5230,7 @@ const Game = {
       Snd.reject(); return;
     }
     if(S.usingBreeze){ Game.disarmBreeze(); return; }
-    // 🍃 THE BREEZE IS YOUR EVERYDAY TOOL — always in your pocket, never bought. The only
-    // limit is ONE SWAP BETWEEN DROPS, so it can't be spammed to fish a word out of any
-    // board: swap, then place a letter, then swap again.
-    if(S.breezeUsedThisDrop){
-      const el=$("breezepill");
-      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-      setTimeout(()=>el.classList.remove("deny"),350);
-      Snd.reject(); buzz(20);
-      UI.say("breeze-wait","🍃 one breeze between drops — <b>place a letter</b>, then you can breeze again",2);
-      return;
-    }
+    if(!(P.pow.swap>0)){ Game.askBuy("swap"); return; }   // empty pocket — ASK, never auto-spend
     S.usingBreeze=true;
     $("breezepill").classList.remove("pillglow"); // the lesson's gleam is spent the moment it's used
     $("breezepill").classList.add("armed");
@@ -5093,8 +5264,7 @@ const Game = {
     const a=S.swapSel, b=t;
     a.inner.classList.remove("selswap"); S.swapSel=null;
     S.busy=true;
-    S.breezeUsedThisDrop=true; save();   // one breeze spent this drop; resets when you drop
-    Game.disarmBreeze(); UI.breezePill();
+    P.pow.swap--; save(); Game.disarmBreeze(); UI.breezePill();
     UI.breeze(); // the soft gust + drifting leaves
     const ar=a.r, ac=a.c, br=b.r, bc=b.c;
     S.board[ar][ac]=b; S.board[br][bc]=a;
@@ -5107,19 +5277,18 @@ const Game = {
     S.lastAction=Date.now();
     FT.signal("swapped");
     Game.tallyEv("breeze");
+    S._noBreezeGrant=true;                 // this word is the breeze's doing — it pays no breeze
     await Game.toolResolve([a,b]); // the grace applies — tap 🌱 hold to keep building
+    S._noBreezeGrant=false;
     await Game.tryPetAct();
     S.busy=false;
     UI.all(); saveRun();
     Game.checkEnd();
   },
 
-  /* ---- the WISH: a COOLDOWN power now. It recharges as you make words (WISH_WORDS),
-     never bought with amber — the deliberate, rationed counterpart to the everyday breeze.
-     One charge held at a time. Crates and quests still fill it instantly as a bonus. ---- */
+  /* ---- the WISH: your second tool. 4-letter words earn one; pick any letter for your next tile. ---- */
   earnWish(){
-    if((P.pow.wild||0)>0) return;                 // already ready — a single charge
-    P.pow.wild=1; if(S) S.wishProg=0; save();
+    P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save(); // 🌰 Nest & Stash holds more
     UI.wishPill(); UI.pillPop("wishbtn");
     Snd.tone(1046,{dur:.08,type:"sine",gain:.05});
     // the explanation is queued, not raced — see Game.showPendingTip
@@ -5138,15 +5307,7 @@ const Game = {
       Snd.reject(); return;
     }
     if(S.usingBreeze) Game.disarmBreeze();
-    if(!(P.pow.wild>0)){
-      // the wish is on cooldown — no more buying it with amber; it gathers as you play
-      const el=$("wishbtn");
-      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-      setTimeout(()=>el.classList.remove("deny"),350);
-      Snd.reject(); buzz(30);
-      UI.say("wish-charging","🌟 your wish is still gathering — <b>"+Math.max(0,WISH_WORDS-(S.wishProg||0))+" more words</b> and it's ready",2);
-      return;
-    }
+    if(!(P.pow.wild>0)){ Game.askBuy("wild"); return; }   // empty pocket — ASK, never auto-spend
     // a wish reshapes a LETTER — a hand with no letter to reshape politely refuses,
     // and no wish is spent learning that
     const k=S.cur && S.cur.kind;
@@ -5203,7 +5364,8 @@ const Game = {
     // downgrade sold as a gift. Gold stays gold, restless stays restless; a pet's
     // blessing on your hand survives the wish that reshapes it.
     if(!(P.pow.wild>0)) { Game.closeWish(); return; }
-    P.pow.wild--; S.wishProg=0; save();   // spent — the cooldown restarts from zero
+    P.pow.wild--; save();
+    S._wishedHand=true;                   // the letter in hand is a wish's doing — see drop()
     Game.tallyEv("wish");
     const kind = S.cur ? S.cur.kind : "normal";
     S.cur={letter:l, kind};
@@ -5453,12 +5615,21 @@ const Game = {
     for(const g of Game.petActives()){
       const w=g.wake; if(!w || w.on!==ev) continue;
       S.wake[g.w] = (S.wake[g.w]||0) + (n||1);
-      if(S.wake[g.w] >= Game.wakeNeed(g)){ S.wake[g.w]=0; S._woke = S._woke || [];
+      /* THE COUNT IS NOT CLEARED HERE ANY MORE. It used to zero the moment it filled, which
+         meant the meter jumped from three-of-four straight back to empty and the player
+         never once saw a friend's pips complete — the whole point of the meter. It stays
+         full while the friend waits its turn (which also reads correctly when a lesson or a
+         naming is holding it back), and tryPetAct clears it after the friend has actually
+         gone out and done the thing. */
+      if(S.wake[g.w] >= Game.wakeNeed(g)){ S._woke = S._woke || [];
         // never queue the same friend twice — through a long lesson a drop-counter would
         // otherwise stack up and then empty itself all at once the moment teaching stopped
         if(!S._woke.includes(g.w)) S._woke.push(g.w); }
     }
-    if(S._woke && S._woke.length) UI.petMeter();
+    // …and repaint on EVERY sign, not only on a wake. Gated on S._woke, the pips only ever
+    // redrew at the instant a friend woke — so all the progress in between, which is what
+    // a meter is for, happened invisibly.
+    UI.petMeter();
   },
   /* how far along a friend is, for the sleep dots on its card */
   wakeAt(g){ if(!g.wake) return null;
@@ -5527,6 +5698,10 @@ const Game = {
       if(!g || !UI.equipped().includes(g)) continue;
       S.petActs=(S.petActs||0)+1;
       await Game.petAct(g);
+      // NOW the meter empties — the friend has gone, done its work and come home, so the
+      // pips draining is the end of that story rather than a number vanishing before it.
+      if(S.wake) S.wake[g.w]=0;
+      UI.petMeter();
       if(S.over || S.won) break;
     }
   },
@@ -5564,11 +5739,26 @@ const Game = {
     const el=$("pet-"+eq.indexOf(pet)) || $("pet-0");
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
-    UI.petSay(pet.e+" <b>"+pet.pn+"</b> "+pet.pi+(boost?" ×2":""));
+    UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" <b>"+pet.pn+"</b> "+pet.pi+(boost?" ×2":""));
     // THE FRIEND COMES OUT. It hops from its seat onto the board, stands where it is
     // about to work, names its power there, and walks back when it's done — so a power
     // is something a creature you collected DOES, not something that happens to you.
-    const visit = await UI.petVisit(pet, Game.petTarget(pet.fx));
+    // WHERE A FRIEND GOES MUST BE WHERE IT IS ACTUALLY WORKING. Powers that act on the
+    // board fly to the tile they change; a power that helps ANOTHER FRIEND crosses to that
+    // friend's badge. The buzz target is chosen here, before the journey, so the bee cannot
+    // land on one friend and then nudge a different one.
+    let buzzT=null;
+    if(pet.fx.t==="buzz"){
+      // never buzz a friend who is ALREADY awake and queued — that help lands on somebody
+      // who needs none, and the player watches the bee cross the shelf to do nothing
+      const others=Game.petActives().filter(g=>g!==pet && g.wake && !(S._woke||[]).includes(g.w));
+      if(others.length){
+        const togo=g=>Game.wakeNeed(g)-((S.wake&&S.wake[g.w])||0);
+        buzzT=others.slice().sort((a,b)=>togo(a)-togo(b))[0];
+      }
+    }
+    const visit = buzzT ? await UI.petVisitSeat(pet, buzzT)
+                        : await UI.petVisit(pet, Game.petTarget(pet.fx));
     await wait(300);
     // a grown friend gives more of whatever it gives — legendary powers carry no count,
     // so they are untouched by this and stay exactly as strong as the day you met them
@@ -5606,7 +5796,7 @@ const Game = {
         // no word to dig up on this board — rather than nothing, the dog brings back a
         // star. Players saw their letter silently become ★ and had no idea why.
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
-          UI.sky("🐶 no word to dig up — so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
+          UI.sky((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up — so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
       // rainHelp lived here — the bee's old power, two helpful tiles a fire. It went with
       // the bee's rethink: at six fires a round it buried a small board, and burying the
       // board is how a beginner loses. Nothing else used it.
@@ -5614,7 +5804,7 @@ const Game = {
         if(boost && S.next) S.next={letter:"★",kind:"wild"};
         UI.piece(); UI.stardrift(); Game.handPop(); break; }
       case "charm": { S.charm=(S.charm||0)+fx.n*m; // 🎼 Grace Notes
-        UI.say("charm-sing", pet.e+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
+        UI.say("charm-sing", (UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
         for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
           h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
           $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
@@ -5659,17 +5849,20 @@ const Game = {
          banked — and if that tips them over, they act inside this same turn. The drain
          loop in tryPetAct is still running, so the chain resolves as one moment. */
       case "buzz": {
-        const others=Game.petActives().filter(g=>g!==pet && g.wake);
+        const others=Game.petActives().filter(g=>g!==pet && g.wake && !(S._woke||[]).includes(g.w));
         if(!others.length){ Game.addMoves(1); break; }
         const togo=g=>Game.wakeNeed(g)-((S.wake&&S.wake[g.w])||0);
         others.sort((a,b)=>togo(a)-togo(b));
-        const friend=others[0];
+        // the one the bee actually flew to, so the animation and the effect agree
+        const friend=buzzT||others[0];
         S.wake=S.wake||{};
         S.wake[friend.w]=(S.wake[friend.w]||0)+1*m;
         const woke = S.wake[friend.w] >= Game.wakeNeed(friend);
-        if(woke){ S.wake[friend.w]=0; S._woke=S._woke||[];
+        // the buzzed friend's pips FILL and stay full until it has had its turn — same rule
+        // as every other wake (see sees()), so the bee's help is something you watch land
+        if(woke){ S._woke=S._woke||[];
           if(!S._woke.includes(friend.w)) S._woke.push(friend.w); }
-        UI.petSay(pet.e+" buzzes — "+friend.e+(woke?" <b>wakes!</b>":" stirs"));
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" buzzes — "+(UI.artTag(friend.w,"toastimg")||friend.e)+(woke?" <b>wakes!</b>":" stirs"));
         Snd.tone(woke?990:760,{dur:.11,type:"triangle",gain:.06,verb:true}); buzz(10);
         UI.petMeter(); break; }
       case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); break;
@@ -5767,7 +5960,7 @@ const Game = {
           await wait(250); t.el.style.transition=""; }
         S.chain=1; await Game.resolve(added); break; }
       case "freePluck": { S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
-        UI.sky(pet.e+" dug a hole — tap any letter to pluck it FREE"); break; }
+        UI.sky((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole — tap any letter to pluck it FREE"); break; }
       case "stoneGold": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); break; }
         rocks.forEach(t=>{ Game.credit("stone"); t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
@@ -5819,7 +6012,7 @@ const Game = {
       // 🦬 the herd calls ahead: the next three letters are all ones that fit
       case "herdCall": { S._helpNext=(S._helpNext||0)+3*m;
         if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
-        UI.say("herd-call", pet.e+" calls the herd — the next letters are <b>chosen for you</b>", 3);
+        UI.say("herd-call", (UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd — the next letters are <b>chosen for you</b>", 3);
         break; }
 
       // 🫎 the sweep only ever touched plain tiles and read as a weaker row clear
@@ -6276,14 +6469,22 @@ const Game = {
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
       if(len>=5) await Game.jackpot(len);              // 🎆 the moment worth chasing
-      // 🌟 THE WISH RECHARGES OVER WORDS (cooldown model): any direct word ticks it up,
-      // ~WISH_WORDS to fill. The 🍃 breeze is no longer earned per word — it's always on.
-      if(S.chain===1 && !(P.pow.wild>0)){
-        S.wishProg=(S.wishProg||0)+1;
-        if(S.wishProg>=WISH_WORDS){ Game.earnWish(); } else UI.wishPill();
+      // 3-letter words buy you the wind 🍃, 4+ letter words earn a wish 🌟 — but A TOOL NEVER
+      // PAYS FOR ITSELF. A breeze-made word grants no breeze and a wish-made word grants no
+      // wish, or either one becomes a perpetual motion machine: swap, clear, get the swap
+      // back, forever. The OTHER tool still pays, so a breeze into a four-letter word is a
+      // real trade — you spent the wind and bought a star.
+      if(S.chain===1){
+        if(len>=4){ if(!S._noWishGrant) Game.earnWish(); }
+        else if(len===3){ if(!S._noBreezeGrant) Game.earnBreeze(); }
       }
       const goldN=w.cells.filter(t=>t.kind==="gold").length;
-      if(goldN){ Game.tallyEv("gold",goldN); for(let gi=0;gi<goldN;gi++) Game.goalTick("harvest"); }
+      // THE GOLD SIGN WAS NEVER EMITTED. tallyEv fed the CALLINGS (how a creature notices
+      // you); sees() feeds the WAKES (what stirs one already on your shelf) — and nothing
+      // anywhere called sees("gold"), so the fish, whose whole sign is a golden letter,
+      // could never wake once in an entire run. It counts here, where the gold is spent.
+      if(goldN){ Game.tallyEv("gold",goldN); Game.sees("gold");
+                 for(let gi=0;gi<goldN;gi++) Game.goalTick("harvest"); }
       const wildN=w.cells.filter(t=>t.kind==="wild").length;
       if(wildN){ Game.tallyEv("star"); for(let wi=0;wi<wildN;wi++) Game.goalTick("star"); }
       if(len>=4) Game.goalTick("long");                       // 🏔️ the long trial hears you
@@ -6314,6 +6515,9 @@ const Game = {
     // letter kept landing in the middle of it. The board only holds what YOU placed
     // and what fell; nothing arrives that you didn't cause.
     S.chain++;
+    // …and the CASCADE sign, likewise never emitted. A tumble is one of the most legible
+    // things that happens on this board and no friend could listen for it.
+    Game.sees("cascade");
     Snd.riser(S.chain);
     await wait(430);
     await Game.resolve([...(thawed||[]), ...(fell||[])]);
@@ -6705,11 +6909,12 @@ const UI = {
       cast=[GROVE_BY_WORD.cat, GROVE_BY_WORD.dog, GROVE_BY_WORD.deer, GROVE_BY_WORD.owl];
     }
     for(let i=0;i<4;i++){ const el=$("peek-"+i); if(!el) continue;
-      const g=cast[i]; if(g){ el.textContent=g.e; el.style.display=""; el.title=g.w.toUpperCase(); }
+      const g=cast[i]; if(g){ el.innerHTML=UI.artTag(g.w,"peekimg")||g.e; el.dataset.w=g.w;
+        el.style.display=""; el.title=g.w.toUpperCase(); }
       else el.style.display="none";
     }
     // if a name was JUST remembered this session, let it pop in
-    if(UI._lastWake){ const el=[0,1,2,3].map(i=>$("peek-"+i)).find(e=>e && e.textContent===UI._lastWake);
+    if(UI._lastWake){ const el=[0,1,2,3].map(i=>$("peek-"+i)).find(e=>e && e.dataset.w===UI._lastWake);
       if(el){ el.classList.remove("newwake"); void el.offsetWidth; el.classList.add("newwake"); }
       UI._lastWake=null;
     }
@@ -6831,24 +7036,21 @@ const UI = {
     if(chosen.length) return chosen.slice(0,max);
     return met.sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0)).slice(0,max);
   },
-  breezePill(){ // the everyday wind: always in your pocket, one swap between drops
+  breezePill(){ // the wind in your pocket: 3-letter words refill it (up to 3)
     const el=$("breezepill"); if(!el) return;
-    const spent = !!(S && S.breezeUsedThisDrop);
-    $("breeze-cnt").textContent = "∞";
-    $("breeze-cnt").classList.remove("price");
-    el.classList.toggle("empty", spent);   // dim until your next drop frees it again
-    el.title = spent ? "one breeze per drop — place a letter, then breeze again"
-                     : "your everyday breeze — always ready · tap, then tap two tiles to swap";
+    const bn=P.pow.swap||0;
+    $("breeze-cnt").textContent = bn>0 ? bn : "20🟠";
+    $("breeze-cnt").classList.toggle("price", bn<=0);
+    el.classList.toggle("empty", bn<=0);
+    el.title="every 3-letter word earns a breeze · tap, then tap two tiles to swap them";
   },
-  wishPill(){ // the wish: a cooldown that recharges as you make words
+  wishPill(){ // the star in your pocket: 4-letter words refill it (up to 3)
     const el=$("wishbtn"); if(!el) return;
-    const ready=(P.pow.wild||0)>0;
-    const prog=(S ? (S.wishProg||0) : 0);
-    $("wish-cnt").textContent = ready ? "★" : prog+"/"+WISH_WORDS;
-    $("wish-cnt").classList.toggle("price", !ready);   // 'price' styling = the dim charging look
-    el.classList.toggle("empty", !ready);
-    el.title = ready ? "your wish is ready · tap to choose any letter for your next tile"
-                     : "your wish recharges as you make words — "+Math.max(0,WISH_WORDS-prog)+" to go";
+    const wn=P.pow.wild||0;
+    $("wish-cnt").textContent = wn>0 ? wn : "25🟠";
+    $("wish-cnt").classList.toggle("price", wn<=0);
+    el.classList.toggle("empty", wn<=0);
+    el.title="every 4-letter word earns a wish · tap to choose any letter for your next tile";
   },
   /* what each sign is CALLED, in the wood's own voice — these are the words a player
      reads on a friend's card, so they name the thing that happens, not the event id */
@@ -6883,14 +7085,22 @@ const UI = {
       bar.title="each friend stirs to its own sign — the shelf warms as one of them gets close";
       for(let s=0;s<5;s++){ const el=$("pet-"+s); if(!el) continue;
         const g=eq[s];
-        let b=el.querySelector(".petcount");
+        let b=el.querySelector(".pips");
         if(!g){ if(b) b.remove(); el.classList.remove("excited"); continue; }
-        if(!b){ b=document.createElement("span"); b.className="petcount"; el.appendChild(b); }
-        if(g.ps){ b.textContent="∞"; b.classList.add("ready"); el.classList.remove("excited"); continue; }
+        if(!b){ b=document.createElement("span"); b.className="pips"; el.appendChild(b); }
+        // PIPS: one dot per sign this friend still needs, under the badge and never on it.
+        // The roster is tuned so nobody asks for more than four — if a future friend ever
+        // exceeds it the dots cap rather than overflow the seat.
+        const PIPMAX=4;
+        if(g.ps){ b.className="pips always"; b.innerHTML="<i></i><i></i><i></i><i></i>";
+                  el.classList.remove("excited"); continue; }
         const w=Game.wakeAt(g);
+        const need=Math.min(PIPMAX, w ? w.need : 1);
+        const have=Math.min(need, w ? w.have : 0);
         const togo = w ? Math.max(0, w.need-w.have) : 0;
-        b.textContent = togo<=0 ? "✨" : togo;
-        b.classList.toggle("ready", togo<=0);
+        let dots=""; for(let i=0;i<need;i++) dots+='<i class="'+(i<have?"on":"")+'"></i>';
+        b.className="pips"+(togo<=0?" ready":"");
+        b.innerHTML=dots;
         el.classList.toggle("excited", togo<=1);     // one sign away and it can hardly wait
       }
     }
@@ -6899,6 +7109,15 @@ const UI = {
     const eq=UI.equipped(), g=eq[slot];
     if(!g){ // an empty or locked seat still answers when tapped
       if(!S) return;
+      // A LOCKED SEAT ANSWERS BY TURNING OVER. The level it opens at is on its back, so the
+      // tile shows it when asked instead of wearing a label forever.
+      const el=$("pet-"+slot);
+      if(el && el.querySelector(".ptback")){
+        el.classList.remove("flipping"); void el.offsetWidth; el.classList.add("flipping");
+        setTimeout(()=>el.classList.remove("flipping"), 2600);
+        Snd.tone(660,{dur:.09,type:"triangle",gain:.05}); buzz(8);
+        return;
+      }
       const slots=slotsFor(P.level);
       if(slot<slots) UI.say("seat-open", "🐾 an open seat — wake more friends to fill it!", 3);
       else if(slot < seatsByLevel(P.level))
@@ -6920,7 +7139,23 @@ const UI = {
       turn = "wakes on <b>"+(g.wake&&g.wake.n>1 ? g.wake.n+" "+sign : sign)+"</b>"
            + (togo<=0 ? " — <b>stirring now!</b>" : "<br><small>"+togo+" to go</small>");
     }
-    UI.chip(g.e+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+"</small>");
+    UI.chip((UI.artTag(g.w,"chipimg")||g.e)+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+"</small>");
+  },
+  /* ONE TAP tells you what a tile's friend does; TWO taps opens the Book to change that
+     tile. No swap buttons anywhere — the tile IS the control. */
+  petTap(slot){
+    if(UI._ptSlot!==slot){ UI._ptCount=0; UI._ptSlot=slot; }
+    UI._ptCount=(UI._ptCount||0)+1;
+    clearTimeout(UI._ptTimer);
+    UI._ptTimer=setTimeout(()=>{ const c=UI._ptCount; UI._ptCount=0;
+      if(c>=2) UI.petSwapPick(slot); else UI.petInfo(slot); }, 230);
+  },
+  petSwapPick(slot){ // double-tapped a tile — choose a friend for exactly THIS seat, in the Book
+    const eq=UI.equipped();
+    UI._swapSlot=slot; UI._swapOut=eq[slot]?eq[slot].w:null;
+    Snd.tone(760,{dur:.1,type:"sine",gain:.06,verb:true}); buzz(10);
+    UI.groveShow();
+    UI.say("swap-pick","📖 pick a friend for this tile", 4);
   },
   pillPop(id){
     const el=$(id); if(!el) return;      // some pills have retired from the stage
@@ -6943,7 +7178,7 @@ const UI = {
     $("ev-word").textContent = S.bestWord||"—";
     // silent early discoveries stay silent here too — their reveal is the post-round-5
     // ritual, not a stray emoji on a win card the player can't ask questions of
-    const found = S.newGrove.filter(w=>w==="cat"||S.level>=5).map(w=>GROVE_BY_WORD[w].e);
+    const found = S.newGrove.filter(w=>w==="cat"||S.level>=5).map(w=>UI.artTag(w,"evimg")||GROVE_BY_WORD[w].e);
     if(won){
       $("ev-grove").innerHTML = found.map(e=>"<span>"+e+"</span>").join(" ");
     } else { // a loss should feel like your friends rooting for you, not a cold verdict
@@ -6952,7 +7187,7 @@ const UI = {
         $("ev-grove").innerHTML = '<span class="sil" style="font-size:34px">'+UI.silTag(S.tutorWord)+'</span><br>'
           + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">it waited all night… its name is still hiding here — <b>try again</b></span>';
       } else
-      $("ev-grove").innerHTML = (eq.length?eq.map(g=>"<span>"+g.e+"</span>").join(" ")+"<br>":"")
+      $("ev-grove").innerHTML = (eq.length?eq.map(g=>"<span>"+(UI.artTag(g.w,"evimg")||g.e)+"</span>").join(" ")+"<br>":"")
         + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">'
         + (gap<=10 ? "only <b>"+gap+"</b> points to go — you nearly had it!"
                    : (eq.length? "your friends believe in you — " : "")+"<b>"+gap+"</b> points to go")
@@ -6996,7 +7231,7 @@ const UI = {
       bl.style.display = (guest && (P.amber||0)>=lCost) ? "flex":"none";
       bl.innerHTML = "🔤 lend me a letter · <b>"+lCost+"</b>🟠";
       bf.style.display = (guest && (P.amber||0)>=fCost) ? "flex":"none";
-      bf.innerHTML = (guest?GROVE_BY_WORD[S.tutorWord].e:"🐾")+" bring them anyway · <b>"+fCost+"</b>🟠"; }
+      bf.innerHTML = (guest?(UI.silTag(S.tutorWord)||GROVE_BY_WORD[S.tutorWord].e):"🐾")+" bring them anyway · <b>"+fCost+"</b>🟠"; }
     // 🎬 PLACEMENT 2: the win doubler — appears only after the win is already banked
     const dbl=$("btn-double");
     if(won && Ads.ready() && !Shop.blessed() && P.level>=8 && S._winAmber){
@@ -7010,7 +7245,7 @@ const UI = {
     '<div class="big">🌲</div><p>A hush fell over the wood —<br>and every creature forgot its name.</p><small>a name unspoken too long fades for good</small>',
     '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>You are the <b>Namekeeper</b>.<br>Weave letters into words ✨</p><small>words read left → right across a row, and either way up a column</small>',
     '<div class="tut-goals"><span>🎯<b>'+TARGET(1)+'</b>target</span><span>👣<b>'+MOVES(1)+'</b>moves</span></div><p>Every word thins the hush.<br>Clear it before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
-    '<div class="big">🦊🦉🐝</div><p>Spell a creature\'s <b>true name</b><br>and it remembers itself — and joins you.</p><small>50 friends to wake · every one has its OWN power</small>',
+    '<div class="big"><img class="petimg tutbig" src="art/pets/fox.png" alt=""><img class="petimg tutbig" src="art/pets/owl.png" alt=""><img class="petimg tutbig" src="art/pets/bee.png" alt=""></div><p>Spell a creature\'s <b>true name</b><br>and it remembers itself — and joins you.</p><small>50 friends to wake · every one has its OWN power</small>',
     '<div class="big">🌈</div><p>Wake all fifty,<br>and the hush lifts.</p><small>the wood has been waiting a long time for you</small>',
   ],
   _tut:0,
@@ -7097,9 +7332,10 @@ const UI = {
     let queued=0;
     for(let s=0;s<5;s++){
       const el=$("pet-"+s), g=eq[s];
-      el.classList.remove("slotopen","slotlocked");
+      el.classList.remove("slotopen","slotlocked","flips","flipping","pa1","pa2","pa3","pa4","pa5","pa6");
       if(g){ el.dataset.w=g.w; el.style.fontSize="40px";
-        el.innerHTML = UI.artTag(g.w,"petbody") || ('<span class="petbody">'+g.e+'</span>');
+        el.innerHTML = '<span class="petface">'+(UI.artTag(g.w,"petbody") || ('<span class="petbody">'+g.e+'</span>'))+'</span>';
+        el.classList.add(UI.petAnim(g.w));      // its own idle rhythm
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
       else if(s<slots){
         // AN INVITATION ONLY IF THERE IS SOMEBODY TO INVITE. slotsFor floors at one, so
@@ -7111,10 +7347,12 @@ const UI = {
         const soon=bench>0 ? null : GROVE_BY_WORD[coming[queued++]];
         // it wears its level like the others do — the friend arriving soonest was the
         // only one on the shelf that did not say when.
-        el.innerHTML = soon ? '<span class="petsil">'+UI.silTag(soon.w)+'</span>'
-                              +'<small class="slotlv">LV '+(UI.SLOT_LV[s]||1)+'</small>'
-                            : '<span class="pawghost">🐾</span>';
-        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
+        el.innerHTML = '<span class="petface">'+(soon
+              ? '<span class="ptface ptfront"><span class="petsil">'+UI.silTag(soon.w)+'</span></span>'
+               +'<span class="ptface ptback"><i>LV</i>'+(UI.SLOT_LV[s]||1)+'</span>'
+              : '<span class="pawghost">🐾</span>')+'</span>';
+        el.classList.remove("has"); el.classList.add("slotopen");
+        el.classList.toggle("flips", !!soon); el.style.fontSize="34px";
         el.title = soon ? soon.w.toUpperCase()+" is out there somewhere…"
                         : "an open seat — bring a friend to it"; }
       else if(s < seatsByLevel(P.level)){
@@ -7122,9 +7360,10 @@ const UI = {
         // shows the somebody. The ＋ that used to live here promised an action a player
         // with nobody spare cannot take; the silhouette says the true thing instead.
         const soon=GROVE_BY_WORD[coming[queued++]];
-        el.innerHTML = soon ? '<span class="petsil">'+UI.silTag(soon.w)+'</span>'
-                            : '<span class="pawghost">🐾</span>';
-        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
+        el.innerHTML = '<span class="petface">'+(soon
+              ? '<span class="petsil">'+UI.silTag(soon.w)+'</span>'
+              : '<span class="pawghost">🐾</span>')+'</span>';
+        el.classList.remove("has","flips"); el.classList.add("slotopen"); el.style.fontSize="34px";
         el.title = soon ? "this seat is waiting for a friend to walk out of the wood"
                         : "this seat is ready — meet another friend to fill it"; }
       else { // a locked seat — somebody still out there, and the level they can join you
@@ -7133,8 +7372,12 @@ const UI = {
         // they were looking at. CALLING_ORDER is the order the wood offers its friends, so
         // the next uncalled names in it ARE the next to arrive.
         const who=GROVE_BY_WORD[coming[queued++]] || GROVE_BY_WORD[coming[coming.length-1]] || GROVE[0];
-        el.innerHTML='<span class="petsil">'+UI.silTag(who.w)+'</span>'
-                    +'<small class="slotlv">LV '+UI.SLOT_LV[s]+'</small>';
+        // THE TILE TURNS OVER to say when. A level pinned to the corner of a portrait was a
+        // label fighting for room; the tile simply flips, shows the number on its back, and
+        // flips home — the seat says "someone is coming" and "at twenty" in one object.
+        el.innerHTML='<span class="petface">'
+                    +'<span class="ptface ptfront"><span class="petsil">'+UI.silTag(who.w)+'</span></span>'
+                    +'<span class="ptface ptback"><i>LV</i>'+UI.SLOT_LV[s]+'</span></span>';
         el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="34px";
         el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
     }
@@ -7155,7 +7398,7 @@ const UI = {
     const max=slotsFor(P.level), full=(P.equip||[]).length>=max && !(P.equip||[]).includes(g.w);
     $("meet-count").innerHTML = "name "+Object.keys(P.grove).length+" of "+GROVE.length+" remembered"
       + (full ? "<br>your party is full (<b>"+max+"</b> for now"+(UI.nextSlotAt()?", room for more at level "+UI.nextSlotAt():"")+") — swap friends in the Book 📖" : "");
-    UI._meetCreature = g.e;
+    UI._meetCreature = g.w;
     $("ov-meet").classList.add("active"); Game.shown("meet");
     // a slow rain of sparks around the waking creature — staggered so the moment breathes
     const card=$("ov-meet").querySelector(".card");
@@ -7197,7 +7440,8 @@ const UI = {
       p.style.animationDuration=(1.3+Math.random()*0.8)+"s"; p.style.animationDelay=(Math.random()*0.5)+"s";
       boardEl.appendChild(p); setTimeout(()=>p.remove(),2700);
     }
-    const c=document.createElement("div"); c.className="critter-run"; c.textContent=emoji;
+    const c=document.createElement("div"); c.className="critter-run";
+    c.innerHTML=UI.artTag(emoji,"critterimg")||emoji;   // 'emoji' is the creature's WORD now
     c.style.left="-14%"; c.style.top="46%";
     boardEl.appendChild(c); setTimeout(()=>c.remove(),1700);
     Snd.discover();
@@ -7234,7 +7478,7 @@ const UI = {
     const seats=[];
     for(let s=0;s<5;s++){
       const g=eq[s];
-      if(g) seats.push('<div class="gpartypet"><span class="pe">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>');
+      if(g) seats.push('<div class="gpartypet"><span class="pe">'+(UI.artTag(g.w,"peimg")||g.e)+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>');
       else if(s<slots) seats.push('<div class="gpartypet gseat"><span class="pe pawghost">🐾</span><small>open seat</small><span class="pw">meet a friend</span></div>');
       else seats.push('<div class="gpartypet gseat"><span class="pe pawghost">🐾</span><small>🔒 LV '+UI.SLOT_LV[s]+'</small><span class="pw">unlocks later</span></div>');
     }
@@ -7336,7 +7580,7 @@ const UI = {
     const g=GROVE_BY_WORD[w]; if(!g || !P.grove[w]) return;
     UI._sheetW=w;
     Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(8);
-    $("pet-sheet-e").textContent=g.e;
+    $("pet-sheet-e").innerHTML=UI.artTag(g.w,"sheetimg")||g.e;
     $("pet-sheet-n").textContent=g.w.toUpperCase();
     $("pet-sheet-f").textContent="“"+g.f+"”";
     $("pet-sheet-p").innerHTML="<b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+(g.ps?"<br><small>always on while on duty</small>":"");
@@ -7357,12 +7601,18 @@ const UI = {
     const w=UI._sheetW; if(!w || !P.metGrove[w]) return;
     const on=UI.equipped().some(x=>x.w===w);
     const full=(P.equip||[]).length>=slotsFor(P.level);
+    // TARGETED SWAP: a tile was double-tapped, so the choice replaces exactly that tile —
+    // no "pick who rests" step, that IS the swap the player just asked for.
+    if(!on && full && UI._swapSlot!=null && UI._swapOut){
+      UI.equipSwap(UI._swapOut, w); UI._swapSlot=null; UI._swapOut=null; return;
+    }
+    UI._swapSlot=null; UI._swapOut=null;
     if(on || !full){ UI.equipToggle(w); UI.petSheet(w); return; }
     // party full: YOU pick who rests — no surprise swaps
     const row=$("pet-sheet-swrow"); row.innerHTML="";
     UI.equipped().forEach(g=>{
       const b=document.createElement("button"); b.className="swpet";
-      b.innerHTML='<span class="se">'+g.e+'</span><small>'+g.w.toUpperCase()+'</small>';
+      b.innerHTML='<span class="se">'+(UI.artTag(g.w,"seimg")||g.e)+'</span><small>'+g.w.toUpperCase()+'</small>';
       b.onclick=()=>UI.equipSwap(g.w, w);
       row.appendChild(b);
     });
@@ -7373,7 +7623,7 @@ const UI = {
     P.equip=(P.equip||[]).filter(x=>x!==outW);
     P.equip.push(inW);
     save();
-    UI.chip(GROVE_BY_WORD[outW].e+" rests · "+GROVE_BY_WORD[inW].e+" joins the party!");
+    UI.chip((UI.artTag(outW,"chipimg")||GROVE_BY_WORD[outW].e)+" rests · "+(UI.artTag(inW,"chipimg")||GROVE_BY_WORD[inW].e)+" joins the party!");
     Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
     $("pet-sheet-swap").classList.remove("on");
     UI.visitor(); UI.groveShow(); UI.petSheet(inW);
@@ -7387,14 +7637,14 @@ const UI = {
     P.equip = P.equip||[];
     const max=slotsFor(P.level);
     const i=P.equip.indexOf(w);
-    if(i>=0){ P.equip.splice(i,1); UI.chip(GROVE_BY_WORD[w].e+" stays home for now"); }
+    if(i>=0){ P.equip.splice(i,1); UI.chip((UI.artTag(w,"chipimg")||GROVE_BY_WORD[w].e)+" stays home for now"); }
     else {
       if(P.equip.length>=max){ // never surprise-swap: the sheet's picker owns full-party trades
         const nxt=UI.nextSlotAt();
         UI.chip("all "+max+" seats are taken — pick who rests first 💤"+(nxt?"<br><small>another seat opens at level "+nxt+"</small>":""));
         return;
       }
-      UI.chip(GROVE_BY_WORD[w].e+" joins the party!");
+      UI.chip((UI.artTag(w,"chipimg")||GROVE_BY_WORD[w].e)+" joins the party!");
       P.equip.push(w);
       Snd.tone(988,{dur:.12,type:"triangle",gain:.07,verb:true}); buzz(15);
     }
@@ -7615,6 +7865,11 @@ const UI = {
      emoji only if a friend has no PNG (none do today). This is what makes every "who's hiding"
      mystery — the ceremony corner, the locked seats, the intro card, the reveal — the real
      creature's outline instead of an emoji's. */
+  /* ONE MATERIAL, MANY RHYTHMS. Tinting each badge to its creature was tried and dropped: the
+     colour belonged to nothing, and five pastels made the counter unreadable. The badges are
+     all one carved material now and the PAINTED FRIEND supplies the colour. What still varies
+     is the movement — six idle rhythms, so no two friends on the shelf breathe together. */
+  petAnim(w){ const i=Math.max(0, GROVE.findIndex(g=>g.w===w)); return "pa"+((i%6)+1); },
   silTag(w){ const g=GROVE_BY_WORD[w];
     return UI.PET_ART.has(w)
       ? '<img class="petimg silimg" src="art/pets/'+w+'.png" alt="" draggable="false">'
@@ -7629,6 +7884,7 @@ const UI = {
     { const art=UI.artTag(pet.w); if(art) sp.innerHTML=art; else sp.textContent=pet.e; }
     sp.style.left=x0+"px"; sp.style.top=y0+"px";
     app.appendChild(sp);
+    seat.classList.add("away");   // its seat stands empty while it is out — never two of one friend
     const k=br.width/(COLS*STEP-GAP);                       // the board is scaled to fit
     // THE BOX IS THE COLUMN. Without an explicit width the sprite was as wide as the emoji
     // glyph wanted to be — 68px against a far narrower cell — so even hovering dead centre
@@ -7673,6 +7929,44 @@ const UI = {
       sp.style.left=x0+"px"; sp.style.top=y0+"px";
       Snd.tone(560,{dur:.09,type:"triangle",gain:.05,verb:true});
       await wait(430); sp.remove();
+      seat.classList.remove("away");   // home again, and the seat is filled once more
+    } };
+  },
+  /* ══ A FRIEND-HELPING POWER GOES TO THE FRIEND ══ the bee's buzz wakes somebody on the
+     shelf, but it used to fly out over the board like every other power — the animation
+     said "I am working on these tiles" while the toast said "I am nudging the cat". It
+     crosses to that friend's badge instead, leans on it, and comes home. */
+  async petVisitSeat(pet, target){
+    const eq=UI.equipped();
+    const i=eq.indexOf(pet), j=eq.indexOf(target);
+    if(i<0 || j<0 || i===j) return null;
+    const from=$("pet-"+i), to=$("pet-"+j); if(!from || !to) return null;
+    const app=$("app"), ar=app.getBoundingClientRect();
+    const fr=from.getBoundingClientRect(), tr=to.getBoundingClientRect();
+    if(!fr.width || !tr.width) return null;
+    const x0=fr.left-ar.left+fr.width/2, y0=fr.top-ar.top+fr.height/2;
+    const x1=tr.left-ar.left+tr.width/2, y1=tr.top -ar.top +tr.height/2 - 16;  // hovers just above
+    const sp=document.createElement("div"); sp.className="petsprite";
+    { const art=UI.artTag(pet.w); if(art) sp.innerHTML=art; else sp.textContent=pet.e; }
+    sp.style.width=sp.style.height="46px";
+    sp.style.left=x0+"px"; sp.style.top=y0+"px";
+    app.appendChild(sp);
+    from.classList.add("away");
+    await wait(40);
+    sp.style.left=x1+"px"; sp.style.top=y1+"px";
+    Snd.tone(760,{dur:.1,type:"triangle",gain:.06,verb:true});
+    await wait(430);
+    sp.classList.add("landed");
+    to.classList.add("hosting");
+    const shown=Date.now();
+    return { async home(){
+      const dwell=1000-(Date.now()-shown); if(dwell>0) await wait(dwell);
+      to.classList.remove("hosting");
+      sp.classList.remove("landed");
+      sp.style.left=x0+"px"; sp.style.top=y0+"px";
+      Snd.tone(560,{dur:.09,type:"triangle",gain:.05,verb:true});
+      await wait(430); sp.remove();
+      from.classList.remove("away");
     } };
   },
   say(key, msg, times){ // teach loudly, then trust the player: instructional messages
@@ -7685,8 +7979,8 @@ const UI = {
     UI.sky(msg, 6200);
   },
   TIPS:{
-    breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters — and it's <b>always in your pocket</b>. The only rule: <b>one swap per drop</b>, so place a letter between breezes. Tap the 🍃 button, then tap the two tiles to trade places. Let\u0027s try it!"},
-    wish:  {i:"🌟", t:"Your 🌟 <b>star-wish</b> is ready! It <b>recharges as you make words</b> (about four), so spend it when it counts. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
+    breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3) — though a word the breeze itself made won't pay for another. Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
+    wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one — though a word the wish itself made won't pay for another. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
     branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter — but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
     spore: {i:"🍄", t:"<b>Spores</b> drift. Like the tangle they spread every few drops — but they do not creep along, they <b>land anywhere on the board</b>. One word beside one clears it."},
     reed:  {i:"🌾", t:"A <b>reed</b> stands in the whole column — <b>nothing drops past it</b>. You cannot go through, so go around: clear a word beside it, <b>twice</b>."},
