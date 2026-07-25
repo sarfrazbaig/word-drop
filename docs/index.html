@@ -267,6 +267,12 @@
   #tiptip .ti{ font-size:44px; }
   #tiptip .tt{ font-size:14px; color:var(--ink); line-height:1.5; margin-top:6px; }
   #tiptip .tk{ margin-top:10px; font-size:12px; color:var(--accent-deep); font-weight:800; letter-spacing:1px; }
+  /* the empty-name nudge: hidden until they try to walk past it, then it stays */
+  #tele-nag{ display:none; margin-top:7px; font-size:11px; font-style:italic; color:#a8552f; }
+  #tele-nag.on{ display:block; }
+  #tele-name.nag{ border-color:#c8552f; animation:telenag .4s ease; }
+  @keyframes telenag{ 0%,100%{ transform:translateX(0) } 25%{ transform:translateX(-5px) }
+                      75%{ transform:translateX(5px) } }
   /* a letter the lesson is not asking for: still a tile, just holding nothing yet */
   #wish-grid .tile.hushed{ color:transparent; opacity:.3; box-shadow:none;
     pointer-events:none; filter:saturate(.35); }
@@ -2460,10 +2466,11 @@
       <div id="tele-title">welcome, playtester!</div>
       <div id="tele-body">this is an early build shared for feedback. as you play, your taps and
         progress are noted so we can find the rough edges — nothing else, and nothing personal.
-        pop your name below so we know whose notes are whose. 💛</div>
+        <b>put your name in</b> so we know whose notes are whose. 💛</div>
       <input id="tele-name" type="text" maxlength="24" autocomplete="off" spellcheck="false"
-        placeholder="your name (optional)" aria-label="your name">
-      <button class="btn-primary" onclick="Tele.setName(document.getElementById('tele-name').value); P.teleSeen=true; save(); Tele.log('tele_ok',{named:!!(P.teleName||'').trim()}); document.getElementById('ov-tele').classList.remove('active');">let's play ▶</button>
+        placeholder="your name" aria-label="your name" onkeydown="if(event.key==='Enter')Tele.okNotice()">
+      <div id="tele-nag">a name, any name — otherwise every tester is the same stranger</div>
+      <button class="btn-primary" onclick="Tele.okNotice()">let's play ▶</button>
     </div>
   </div>
 
@@ -8680,7 +8687,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260725233046",
+  ver:"20260725233459",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports —
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -8766,7 +8773,26 @@ const Tele = {
         headers:{"Content-Type":"text/plain;charset=utf-8"}, body });
     }catch(e){ this.buf.unshift(...batch); }   // keep them for the next flush
   },
-  setName(n){   // whose notes are these? optional, stored on their device, sent with every batch
+  /* A NAME IS NOT OPTIONAL HERE. These testers are all friends of the owner, and feedback
+     that cannot be traced to a person is feedback nobody can follow up on — "somebody got
+     stuck at level 9" is a fact you can do nothing with. The button was an inline handler
+     that dismissed the card whatever the field held, so the easy path was to skip it. It
+     asks, and it waits. Nothing else can dismiss this card: no ✕, no backdrop handler. */
+  okNotice(){
+    const el=$("tele-name"), n=(el.value||"").trim();
+    if(!n){
+      el.classList.remove("nag"); void el.offsetWidth; el.classList.add("nag");
+      $("tele-nag").classList.add("on");
+      try{ el.focus(); }catch(e){}
+      Snd.reject(); buzz(30);
+      return;
+    }
+    Tele.setName(n);
+    P.teleSeen=true; save();
+    Tele.log("tele_ok",{ named:true });
+    $("ov-tele").classList.remove("active");
+  },
+  setName(n){   // whose notes are these? stored on their device, sent with every batch
     n=(n||"").trim().slice(0,24);
     if(!n) return;
     try{ P.teleName=n; save(); }catch(e){}
