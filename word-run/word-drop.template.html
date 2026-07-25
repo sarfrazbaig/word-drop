@@ -526,6 +526,11 @@
     background:radial-gradient(circle at 50% 35%, rgba(255,246,222,.95), rgba(240,214,160,.9));
     box-shadow:0 3px 10px -2px rgba(60,30,0,.45), inset 0 -2px 0 rgba(140,100,40,.25);
     animation:peekbob 2.2s ease-in-out infinite; z-index:6; }
+  /* peekbob OUTLIVED THE HILL IT WAS NAMED FOR. I deleted it with the drawn scenery and
+     three living rules kept calling it — the daily chest, the Book's next-up card, and the
+     intro card's place icon all silently stopped moving. It is defined here now, beside its
+     busiest user, so the next sweep sees it is not home-screen furniture. */
+  @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
   #homegift:active{ transform:translateY(2px) scale(.96); }
   #homegift.on{ display:block; }
   #homegift:active{ transform:scale(.92); }
@@ -685,16 +690,23 @@
   #tut-dots i{ width:8px; height:8px; border-radius:50%; background:rgba(121,92,55,.25); }
   #tut-dots i.on{ background:var(--gold-deep); }
   #ov-tut{ background:none; }
-  #tut-sky{ position:absolute; inset:0 0 32% 0; background:linear-gradient(180deg,#5b5d8c 0%,#8a7fae 45%,#c99f82 78%,#e7d3ac 100%); }
-  /* the same soft moon that watches the home hill — the hush is one continuous evening,
-     and a blazing gold sun here made the story's first page contradict its own cover */
-  #tut-sun{ position:absolute; top:9%; right:16%; width:46px; height:46px; border-radius:50%;
-    background:radial-gradient(circle at 40% 38%,#fff4d2, rgba(255,244,210,.72) 62%, transparent 76%);
-    box-shadow:0 0 34px 12px rgba(255,244,210,.4); animation:moonglow 6s ease-in-out infinite; }
-  #tut-hill{ position:absolute; left:0; right:0; bottom:0; height:36%;
-    background:linear-gradient(180deg,#4d7050,#35543a); border-radius:60% 60% 0 0 / 22% 22% 0 0;
-    box-shadow:0 -8px 26px rgba(50,70,90,.35); }
-  #tut-hill .sprout{ position:absolute; top:12px; font-size:22px; opacity:.75; }
+  /* ══ THE COUNTRY BEHIND A RITUAL ══ the lesson card and the naming card each used to draw
+     their own private evening — a gradient sky, a moon, a green hill, and on the tutorial's
+     one, two friends and a mushroom. Three hand-drawn skies for one game, none of them the
+     place the player is actually standing in.
+     A RITUAL IS VEILED WHERE THE DOOR IS NOT, and the difference is deliberate: on the home
+     screen the painting IS the content, so nothing may dim it. Here a card is the content
+     and the world is atmosphere — the same principle the naming beat already states in code,
+     that everything at the edges steps back for the reveal. So the country is thrown out of
+     focus and held down, and the card is the brightest thing on screen. */
+  .ovart{ position:absolute; inset:0; z-index:0; border-radius:inherit; pointer-events:none;
+    background:var(--bgart) center/cover no-repeat;
+    filter:blur(4px) saturate(1.03); transform:scale(1.07); }
+  .ovveil{ position:absolute; inset:0; z-index:1; border-radius:inherit; pointer-events:none;
+    background:linear-gradient(180deg,
+      rgba(var(--deep,40,36,60), .74) 0%,
+      rgba(var(--deep,40,36,60), .58) 45%,
+      rgba(var(--deep,40,36,60), .80) 100%); }
   #ov-tut .card{ position:relative; z-index:2; }
 
   /* ================= GAME SCENE ================= */
@@ -1651,7 +1663,6 @@
   /* PORTRAITS IN RUNNING TEXT — toasts, chips, cards. Sized in em so each one matches the
      type it sits beside instead of needing a pixel guess per site. */
   .toastimg{ height:1.55em; width:1.55em; display:inline-block; vertical-align:-0.42em; object-fit:contain; }
-  .peekimg{ width:100%; height:100%; object-fit:contain; display:block; }
   .peimg{ width:38px; height:38px; object-fit:contain; display:block; margin:0 auto; }
   .seimg{ width:34px; height:34px; object-fit:contain; display:block; margin:0 auto; }
   .sheetimg{ width:96px; height:96px; object-fit:contain; display:block; margin:0 auto; }
@@ -1670,7 +1681,6 @@
   .buy-btns .btn-primary{ flex:1 1 0; margin:0; font-size:13px; padding:10px 8px; }
   #ov-buy.poor #buy-yes{ opacity:.4; pointer-events:none; }
   .tutbig{ height:62px; width:62px; object-fit:contain; display:inline-block; vertical-align:middle; }
-  .tuthill{ width:34px; height:34px; object-fit:contain; display:block; }
   /* BIGGER PAINTED PETS. The seat shares the bar's width with its neighbours (flex, min-width
      0) so five still fit without overflow, while the sprite grows to fill the taller bar —
      tall creatures reach 68px, wide ones are capped by the seat they sit in. */
@@ -2040,16 +2050,9 @@
   @media (prefers-reduced-motion: reduce){
     #fin-sky,#fin-bow,#fin-grove span,#fin-card{ animation-duration:.01ms !important; } }
 
-  #meet-sky{ position:absolute; inset:0 0 34% 0; background:linear-gradient(180deg,#514f82 0%,#8579a6 48%,#cf9f7e 100%); }
-  /* the one moment light returns to the wood: the moon itself warms and brightens.
-     it stays a MOON — the dusk is one continuous evening even when it smiles. */
-  #meet-sun{ position:absolute; top:8%; left:50%; transform:translateX(-50%); width:62px; height:62px; border-radius:50%;
-    background:radial-gradient(circle at 40% 38%,#fff8e2, rgba(255,240,196,.75) 60%, transparent 76%);
-    box-shadow:0 0 54px 20px rgba(255,232,170,.5); animation:meetmoon 3.2s ease-in-out infinite; }
-  @keyframes meetmoon{ 50%{ box-shadow:0 0 72px 28px rgba(255,232,170,.68); } }
-  #meet-hill{ position:absolute; left:0; right:0; bottom:0; height:38%;
-    background:linear-gradient(180deg,#4d7050,#35543a); border-radius:60% 60% 0 0 / 24% 24% 0 0;
-    box-shadow:0 -8px 26px rgba(50,70,90,.35); }
+  /* THE RAYS STAY. They are not scenery — they are the ritual's own light, the thing that
+     makes a name coming home feel like an event, and they read far better on a veiled
+     country than they ever did on a flat green hill. */
   #meet-rays{ position:absolute; left:50%; top:36%; width:300px; height:300px; transform:translate(-50%,-50%);
     background:repeating-conic-gradient(from 0deg, rgba(255,196,96,.6) 0 8deg, transparent 8deg 22deg);
     -webkit-mask:radial-gradient(circle, #000 32%, transparent 72%); mask:radial-gradient(circle, #000 32%, transparent 72%);
@@ -2620,8 +2623,8 @@
 
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay" id="ov-tut">
-    <div id="tut-sky"><div id="tut-sun"></div></div>
-    <div id="tut-hill"><span class="sprout" style="left:10%">🌿</span><span class="peek" style="left:16%;top:-14px"><img class="petimg tuthill" src="art/pets/fox.png" alt="" draggable="false"></span><span class="peek" style="right:15%;top:-14px"><img class="petimg tuthill" src="art/pets/owl.png" alt="" draggable="false"></span><span class="sprout" style="right:9%">🍄</span></div>
+    <div class="ovart"></div>
+    <div class="ovveil"></div>
     <div class="card">
       <div id="tut-slide"></div>
       <div id="tut-dots"></div>
@@ -2643,8 +2646,8 @@
 
   <!-- ============ MEET A NEW FRIEND — the discovery ritual ============ -->
   <div class="overlay" id="ov-meet" onclick="Game.closeMeet()">
-    <div id="meet-sky"><div id="meet-sun"></div></div>
-    <div id="meet-hill"></div>
+    <div class="ovart"></div>
+    <div class="ovveil"></div>
     <div id="meet-rays"></div>
     <div class="card">
       <div id="meet-halo"></div>
@@ -7581,7 +7584,7 @@ const UI = {
     const firstEver = Object.keys(P.metGrove).length===0;
     const how = g.ps ? "always on while "+g.w+"'s on duty" : "every few words";
     $("meet-line").innerHTML = firstEver
-      ? "awake, and itself again. <b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".<br>Your party walks the meadow above the clearing 🌿 · swap them in the Book 📖"
+      ? "awake, and itself again. <b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".<br>Your friends wait above the board · swap them in the Book 📖"
       : "<b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".";
     // if the party is full, say so RIGHT NOW — otherwise the missing pet reads as a bug
     const max=slotsFor(P.level), full=(P.equip||[]).length>=max && !(P.equip||[]).includes(g.w);
