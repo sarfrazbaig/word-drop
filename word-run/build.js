@@ -103,6 +103,23 @@ if (fs.existsSync(petsSrc)) {
 } else {
   console.warn("!! no art/pets folder — pets will fall back to emoji");
 }
+// THE FIFTEEN PAINTED COUNTRIES. Same reason as the portraits: the dev server serves
+// word-run/ but Pages serves /docs, so a background that looks right on localhost is a
+// broken image on the deployed site unless it is mirrored here.
+const bgSrc = path.join(__dirname, "art", "bg");
+if (fs.existsSync(bgSrc)) {
+  const bgDst = path.join(docs, "art", "bg");
+  fs.mkdirSync(bgDst, { recursive: true });
+  const imgs = fs.readdirSync(bgSrc).filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f));
+  let bytes = 0;
+  imgs.forEach(f => {
+    fs.copyFileSync(path.join(bgSrc, f), path.join(bgDst, f));
+    bytes += fs.statSync(path.join(bgSrc, f)).size;
+  });
+  console.log(`Copied ${imgs.length} country backgrounds → docs/art/bg (${(bytes / 1048576).toFixed(1)} MB)`);
+} else {
+  console.warn("!! no art/bg folder — countries will draw their own gradient skies");
+}
 // the service worker is STAMPED, not copied: a fixed cache name means the browser sees an
 // identical sw.js each deploy, never installs a new worker, and never drops the old cache —
 // so a playtester keeps a stale build while you push fixes they never get. Stamping the

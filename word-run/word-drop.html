@@ -919,24 +919,58 @@
     background:radial-gradient(circle at 40% 38%, var(--moon), color-mix(in srgb, var(--moon) 70%, transparent) 62%, transparent 74%);
     box-shadow:0 0 32px 10px color-mix(in srgb, var(--moon) 55%, transparent);
     animation:moonglow 6s ease-in-out infinite; }
-  /* ART PREVIEW: a painted night-forest scene replaces the gradient sky. Toggled by .artbg
-     on #app so ordinary play is untouched; the scene carries its own moon, so the CSS one
-     and the gradient ground both step aside. */
-  #app.artbg #board{
-    background-image:url("art/bg-night.png") !important;
-    background-size:cover !important;
-    background-position:center bottom !important;
-    background-repeat:no-repeat !important; }
-  #app.artbg #board::after{ display:none; }
-  #app.artbg #board::before{ display:none; }
-  /* JUST THE SCENE. It carries its own moon, fireflies and foliage, so the game's own board
-     decorations step aside: the corner leaves and butterfly (#biodecor), the receding-hush
-     mist (#hushmist) and the drifting leaves. NOT .tw — that is the tile WRAPPER, and hiding
-     it hides every letter on the board (which is exactly what went wrong the first time). */
-  #app.artbg #biodecor,
-  #app.artbg #hushmist,
-  #app.artbg .windleaf,
-  #app.artbg .petal{ display:none !important; }
+  /* ══ THE PAINTED COUNTRIES ══ each of the fifteen has a painted background in art/bg/.
+     When one is present the board stops drawing its own scenery entirely: the painting IS
+     the place. Everything the board used to generate — the gradient sky, the starfield, the
+     moon, the ground wash, the corner leaves and butterfly, the hush mist, drifting petals —
+     steps aside rather than layering a second-rate copy over somebody's painting.
+
+     --bgart is the image, --bgtint the country's own shadow colour, --bgpos how the crop is
+     anchored. All three are set per-biome below. */
+  #app.bgart #board{
+    background-image:
+      linear-gradient(180deg,
+        rgba(var(--bgtint),0)   0%,
+        rgba(var(--bgtint),.07) 28%,
+        rgba(var(--bgtint),.38) 50%,
+        rgba(var(--bgtint),.52) 72%,
+        rgba(var(--bgtint),.60) 100%),
+      var(--bgart) !important;
+    background-size:cover, cover !important;
+    background-position:center, var(--bgpos,center) !important;
+    background-repeat:no-repeat, no-repeat !important; }
+  /* THE SCRIM, and why it is a background layer rather than an overlay: painted as part of
+     the board's own background it sits BEHIND every tile. Laid over the top instead — which
+     is the obvious way to write it — it dims the letters it was meant to make readable.
+     Transparent at the top so the sky, moon, aurora or crystal glow keeps full strength;
+     it only deepens down where the letters actually stack. */
+  #app.bgart #board::after{ display:none; }    /* the CSS moon — the painting has its own */
+  #app.bgart #board::before{ display:none; }   /* the ground wash — likewise */
+  /* NOT .tw — that is the tile WRAPPER, and hiding it hides every letter on the board
+     (exactly what went wrong the first time this was tried). */
+  #app.bgart #biodecor,
+  #app.bgart #hushmist,
+  #app.bgart .windleaf,
+  #app.bgart .petal{ display:none !important; }
+  /* each country's own shadow colour, so the deepening at the foot of the board belongs to
+     the place — warm brown under the cave, violet under the crown, never a generic grey */
+  #app.bgart.bio0 { --bgtint:20,44,26;  --bgart:url("art/bg/bio0.jpg"); }
+  #app.bgart.bio1 { --bgtint:18,40,20;  --bgart:url("art/bg/bio1.jpg"); }
+  #app.bgart.bio2 { --bgtint:14,36,28;  --bgart:url("art/bg/bio2.jpg"); }
+  #app.bgart.bio3 { --bgtint:32,18,48;  --bgart:url("art/bg/bio3.jpg"); }
+  #app.bgart.bio4 { --bgtint:12,32,40;  --bgart:url("art/bg/bio4.jpg"); }
+  #app.bgart.bio5 { --bgtint:34,38,18;  --bgart:url("art/bg/bio5.jpg"); }
+  #app.bgart.bio6 { --bgtint:10,34,52;  --bgart:url("art/bg/bio6.jpg"); }
+  #app.bgart.bio7 { --bgtint:10,40,42;  --bgart:url("art/bg/bio7.jpg"); }
+  #app.bgart.bio8 { --bgtint:34,20,10;  --bgart:url("art/bg/bio8.jpg"); }
+  #app.bgart.bio9 { --bgtint:14,10,26;  --bgart:url("art/bg/bio9.jpg"); }
+  #app.bgart.bio10{ --bgtint:8,34,52;   --bgart:url("art/bg/bio10.jpg"); }
+  #app.bgart.bio11{ --bgtint:28,30,34;  --bgart:url("art/bg/bio11.jpg"); }
+  #app.bgart.bio12{ --bgtint:22,34,54;  --bgart:url("art/bg/bio12.jpg"); }
+  #app.bgart.bio13{ --bgtint:18,28,48;  --bgart:url("art/bg/bio13.jpg"); }
+  #app.bgart.bio14{ --bgtint:20,14,48;  --bgart:url("art/bg/bio14.jpg"); }
+  /* the cave chapters' closing vignette is part of the painting now */
+  #app.bgart #biodecor::after{ display:none !important; }
   /* the floor of the place, under the tiles — the wood has ground, the mountain has scree */
   #board::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:38%;
     z-index:0; pointer-events:none; border-radius:inherit;
@@ -2681,6 +2715,9 @@ const BIOME_DECOR=[
   [ {e:"🏔️",x:"-9%",y:"54%",s:104,a:"edge"}, {e:"🌌",x:"70%",y:"-8%",s:96,a:"edge"}, {e:"❄️",x:"-6%",y:"-6%",s:72,a:"edge tilt"},
     {e:"❄️",x:"24%",y:"4%",s:11,a:"deco-fall"}, {e:"⭐",x:"48%",y:"16%",s:11,a:"deco-twinkle2"} ],
 ];
+/* which countries have a painted background sitting in art/bg/. Add a number here the moment
+   its file lands and that country stops generating its own sky. */
+const BG_ART=new Set([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]);
 function applyBiome(L){
   const app=document.getElementById("app");
   // \d, not \d+, meant bio10 through bio14 were never STRIPPED — they piled up on the
@@ -2692,6 +2729,10 @@ function applyBiome(L){
   // every player sees first and longest, was the one place that got no frame, no tinted
   // shelf and none of the country styling. It is a place like the other fourteen.
   app.classList.add("bio"+b);
+  /* A PAINTED COUNTRY REPLACES THE GENERATED ONE. BG_ART lists which of the fifteen have a
+     painting in art/bg/ — a country without one keeps the gradient sky and its scenery, so
+     the two can coexist while the set is filled in. The CSS does the rest. */
+  app.classList.toggle("bgart", BG_ART.has(b));
   // scenery lives UNDER the tiles: first child of the board, rebuilt with each place
   const old=document.getElementById("biodecor"); if(old) old.remove();
   const d=document.createElement("div"); d.id="biodecor";
