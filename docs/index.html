@@ -1414,9 +1414,15 @@
      has something to stand on instead of dissolving into the enamel */
   .has .petface::after{ content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
     background:radial-gradient(52% 34% at 50% 88%, rgba(140,110,60,.26), transparent 72%); }
-  /* the glossy top sheen of a real tile, laid OVER the imprint */
-  .petface::before{ content:""; position:absolute; top:2px; left:6%; right:34%; height:32%; z-index:2;
-    border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.85), transparent); pointer-events:none; }
+  /* A RIM LIGHT, NOT A BLOB. This was a 40×22px ellipse of 85% white sitting at the top of
+     every badge — meant as gloss on porcelain, but it landed square on the creature's face,
+     and the moment anything darker sat behind it it read as a white smear rather than a
+     highlight. A wide, shallow catch of light along the top EDGE says "this thing has a
+     glazed surface" without putting a shape on top of the friend. */
+  .petface::before{ content:""; position:absolute; top:1px; left:7%; right:7%; height:30%; z-index:2;
+    border-radius:50% / 100%;
+    background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 72%);
+    pointer-events:none; }
   .petcompanion:active .petface{ transform:translateY(2px);
     box-shadow:0 3px 0 #cbb489, 0 4px 7px rgba(85,65,35,.3),
       inset 0 2px 0 rgba(255,255,255,1), inset 0 -7px 10px rgba(163,133,86,.22),
