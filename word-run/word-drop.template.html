@@ -267,6 +267,11 @@
   #tiptip .ti{ font-size:44px; }
   #tiptip .tt{ font-size:14px; color:var(--ink); line-height:1.5; margin-top:6px; }
   #tiptip .tk{ margin-top:10px; font-size:12px; color:var(--accent-deep); font-weight:800; letter-spacing:1px; }
+  /* "1 of 3" — a beginner reading a tool card should be able to see how much is left. It
+     sits on its own line above the words so it never reads as part of the sentence. */
+  .tipstep{ display:block; margin-bottom:5px;
+    font-family:var(--font-ui); font-size:9.5px; font-weight:900; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--accent-deep); opacity:.85; }
   /* announcements land CENTER STAGE — toasts are website furniture, players miss them */
   /* ══ THE SKY RAIL ══ anything you have to read while looking at the board. It rides the
      empty sky at the top of the board, because letters stack from the floor. Translucent so
@@ -2616,7 +2621,7 @@
       <button class="iconbtn sm" onclick="UI.scene('scene-home')">←</button>
       <span id="grove-title">The Book of Names</span>
       <span class="chip">📔 <b id="gr-count">0/50</b> <em class="chiplbl">names</em></span>
-      <span class="chip" title="one whispered word each day — spell it for a full paw meter">📅 <b id="gr-daily">?</b></span>
+      <span class="chip" title="one whispered word each day — spell it for a burst of praise and a streak">📅 <b id="gr-daily">?</b></span>
     </div>
     <div id="grovefield"></div>
   </div>
@@ -2694,7 +2699,10 @@
 
   <div class="overlay" id="ov-intro" onclick="Game.beginLevel()">
     <div class="card">
-      <div id="iv-place"><span id="iv-placeicon">🌼</span><span id="iv-placename">Sunny Meadow</span></div>
+      <!-- placeholders only: startLevel() writes both before the card is ever shown. Kept
+           neutral because "Sunny Meadow" was a real-looking name from the retired meadow
+           screens, and a stale place name in the markup is something a later reader copies. -->
+      <div id="iv-place"><span id="iv-placeicon"></span><span id="iv-placename"></span></div>
       <div id="iv-type" style="display:none"></div>
       <div id="iv-path"></div>
       <div id="iv-level">LEVEL 1</div>
@@ -2741,9 +2749,11 @@
            What the player is actually doing here is waking a wood — so that leads, with the
            collection, the road to the next milestone, and where they currently stand. -->
       <div id="st-grove">
+        <!-- no bar here: the line above already gives the number, and a bar that repeats a
+             sentence is decoration rather than information. (This note was pasted in as JS
+             line comments once — inside markup "//" is not a comment, it is copy, and it
+             rendered as visible text in the panel.) -->
         <div id="st-grovehead"></div>
-            ;   // no bar: the line above already gives the number, and a bar that
-                // repeats a sentence is decoration rather than information
         <div id="st-mile"></div>
       </div>
       <div id="st-place"></div>
@@ -4074,10 +4084,16 @@ const FT = {
       b.addEventListener("pointerdown",done,{once:true});
     });
   },
-  async waitTip(kind){ // a full-page tool card at lesson start: show it, wait until read
+  async waitTip(kind){ // the tool cards at lesson start: show them, wait until READ
     if(P.seenTip[kind]) return;                    // replays skip the reading
     UI.tileTip(kind);
-    while($("tiptip").classList.contains("on")) await wait(150);
+    /* IT WAS NOT WAITING. This polled #tiptip — the old full-page card — but tileTip stopped
+       using that element when the tips moved into the sky rail, so the loop found a element
+       that is never switched on, fell straight through, and the lesson carried on 350ms
+       later WHILE the card was still on screen asking to be tapped. The teaching bubble
+       then landed on top of the thing the player was still reading. Wait on the announcement
+       queue instead, which is where the cards actually live. */
+    await UI.toastQuiet();
     await wait(350);                               // one breath between the card and the lesson
   },
   note(html){ FT.clearNote(); const n=FT.bit(document.createElement("div")); n.className="ftue-note";
@@ -4240,29 +4256,43 @@ const FT = {
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null; // training wheels off — the purr waits for the WIN card, where it belongs
   },
-  async lesson5(){ // the cat is awake — show where friends LIVE: shelf, seats, paw meter
+  async lesson5(){ // the cat is awake — show where friends STAND, what wakes them, and the Book
     if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points — no lesson to give
     $("toast").classList.remove("on");             // the Book toast has had its moment
     const seat=UI.equipped().findIndex(g=>g.w==="cat");
     // "your party lives on this shelf" — there is no shelf. The friends stand free on the
     // country now, which is a nicer thing to say anyway: they are companions, not inventory.
     await FT.callout("#pet-"+(seat<0?0:seat), (UI.artTag("cat","toastimg")||"🐱")+" <b>CAT walks with you now</b><br><small>your friends stand with you here — tap one anytime to see what it does</small>", "below");
-    await FT.callout("#pet-2", "🔒 <b>more friends can walk with you later</b><br><small>a seat opens when you have somebody to fill it</small>", "below");
-    // THE SIGN, AND THE BADGE THAT COUNTS IT. This is the one idea the whole game rests
-    // on, and it was the one thing never taught. Every friend listens for something
-    // different and the little number on its portrait is how many more it needs.
+    // THE TILE ANSWERS THIS ITSELF NOW. It wears a '?' and the level it opens at, so a
+    // lesson saying "when you have somebody to fill it" contradicted the number the player
+    // was looking at while reading the words. Say what the tile says.
+    await FT.callout("#pet-2", "🔒 <b>more friends will walk with you</b><br><small>a <b>?</b> seat shows the level it opens at — this one at <b>"+UI.SLOT_LV[2]+"</b></small>", "below");
+    /* THE SIGN, AND THE DOTS THAT COUNT IT. This is the one idea the whole game rests on.
+       It was taught as "the number on its face" and "when that number reaches nothing" —
+       written for a countdown badge that DOTS replaced, and never reworded. A beginner was
+       being told to watch a number that is not on the screen. Dots fill; nothing counts
+       down. Both lines say what the player can actually see. */
+    /* THE CAT DOES NOT WATCH DROPS. It wakes on word3 ×2 — two three-letter words (roster,
+       GROVE cat). The only friend that counts drops is the snail. So the prologue's central
+       lesson, and its closing instruction, told the player to do the one thing that provably
+       cannot light a pip: a beginner following it literally drops letters forever and nothing
+       happens. Read from the roster rather than restating it, so a rebalance cannot make a
+       liar of the lesson again. */
     const catSeat="#pet-"+(seat<0?0:seat);
+    // the SIGN, not the count — the dots beneath the cat are the count, which is the whole
+    // reason they exist. "listening for 2 small words" made the sentence do the pips' job.
+    const catG=GROVE_BY_WORD.cat, catSign=UI.WAKE_WORDS[catG.wake.on]||"words";
     await FT.callout(catSeat,
-      "🐾 <b>every friend listens for something different</b><br><small>the cat watches the letters you <b>drop</b> \u2014 the number on its face is how many more it needs</small>", "below");
+      "<b>every friend listens for something different</b><br><small>the cat is listening for <b>"+catSign+"</b> \u2014 each one you spell lights a dot beneath it</small>", "below");
     await FT.callout(catSeat,
-      "😴 <b>when that number reaches nothing, it wakes</b><br><small>it walks out onto the board on its own and pats a letter into <b>one that fits</b> \u2014 you never tap a friend to use it</small>", "below");
+      "<b>when every dot is lit, it wakes</b><br><small>it walks onto the board by itself and pats a letter into <b>one that fits</b> \u2014 you never tap a friend to use it</small>", "below");
     // …and finally, the thing that keeps them playing: WHO IS NEXT. The lesson used to end
     // on the paw meter, leaving the player with a pet but no notion that fifty more could be
     // earned or how. The swap button is gone — the TILE is the control now, so the lesson
     // points at the friend's own tile and teaches the two taps that live on it.
     await FT.callout(catSeat,
       "📔 <b>tap the tile</b> to see what a friend does<br><small><b>double-tap</b> it to open the Book of Names — every friend still hushed, what each is listening for, and who walks with you</small>", "below");
-    FT.note("keep dropping — the cat is counting 🐾");
+    FT.note("keep spelling — every small word brings the cat closer");
     setTimeout(()=>FT.clearNote(), 4200);
     S.guide=null;
   },
@@ -5401,7 +5431,7 @@ const Game = {
   },
 
   share(){
-    const txt="🌲 Hushwood — LV "+S.level+" · "+S.levelScore+" pts · 👑 best word "+(S.bestWord||"—")+"\nplay: sarfrazbaig.github.io/word-drop";
+    const txt="🌲 Hushwood — "+levelLabel(S.level)+" · "+S.levelScore+" pts · 👑 best word "+(S.bestWord||"—")+"\nplay: sarfrazbaig.github.io/word-drop";
     if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(txt); UI.chip("copied ✓"); }
   },
@@ -7030,7 +7060,9 @@ const Game = {
     Game.cheer(Game.petNeed());                                          // and the pets get their treat
     UI.shards(r,c,"#ffd54f"); UI.confetti();
     Snd.gold(); Snd.levelUp(); buzz([15,25,15,45]);
-    UI.toast("🎁 the gift bursts open!<br>"+got.join(" · ")+"<br><small>🐾 your friends are ready</small>");
+    // no "your friends are ready" — nothing here brings a friend any closer. The list above
+    // is the whole gift, and it is plenty; a false line under a true one poisons both.
+    UI.toast("🎁 the gift bursts open!<br>"+got.join(" · "));
     UI.hud();
     await wait(620);
   },
@@ -7334,6 +7366,17 @@ const UI = {
       }
     }
   },
+  /* ══ WHAT WAKES THIS FRIEND, IN ONE PLACE ══ three surfaces answered this question and
+     they did not agree: the pet sheet read it off the roster correctly, the naming card said
+     "every few words" for all fifty, and the tutorial told a beginner the cat watches drops
+     (it watches three-letter words — only the snail watches drops). A friend's sign is data;
+     every surface reads it from here now, so none of them can drift from the roster again. */
+  signPhrase(g){
+    if(!g) return "";
+    if(g.ps) return "always awake";
+    const sign = UI.WAKE_WORDS[g.wake && g.wake.on] || "words";
+    return (g.wake && g.wake.n > 1) ? g.wake.n + " " + sign : sign;
+  },
   petInfo(slot){ // tap a pet: what it does, and exactly when it acts — no mystery
     const eq=UI.equipped(), g=eq[slot];
     if(!g){ // an empty or locked seat still answers when tapped
@@ -7365,9 +7408,8 @@ const UI = {
       // THE TRIGGER IS STATED, THE STRATEGY IS NOT. A player choosing a party has to know
       // what wakes a friend; nothing anywhere tells them which round wants which friend.
       const w=Game.wakeAt(g);
-      const sign=UI.WAKE_WORDS[g.wake&&g.wake.on] || "you play on";
       const togo=w ? Math.max(0, w.need-w.have) : 0;
-      turn = "wakes on <b>"+(g.wake&&g.wake.n>1 ? g.wake.n+" "+sign : sign)+"</b>"
+      turn = "wakes on <b>"+UI.signPhrase(g)+"</b>"
            + (togo<=0 ? " — <b>stirring now!</b>" : "<br><small>"+togo+" to go</small>");
     }
     UI.chip((UI.artTag(g.w,"chipimg")||g.e)+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+"</small>");
@@ -7610,7 +7652,11 @@ const UI = {
     $("meet-name").textContent = g.w.toUpperCase();
     // the ritual explains this pet's OWN power — no two friends are alike
     const firstEver = Object.keys(P.metGrove).length===0;
-    const how = g.ps ? "always on while "+g.w+"'s on duty" : "every few words";
+    // "every few words" was the shared-meter model, retired when every friend got its own
+    // sign. It was the FIRST thing ever said about a friend's timing, and it was wrong for
+    // all fifty of them — the fish follows gold, the fox follows tumbles, the snail counts
+    // drops. Say the friend's actual sign.
+    const how = g.ps ? "always on while "+g.w+"'s on duty" : "wakes on "+UI.signPhrase(g);
     $("meet-line").innerHTML = firstEver
       ? "awake, and itself again. <b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".<br>Your friends wait above the board · swap them in the Book 📖"
       : "<b>"+g.pn+" "+g.pi+"</b> — "+how+": "+g.pd+".";
@@ -7704,7 +7750,10 @@ const UI = {
     }
     party.innerHTML="<h4>🌿 your party</h4>"
       + '<div class="row">'+seats.join("")+'</div>'
-      + (eq.length? '' : '<div class="note">your first friend joins around level 4 🐾</div>')
+      // "around level 4" — no screen ever says that. The prologue is labelled Prologue 1-5
+      // and the first thing called Level 1 comes AFTER the cat. Say the label the player is
+      // actually looking at.
+      + (eq.length? '' : '<div class="note">your first friend joins in <b>Prologue 4</b></div>')
       + '<div class="note">'+eq.length+' / '+slots+' seats filled</div>';
     f.appendChild(party);
     // ---- pawprint progress + keepsake badges ----
@@ -7876,13 +7925,19 @@ const UI = {
     const found=Object.keys(P.metGrove||{}).length, total=GROVE.length;
     const mile=UI.GROVE_MILES.find(mi=>found<mi.n);
     $("st-grovehead").innerHTML = "🐾 <b>"+found+"</b> of "+total+" names remembered";
-    $("st-grovebar").style.width = (100*found/total)+"%";
+    /* THE BAR WAS DELETED AND THIS LINE WAS NOT. $("st-grovebar") is null, so this threw a
+       TypeError before the panel was ever shown — "📊 Your journey" in the menu closed the
+       menu and then did nothing at all, on every tap, for every player. Nothing logs it
+       because the throw happens inside a click handler. */
     $("st-mile").innerHTML = mile
       ? "<b>"+(mile.n-found)+"</b> more until "+mile.i+" "+mile.t.toLowerCase()
       : "🌈 every name is home — the hush is over";
     const bi=biomeOf(P.level);
-    $("st-place").innerHTML = BIOMES[bi]+" &nbsp;<b>"+BIOME_NAMES[bi]+"</b> &nbsp;·&nbsp; level "+P.level;
-    $("st-level").textContent=P.level;
+    /* THE PROLOGUE OFFSET, MISSED IN FOUR PLACES. levelLabel()/levelShort() subtract
+       PROLOGUE_END everywhere the player normally looks, so this panel read "level 26" while
+       the chip above it read LV 21, and "level 3" during a round labelled Prologue 3 of 5. */
+    $("st-place").innerHTML = BIOMES[bi]+" &nbsp;<b>"+BIOME_NAMES[bi]+"</b> &nbsp;·&nbsp; "+levelLabel(P.level).toLowerCase();
+    $("st-level").textContent=levelShort(P.level);
     $("st-wins").textContent=P.stats.wins;
     $("st-words").textContent=P.stats.words;
     $("st-streak").textContent=P.streak||0;
@@ -8063,6 +8118,18 @@ const UI = {
     clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||3400);
   },
   chipClear(){ const el=$("chiptoast"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
+  /* RESOLVES WHEN NOTHING IS SPEAKING. The lessons need this: a teaching bubble must never
+     be raised over a card the player has not finished reading. Polls rather than hooks the
+     queue, because a sticky toast can also retire on its own 12s fallback and there is no
+     single place that always fires. */
+  toastQuiet(){
+    return new Promise(res=>{
+      const t=$("toast");
+      const done=()=> !UI._tShowing && !((UI._tq||[]).length) && (!t || !t.classList.contains("on"));
+      const check=()=>{ if(done()) return res(); setTimeout(check,120); };
+      setTimeout(check, 60);        // give the first card a moment to be raised
+    });
+  },
   toastClear(){ // a new level starts with a quiet stage — stale notes don't follow you in
     UI._tq=[]; UI._tShowing=false; UI.skyClear(); UI.chipClear();
     const t=$("toast"); clearTimeout(t._h); t.onclick=null; t.classList.remove("on","tapwait");
@@ -8199,15 +8266,26 @@ const UI = {
     UI.sky(msg, 6200);
   },
   TIPS:{
-    breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3) — though a word the breeze itself made won't pay for another. Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
-    /* MEASURED AGAINST ITS OWN SIBLINGS: this card ran 47 words when the median tip is 24 and
-       the next longest is 43 — the two tool cards were the only ones over thirty, and they
-       are the two shown earliest, to a player who has been playing for about a minute. Two
-       things came out. The self-grant clause ("a word the wish itself made won't pay for
-       another") is a corner case a first lesson has no room for. And the promise that a
-       golden letter stays golden was reassurance against a fear nobody has — it is simply
-       how the game works, and saying it invites the doubt it answers. 24 words now. */
-    wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one. Tap 🌟 and <b>choose any letter</b> — the one in your hand becomes it."},
+    /* ══ A TOOL IS TAUGHT IN THREE BEATS ══ how you earn it, how you spend it, the one
+       catch. As a single block this ran 43 words and the catch was the last clause of the
+       last sentence — the part a beginner skims. Three cards, three taps, the player's own
+       pace, and the catch gets a card to itself instead of a trailing subordinate clause. */
+    breeze:{i:"🍃", t:[
+      "Every <b>3-letter word</b> you spell earns a <b>breeze</b>.",
+      "Tap the 🍃 button, then tap two tiles — they trade places.",
+      "One catch: a word the breeze itself makes won't earn another."]},
+    /* THE MEASUREMENT THAT DROVE THE SPLIT: across all 21 tip cards the median is 24 words.
+       The wish ran 47 and the breeze 43 — the two longest in the game, and the two shown
+       earliest, to somebody about a minute into their first session. The length was a
+       symptom; the cause was three separate ideas crammed into one box, with the catch
+       always last and always skimmed. Split into beats, no card exceeds 18 words and the
+       catch gets one to itself. (The golden-letter promise did NOT come back: keeping gold
+       gold is simply how the game works, and saying it out loud invites the doubt it
+       answers.) */
+    wish:  {i:"🌟", t:[
+      "Every <b>4-letter word</b> you spell earns a <b>star-wish</b>.",
+      "Tap the 🌟 and <b>choose any letter</b> — the one in your hand becomes it.",
+      "One catch: a word the wish itself makes won't earn another."]},
     branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter — but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
     spore: {i:"🍄", t:"<b>Spores</b> drift. Like the tangle they spread every few drops — but they do not creep along, they <b>land anywhere on the board</b>. One word beside one clears it."},
     reed:  {i:"🌾", t:"A <b>reed</b> stands in the whole column — <b>nothing drops past it</b>. You cannot go through, so go around: clear a word beside it, <b>twice</b>."},
@@ -8219,7 +8297,11 @@ const UI = {
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
     stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it — twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
     ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
-    crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open — <b>points, a 🍃 breeze, a 🌟 wish</b> — and your friends' paw meter fills at once."},
+    /* "and your friends' paw meter fills at once" — it does not. Game.cheer(), which the crate
+       calls, was hollowed out when each friend got its own sign; it repaints and plays a tone
+       and touches no wake counter. The crate DOES give generously, so the card lists what it
+       actually gives and stops advertising the one thing that was removed. */
+    crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open — <b>points, a 🍃 breeze, a 🌟 wish</b>, sometimes a move or two."},
     shift: {i:"🌀", t:"A <b>restless tile</b> — it changes its letter every few drops. Catch it at the right moment!"},
     frost: {i:"❄️", t:"<b>Deep frost</b> — winter twice over. A word beside it sheds one layer; a <b>second</b> word sets the letter free."},
     mist:  {i:"🌫️", t:"A <b>misted letter</b> hides its face — no word can use it while it hides. Clear a word beside it and the mist lifts."},
@@ -8279,7 +8361,7 @@ const UI = {
     if(!p){ $("charm-msg").textContent="🌫️ that charm doesn't take root — check it copied out whole, end to end"; UI._charmArmed=null; return; }
     if(UI._charmArmed!==code){ // planting replaces a living wood — ask twice, plainly
       UI._charmArmed=code;
-      $("charm-msg").innerHTML="⚠️ this replaces your current wood (Level "+P.level+" · "+Object.keys(P.grove||{}).length+
+      $("charm-msg").innerHTML="⚠️ this replaces your current wood ("+levelLabel(P.level)+" · "+Object.keys(P.grove||{}).length+
         " friends) with <b>Level "+p.level+" · "+Object.keys(p.grove||{}).length+" friends</b>. tap <b>plant it</b> once more to be sure.";
       return;
     }
@@ -8372,6 +8454,25 @@ const UI = {
   tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
     P.seenTip[kind]=true; save();
     const tip=UI.TIPS[kind]; if(!tip) return false;
+    /* ══ A TOOL IS THREE IDEAS, NOT ONE PARAGRAPH ══ how you earn it, how you spend it, and
+       the one catch. Written as a single block they arrive as a wall a beginner skims, and
+       the catch — always the last clause — is the part that gets skimmed. Split, each idea
+       gets its own card and its own tap, and the player sets the pace. A step counter says
+       how much is left, so three cards read as a short lesson rather than an interruption
+       that will not stop.
+       An obstacle tip stays ONE card: it is one idea, and it fires mid-round where a
+       three-tap sequence would be an ambush. Those keep the timed sky rail. */
+    const steps = Array.isArray(tip.t) ? tip.t : null;
+    if(steps){
+      steps.forEach((step,i)=>{
+        UI.toast('<span class="tipstep">'+(i+1)+' of '+steps.length+'</span>'
+                 +'<b>'+tip.i+'</b> '+step, "tap");
+      });
+      Game.shown("tip");
+      Game.track("tip_shown",{ kind, L:S.level, steps:steps.length });
+      Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
+      return true;
+    }
     // 270x236 in the middle of a 507px board — 47% of the play surface, opaque, while
     // telling you to go and look at the play surface. Same words, in the sky.
     UI.sky('<b>'+tip.i+'</b> '+tip.t, 9000); Game.shown("tip");
