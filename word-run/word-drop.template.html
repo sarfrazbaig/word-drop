@@ -7439,7 +7439,7 @@ const UI = {
     UI.toastClear();   // the card gets a clean stage — no leftovers drifting across it
     // stars sit on their own line — inline they forced "Level 1 / clear!" to wrap mid-phrase
     $("ev-title").innerHTML = won
-      ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>Level '+S.level+' clear!'
+      ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>'+levelLabel(S.level)+' clear!'
       : (S.tutorWord ? "A name went unspoken…"
          : (S.goal&&S.goal.t!=="hush") ? ((S.goal.have<S.goal.need
              ? GOALS[S.goal.t].i+" "+(S.goal.need-S.goal.have)
