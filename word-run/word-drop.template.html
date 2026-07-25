@@ -971,6 +971,57 @@
   #app.bgart.bio14{ --bgtint:20,14,48;  --bgart:url("art/bg/bio14.jpg"); }
   /* the cave chapters' closing vignette is part of the painting now */
   #app.bgart #biodecor::after{ display:none !important; }
+
+  /* ══ THE COUNTRY DOES NOT STOP AT THE BOARD'S EDGE ══
+     The paintings travelled but the frame did not: the Frozen Crown sat inside the same
+     lavender-and-cream shell as the sunny meadow, with the same brown pills and the same
+     cream dock. Everything around the board now takes its colour from where you are.
+
+     THE ONE RULE THAT SHAPES THIS: the chrome's type is dark (--ink on the pills, --dim in
+     the dock). So the shell may be TINTED by a country but never DARKENED by it, or the
+     Deep Dark and the Undercave would turn their own top bar unreadable. Every surface
+     below keeps a light parchment majority and lets the country show through it. */
+  #app.bgart{
+    background:linear-gradient(180deg,
+      color-mix(in srgb, var(--sky-top) 26%, #dcd8e6) 0%,
+      color-mix(in srgb, var(--hush)    34%, #ece5d8) 30%,
+      color-mix(in srgb, var(--hush)    26%, #f0e8da) 62%,
+      color-mix(in srgb, var(--sky-low) 24%, #efe4d2) 100%); }
+  /* the place itself, thrown far out of focus behind everything — the empty space stops
+     being empty and becomes the country you are standing in */
+  #app.bgart::before{
+    background:var(--bgart) center/cover no-repeat;
+    filter:blur(34px) saturate(1.1) brightness(1.06);
+    transform:scale(1.3);            /* scaled past the edges so the blur has nothing to smear */
+    opacity:.30; }
+  /* a soft parchment veil over the blur, so however dark a country is the chrome above it
+     keeps its footing */
+  #app.bgart::after{
+    background:
+      radial-gradient(130% 100% at 50% 40%, transparent 58%, color-mix(in srgb, var(--sil) 22%, transparent)),
+      linear-gradient(180deg, rgba(255,252,244,.34) 0%, rgba(255,252,244,.16) 40%, rgba(255,250,238,.30) 100%); }
+
+  /* ── the chrome, tinted to the country ── the pills already mixed --frame1 at 16%, which
+     was too little to see; the dock and the goal track were not tinted at all. */
+  #app.bgart #movespill{
+    background:color-mix(in srgb, var(--hush) 30%, #fffdf6);
+    border-color:color-mix(in srgb, var(--frame2,#9a6f3c) 52%, transparent); }
+  #app.bgart #dock{
+    background:color-mix(in srgb, var(--hush) 26%, rgba(255,253,246,.86));
+    border-color:color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent); }
+  #app.bgart #petbar{ background:none; }
+  #app.bgart .gs-track{
+    background:color-mix(in srgb, var(--sil) 16%, rgba(150,125,85,.17)); }
+  /* the outer frame of the phone picks it up too, so the country reaches the very edge */
+  #app.bgart{ border-color:color-mix(in srgb, var(--frame2,#9a6f3c) 40%, rgba(121,92,55,.25)); }
+  /* THE DEEP DARK IS THE EXCEPTION, and it earns one. Its own colour is the only one dark
+     enough to drag the chrome down with it — measured 4.37:1 on the moves label and 3.48:1
+     on the dock's, both under the 4.5 floor, while the other fourteen sat between 4.6 and
+     11.9. It tints at roughly half strength so its type holds; weakening the rule for all
+     fifteen to fix one would have cost every other country its colour. */
+  #app.bgart.bio9 #movespill{ background:color-mix(in srgb, var(--hush) 14%, #fffdf6); }
+  #app.bgart.bio9 #dock{ background:color-mix(in srgb, var(--hush) 7%, rgba(255,253,246,.95)); }
+  #app.bgart.bio9::before{ opacity:.20; }   /* and the blurred place sits back a little further */
   /* the floor of the place, under the tiles — the wood has ground, the mountain has scree */
   #board::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:38%;
     z-index:0; pointer-events:none; border-radius:inherit;
@@ -1186,8 +1237,13 @@
     border:1.5px solid color-mix(in srgb, var(--frame2,#9a6f3c) 42%, transparent);
     border-radius:999px;
     box-shadow:0 2px 0 color-mix(in srgb, var(--frame2,#9a6f3c) 22%, transparent); }
+  /* "Moves:" is 14px body text, so it owes 4.5:1. At a 70% share of --frame2 it inherited
+     whatever lightness a country's frame happened to have and fell to 3.6:1 in the Windward
+     Ridge and 3.8 in the Thunderfalls — measured across all fifteen, nine were under the
+     floor. This predates the country tint (it was 3.6 before that too). The dark base
+     carries it now and the country still shows through. */
   #movespill .mv-lbl{ font-family:var(--font-story); font-size:14px; font-weight:600;
-    color:color-mix(in srgb, var(--frame2,#9a6f3c) 70%, #4a3a24); }
+    color:color-mix(in srgb, var(--frame2,#9a6f3c) 34%, #33281a); }
   #movesbig{ font-size:19px; font-weight:900; color:var(--ink); font-variant-numeric:tabular-nums;
     line-height:1; }
   #movespill.low{ border-color:rgba(190,70,50,.55); background:rgba(255,241,237,.95); }
