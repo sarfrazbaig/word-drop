@@ -2302,6 +2302,8 @@
         <button class="btn-primary btn-gold" id="btn-double" style="display:none" onclick="Game.doubleThanks()">🎬 double the wood's thanks</button>
         <div id="ev-blessed" style="display:none">🕯️ blessed — the wood's thanks came doubled</div>
         <button class="btn-primary" id="btn-next" onclick="Game.nextLevel()">▶ Next level</button>
+        <button class="btn-primary btn-gold" id="btn-letter" style="display:none" onclick="Game.buyLetter()">🔤 lend me a letter</button>
+        <button class="btn-primary btn-gold" id="btn-friend" style="display:none" onclick="Game.buyFriend()">🐾 bring them anyway</button>
         <button class="btn-primary btn-ghost" id="btn-retry" onclick="Game.retryLevel()">↻ Retry</button>
       </div>
       <div class="minirow">
@@ -3327,7 +3329,8 @@ function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"", finale:0,
     pow:{wild:0,bomb:0,oracle:0,transmute:0,swap:0}, seenUnlock:{},
     stats:{wins:0, words:0, bestChain:1, stars:0},
-    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, seenChapter:{}, grove:{}, metGrove:{}, equip:[], run:null };
+    questDay:-1, questProgress:0, questDone:false, powProg:{}, coach:false, tut:false, petBond:0, seenTip:{}, seenChapter:{}, grove:{}, metGrove:{}, equip:[], run:null,
+    graceUsed:null };   // which free save has been taken, and on which level
   try{
     let p = JSON.parse(localStorage.getItem("worddrop_v3"));
     if(!p){ // fresh brand: keep the grove & habits worth carrying, but relearn the powers
@@ -4501,8 +4504,59 @@ const Game = {
     for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="spore"||t.kind==="reed"||t.kind==="mire"||t.kind==="current"||t.kind==="wind"||t.kind==="crystal"||t.kind==="scree"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
   },
-  retryLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(S.level); },
+  retryLevel(){
+    // A RETRY IS A GRACE TOO. It was free and unlimited, which is why amber had nothing
+    // to do: you could always just go again. The first is still free — a fresh board
+    // after one bad round is not a purchase — and the rest are bought.
+    if(!Game.spendGrace("retry")) return;
+    Snd.init(); $("ov-end").classList.remove("active");
+    const back=S.level; Game.startLevel(back);
+  },
   nextLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(P.level); },
+
+  /* ══ A LETTER OF THE NAME ══ the mercy that already existed for repeated failures,
+     offered as a choice instead of a consolation. */
+  buyLetter(){
+    const w=S && S.tutorWord; if(!w) return;
+    if(!Game.canAfford("letter")) return;
+    Game.amber(-Game.graceCost("letter"));
+    P.nameFails[w]=(P.nameFails[w]||0)+1;   // one more letter glows on the next board
+    Game.track("grace_spent",{ kind:"letter", cost:Game.graceCost("letter"), L:S.level });
+    save(); Snd.levelUp(); buzz([20,30,20]);
+    $("ov-end").classList.remove("active");
+    Game.startLevel(S.level);
+  },
+
+  /* ══ THE FRIEND, BOUGHT ══ the name goes unspoken and they come anyway. The most
+     expensive thing here, because it skips the hardest thing here — and a player who
+     has failed a long name three times should be able to pay their way past it rather
+     than bounce off it forever. */
+  async buyFriend(){
+    const w=S && S.tutorWord; if(!w || P.grove[w]) return;
+    const c=Game.graceCost("friend");
+    if((P.amber||0) < c) return;
+    Game.amber(-c);
+    const g=GROVE_BY_WORD[w];
+    P.grove[w]=Date.now(); P.called[w]=1;
+    delete P.nameFails[w];
+    if(P.summon===w) P.summon=null;
+    S.newGrove.push(w);
+    S.guestNamed=true;   // the round's contract, met — checkEnd wins it after the meeting
+    S.tutorWord=null;
+    S._boughtWin=true;   // a bought round does not also pay a winner's purse
+    S._revealBonus=0;    // no score gift on a bought reveal — the friend is the whole point
+    Game.track("grace_spent",{ kind:"friend", w, cost:c, L:S.level });
+    save();
+    // BOUGHT OR SPOKEN, THE FRIEND ARRIVES THE SAME WAY. buyFriend used to jump straight to
+    // winLevel — so the most expensive purchase in the game gave you a win card and no
+    // creature, which reads as paying ninety amber for nothing. It runs the exact ritual a
+    // spelled name gets now: the silhouette stirs, the friend is revealed, you meet them —
+    // and closeMeet's checkEnd sees guestNamed and wins the round on the way out.
+    S.over=false;
+    $("ov-end").classList.remove("active");
+    Snd.levelUp(); buzz([40,60,120]);
+    await Game.reveal(g);
+  },
   goHome(){
     Snd.mode="normal";   // the home meadow never carries the ceremony's weight
     if(S && !S.over && !S.won) saveRun();
@@ -4751,7 +4805,13 @@ const Game = {
       P.called.cat=1; P.summon="cat";
       P.annQ.push(CALLINGS.cat.s+"<br><small>meet them next round</small>"); save();
     }
-    S._winAmber = 10 + (S.stars||1)*5;                  // the wood pays for a finished level
+    // THE TAPS GROW WITH THE SINKS. A flat 10+stars*5 forever meant scaling grace prices
+    // would have priced the late game out of its own economy.
+    // A BOUGHT ROUND PAYS NOTHING. Without this the win bonus came straight back out of
+    // the purse the friend was just bought with — 90 charged, 20 refunded, and the price
+    // on the button was a lie by 22%.
+    S._winAmber = S._boughtWin ? 0
+      : 10 + (S.stars||1)*5 + Math.floor(Math.max(0,advOf(S.level))/25)*5;
     Game.amber(S._winAmber + (Shop.blessed() ? S._winAmber : 0));  // 🕯️ blessed pay comes doubled
     Game.tallyEv("win"); Game.tallyEv("regionwin"+biomeOf(S.level));
     if(S.stars===3) Game.tallyEv("star3");
@@ -4815,17 +4875,61 @@ const Game = {
     UI.endCard(false);
   },
 
-  async extraMoves(){ // the rescue: watch once (post-FTUE), then 30🟠 each
-    if(!S) return;
-    if(S.revived){
-      if((P.amber||0)<30) return;
-      Game.amber(-30);
-    } else {
-      if(Ads.ready() && !Shop.blessed() && P.level>=8){
-        const ok=await Ads.show("revive"); if(!ok) return;
-      }
-      S.revived=true;
+  /* ══ THE PRICE OF GRACE ══ every cost in one place, so the economy can be read and
+     tuned as a whole rather than hunted for across the file.
+     The step is every 40 levels and caps at 4x: a flat price was a real decision at
+     level 3 and pocket change at level 200. */
+  graceScale(){ const A=Math.max(1, advOf(S?S.level:1));
+    return Math.min(4, 1 + Math.floor(A/40)*0.5); },
+  graceCost(kind){
+    const k=Math.round.bind(Math), x=Game.graceScale();
+    if(kind==="moves")  return k(25*x);
+    if(kind==="retry")  return k(35*x);
+    if(kind==="letter") return k(15*x);
+    if(kind==="friend"){
+      // priced by WHICH friend: the calling order is sorted by how hard the name is,
+      // so the ones the wood makes you work for cost the most to skip.
+      const rank=Math.max(0, CALLING_ORDER.indexOf(S&&S.tutorWord));
+      return k((90 + rank*6) * x); }
+    return 0;
+  },
+  canAfford(kind){ return (P.amber||0) >= Game.graceCost(kind); },
+
+  /* ══ THE FIRST ONE IS ON THE WOOD ══ one free save of each kind per LEVEL, so a
+     near-miss never costs anything and the SECOND is where the choice starts.
+
+     Stamped on P with the level it was spent on, NOT on S. S is per-round state and
+     retryLevel builds a fresh one, so keeping it there handed back a new free retry on
+     every retry — the free save was infinite and nothing was ever bought. Stamping the
+     level means it survives a retry and clears itself when the level changes, with no
+     cleanup to remember anywhere. */
+  freeLeft(kind){
+    const g=P.graceUsed, L=S?S.level:0;
+    return !(g && g.lvl===L && g[kind]);
+  },
+  spendGrace(kind){
+    const L=S?S.level:0;
+    if(Game.freeLeft(kind)){
+      if(!P.graceUsed || P.graceUsed.lvl!==L) P.graceUsed={lvl:L};
+      P.graceUsed[kind]=1; save();
+      Game.track("grace_spent",{ kind, cost:0, free:true, L });
+      return true;
     }
+    const c=Game.graceCost(kind);
+    if((P.amber||0) < c) return false;
+    Game.amber(-c);
+    Game.track("grace_spent",{ kind, cost:c, L, left:P.amber });
+    return true;
+  },
+
+  async extraMoves(){ // the first is on the wood, every one after is bought
+    if(!S) return;
+    // the ad still stands in for the FREE one where it is offered
+    if(Game.freeLeft("moves") && Ads.ready() && !Shop.blessed() && P.level>=8){
+      const ok=await Ads.show("revive"); if(!ok) return;
+    }
+    if(!Game.spendGrace("moves")) return;
+    S.revived=true;
     S.over=false;
     $("ov-end").classList.remove("active");
     S.movesLeft += 5;
@@ -6377,6 +6481,11 @@ const Game = {
     Game.credit("crate");
     const got=[];
     S.levelScore+=15; got.push("<b>+15</b>");
+    // A CRATE NEVER PAID A SINGLE COIN — score, a breeze, a wish and moves, and nothing
+    // for the purse. With amber now buying rounds back, the crate is the obvious place
+    // for it to come from.
+    { const coins = 10 + Math.floor(Math.max(0,advOf(S.level))/30)*5;
+      Game.amber(coins); got.push("<b>+"+coins+"</b>🟠"); }
     if((P.pow.swap||0)<3){ Game.earnBreeze(); got.push("🍃 a breeze"); }
     if((P.pow.wild||0)<3){ Game.earnWish();  got.push("🌟 a wish"); }
     if(got.length<3){ Game.addMoves(3); got.push("<b>+3 moves</b>"); }   // never a dud
@@ -6767,11 +6876,27 @@ const UI = {
       } }
     $("btn-next").style.display = won ? "flex":"none";
     $("btn-retry").style.display = won ? "none":"flex";
-    const canFree = !S.revived, canPaid = S.revived && (P.amber||0)>=30;
-    $("btn-moves").style.display = (!won && S.levelScore>0 && !boardFull() && (canFree||canPaid)) ? "flex":"none";
-    $("btn-moves").innerHTML = canFree
-      ? (Ads.ready() && !Shop.blessed() && P.level>=8 ? "🎬 watch · +5 moves" : "🪶 +5 moves")
-      : "🪶 +5 moves · <b>30</b>🟠";
+    // ══ THE GRACES. Each says its own price, and shows only when it can actually be
+    // taken — a button you cannot afford is worse than no button at all.
+    { const mFree=Game.freeLeft("moves"), mCost=Game.graceCost("moves");
+      const canMoves = mFree || (P.amber||0)>=mCost;
+      $("btn-moves").style.display = (!won && S.levelScore>0 && !boardFull() && canMoves) ? "flex":"none";
+      $("btn-moves").innerHTML = mFree
+        ? (Ads.ready() && !Shop.blessed() && P.level>=8 ? "🎬 watch · +5 moves" : "🪶 +5 moves · <b>free</b>")
+        : "🪶 +5 moves · <b>"+mCost+"</b>🟠";
+
+      const rFree=Game.freeLeft("retry"), rCost=Game.graceCost("retry");
+      $("btn-retry").style.display = won ? "none" : ((rFree || (P.amber||0)>=rCost) ? "flex":"none");
+      $("btn-retry").innerHTML = rFree ? "↻ Retry" : "↻ Retry · <b>"+rCost+"</b>🟠";
+
+      // the two that only exist while a name is going unspoken
+      const guest = !won && S.tutorWord && !P.grove[S.tutorWord];
+      const lCost=Game.graceCost("letter"), fCost=Game.graceCost("friend");
+      const bl=$("btn-letter"), bf=$("btn-friend");
+      bl.style.display = (guest && (P.amber||0)>=lCost) ? "flex":"none";
+      bl.innerHTML = "🔤 lend me a letter · <b>"+lCost+"</b>🟠";
+      bf.style.display = (guest && (P.amber||0)>=fCost) ? "flex":"none";
+      bf.innerHTML = (guest?GROVE_BY_WORD[S.tutorWord].e:"🐾")+" bring them anyway · <b>"+fCost+"</b>🟠"; }
     // 🎬 PLACEMENT 2: the win doubler — appears only after the win is already banked
     const dbl=$("btn-double");
     if(won && Ads.ready() && !Shop.blessed() && P.level>=8 && S._winAmber){
