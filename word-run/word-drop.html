@@ -4244,7 +4244,9 @@ const FT = {
     if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points — no lesson to give
     $("toast").classList.remove("on");             // the Book toast has had its moment
     const seat=UI.equipped().findIndex(g=>g.w==="cat");
-    await FT.callout("#pet-"+(seat<0?0:seat), (UI.artTag("cat","toastimg")||"🐱")+" <b>CAT walks with you now</b><br><small>your party lives on this shelf — tap a friend anytime to see its power</small>", "below");
+    // "your party lives on this shelf" — there is no shelf. The friends stand free on the
+    // country now, which is a nicer thing to say anyway: they are companions, not inventory.
+    await FT.callout("#pet-"+(seat<0?0:seat), (UI.artTag("cat","toastimg")||"🐱")+" <b>CAT walks with you now</b><br><small>your friends stand with you here — tap one anytime to see what it does</small>", "below");
     await FT.callout("#pet-2", "🔒 <b>more friends can walk with you later</b><br><small>a seat opens when you have somebody to fill it</small>", "below");
     // THE SIGN, AND THE BADGE THAT COUNTS IT. This is the one idea the whole game rests
     // on, and it was the one thing never taught. Every friend listens for something
@@ -5606,7 +5608,10 @@ const Game = {
     Snd.tone(1046,{dur:.16,type:"sine",gain:.07,verb:true}); Snd.tone(1568,{dur:.22,type:"sine",gain:.05,when:.1,verb:true});
     if(kind==="gold") Snd.gold();
     buzz([15,30]);
-    UI.say("wish-grant", "🌟 "+l.toUpperCase()+" is yours"+(kind==="gold"?" — and still golden ✨":" — drop it anywhere"));
+    // the gold branch used to add "and still golden" — the same promise the tip made, now
+    // repeated on every wish a player spends while holding a gold tile. Keeping a golden
+    // letter golden is the behaviour, not an achievement to announce.
+    UI.say("wish-grant", "🌟 "+l.toUpperCase()+" is yours — drop it anywhere");
     S.lastAction=Date.now();
   },
 
@@ -7295,11 +7300,15 @@ const UI = {
         const w=Game.wakeAt(g); if(!w) continue;
         closest=Math.max(closest, w.have/w.need);
       }
+      /* THREE PROPERTIES WRITTEN EVERY REPAINT AND READ BY NOTHING. --pawglow/--pawalpha/
+         --pawring drove a warm glow on the shelf's border; the shelf was removed when the
+         friends started standing free, and the CSS that consumed them went with it. The
+         tooltip outlived them too, and promised a warming that could no longer happen.
+         What actually tells you a friend is close is its pips filling — so that is what
+         it says. The "closest" figure above is still worth computing: it is what decides
+         the "excited" class on a friend one sign from waking. */
       const bar=$("petbar");
-      bar.style.setProperty("--pawglow",(closest*16)+"px");
-      bar.style.setProperty("--pawalpha",(closest*0.75).toFixed(2));
-      bar.style.setProperty("--pawring",(closest*0.9).toFixed(2));
-      bar.title="each friend stirs to its own sign — the shelf warms as one of them gets close";
+      bar.title="each friend stirs to its own sign — its pips fill as it gets close";
       for(let s=0;s<4;s++){ const el=$("pet-"+s); if(!el) continue;
         const g=eq[s];
         let b=el.querySelector(".pips");
@@ -8191,7 +8200,14 @@ const UI = {
   },
   TIPS:{
     breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3) — though a word the breeze itself made won't pay for another. Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
-    wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one — though a word the wish itself made won't pay for another. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
+    /* MEASURED AGAINST ITS OWN SIBLINGS: this card ran 47 words when the median tip is 24 and
+       the next longest is 43 — the two tool cards were the only ones over thirty, and they
+       are the two shown earliest, to a player who has been playing for about a minute. Two
+       things came out. The self-grant clause ("a word the wish itself made won't pay for
+       another") is a corner case a first lesson has no room for. And the promise that a
+       golden letter stays golden was reassurance against a fear nobody has — it is simply
+       how the game works, and saying it invites the doubt it answers. 24 words now. */
+    wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one. Tap 🌟 and <b>choose any letter</b> — the one in your hand becomes it."},
     branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter — but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
     spore: {i:"🍄", t:"<b>Spores</b> drift. Like the tangle they spread every few drops — but they do not creep along, they <b>land anywhere on the board</b>. One word beside one clears it."},
     reed:  {i:"🌾", t:"A <b>reed</b> stands in the whole column — <b>nothing drops past it</b>. You cannot go through, so go around: clear a word beside it, <b>twice</b>."},
