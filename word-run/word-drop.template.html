@@ -4783,11 +4783,23 @@ const Game = {
     // It used to read as a WARNING — points alone will not finish this, you must also do
     // the name — which is the exact opposite of the deal now. The name is the whole ask.
     const spg = S.goal && S.goal.t!=="hush";
+    /* NOT TWICE IN A ROW. On a player's FIRST naming round the teaching card raised just
+       below ("A naming round") has already said exactly this, and it says it at more length
+       and with more room — so repeating it on the level card two taps later is the same
+       sentence arriving again with nothing added. It is suppressed for that one round only.
+       Every naming round after it shows the stake as before, because no teaching card comes
+       with those and the line is the only place the rule is stated.
+       TIMING NOTE: this card is BUILT here but the teaching card is decided further down in
+       startLevel, so P.said["naming-intro"] is still unset at this point on the first round —
+       which is precisely what makes it the right flag to test. */
+    const taughtAlready = !!P.said["naming-intro"];
     iv.innerHTML='<span class="sil">'+UI.silTag(tw)+'</span> someone is hiding here — spell <b>'+disp+'</b>'
-      + '<small class="ivstake">🎭 '+(spg
-          ? 'the <b>name is all this round asks</b> — spell it and the round is yours, whatever else is on the board'
-          : 'the <b>name alone ends this round</b> — you do not have to reach the target')
-      + '</small>'; }
+      + (taughtAlready
+          ? '<small class="ivstake">🎭 '+(spg
+              ? 'the <b>name is all this round asks</b> — spell it and the round is yours, whatever else is on the board'
+              : 'the <b>name alone ends this round</b> — you do not have to reach the target')
+            + '</small>'
+          : ''); }
   // A SPECIAL ROUND IS NOT WON ON POINTS. Its win condition is the goal itself — melt every
   // ice, smash every stone — and the score target is scenery. The card showed the same big
   // "target" number as always, so a player could chase points on a round where points do not
