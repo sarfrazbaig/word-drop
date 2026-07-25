@@ -954,74 +954,173 @@
   #app.bgart .petal{ display:none !important; }
   /* each country's own shadow colour, so the deepening at the foot of the board belongs to
      the place — warm brown under the cave, violet under the crown, never a generic grey */
-  #app.bgart.bio0 { --bgtint:20,44,26;  --bgart:url("art/bg/bio0.jpg"); }
-  #app.bgart.bio1 { --bgtint:18,40,20;  --bgart:url("art/bg/bio1.jpg"); }
-  #app.bgart.bio2 { --bgtint:14,36,28;  --bgart:url("art/bg/bio2.jpg"); }
-  #app.bgart.bio3 { --bgtint:32,18,48;  --bgart:url("art/bg/bio3.jpg"); }
-  #app.bgart.bio4 { --bgtint:12,32,40;  --bgart:url("art/bg/bio4.jpg"); }
-  #app.bgart.bio5 { --bgtint:34,38,18;  --bgart:url("art/bg/bio5.jpg"); }
-  #app.bgart.bio6 { --bgtint:10,34,52;  --bgart:url("art/bg/bio6.jpg"); }
-  #app.bgart.bio7 { --bgtint:10,40,42;  --bgart:url("art/bg/bio7.jpg"); }
-  #app.bgart.bio8 { --bgtint:34,20,10;  --bgart:url("art/bg/bio8.jpg"); }
-  #app.bgart.bio9 { --bgtint:14,10,26;  --bgart:url("art/bg/bio9.jpg"); }
-  #app.bgart.bio10{ --bgtint:8,34,52;   --bgart:url("art/bg/bio10.jpg"); }
-  #app.bgart.bio11{ --bgtint:28,30,34;  --bgart:url("art/bg/bio11.jpg"); }
-  #app.bgart.bio12{ --bgtint:22,34,54;  --bgart:url("art/bg/bio12.jpg"); }
-  #app.bgart.bio13{ --bgtint:18,28,48;  --bgart:url("art/bg/bio13.jpg"); }
-  #app.bgart.bio14{ --bgtint:20,14,48;  --bgart:url("art/bg/bio14.jpg"); }
+  #app.bgart.bio0 { --bgtint:20,44,26;  --deep:22,48,28;  --bgart:url("art/bg/bio0.jpg"); }
+  #app.bgart.bio1 { --bgtint:18,40,20;  --deep:18,40,20;  --bgart:url("art/bg/bio1.jpg"); }
+  #app.bgart.bio2 { --bgtint:14,36,28;  --deep:14,36,28;  --bgart:url("art/bg/bio2.jpg"); }
+  #app.bgart.bio3 { --bgtint:32,18,48;  --deep:32,18,48;  --bgart:url("art/bg/bio3.jpg"); }
+  #app.bgart.bio4 { --bgtint:12,32,40;  --deep:12,32,40;  --bgart:url("art/bg/bio4.jpg"); }
+  #app.bgart.bio5 { --bgtint:34,38,18;  --deep:34,38,18;  --bgart:url("art/bg/bio5.jpg"); }
+  #app.bgart.bio6 { --bgtint:10,34,52;  --deep:10,34,52;  --bgart:url("art/bg/bio6.jpg"); }
+  #app.bgart.bio7 { --bgtint:10,40,42;  --deep:10,40,42;  --bgart:url("art/bg/bio7.jpg"); }
+  #app.bgart.bio8 { --bgtint:34,20,10;  --deep:40,24,12;  --bgart:url("art/bg/bio8.jpg"); }
+  #app.bgart.bio9 { --bgtint:14,10,26;  --deep:14,10,26;  --bgart:url("art/bg/bio9.jpg"); }
+  #app.bgart.bio10{ --bgtint:8,34,52;   --deep:8,34,52;   --bgart:url("art/bg/bio10.jpg"); }
+  #app.bgart.bio11{ --bgtint:28,30,34;  --deep:28,30,34;  --bgart:url("art/bg/bio11.jpg"); }
+  #app.bgart.bio12{ --bgtint:22,34,54;  --deep:22,34,54;  --bgart:url("art/bg/bio12.jpg"); }
+  #app.bgart.bio13{ --bgtint:18,28,48;  --deep:18,28,48;  --bgart:url("art/bg/bio13.jpg"); }
+  #app.bgart.bio14{ --bgtint:20,14,48;  --deep:26,18,58;  --bgart:url("art/bg/bio14.jpg"); }
   /* the cave chapters' closing vignette is part of the painting now */
   #app.bgart #biodecor::after{ display:none !important; }
 
-  /* ══ THE COUNTRY DOES NOT STOP AT THE BOARD'S EDGE ══
-     The paintings travelled but the frame did not: the Frozen Crown sat inside the same
-     lavender-and-cream shell as the sunny meadow, with the same brown pills and the same
-     cream dock. Everything around the board now takes its colour from where you are.
+  /* ══ DEEP IMMERSION ══ the country does not stop at the board's edge — it takes the whole
+     screen. The shell goes dark and rich in that country's own colours with its painting
+     blurred and saturated behind, which makes THE BOARD THE BRIGHTEST THING IN FRONT OF YOU.
+     That is the entire mechanism: an aurora or a lantern cannot glow inside a pale parchment
+     frame, however carefully that frame is tinted.
 
-     THE ONE RULE THAT SHAPES THIS: the chrome's type is dark (--ink on the pills, --dim in
-     the dock). So the shell may be TINTED by a country but never DARKENED by it, or the
-     Deep Dark and the Undercave would turn their own top bar unreadable. Every surface
-     below keeps a light parchment majority and lets the country show through it. */
-  #app.bgart{
-    background:linear-gradient(180deg,
-      color-mix(in srgb, var(--sky-top) 26%, #dcd8e6) 0%,
-      color-mix(in srgb, var(--hush)    34%, #ece5d8) 30%,
-      color-mix(in srgb, var(--hush)    26%, #f0e8da) 62%,
-      color-mix(in srgb, var(--sky-low) 24%, #efe4d2) 100%); }
-  /* the place itself, thrown far out of focus behind everything — the empty space stops
-     being empty and becomes the country you are standing in */
+     THE COST, PAID DELIBERATELY: dark chrome means the type must go cream. Every label below
+     is re-inked, and the contrast of all fifteen countries is measured rather than assumed. */
+  /* THE SAME PAINTING, TWICE. Sharp inside the board, and the very same image thrown out of
+     focus behind everything else — so the board is a clear window onto the place you are
+     already standing in, rather than a picture hung on a tinted wall. Crushing that outer
+     copy dark (which the first cut did) threw away the immersion it exists for; it stays at
+     full strength and is softened by blur and a veil instead, which is what stops it
+     competing with the letters. */
+  #app.bgart{ background:none; border-color:rgba(255,255,255,.14); }
+  /* HOW MUCH VEIL IS TOO MUCH: measured, not guessed. At .52/.40/.60 the shell behind the
+     friends came out between 0.008 and 0.195 luminance across all fifteen countries — dark
+     everywhere, and the same dark everywhere, which is the definition of a tint rather than
+     a painting. The point of hanging the picture twice is that you can SEE it is the same
+     place; a veil heavy enough to hide that has eaten the whole idea. Lifted to .42/.30/.55,
+     and the blur pulled in with it — enough to keep the letters the sharpest thing on screen,
+     not so much that the country behind becomes an anonymous wash. */
   #app.bgart::before{
     background:var(--bgart) center/cover no-repeat;
-    filter:blur(34px) saturate(1.1) brightness(1.06);
-    transform:scale(1.3);            /* scaled past the edges so the blur has nothing to smear */
-    opacity:.30; }
-  /* a soft parchment veil over the blur, so however dark a country is the chrome above it
-     keeps its footing */
+    filter:blur(9px) saturate(1.06);
+    transform:scale(1.10);           /* scaled past the edges so the blur has nothing to smear */
+    opacity:1; }
   #app.bgart::after{
-    background:
-      radial-gradient(130% 100% at 50% 40%, transparent 58%, color-mix(in srgb, var(--sil) 22%, transparent)),
-      linear-gradient(180deg, rgba(255,252,244,.34) 0%, rgba(255,252,244,.16) 40%, rgba(255,250,238,.30) 100%); }
+    background:linear-gradient(180deg,
+      rgba(var(--deep), .42) 0%, rgba(var(--deep), .30) 45%, rgba(var(--deep), .55) 100%); }
 
-  /* ── the chrome, tinted to the country ── the pills already mixed --frame1 at 16%, which
-     was too little to see; the dock and the goal track were not tinted at all. */
-  #app.bgart #movespill{
-    background:color-mix(in srgb, var(--hush) 30%, #fffdf6);
-    border-color:color-mix(in srgb, var(--frame2,#9a6f3c) 52%, transparent); }
+  /* ══ TRANSLUCENT GLASS ══ one material for the friends' tiles and the dock, and it carries
+     NO HUE of its own. That is the whole point: fifty painted creatures each bring their own
+     colours, so a tinted surface would clash with a fox's orange or a penguin's black-and-
+     white somewhere among 750 combinations. Neutral glass takes the country up through
+     TRANSPARENCY instead, and cannot fight anything. */
+  #app.bgart .petface{
+    background:rgba(28,26,34,.42) !important;
+    backdrop-filter:blur(7px) saturate(.9);
+    box-shadow:0 5px 0 rgba(8,7,12,.62), 0 8px 14px rgba(0,0,0,.34),
+      inset 0 1.5px 0 rgba(255,255,255,.32), inset 0 -8px 12px rgba(0,0,0,.20),
+      inset 0 0 0 1.5px rgba(255,255,255,.30); }
+  #app.bgart .slotopen .petface, #app.bgart .slotlocked .petface{
+    background:rgba(28,26,34,.26) !important;
+    box-shadow:0 5px 0 rgba(8,7,12,.44), 0 8px 12px rgba(0,0,0,.26),
+      inset 0 1.5px 0 rgba(255,255,255,.20), inset 0 0 0 1.5px rgba(255,255,255,.20); }
+  /* the hushed friend on an unclaimed tile is LIGHT here — a dark cut-out on dark glass is
+     nothing at all (the same trap the badge sheen fell into) */
+  #app.bgart .petcompanion .petsil{ filter:brightness(0) invert(1) opacity(.34)
+    drop-shadow(0 0 6px rgba(220,235,255,.2)); }
+  /* THE SOCKET NEEDS ITS OWN EDGE NOW. On a tile the pips sat on one known surface; with
+     the tile gone they sit straight on the painting, which is a different colour under every
+     friend in every country. A hairline dark ring means the empty socket is drawn by its own
+     outline rather than by luck of what is behind it. */
+  #app.bgart .pips i{ background:radial-gradient(circle at 50% 35%, rgba(255,255,255,.20), rgba(255,255,255,.11));
+    box-shadow:inset 0 1.5px 2px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.38),
+      0 1px 0 rgba(255,255,255,.24); }
+  #app.bgart .pips i.on{ background:radial-gradient(circle at 50% 32%, #ffd071, #f0a521 55%, #d07d06);
+    box-shadow:0 0 0 1px rgba(120,72,8,.6), 0 0 7px rgba(240,165,33,.5), inset 0 1px 0 rgba(255,255,255,.55); }
+
+  /* ══ NO TILE, NO SHELF ══ every frame around a friend was a frame the art had to fit
+     INSIDE, and four square boxes at ~80px is the hard ceiling of a 375px row. Take the
+     boxes away and the ceiling goes with them: the creature itself becomes the object,
+     sized by what it is rather than by the container it was posted into. What the tile was
+     quietly doing — separating a pale lamb from a pale sky, saying which seat is whose when
+     its owner is out on the board — has to be done by the creature's own shadow instead,
+     which is why there are two of them below: a dark one on the ground and a faint light
+     one at the edge, so a white swan and a black penguin both hold against any country. */
+  #app.bgart .petface{
+    background:none !important; box-shadow:none !important;
+    border-radius:0; overflow:visible; }
+  #app.bgart .petface::before{ display:none; }        /* no glaze without porcelain */
+  /* ══ AN EMPTY SEAT IS AN EMPTY SEAT ══ whatever the reason. I drew a recess here first, on
+     the theory that a friend out on the board should leave a visible hollow behind; it looked
+     like a black box punched into the painting. The row already has a word for a seat with
+     nobody in it, and using it here means the four seats never speak in two different
+     languages: a PLUS. It fades in as the friend leaves and out as they come back. */
+  /* THE SAME PLUS, NOT A LOOKALIKE. Drawn first as a ::before with the mark's styles copied
+     onto it, which rendered soft and wrong next to the real one two seats over — a second
+     implementation of one thing is a second thing to keep in sync and a second thing to get
+     subtly different. An occupied seat now carries the very same <span class="seatmark">
+     the empty seats do, kept at zero opacity while its friend is standing in it. */
+  .seatgone{ opacity:0; transition:opacity .2s ease; }
+  .petcompanion.away .seatgone{ opacity:1; }
+  /* THE GROUND, NOT A DISH. The old shadow was a wash across the bottom of the tile; with no
+     tile it becomes the small ellipse a standing creature actually casts. */
+  #app.bgart .has .petface::after{
+    background:radial-gradient(38% 13% at 50% 95%, rgba(0,0,0,.46), rgba(0,0,0,.16) 58%, transparent 78%); }
+  #app.bgart .slotopen .petface, #app.bgart .slotlocked .petface{
+    background:none !important; box-shadow:none !important; }
+  #app.bgart .petcompanion:active .petface{ box-shadow:none !important; }
+  /* the friend outgrows the box it used to be printed on — 92% origin so the growth is
+     upward, into the headroom the bar was given, and their feet stay on one line */
+  #app.bgart .petcompanion .petimg.petbody{
+    padding:0; transform:scale(1.17); transform-origin:50% 92%;
+    filter:drop-shadow(0 0 2px rgba(255,255,255,.30)) drop-shadow(0 3px 4px rgba(0,0,0,.42)); }
+  /* NOBODY IS STANDING THERE, SO NOTHING CASTS A SHADOW. */
+  #app.bgart .petcompanion.away .petface::after{ opacity:0; }
+  #app.bgart .petcompanion .petsil{ filter:brightness(0) invert(1) opacity(.30)
+    drop-shadow(0 0 7px rgba(220,235,255,.22)); }
+  /* inside a dark recess the mark has to be light, and it needs its own shadow — the niche
+     sits over fifteen different paintings and none of them is a reliable backing */
+  /* WITH NO BOX, THE GLYPH IS ON ITS OWN. A pale mark measures 3.2:1 against the brightest
+     country and 17:1 against the darkest — legible on most, thin on some, and there is no
+     one ink that clears every painting. So it carries its own edge: a hairline dark halo
+     drawn round the letterform, which gives it a guaranteed border no matter what is behind,
+     and a soft shadow under that to lift it off the picture. */
+  #app.bgart .seatmark b{ color:rgba(255,251,242,.94);
+    text-shadow:0 1px 0 rgba(0,0,0,.62), 0 -1px 0 rgba(0,0,0,.5),
+      1px 0 0 rgba(0,0,0,.5), -1px 0 0 rgba(0,0,0,.5), 0 2px 9px rgba(0,0,0,.55); }
+  #app.bgart .seatmark i{ color:rgba(255,251,242,.9);
+    text-shadow:0 1px 0 rgba(0,0,0,.62), 0 -1px 0 rgba(0,0,0,.5),
+      1px 0 0 rgba(0,0,0,.5), -1px 0 0 rgba(0,0,0,.5), 0 2px 7px rgba(0,0,0,.5); }
+
   #app.bgart #dock{
-    background:color-mix(in srgb, var(--hush) 26%, rgba(255,253,246,.86));
-    border-color:color-mix(in srgb, var(--frame2,#9a6f3c) 34%, transparent); }
-  #app.bgart #petbar{ background:none; }
+    background:rgba(28,26,34,.42);
+    backdrop-filter:blur(11px) saturate(.9);
+    border:1.5px solid rgba(255,255,255,.28);
+    box-shadow:0 6px 0 rgba(8,7,12,.6), 0 14px 28px rgba(0,0,0,.34),
+      inset 0 1.5px 0 rgba(255,255,255,.28); }
+  #app.bgart .slotlabel{ color:#e8dfcf; }
+  #app.bgart #movespill{
+    background:rgba(28,26,34,.42);
+    backdrop-filter:blur(11px) saturate(.9);
+    border:1.5px solid rgba(255,255,255,.28);
+    box-shadow:0 3px 0 rgba(8,7,12,.6); }
+  #app.bgart #movespill .mv-lbl{ color:#e8dfcf; }
+  #app.bgart #movesbig, #app.bgart #lvlcap, #app.bgart #lvlcap b, #app.bgart #lv-pre,
+  #app.bgart #game-menu-btn{ color:#fff8ea; }
   #app.bgart .gs-track{
-    background:color-mix(in srgb, var(--sil) 16%, rgba(150,125,85,.17)); }
-  /* the outer frame of the phone picks it up too, so the country reaches the very edge */
-  #app.bgart{ border-color:color-mix(in srgb, var(--frame2,#9a6f3c) 40%, rgba(121,92,55,.25)); }
-  /* THE DEEP DARK IS THE EXCEPTION, and it earns one. Its own colour is the only one dark
-     enough to drag the chrome down with it — measured 4.37:1 on the moves label and 3.48:1
-     on the dock's, both under the 4.5 floor, while the other fourteen sat between 4.6 and
-     11.9. It tints at roughly half strength so its type holds; weakening the rule for all
-     fifteen to fix one would have cost every other country its colour. */
-  #app.bgart.bio9 #movespill{ background:color-mix(in srgb, var(--hush) 14%, #fffdf6); }
-  #app.bgart.bio9 #dock{ background:color-mix(in srgb, var(--hush) 7%, rgba(255,253,246,.95)); }
-  #app.bgart.bio9::before{ opacity:.20; }   /* and the blurred place sits back a little further */
+    background:rgba(14,12,20,.52);
+    backdrop-filter:blur(9px);
+    border:1.5px solid rgba(255,255,255,.26);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.4); }
+  #app.bgart .gs-track *, #app.bgart #goalstrip, #app.bgart #gs-goals{ color:#fff8ea; }
+  /* THE PURSE KEEPS ITS 40px LEFT PADDING — that gutter is what holds the number clear of a
+     coin which hangs 11px off the chip's own edge. Only the plate changes. And NO
+     backdrop-filter here: it would make the chip a containing block and re-anchor that
+     absolutely-positioned coin straight on top of the number. */
+  #app.bgart #topbar #amberchip{
+    background:rgba(14,12,20,.55) !important;
+    border:1.5px solid rgba(255,255,255,.26) !important;
+    border-radius:999px !important;
+    box-shadow:0 2px 0 rgba(8,7,12,.55) !important;
+    opacity:1 !important; }
+  #app.bgart #topbar #amberchip, #app.bgart #topbar #amberchip b{ color:#ffe9b4 !important; }
+  /* the Deep Dark needed an exception under the old PALE shell, where its own darkness
+     dragged the chrome below the contrast floor. Every country is dark now and the type is
+     cream, so the exception is gone — the darkest country is simply the darkest country. */
   /* the floor of the place, under the tiles — the wood has ground, the mountain has scree */
   #board::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:38%;
     z-index:0; pointer-events:none; border-radius:inherit;
@@ -1331,7 +1430,7 @@
      the old one filled 84% — so the same box drew a bigger book. 50 lands it on 45. */
   /* 92px held 41px of seats and 33px of nothing beneath them; the labels want about half
      of that, so twenty go back to the board. */
-  #petbar{ display:none; width:100%; height:94px; z-index:2; position:relative; overflow:visible;
+  #petbar{ display:none; width:100%; height:124px; z-index:2; position:relative; overflow:visible;
     /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
        355px of usable bar and overflowed by 15. At 26 they fit with room to spare. */
     /* seats sit CENTRED in the taller bar, not welded to its floor: bottom-aligning them in
@@ -1344,7 +1443,7 @@
        hanging beneath it — bottom-heavy padding put the seats above the bar's top edge. */
     /* the segment takes 42, leaving 314 against the 308 that five friends at this size
        need; the gap comes in from 12 to 10 to turn six spare pixels into fourteen. */
-    padding:4px 8px 14px; align-items:flex-start; justify-content:center; gap:11px;
+    padding:13px 0 14px; align-items:flex-start; justify-content:center; gap:3px;
     border:none; background:none; box-shadow:none; perspective:620px; }
   #petbar.on{ display:flex; }
   /* ══ DOZING ══ a naming round asks for one exact answer, so the friends stand back.
@@ -1396,10 +1495,13 @@
   /* THE SEAT IS A SLOT, NOT THE BADGE. It holds the badge face AND the pips beneath it —
      the badge clips its own contents (the friend is imprinted on it), so anything that must
      sit OUTSIDE the tile has to hang off a wrapper instead. */
-  .petcompanion{ display:none; position:relative; flex:0 0 auto; width:68px; cursor:pointer;
+  /* SIZED BY THE ROW, NOT BY A NUMBER. 68px was measured back when five had to fit; with
+     four the same shelf has a quarter more room per friend, so the seats take what is there
+     rather than leaving it empty. */
+  .petcompanion{ display:none; position:relative; flex:1 1 0; min-width:0; cursor:pointer;
     line-height:1; color:transparent; }
   .petcompanion.has, .petcompanion.slotopen, .petcompanion.slotlocked{ display:block; }
-  .petface{ position:relative; width:68px; height:68px; border-radius:15px; overflow:hidden;
+  .petface{ position:relative; width:100%; aspect-ratio:1; height:auto; border-radius:17px; overflow:hidden;
     display:flex; align-items:flex-end; justify-content:center;
     /* PORCELAIN, NOT WOOD. The letter tiles are warm tan timber; this is a cool pearl enamel,
        so the two read as different materials even though both are pale — which is what keeps
@@ -1460,8 +1562,6 @@
   @media (prefers-reduced-motion:reduce){
     .petcompanion.flipping .petface{ animation:none; }
     .petcompanion.flipping .ptfront{ animation:none } .petcompanion.flipping .ptback{ animation:none } }
-  .pawghost{ opacity:.28; filter:grayscale(1); }
-  .slotlocked .pawghost{ opacity:.2; }
   /* WAS: bottom:-13px, white-space:nowrap, and the words "wake a friend" — a 70px label
      hanging below a 46px seat, outside the bar, running into the label of the seat next
      door. It sits inside the bar now and carries a number, not a sentence. */
@@ -1480,6 +1580,21 @@
   /* an open seat says "somebody could sit here" with a mark, not a sentence */
   .slotplus{ position:absolute; left:50%; bottom:2px; transform:translateX(-50%); z-index:3;
     font-size:12px; font-weight:900; color:var(--accent-deep); font-style:normal; line-height:1; }
+  /* ══ THE MARK IN AN EMPTY SEAT ══ it sits in the middle of the niche, not on a portrait, so
+     it can be plain: a PLUS you can act on today, or a QUESTION MARK carrying the level that
+     will open it. Deliberately quiet — an empty seat should never out-shout the friends
+     standing either side of it. */
+  /* THE MARKS SHARE ONE LINE. Stacked as a flex column, a '?' carrying a level sat higher
+     than a bare '+' beside it — the row centred each seat's contents rather than the marks
+     themselves, so four seats read as four different heights. The mark is pinned and the
+     level hangs off it. */
+  .seatmark{ position:absolute; left:0; right:0; top:13px; bottom:0; z-index:3;
+    font-family:var(--font-ui); pointer-events:none; }
+  .seatmark b, .seatmark i{ position:absolute; left:0; right:0; text-align:center; }
+  .seatmark b{ top:42%; transform:translateY(-50%);
+    font-size:30px; font-weight:900; line-height:1; color:rgba(62,50,32,.72); }
+  .seatmark i{ bottom:7px; font-style:normal; font-size:10.5px; font-weight:900; letter-spacing:1px;
+    line-height:1; color:rgba(62,50,32,.8); }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
   /* the wake countdown is the most-read number on the shelf and it was 16px wide at 11px
      type — smaller than the seat labels beneath it. */
@@ -2434,8 +2549,7 @@
       <span class="petcompanion" id="pet-1" onclick="UI.petTap(1)"></span>
       <span class="petcompanion" id="pet-2" onclick="UI.petTap(2)"></span>
       <span class="petcompanion" id="pet-3" onclick="UI.petTap(3)"></span>
-      <span class="petcompanion" id="pet-4" onclick="UI.petTap(4)"></span>
-      <!-- the swap button is gone: double-tap a tile IS the swap. -->
+      <!-- four seats. the swap button is gone too: double-tap a tile IS the swap. -->
     </div>
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
@@ -3329,9 +3443,9 @@ const GATE={
    10:{n:"The First Branch",      moves:16, free:1},
    20:{n:"Out of the Clearing",   moves:16, door:1},
    30:{n:"The Short Breath",      moves:20, small:1},
-   40:{n:"Out of the Bramblewood",seats:4,  door:1},
+   40:{n:"Out of the Bramblewood",moves:18, door:1},   /* was seats:4 — a no-op once the party IS four */
    50:{n:"The Stubborn Ground",   noWish:1},
-   60:{n:"Out of the Mosswood",   seats:4,  door:1},
+   60:{n:"Out of the Mosswood",   seats:3,  door:1},   /* was seats:4 — a no-op once the party IS four */
    70:{n:"The Drifting Air",      moves:18},
    80:{n:"Out of the Spore Hollow",seats:3, door:1},
    90:{n:"The Blocked Way",       moves:20},
@@ -3437,8 +3551,11 @@ function dailyWord(){
 /* what the LEVEL would allow — the ladder, before the wood checks your pockets */
 // the locked seats print these very numbers on their silhouettes, so they must be the
 // player's levels or the shelf is lying about itself.
+/* FOUR, NOT FIVE. A fifth seat let you keep a favourite AND still bring what the round
+   wanted; at four the party is a decision every time. It also hands each friend a quarter
+   more room, which is what finally made them legible on a small phone. */
 function seatsByLevel(L){ const A=advOf(L);
-  return A>=20 ? 5 : A>=14 ? 4 : A>=10 ? 3 : A>=7 ? 2 : 1; }
+  return A>=14 ? 4 : A>=10 ? 3 : A>=7 ? 2 : 1; }
 /* A SEAT YOU CANNOT FILL IS NOT A SEAT. The level opened a second one at L7 whether or
    not the player had met anyone to put in it, so "Room for two!" arrived while they still
    had only the cat — a fanfare for nothing, and it reads as the game losing track of who
@@ -3458,8 +3575,8 @@ function slotsFor(L){
 const SLOT_MSG={
   2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Each one stirs to its own sign, so two of them means two different things to watch for."},
   3:{t:"The pack grows! 🐾", b:"Three friends can join you now. Bring ones that answer to different signs and something is always about to happen."},
-  4:{t:"A fourth walks with you 🐾", b:"Four friends at once, four signs to watch for. Pick who comes along in the Book of Names."},
-  5:{t:"Full party! 🐾", b:"Five friends at once. Now the wood is asking you a real question: whose signs suit the round ahead?"},
+  4:{t:"Full party! 🐾", b:"Four friends at once, four signs to watch for. Now the wood is asking you a real question: whose signs suit the round ahead?"},
+  /* the fifth seat is retired — four is the full party now */
 };
 /* The three growings. Every friend you own steps up together — the ones resting at home
    as much as the ones on duty — so a friend you swap in is never behind the one you swap
@@ -4536,8 +4653,8 @@ const Game = {
         // IT USED TO ARRIVE WITH NO WARNING AT ALL — the player met the worm and had no
         // idea what had earned it. Say what the round gives AND what claims it; a player
         // who loses this one should know exactly what they are coming back for.
-        // The creature is a silhouette, as on the locked seats: somebody is coming, and
-        // who it is still belongs to the meeting.
+        // The creature is a silhouette: somebody is coming, and who it is still belongs to
+        // the meeting. (The locked SEATS used to do this too — they show a plain '?' now.)
         // flex, not block: the inline style wins over the stylesheet, so setting
         // "block" here silently defeated the two-line shape the class defines.
         ty.style.display="flex"; ty.className="keystone";
@@ -6384,7 +6501,7 @@ const Game = {
       s.style.animationDuration=(1.0+Math.random()*0.8)+"s"; s.style.animationDelay=(Math.random()*0.5)+"s";
       boardEl.appendChild(s); setTimeout(()=>s.remove(),2400); }
     // the whole party goes wild, the paw meter fills, and the garden showers you with tools
-    for(let s=0;s<5;s++){ const el=$("pet-"+s); if(el && el.classList.contains("has")){
+    for(let s=0;s<4;s++){ const el=$("pet-"+s); if(el && el.classList.contains("has")){
       el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy"); } }
     Game.cheer(Game.petNeed());
     Game.earnBreeze(); if(len>=6){ Game.earnWish(); }
@@ -7186,7 +7303,7 @@ const UI = {
       bar.style.setProperty("--pawalpha",(closest*0.75).toFixed(2));
       bar.style.setProperty("--pawring",(closest*0.9).toFixed(2));
       bar.title="each friend stirs to its own sign — the shelf warms as one of them gets close";
-      for(let s=0;s<5;s++){ const el=$("pet-"+s); if(!el) continue;
+      for(let s=0;s<4;s++){ const el=$("pet-"+s); if(!el) continue;
         const g=eq[s];
         let b=el.querySelector(".pips");
         if(!g){ if(b) b.remove(); el.classList.remove("excited"); continue; }
@@ -7420,8 +7537,8 @@ const UI = {
     if(loadRun()){ fitBoard(); UI.all(); return; }
     Game.startLevel(P.level);
   },
-  SLOT_LV:[null,7,10,14,20], // the level each seat (index 1-4) unlocks at
-  visitor(){ // the meadow shows ALL FIVE seats: pets, open seats, and locked ones with their level
+  SLOT_LV:[null,7,10,14],    // the level each seat (index 1-3) unlocks at — four in all
+  visitor(){ // the meadow shows ALL FOUR seats: pets, open seats, and locked ones with their level
     const eq = UI.equipped(), slots=slotsFor(P.level);
     // ALWAYS ON. It used to appear only once a friend was equipped, which meant the whole
     // tutorial ran without a shelf and then the board and dock shifted the moment one
@@ -7430,14 +7547,13 @@ const UI = {
     // A NAMING ROUND SENDS THEM TO SLEEP, and a friend that quietly stops working is
     // indistinguishable from a broken one. The shelf shows it.
     $("petbar").classList.toggle("dozing", !!(S && S.tutorWord));
-    // the friends the wood will offer next, in the order it will offer them
-    const coming=CALLING_ORDER.filter(w=>!P.metGrove[w]);
-    let queued=0;
-    for(let s=0;s<5;s++){
+    for(let s=0;s<4;s++){
       const el=$("pet-"+s), g=eq[s];
       el.classList.remove("slotopen","slotlocked","flips","flipping","pa1","pa2","pa3","pa4","pa5","pa6");
       if(g){ el.dataset.w=g.w; el.style.fontSize="40px";
-        el.innerHTML = '<span class="petface">'+(UI.artTag(g.w,"petbody") || ('<span class="petbody">'+g.e+'</span>'))+'</span>';
+        el.innerHTML = '<span class="petface">'
+                     + (UI.artTag(g.w,"petbody") || ('<span class="petbody">'+g.e+'</span>'))
+                     + '<span class="seatmark seatgone"><b>+</b></span></span>';
         el.classList.add(UI.petAnim(g.w));      // its own idle rhythm
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
       else if(s<slots){
@@ -7446,41 +7562,25 @@ const UI = {
         // it offered a paw and "meet more friends!", which is an action they cannot take.
         // With a friend on the bench the paw still invites; with nobody, the seat shows
         // who is walking towards it.
-        const bench=Object.keys(P.metGrove||{}).length - eq.length;
-        const soon=bench>0 ? null : GROVE_BY_WORD[coming[queued++]];
-        // it wears its level like the others do — the friend arriving soonest was the
-        // only one on the shelf that did not say when.
-        el.innerHTML = '<span class="petface">'+(soon
-              ? '<span class="ptface ptfront"><span class="petsil">'+UI.silTag(soon.w)+'</span></span>'
-               +'<span class="ptface ptback"><i>LV</i>'+(UI.SLOT_LV[s]||1)+'</span>'
-              : '<span class="pawghost">🐾</span>')+'</span>';
-        el.classList.remove("has"); el.classList.add("slotopen");
-        el.classList.toggle("flips", !!soon); el.style.fontSize="34px";
-        el.title = soon ? soon.w.toUpperCase()+" is out there somewhere…"
-                        : "an open seat — bring a friend to it"; }
+        // A SEAT SAYS WHAT YOU CAN DO ABOUT IT, AND NOTHING ELSE. It used to show the hushed
+        // silhouette of whoever was walking towards it, which read as a fifth kind of creature
+        // standing among the four real ones rather than as an empty chair. Two marks now carry
+        // the whole state: a PLUS where you could seat somebody today, a QUESTION MARK with
+        // the level on it where you could not.
+        el.innerHTML = '<span class="petface"><span class="seatmark"><b>+</b></span></span>';
+        el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
+        el.title = "an open seat — bring a friend to it"; }
       else if(s < seatsByLevel(P.level)){
-        // the LEVEL has opened this one; what is missing is somebody to sit in it — so it
-        // shows the somebody. The ＋ that used to live here promised an action a player
-        // with nobody spare cannot take; the silhouette says the true thing instead.
-        const soon=GROVE_BY_WORD[coming[queued++]];
-        el.innerHTML = '<span class="petface">'+(soon
-              ? '<span class="petsil">'+UI.silTag(soon.w)+'</span>'
-              : '<span class="pawghost">🐾</span>')+'</span>';
+        // the LEVEL has opened this one; what is missing is somebody to sit in it
+        el.innerHTML = '<span class="petface"><span class="seatmark"><b>+</b></span></span>';
         el.classList.remove("has","flips"); el.classList.add("slotopen"); el.style.fontSize="34px";
-        el.title = soon ? "this seat is waiting for a friend to walk out of the wood"
-                        : "this seat is ready — meet another friend to fill it"; }
+        el.title = "this seat is ready — meet another friend to fill it"; }
       else { // a locked seat — somebody still out there, and the level they can join you
-        // THE FRIEND WHO WILL ACTUALLY FILL IT. A random stranger spoiled somebody the
-        // player might not meet for a hundred levels, and said nothing true about the seat
-        // they were looking at. CALLING_ORDER is the order the wood offers its friends, so
-        // the next uncalled names in it ARE the next to arrive.
-        const who=GROVE_BY_WORD[coming[queued++]] || GROVE_BY_WORD[coming[coming.length-1]] || GROVE[0];
-        // THE TILE TURNS OVER to say when. A level pinned to the corner of a portrait was a
-        // label fighting for room; the tile simply flips, shows the number on its back, and
-        // flips home — the seat says "someone is coming" and "at twenty" in one object.
-        el.innerHTML='<span class="petface">'
-                    +'<span class="ptface ptfront"><span class="petsil">'+UI.silTag(who.w)+'</span></span>'
-                    +'<span class="ptface ptback"><i>LV</i>'+UI.SLOT_LV[s]+'</span></span>';
+        // IT SAYS WHEN, WITHOUT BEING ASKED. The seat used to flip on tap to show the level on
+        // its back — a whole interaction spent hiding two characters. With no portrait to make
+        // room for, the level just sits under the mark and the tap is free to say something else.
+        el.innerHTML='<span class="petface"><span class="seatmark">'
+                    +'<b>?</b><i>LV '+UI.SLOT_LV[s]+'</i></span></span>';
         el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="34px";
         el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
     }
@@ -7579,7 +7679,7 @@ const UI = {
     const nxt=UI.nextSlotAt();
     const slots=slotsFor(P.level);
     const seats=[];
-    for(let s=0;s<5;s++){
+    for(let s=0;s<4;s++){
       const g=eq[s];
       if(g) seats.push('<div class="gpartypet"><span class="pe">'+(UI.artTag(g.w,"peimg")||g.e)+'</span><small>'+g.w.toUpperCase()+'</small><span class="pw">'+g.pi+' '+g.pn+'</span></div>');
       else if(s<slots) seats.push('<div class="gpartypet gseat"><span class="pe pawghost">🐾</span><small>open seat</small><span class="pw">meet a friend</span></div>');
@@ -7734,7 +7834,7 @@ const UI = {
   // "another seat opens at level N" is about the LADDER, so it reads the level, not the
   // seats you can currently fill — otherwise a player with one friend is told the next
   // seat comes at 7 while they stand on level 15
-  nextSlotAt(){ const m=seatsByLevel(P.level); return m>=5?null : m===4?20 : m===3?14 : m===2?10 : 7; },
+  nextSlotAt(){ const m=seatsByLevel(P.level); return m>=4?null : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
     if(!P.metGrove[w]) return;
     P.equip = P.equip||[];
