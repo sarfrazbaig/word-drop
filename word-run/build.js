@@ -68,7 +68,12 @@ const common = [...new Set([...g10k, ...subs, ...grove])]
 const MUST = "ooze vary ore oar dune fern lark vale dusk moss glen hush mist reed elm ivy pond brook cove"
   .split(" ").filter(w => enableSet.has(w) && !common.includes(w));
 if (MUST.length) { console.warn("!! missing expected words:", MUST.join(" ")); common.push(...MUST); }
-const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "));
+// ONE STAMP, TWO CONSUMERS. It was computed further down for the service worker only; the
+// telemetry needs the same value, and it has to exist before the game HTML is written. A
+// second Date.now() here would drift by a millisecond and give the two a different id.
+const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
+const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "))
+                            .split("__TELEBUILD__").join(stamp);
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
 fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game — it owns the root
 const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on main
@@ -124,7 +129,6 @@ if (fs.existsSync(bgSrc)) {
 // identical sw.js each deploy, never installs a new worker, and never drops the old cache —
 // so a playtester keeps a stale build while you push fixes they never get. Stamping the
 // file makes it differ every build, which forces install → activate → old caches deleted.
-const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
 /* The worker template lives in sw.src.js and BOTH workers are written from it.
    Only docs/sw.js used to be stamped, so the dev server's own sw.js kept the literal
    cache name "hushwood-__BUILD__" forever: it never changed, so the browser never

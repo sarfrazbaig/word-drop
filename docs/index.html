@@ -8671,7 +8671,16 @@ setInterval(()=>{
 const TELE_URL = "https://script.google.com/macros/s/AKfycbxSN56xueipcmRDE-3UAGPpcTbfoJS9CUBdr9kawLfDwc5CNbhmz3BiljWfmxlYdtdy/exec";   // ← paste your Google-Sheet / Supabase / worker URL here to collect
 const Tele = {
   buf:[], sid:"", pid:"", seq:0, t0:0, recent:[], scene:"",
-  ver:"hush-2026-07-20",
+  /* ══ WHICH BUILD SAID THIS ══ two fields, both on EVERY batch, because a playtest is
+     worthless if you cannot tell which version a complaint came from.
+     WAVE is the human one: bump it whenever you want a clean cohort, and the old rows are
+     one filter away from gone. It is deliberately hand-set — that is the point.
+     VER is stamped by build.js at build time (same stamp the service worker gets), so it
+     can never drift the way the hand-typed "hush-2026-07-20" did: that string sat through
+     the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
+     pass, labelling all of them as one version. */
+  wave:"v2",
+  ver:"20260725233046",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports —
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -8687,7 +8696,7 @@ const Tele = {
     catch(e){ this.pid="anon"; }
     this.log("session_start",{ ua:navigator.userAgent.slice(0,180), lang:navigator.language,
       w:innerWidth, h:innerHeight, dpr:Math.round(devicePixelRatio*100)/100, ref:(document.referrer||"").slice(0,80),
-      ver:this.ver, lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
+      wave:this.wave, ver:this.ver, lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
       returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who(), host:location.hostname });
     document.addEventListener("click", e=>this._tap(e), true);
     window.addEventListener("error", e=>this.log("js_error",{ msg:(e.message||"").slice(0,180),
@@ -8749,7 +8758,8 @@ const Tele = {
   async flush(beacon){
     if(!this.buf.length || !this.on) return;
     const batch=this.buf.splice(0, this.buf.length);
-    const body=JSON.stringify({ sid:this.sid, pid:this.pid, who:this.who(), ver:this.ver, events:batch });
+    const body=JSON.stringify({ sid:this.sid, pid:this.pid, who:this.who(),
+      wave:this.wave, ver:this.ver, events:batch });
     try{
       if(beacon && navigator.sendBeacon){ navigator.sendBeacon(TELE_URL, body); return; }
       await fetch(TELE_URL,{ method:"POST", mode:"no-cors", keepalive:true,
