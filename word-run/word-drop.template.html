@@ -1373,6 +1373,10 @@
   .petbody{ display:block; }
   /* PAINTED PET SPRITES — sit inside the seat and the acting-sprite box, emoji-free. */
   .petimg{ user-select:none; -webkit-user-drag:none; pointer-events:none; }
+  /* a silhouette built from the PAINTED portrait, not the emoji: the parent's brightness(0)
+     filter (.sil / #namer.sil / .ks-sil / .petsil) turns this img into a clean cut-out shape.
+     Sized in em so it matches whatever the silhouette used to be at that spot. */
+  .silimg{ height:1.15em; width:1.15em; display:inline-block; vertical-align:-0.22em; object-fit:contain; }
   /* BIGGER PAINTED PETS. The seat shares the bar's width with its neighbours (flex, min-width
      0) so five still fit without overflow, while the sprite grows to fill the taller bar —
      tall creatures reach 68px, wide ones are capped by the seat they sit in. */
@@ -1805,6 +1809,10 @@
      unmistakably a creature. */
   .whosthat .wt-e.sil{ filter:brightness(0) invert(1) opacity(.9)
     drop-shadow(0 0 12px rgba(255,240,205,.62)) drop-shadow(0 0 26px rgba(190,175,255,.4)); }
+  /* the painted portrait, when a friend has art: the .sil filter above still turns it into a
+     moonlit cut-out (a richer shape than the emoji gave), then lifts to reveal the colour */
+  .whosthat .wt-e .petimg{ height:112px; width:auto; display:block;
+    filter:drop-shadow(0 6px 9px rgba(0,0,0,.28)); }
   /* wraps, centres, and is a rounded label rather than a stadium pill — a 999px radius only
      ever looked right on the single line it was designed for */
   .whosthat .wt-q{ font-family:var(--font-story); font-size:13.5px; font-weight:750; color:#fff;
@@ -1826,6 +1834,7 @@
   #meet-label{ font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-deep); font-weight:800; }
   #meet-creature{ font-size:96px; line-height:1.05; animation:meethop 1.1s ease-in-out infinite;
     filter:drop-shadow(0 8px 10px rgba(0,0,0,.22)); }
+  #meet-creature .petimg{ height:124px; width:auto; display:block; margin:0 auto; }
   @keyframes meethop{ 0%,60%,100%{ transform:translateY(0) rotate(0) } 70%{ transform:translateY(-18px) rotate(-7deg) }
     80%{ transform:translateY(0) } 88%{ transform:translateY(-8px) rotate(5deg) } 96%{ transform:translateY(0) } }
   #meet-name{ font-size:26px; font-weight:900; color:var(--ink); letter-spacing:2px; margin-top:2px; }
@@ -1957,6 +1966,10 @@
     box-shadow:0 3px 8px rgba(90,60,30,.14), inset 0 1.5px 0 rgba(255,255,255,.85); }
   .gcard:active{ transform:scale(.96); }
   .gcard .ge{ display:block; font-size:37px; line-height:1.15; filter:drop-shadow(0 3px 3px rgba(40,60,25,.3)); }
+  /* the Book card's portrait: painted art when the friend is known, and the SAME art turned to
+     a faint shape by .gcard.mystery .ge when it is still hushed — the deck's silhouettes are
+     now the real creatures' outlines, not emoji */
+  .gcard .ge .geimg{ height:44px; width:44px; object-fit:contain; display:block; margin:0 auto; }
   .gcard .mound{ display:block; width:70%; height:7px; margin:-4px auto 5px; border-radius:50%;
     background:radial-gradient(50% 100% at 50% 0, var(--grass), transparent 75%); opacity:.7; }
   .gcard .gn{ display:block; font-size:12px; font-weight:900; letter-spacing:1px; color:var(--ink); }
@@ -2103,7 +2116,7 @@
         <button class="charm-btn" onclick="UI.artPreview(1)">🎨 art level 1 · frog·pig·snail</button>
         <button class="charm-btn" onclick="UI.artPreview(2)">🎨 art level 2 · otter·beaver·seal·fish</button>
         <button class="charm-btn" onclick="UI.artPreview(3)">🎨 art level 3 · boar·moose·badger·deer</button>
-        <button class="charm-btn" onclick="UI.artPreview(4)">🎨 art level 4 · bunny·lamb·chick·mouse·hare</button>
+        <button class="charm-btn" onclick="UI.artPreview(4)">🎨 art level 4 · penguin·lamb·chick·mouse·hare</button>
         <button class="charm-btn" onclick="UI.artPreview(5)">🎨 art level 5 · turtle·lizard·skunk·pony·goat</button>
         <button class="charm-btn" onclick="UI.artPreviewOff()">🎨 night scene OFF</button>
       </div>
@@ -2909,7 +2922,7 @@ const GROVE = [
   {w:"lizard",wake:{on:"obstacle",n:1},e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
   {w:"pony",wake:{on:"drop",n:12},e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
   {w:"lamb",wake:{on:"consonant",n:5},e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
-  {w:"bunny",e:"🐰",z:"ground",ps:true,pn:"Daily Whisper",pi:"🥕",pd:"sniffs out the <b>daily word's first letter</b> (see the Book)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
+  {w:"penguin",e:"🐧",z:"ground",ps:true,pn:"Daily Whisper",pi:"🐟",pd:"spots the <b>daily word's first letter</b> (see the Book)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
   {w:"skunk",wake:{on:"rare",n:1},e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room — every last copy of it"},
   {w:"raccoon",wake:{on:"crate",n:1},e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
   {w:"phoenix",wake:{on:"word5",n:1},e:"🦅",z:"ground",pn:"Ember Hoard",pi:"🌟",pd:"drops an <b>ember that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"keeps its treasure in the ashes, and always comes back for it"},
@@ -2973,7 +2986,7 @@ const CALLINGS={
   /* TIER 4 — the legends: long names, hidden-word names, and the true grinds */
   boar:    {t:"stone",    n:12, c:"smash 12 mossy stones",                    s:"💢 something charges toward the <b>rubble</b>…"},
   robin:   {t:"word4",    n:30, c:"clear 30 four-letter words",               s:"🎶 something sings back at your morning words…"},
-  bunny:   {t:"day",      n:3,  c:"visit the wood on 3 different days",     s:"🥕 something hops out when you keep <b>coming back</b>…"},
+  penguin: {t:"day",      n:3,  c:"visit the wood on 3 different days",     s:"🐧 something waddles in when you keep <b>coming back</b>…"},
   goose:   {t:"gold",     n:25, c:"clear 25 golden letters",                  s:"🥚 something golden waddles toward your <b>treasure</b>…"},
   moose:   {t:"word6",    n:3,  c:"clear 3 six-letter words",                 s:"🌲 something MIGHTY bows to your <b>great words</b>…"},
   fly:     {t:"words",    n:150,c:"clear 150 words",                          s:"〰️ something tiny circles your <b>busy board</b>…"},
@@ -3007,7 +3020,7 @@ const CALL_MINL={
   dove:64, frog:71, duck:77, mouse:84, swan:91, wolf:97,
   fish:105, lamb:112, crab:118, snail:124, snake:131, goat:137,
   pony:145, skunk:152, bison:158, deer:165, seal:172, robin:178,
-  bunny:184, goose:191, moose:197, fly:205, ant:212, heron:218, chick:228
+  penguin:184, goose:191, moose:197, fly:205, ant:212, heron:218, chick:228
 };
 Object.keys(CALL_MINL).forEach(w=>{ if(CALLINGS[w]) CALLINGS[w].minL=CALL_MINL[w]; });
 const CALL_GAP=3;   // never two callings summoned within this many player-levels
@@ -3493,7 +3506,7 @@ function loadRun(){
     Snd.mode = S.tutorWord ? "ceremony" : "normal";
     if(S.tutorWord && !document.getElementById("namer")){
       const n=document.createElement("div"); n.id="namer"; n.className="sil";
-      n.textContent=GROVE_BY_WORD[S.tutorWord].e;
+      n.innerHTML=UI.silTag(S.tutorWord);   // the painted creature, cut to a silhouette by #namer.sil
       n.title="someone is hiding here — spell its name";
       boardEl.appendChild(n);
     }
@@ -4278,7 +4291,7 @@ const Game = {
         // flex, not block: the inline style wins over the stylesheet, so setting
         // "block" here silently defeated the two-line shape the class defines.
         ty.style.display="flex"; ty.className="keystone";
-        ty.innerHTML='<span class="ks-sil">'+GROVE_BY_WORD[waiting].e+'</span>'
+        ty.innerHTML='<span class="ks-sil">'+UI.silTag(waiting)+'</span>'
           +'<b>a friend waits here</b>'
           +'<i>win this round and they walk with you</i>';
         card.classList.add("ceremony"); }
@@ -4333,7 +4346,7 @@ const Game = {
     // It used to read as a WARNING — points alone will not finish this, you must also do
     // the name — which is the exact opposite of the deal now. The name is the whole ask.
     const spg = S.goal && S.goal.t!=="hush";
-    iv.innerHTML='<span class="sil">'+GROVE_BY_WORD[tw].e+'</span> someone is hiding here — spell <b>'+disp+'</b>'
+    iv.innerHTML='<span class="sil">'+UI.silTag(tw)+'</span> someone is hiding here — spell <b>'+disp+'</b>'
       + '<small class="ivstake">🎭 '+(spg
           ? 'the <b>name is all this round asks</b> — spell it and the round is yours, whatever else is on the board'
           : 'the <b>name alone ends this round</b> — you do not have to reach the target')
@@ -4530,7 +4543,7 @@ const Game = {
     // "who's that?" starts the moment the level does
     if(S.tutorWord && !$("namer")){
       const n=document.createElement("div"); n.id="namer"; n.className="sil";
-      n.textContent=GROVE_BY_WORD[S.tutorWord].e;
+      n.innerHTML=UI.silTag(S.tutorWord);   // the painted creature, cut to a silhouette by #namer.sil
       n.title="someone is hiding here — spell its name";
       boardEl.appendChild(n);
     }
@@ -5220,7 +5233,7 @@ const Game = {
     // the player JUST spelled the name — repeating it here made the reveal answer its
     // own question ("who answers to BAT? …the BAT"). The question builds the hush;
     // the name lands exactly once, at the face, where it reads as an introduction.
-    big.innerHTML='<div class="wt-e sil">'+g.e+'</div><div class="wt-q">the name is spoken… <b>something stirs</b></div>';
+    big.innerHTML='<div class="wt-e sil">'+(UI.artTag(g.w,"wtimg")||g.e)+'</div><div class="wt-q">the name is spoken… <b>something stirs</b></div>';
     boardEl.appendChild(big);
     Snd.tone(392,{dur:.5,type:"sine",gain:.06,verb:true}); Snd.tone(523,{dur:.55,type:"sine",gain:.05,when:.4,verb:true});
     buzz([15,25]);
@@ -6762,7 +6775,7 @@ const UI = {
       const shown=full ? w.length : Math.min(w.length-1, Math.max(0,(P.nameFails[w]||0)-1));
       const nm=(w.slice(0,shown).toUpperCase()+"▁".repeat(w.length-shown)).split("").join(" ");
       // NOT into segs: a 156px word in a 115px counter row lost half of itself.
-      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+g.e+'</span> <b>'+nm+'</b></div>';
+      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+UI.silTag(g.w)+'</span> <b>'+nm+'</b></div>';
     }
     gs.innerHTML=segs.join("");
     // a crown trial asks two things at once, so the centre carries three pods
@@ -6936,7 +6949,7 @@ const UI = {
     } else { // a loss should feel like your friends rooting for you, not a cold verdict
       const eq=UI.equipped(), gap=S.target-S.levelScore;
       if(S.tutorWord){
-        $("ev-grove").innerHTML = '<span class="sil" style="font-size:34px">'+GROVE_BY_WORD[S.tutorWord].e+'</span><br>'
+        $("ev-grove").innerHTML = '<span class="sil" style="font-size:34px">'+UI.silTag(S.tutorWord)+'</span><br>'
           + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">it waited all night… its name is still hiding here — <b>try again</b></span>';
       } else
       $("ev-grove").innerHTML = (eq.length?eq.map(g=>"<span>"+g.e+"</span>").join(" ")+"<br>":"")
@@ -7098,7 +7111,7 @@ const UI = {
         const soon=bench>0 ? null : GROVE_BY_WORD[coming[queued++]];
         // it wears its level like the others do — the friend arriving soonest was the
         // only one on the shelf that did not say when.
-        el.innerHTML = soon ? '<span class="petsil">'+soon.e+'</span>'
+        el.innerHTML = soon ? '<span class="petsil">'+UI.silTag(soon.w)+'</span>'
                               +'<small class="slotlv">LV '+(UI.SLOT_LV[s]||1)+'</small>'
                             : '<span class="pawghost">🐾</span>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
@@ -7109,7 +7122,7 @@ const UI = {
         // shows the somebody. The ＋ that used to live here promised an action a player
         // with nobody spare cannot take; the silhouette says the true thing instead.
         const soon=GROVE_BY_WORD[coming[queued++]];
-        el.innerHTML = soon ? '<span class="petsil">'+soon.e+'</span>'
+        el.innerHTML = soon ? '<span class="petsil">'+UI.silTag(soon.w)+'</span>'
                             : '<span class="pawghost">🐾</span>';
         el.classList.remove("has"); el.classList.add("slotopen"); el.style.fontSize="34px";
         el.title = soon ? "this seat is waiting for a friend to walk out of the wood"
@@ -7120,7 +7133,7 @@ const UI = {
         // they were looking at. CALLING_ORDER is the order the wood offers its friends, so
         // the next uncalled names in it ARE the next to arrive.
         const who=GROVE_BY_WORD[coming[queued++]] || GROVE_BY_WORD[coming[coming.length-1]] || GROVE[0];
-        el.innerHTML='<span class="petsil">'+who.e+'</span>'
+        el.innerHTML='<span class="petsil">'+UI.silTag(who.w)+'</span>'
                     +'<small class="slotlv">LV '+UI.SLOT_LV[s]+'</small>';
         el.classList.remove("has"); el.classList.add("slotlocked"); el.style.fontSize="34px";
         el.title="this seat unlocks at level "+UI.SLOT_LV[s]; }
@@ -7130,7 +7143,7 @@ const UI = {
   discover(g){ // the MEET ritual: shown at the start of the round AFTER you unlocked them
     if(!g){ if(S){ S.busy=false; } return; } // never let a missing creature freeze the garden
     Snd.discover(); buzz([30,50,30,50,90]); UI.confetti();
-    $("meet-creature").textContent = g.e;
+    { const art=UI.artTag(g.w,"meetimg"); if(art) $("meet-creature").innerHTML=art; else $("meet-creature").textContent=g.e; }
     $("meet-name").textContent = g.w.toUpperCase();
     // the ritual explains this pet's OWN power — no two friends are alike
     const firstEver = Object.keys(P.metGrove).length===0;
@@ -7208,7 +7221,7 @@ const UI = {
     const found=Object.keys(P.grove).length;
     $("gr-count").textContent = found+"/"+GROVE.length;
     $("gr-daily").textContent = P.dailyWordDay===Math.floor(Date.now()/864e5) ? "✓"
-      : (Game.hasPassive("whisper") ? dailyWord()[0].toUpperCase()+"…" : "?"); // 🥕 the bunny knows
+      : (Game.hasPassive("whisper") ? dailyWord()[0].toUpperCase()+"…" : "?"); // 🐧 the penguin knows
     const f=$("grovefield"); f.innerHTML="";
     const onduty=UI.equipped().map(g=>g.w);
     const met=w=>!!P.metGrove[w];
@@ -7254,7 +7267,7 @@ const UI = {
         if(has){
           el.className="gcard";
           el.innerHTML=(onduty.includes(g.w)?'<span class="ribbon">ON DUTY</span>':'')
-            +'<span class="ge">'+g.e+'</span><span class="mound"></span>'
+            +'<span class="ge">'+(UI.artTag(g.w,"geimg")||g.e)+'</span><span class="mound"></span>'
             +'<span class="gn">'+g.w.toUpperCase()+'</span>'
             +'<span class="gp">'+g.pi+' '+g.pn+'</span>'
             // the SIGN, on the face of the card. The date it joined is a keepsake and it
@@ -7274,7 +7287,7 @@ const UI = {
           const callLine = P.called[g.w]
             ? '<span class="gcall listening">💫 it is LISTENING…<br>its name comes soon</span>'
             : '<span class="gcall">'+ (c.c||"") +' <b>'+pr.have+'/'+pr.n+'</b></span>';
-          el.innerHTML='<span class="ge">'+g.e+'</span><span class="mound"></span>'
+          el.innerHTML='<span class="ge">'+(UI.artTag(g.w,"geimg")||g.e)+'</span><span class="mound"></span>'
             +(isNext?'<span class="nexttag">your next friend</span>':'')
             +'<span class="gn">a hushed friend</span>'
             +'<span class="gp">its name has '+g.w.length+' letters</span>'
@@ -7590,13 +7603,22 @@ const UI = {
   /* PAINTED PETS. Words in PET_ART have a hand-rendered sprite in art/pets/; everything
      else (cat, dog, the birds not yet cut) falls back to its emoji, so nothing breaks while
      the roster is half art and half glyph. */
-  // Art set is EMPTY for now — the first sliced sprites were rejected and a clean set is
-  // being regenerated. Every pet falls back to its emoji (known-good), so the live build is
-  // never broken images. Re-add names here (and drop the PNGs in art/pets/) when art lands.
-  PET_ART: new Set([]),
+  // The full painted set lives in art/pets/<name>.png — one per friend, so every pet shows
+  // its portrait, not an emoji. Derived from the roster so a new friend just needs its PNG
+  // dropped in (missing files are the only way to fall back, and there are none today).
+  PET_ART: new Set(GROVE.map(g=>g.w)),
   artTag(w, cls){ return UI.PET_ART.has(w)
     ? '<img class="petimg '+(cls||"")+'" src="art/pets/'+w+'.png" alt="" draggable="false">'
     : null; },
+  /* THE SILHOUETTE, from the painted portrait. Drop this inside any .sil / .ks-sil / .petsil /
+     #namer element and its brightness(0) filter cuts the art into a shape. Falls back to the
+     emoji only if a friend has no PNG (none do today). This is what makes every "who's hiding"
+     mystery — the ceremony corner, the locked seats, the intro card, the reveal — the real
+     creature's outline instead of an emoji's. */
+  silTag(w){ const g=GROVE_BY_WORD[w];
+    return UI.PET_ART.has(w)
+      ? '<img class="petimg silimg" src="art/pets/'+w+'.png" alt="" draggable="false">'
+      : (g ? g.e : "🐾"); },
   async petVisit(pet, cell){
     const eq=UI.equipped(); let i=eq.indexOf(pet); if(i<0) i=0;
     const seat=$("pet-"+i); if(!seat) return null;
@@ -7770,7 +7792,7 @@ const UI = {
     ["frog","pig","snail"],
     ["otter","beaver","seal","fish"],
     ["boar","moose","badger","deer"],
-    ["bunny","lamb","chick","mouse","hare"],
+    ["penguin","lamb","chick","mouse","hare"],
     ["turtle","lizard","skunk","pony","goat"],
   ],
   artPreview(n){

@@ -90,6 +90,19 @@ if (missingIcons.length) {
   console.warn("!! icons not forged yet: " + missingIcons.join(", "));
   console.warn("   open tools/icon-forge.html, click Forge, and move the PNGs into word-run/");
 }
+// PET ART: the painted friends live in art/pets/. The dev server serves them straight from
+// word-run/, but GitHub Pages serves /docs — so mirror them into docs/art/pets on every build,
+// or the deployed site shows broken portraits while localhost looks fine.
+const petsSrc = path.join(__dirname, "art", "pets");
+if (fs.existsSync(petsSrc)) {
+  const petsDst = path.join(docs, "art", "pets");
+  fs.mkdirSync(petsDst, { recursive: true });
+  const pngs = fs.readdirSync(petsSrc).filter(f => f.endsWith(".png"));
+  pngs.forEach(f => fs.copyFileSync(path.join(petsSrc, f), path.join(petsDst, f)));
+  console.log(`Copied ${pngs.length} pet portraits → docs/art/pets`);
+} else {
+  console.warn("!! no art/pets folder — pets will fall back to emoji");
+}
 // the service worker is STAMPED, not copied: a fixed cache name means the browser sees an
 // identical sw.js each deploy, never installs a new worker, and never drops the old cache —
 // so a playtester keeps a stale build while you push fixes they never get. Stamping the
