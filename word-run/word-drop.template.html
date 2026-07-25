@@ -1447,17 +1447,54 @@
     border:none; background:none; box-shadow:none; perspective:620px; }
   #petbar.on{ display:flex; }
   /* ══ DOZING ══ a naming round asks for one exact answer, so the friends stand back.
-     Dimmed and softened, with a 💤 on each of them: asleep, not broken. */
+     Dimmed and softened, with a drifting 'z' on each of them: asleep, not broken.
+     The mark used to be a 💤, left over from before the painted friends arrived — the last
+     emoji standing in the party row, and it read as a sticker on artwork that has none. A
+     letter in the game's own face drifts just as well and belongs to the same alphabet as
+     the '+' and the '?' on the empty seats. */
   #petbar.dozing .petcompanion.has{ filter:grayscale(.55) brightness(.92); opacity:.72;
     animation:none; }
-  #petbar.dozing .petcompanion.has::after{ content:"💤"; position:absolute;
-    top:2px; left:2px; font-size:14px; line-height:1; pointer-events:none; z-index:3;
+  #petbar.dozing .petcompanion.has::after{ content:"z";
+    position:absolute; top:0; left:5px; z-index:3; pointer-events:none;
+    font-family:var(--font-ui); font-size:16px; font-weight:900; font-style:italic; line-height:1;
+    /* .petcompanion sets color:transparent so the seat's own text never shows — the mark
+       has to re-ink itself or it renders as nothing at all */
+    color:rgba(255,251,242,.94);
+    text-shadow:0 1px 0 rgba(0,0,0,.6), 0 -1px 0 rgba(0,0,0,.45),
+      1px 0 0 rgba(0,0,0,.45), -1px 0 0 rgba(0,0,0,.45), 0 2px 7px rgba(0,0,0,.5);
     animation:doze 2.6s ease-in-out infinite; }
   #petbar.dozing .petcount{ opacity:.45; }
   @keyframes doze{ 0%,100%{ transform:translateY(0) scale(.94); opacity:.55 }
                    50%    { transform:translateY(-4px) scale(1.06); opacity:.95 } }
+  /* ══ A FRIEND WHO STAYS HOME ══ three rounds in three hundred bar one named friend, and
+     until now the seat said nothing: full colour, full size, and a pip that could never
+     fill because sees() skips a barred friend entirely. A frozen meter on a friend who
+     looks fine is worse than no meter at all. It borrows the sleeping language rather than
+     inventing a second one — the player already learned it in a naming round, and the
+     difference between 'asleep until the name is spoken' and 'home for the whole round'
+     is not a difference they can act on. The mark is a crossed-out circle, not a letter,
+     so the two states are still told apart at a glance. */
+  .petcompanion.barred{ filter:grayscale(.62) brightness(.9); opacity:.66;
+    animation:none !important; }
+  .petcompanion.barred::before{ content:""; position:absolute; top:3px; left:5px;
+    width:13px; height:13px; border-radius:50%; z-index:3; pointer-events:none;
+    border:2px solid rgba(255,251,242,.88);
+    box-shadow:0 1px 3px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.35); }
+  .petcompanion.barred::after{ content:""; position:absolute; top:8.5px; left:3px;
+    width:17px; height:2px; z-index:4; pointer-events:none;
+    transform:rotate(-45deg); transform-origin:50% 50%;
+    background:rgba(255,251,242,.88); box-shadow:0 1px 2px rgba(0,0,0,.6); }
+  /* IF A NAMING FALLS ON A BARRED ROUND, ONE MARK WINS. The doze rule already outranks the
+     bar on ::after, but the crossed circle's ring lives on ::before and would have sat
+     behind the sleeping z — two states stacked in one corner. Everybody is asleep in a
+     naming anyway, so the bar goes quiet and lets the z speak. */
+  #petbar.dozing .petcompanion.barred::before{ display:none; }
   @media (prefers-reduced-motion:reduce){
     #petbar.dozing .petcompanion.has::after{ animation:none; opacity:.8; } }
+  /* A SEAT SPEAKS WITH ONE VOICE. While its friend is out on the board the seat shows a
+     plus — nobody home — so a progress meter underneath it was the seat saying the
+     opposite thing in the same breath. */
+  .petcompanion.away .pips{ opacity:0; transition:opacity .18s ease; }
   /* the bar IS the paw meter: its edges warm up as the pets get closer to acting */
   #petbar{ margin-top:8px; margin-bottom:2px; }
   #petbar.on{ box-shadow:none; }
@@ -4894,7 +4931,7 @@ const Game = {
     if(S.guide) setTimeout(()=>FT.run(), 350); // the lesson begins (deferred ones wait for their cue)
     // THE FIRST TIME THE SHELF GOES QUIET, SAY WHY. Friends standing back is the right
     // behaviour and the wrong surprise: without a word for it, a player reads their own
-    // party breaking. Said twice, then the 💤 carries it alone.
+    // party breaking. Said twice, then the drifting 'z' on each seat carries it alone.
     if(S.tutorWord && UI.equipped().length)
       setTimeout(()=>UI.say("pets-doze",
         "\uD83D\uDCA4 your friends are <b>asleep</b> for a naming<br>"
@@ -7306,7 +7343,10 @@ const UI = {
       for(let s=0;s<4;s++){ const el=$("pet-"+s); if(!el) continue;
         const g=eq[s];
         let b=el.querySelector(".pips");
-        if(!g){ if(b) b.remove(); el.classList.remove("excited"); continue; }
+        // A BARRED FRIEND HAS NOTHING TO COUNT — same as an empty seat, for the same reason:
+        // there is no progress to show, and four frozen sockets read as a broken meter.
+        const gate=gateAt(S.level);
+        if(!g || (gate && gate.bars===g.w)){ if(b) b.remove(); el.classList.remove("excited"); continue; }
         if(!b){ b=document.createElement("span"); b.className="pips"; el.appendChild(b); }
         // PIPS: one dot per sign this friend still needs, under the badge and never on it.
         // The roster is tuned so nobody asks for more than four — if a future friend ever
@@ -7349,7 +7389,9 @@ const UI = {
     if(!S) return;
     Snd.tone(880,{dur:.09,type:"triangle",gain:.06,verb:true}); buzz(8);
     let turn;
-    if(g.ps) turn="<b>always on</b> while on duty";
+    const gate=gateAt(S.level);
+    if(gate && gate.bars===g.w) turn="<b>staying home</b> this round — the way in is barred to them";
+    else if(g.ps) turn="<b>always on</b> while on duty";
     else {
       // THE TRIGGER IS STATED, THE STRATEGY IS NOT. A player choosing a party has to know
       // what wakes a friend; nothing anywhere tells them which round wants which friend.
@@ -7540,6 +7582,10 @@ const UI = {
   SLOT_LV:[null,7,10,14],    // the level each seat (index 1-3) unlocks at — four in all
   visitor(){ // the meadow shows ALL FOUR seats: pets, open seats, and locked ones with their level
     const eq = UI.equipped(), slots=slotsFor(P.level);
+    // WHO THE GATE SENT HOME. A barred friend is filtered out of petActives(), so it never
+    // sees a sign and never acts — but the seat drew it at full strength anyway, next to a
+    // meter that could not move. The seat has to say it.
+    const gate = gateAt(S ? S.level : P.level), barredW = (gate && gate.bars) || null;
     // ALWAYS ON. It used to appear only once a friend was equipped, which meant the whole
     // tutorial ran without a shelf and then the board and dock shifted the moment one
     // arrived — furniture moving under a player mid-lesson.
@@ -7549,13 +7595,15 @@ const UI = {
     $("petbar").classList.toggle("dozing", !!(S && S.tutorWord));
     for(let s=0;s<4;s++){
       const el=$("pet-"+s), g=eq[s];
-      el.classList.remove("slotopen","slotlocked","flips","flipping","pa1","pa2","pa3","pa4","pa5","pa6");
+      el.classList.remove("slotopen","slotlocked","flips","flipping","barred","pa1","pa2","pa3","pa4","pa5","pa6");
       if(g){ el.dataset.w=g.w; el.style.fontSize="40px";
         el.innerHTML = '<span class="petface">'
                      + (UI.artTag(g.w,"petbody") || ('<span class="petbody">'+g.e+'</span>'))
                      + '<span class="seatmark seatgone"><b>+</b></span></span>';
         el.classList.add(UI.petAnim(g.w));      // its own idle rhythm
-        el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
+        el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has");
+        if(g.w===barredW){ el.classList.add("barred");
+          el.title=g.w.toUpperCase()+" stays home this round"; } }
       else if(s<slots){
         // AN INVITATION ONLY IF THERE IS SOMEBODY TO INVITE. slotsFor floors at one, so
         // this chair exists even for a player who owns nobody — and through the tutorial
