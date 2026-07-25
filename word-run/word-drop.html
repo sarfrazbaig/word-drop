@@ -341,95 +341,25 @@
   /* THE WAKING ARC: the night sky brightens from deep hush toward dawn as the wood wakes —
      driven by a filter:brightness on #board in applyBiome (0.82 asleep → ~1.08 awake). */
   /* ===== the cover of the book: the wood at the edge of waking ===== */
-  #sky{ position:absolute; inset:0 0 32% 0; z-index:0;
-    background:linear-gradient(180deg,#6d6f9e 0%, #9d92bb 30%, #d9a988 62%, #f2d9a8 84%, #f7ecd0 100%); }
-  /* ---- the cover travels with the reader: home takes on the region you're walking ----
-     same dusk, different air — pond teal, amber wood, moonquiet violet, snowhush steel */
-  .hb1 #sky{ /* 🌿 Bramblewood */ background:linear-gradient(180deg,#3f5238 0%, #5c7a4c 34%, #89a86e 66%, #bcd0a0 88%, #dbe8c4 100%); }
-  .hb1 #hill-near{ background:linear-gradient(180deg,#3f6b4a 0%, #345a3e 55%, #284630 100%); }
-  .hb2 #sky{ /* 🌱 Mosswood */ background:linear-gradient(180deg,#35493f 0%, #4e6b5a 34%, #7d9c86 66%, #b2cbb8 88%, #d6e6da 100%); }
-  .hb2 #hill-near{ background:linear-gradient(180deg,#3a6350 0%, #2f5242 55%, #243f34 100%); }
-  .hb3 #sky{ /* 🍄 Spore Hollow */ background:linear-gradient(180deg,#3b2d52 0%, #5a4076 34%, #8663a0 66%, #b294c6 88%, #d4c0e0 100%); }
-  .hb3 #hill-near{ background:linear-gradient(180deg,#4a3a63 0%, #3c2f52 55%, #2e2440 100%); }
-  .hb4 #sky{ /* 🌊 Listening Pond */ background:linear-gradient(180deg,#2b3f5e 0%, #4a7d86 34%, #7fb0ac 66%, #b6d6cc 88%, #dcece4 100%); }
-  .hb4 #hill-near{ background:linear-gradient(180deg,#3f7a68 0%, #336456 55%, #274e43 100%); }
-  .hb5 #sky{ /* 🪷 Reedmarsh */ background:linear-gradient(180deg,#3d4436 0%, #5f6b46 34%, #8e9a63 66%, #bcc494 88%, #dde2c2 100%); }
-  .hb5 #hill-near{ background:linear-gradient(180deg,#5a6b3e 0%, #4a5934 55%, #3a4629 100%); }
-  .hb6 #sky{ /* 🌀 Running River */ background:linear-gradient(180deg,#22405c 0%, #3f7ba3 34%, #79b4d4 66%, #b3d8ea 88%, #dcf0f8 100%); }
-  .hb6 #hill-near{ background:linear-gradient(180deg,#2f6b7a 0%, #265766 55%, #1d4450 100%); }
-  .hb7 #sky{ /* 💦 Thunderfalls */ background:linear-gradient(180deg,#173f45 0%, #39868a 34%, #72bfbb 66%, #aeddd8 88%, #dcf4f0 100%); }
-  .hb7 #hill-near{ background:linear-gradient(180deg,#2b6f6a 0%, #235a56 55%, #1a4643 100%); }
-  .hb8 #sky{ /* 🕳️ Undercave */ background:linear-gradient(180deg,#241c16 0%, #4a3a2c 34%, #7a6046 66%, #a88a66 88%, #cbb08a 100%); }
-  .hb8 #hill-near{ background:linear-gradient(180deg,#3d3226 0%, #31281e 55%, #251e16 100%); }
-  .hb9 #sky{ /* 🌑 Deep Dark */ background:linear-gradient(180deg,#100d18 0%, #231d33 34%, #3b3350 66%, #564c72 88%, #6f6490 100%); }
-  .hb9 #hill-near{ background:linear-gradient(180deg,#241f33 0%, #1b1728 55%, #12101c 100%); }
-  .hb10 #sky{ /* 💎 Glimmer Seams */ background:linear-gradient(180deg,#152c40 0%, #2f6d92 34%, #63a8cc 66%, #a2d2e8 88%, #d6eef8 100%); }
-  .hb10 #hill-near{ background:linear-gradient(180deg,#2a5f78 0%, #224d62 55%, #1a3b4c 100%); }
-  .hb11 #sky{ /* 🪨 Scree Slopes */ background:linear-gradient(180deg,#2e2b26 0%, #5c5348 34%, #948a7c 66%, #c2b8aa 88%, #e2dbd0 100%); }
-  .hb11 #hill-near{ background:linear-gradient(180deg,#4f4a40 0%, #413c34 55%, #332f29 100%); }
-  .hb12 #sky{ /* 🌬️ Windward Ridge */ background:linear-gradient(180deg,#2f4670 0%, #5b86b4 34%, #9ac0dc 66%, #c8def0 88%, #eaf5fc 100%); }
-  .hb12 #hill-near{ background:linear-gradient(180deg,#4a6b84 0%, #3d5a70 55%, #30475a 100%); }
-  .hb13 #sky{ /* ❄️ Snowline */ background:linear-gradient(180deg,#2b3550 0%, #5f7a9a 34%, #9cb8cc 66%, #cfdde6 88%, #eef5f9 100%); }
-  .hb13 #hill-near{ background:linear-gradient(180deg,#5c7a8e 0%, #4b6676 55%, #3a515e 100%); }
-  .hb14 #sky{ /* 👑 Frozen Crown */ background:linear-gradient(180deg,#161233 0%, #3b2f70 34%, #6b53a8 66%, #a68fd0 88%, #d8c8ec 100%); }
-  .hb14 #hill-near{ background:linear-gradient(180deg,#3a3168 0%, #2e2754 55%, #231d40 100%); }
-  .hb4 #hill-near .sprout{ filter:grayscale(.3) brightness(1.25); } /* frost on the grass */
-  #sun{ position:absolute; top:8%; right:14%; width:44px; height:44px; border-radius:50%;
-    background:radial-gradient(circle,#fff6dc 0%,#ffe9ad 55%,#f5cc74 100%);
-    box-shadow:0 0 44px 16px rgba(255,224,150,.45); animation:sunpulse 6s ease-in-out infinite; }
-  @keyframes sunpulse{ 50%{ box-shadow:0 0 58px 24px rgba(255,224,150,.6); } }
-  .cloud{ position:absolute; width:120px; height:30px; border-radius:30px; background:rgba(255,236,214,.35);
-    filter:blur(2px); animation:drift 34s linear infinite; }
-  .cloud::before{ content:""; position:absolute; top:-14px; left:26px; width:52px; height:52px; border-radius:50%; background:inherit; }
-  .cloud::after{ content:""; position:absolute; top:-9px; right:22px; width:38px; height:38px; border-radius:50%; background:inherit; }
-  @keyframes drift{ to{ transform:translateX(560px); } }
-  /* letter-motes: the hush made visible — little glowing letters drifting like fireflies */
-  .mote{ position:absolute; z-index:1; font-family:var(--font-story); font-weight:650; color:rgba(255,240,200,.9);
-    text-shadow:0 0 8px rgba(255,220,140,.9), 0 0 18px rgba(255,210,120,.5); pointer-events:none;
-    animation:motefloat var(--mdur,14s) ease-in-out infinite alternate; opacity:.85; }
-  @keyframes motefloat{ 0%{ transform:translate(0,0) rotate(-6deg) } 100%{ transform:translate(var(--mx,20px),var(--my,-34px)) rotate(8deg) } }
-  /* the treeline: three hushed silhouette layers framing the clearing */
-  #hill-far{ position:absolute; left:-4%; right:-4%; bottom:26%; height:30%; z-index:0; opacity:.9;
-    background:
-      radial-gradient(14% 58% at 8% 100%, #5a5f8e 0 98%, transparent 100%),
-      radial-gradient(16% 74% at 22% 100%, #545a8a 0 98%, transparent 100%),
-      radial-gradient(13% 52% at 36% 100%, #5a5f8e 0 98%, transparent 100%),
-      radial-gradient(17% 80% at 52% 100%, #4f5584 0 98%, transparent 100%),
-      radial-gradient(14% 60% at 68% 100%, #5a5f8e 0 98%, transparent 100%),
-      radial-gradient(16% 72% at 84% 100%, #545a8a 0 98%, transparent 100%),
-      radial-gradient(13% 50% at 97% 100%, #5a5f8e 0 98%, transparent 100%); }
-  #hill-near{ position:absolute; left:0; right:0; bottom:0; height:34%; z-index:1;
-    background:linear-gradient(180deg,#59855a 0%, #47724a 55%, #3c6140 100%);
-    border-radius:60% 60% 0 0 / 20% 20% 0 0; box-shadow:0 -8px 26px rgba(50,70,90,.35); }
-  #hill-near::before{ content:""; position:absolute; left:-3%; right:-3%; top:-34px; height:44px; opacity:.85;
-    background:
-      radial-gradient(10% 100% at 6% 100%, #3f5f74 0 96%, transparent 100%),
-      radial-gradient(12% 86% at 20% 100%, #446880 0 96%, transparent 100%),
-      radial-gradient(9% 72% at 34% 100%, #3f5f74 0 96%, transparent 100%),
-      radial-gradient(11% 92% at 66% 100%, #446880 0 96%, transparent 100%),
-      radial-gradient(9% 70% at 80% 100%, #3f5f74 0 96%, transparent 100%),
-      radial-gradient(12% 88% at 94% 100%, #446880 0 96%, transparent 100%); }
-  #hill-near .sprout{ position:absolute; top:11px; font-size:18px; opacity:.7; animation:sway 4s ease-in-out infinite; transform-origin:bottom center; }
-  #hill-near .sprout:nth-child(even){ animation-delay:-2s; }
-  @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(6deg) } }
-  /* your party peeks from the wood's edge — the cast changes as you wake more names */
-  /* THE SEAT MUST HAVE A BOX. These were sized only by font-size, which is fine for a glyph
-     and catastrophic for an image: with nothing to fill, the portraits rendered at their
-     native 256px and swallowed the hill, the play button and the chapter plate. */
-  #hill-near .peek{ position:absolute; top:-30px; width:52px; height:52px; font-size:28px;
-    display:flex; align-items:flex-end; justify-content:center;
-    transform-origin:bottom center; filter:drop-shadow(0 3px 5px rgba(30,25,50,.4)); }
-  #hill-near .peek:nth-of-type(1){ animation:hop 2.8s ease-in-out infinite; }
-  #hill-near .peek:nth-of-type(2){ animation:wiggle 3.4s ease-in-out infinite .5s; }
-  #hill-near .peek:nth-of-type(3){ animation:hop 3.1s ease-in-out infinite 1.1s; }
-  #hill-near .peek:nth-of-type(4){ animation:wiggle 3.7s ease-in-out infinite 1.6s; }
-  #hill-near .peek.newwake{ animation:peekwake .9s ease-out; } /* a freshly-woken friend arrives */
-  @keyframes peekwake{ 0%{ transform:translateY(30px) scale(.4); opacity:0 } 60%{ transform:translateY(-8px) scale(1.15) } 100%{ transform:translateY(0) scale(1) } }
-  @keyframes hop{ 0%,58%,100%{ transform:translateY(0) rotate(0) } 66%{ transform:translateY(-16px) rotate(-8deg) }
-    74%{ transform:translateY(0) rotate(0) } 82%{ transform:translateY(-9px) } 90%{ transform:translateY(0) } }
-  @keyframes wiggle{ 0%,60%,100%{ transform:rotate(0) } 68%{ transform:rotate(-14deg) } 76%{ transform:rotate(12deg) }
-    84%{ transform:rotate(-8deg) } 92%{ transform:rotate(0) } }
-  @keyframes peekbob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-6px) } }
+  /* THE HAND-DRAWN EVENING LIVED HERE. A gradient sky with a sun, two clouds and six drifting
+     letters; a treeline of radial gradients; a rounded hill with sprouts and four friends
+     peeking over it — and fifteen per-country repaints of the sky and the hill beneath it.
+     Roughly ninety lines, all of it an approximation of a place we now have a painting of.
+     The door shows the painting (see #home-art below). Gone with it: #sky #sun .cloud .mote
+     #hill-far #hill-near .sprout .peek, the .hb0-.hb14 sky/hill palettes, and the keyframes
+     sunpulse drift motefloat sway hop wiggle peekwake peekbob — each used by nothing else.
+     .hb0-.hb14 are still set on #scene-home: they now style nothing, but they are the only
+     record in the DOM of which country the door is showing, which is worth keeping. */
+  /* THE PAINTING, FULL BLEED. --bgart and --deep are declared on #app.bgart.bioN and custom
+     properties inherit, so the door reads the same two values the board does — one source for
+     which country you are standing in, no second table to drift. */
+  #home-art{ position:absolute; inset:0; z-index:0; border-radius:inherit;
+    background:var(--bgart) center/cover no-repeat; }
+  /* NO VEIL. A gradient over the whole door bought legibility by dimming the one thing the
+     door now exists to show. The logo does not need it — eight wooden tiles are opaque and
+     read against anything — and the play button sits on its own gold. That leaves exactly
+     one problem, the chapter block at the foot, and a problem in one place is solved in one
+     place rather than by tinting the entire picture. */
   #home-content{ position:absolute; inset:0; z-index:2; }
   /* ONE MENU BUTTON, DRAWN ONCE, WORN BY BOTH SCREENS — only the placement differs. */
   #home-menu-btn, #game-menu-btn{
@@ -462,21 +392,22 @@
   #home-menu-btn .cnt{ position:absolute; top:-5px; right:-5px; background:var(--gold-deep); color:#fff;
     font-size:11px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
     display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,.35); }
-  #homelogo{ position:absolute; left:0; right:0; top:33%; transform:translateY(-50%); text-align:center; }
+  #homelogo{ position:absolute; left:0; right:0; top:31%; transform:translateY(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:9px; }
   #homelogo::before{ content:""; position:absolute; inset:-26px -30px; z-index:-1;
     background:radial-gradient(60% 60% at 50% 42%, rgba(58,54,96,.35), rgba(58,54,96,0) 74%); }
   #btn-play{ position:absolute; left:50%; top:76%; transform:translate(-50%,-50%); }
   .logo-tiles{ display:flex; gap:8px; justify-content:center; }
   .logo-tiles .tile{ width:54px; height:58px; font-size:27px; position:relative; animation:logobob 2.6s ease-in-out infinite; }
+  /* the bob travels along the whole name, not twice through four letters — the second row
+     picks up where the first left off, so eight tiles read as one word breathing */
   .logo-tiles .tile:nth-child(2){ animation-delay:.18s } .logo-tiles .tile:nth-child(3){ animation-delay:.36s }
   .logo-tiles .tile:nth-child(4){ animation-delay:.54s }
+  .logo-tiles + .logo-tiles .tile:nth-child(1){ animation-delay:.72s }
+  .logo-tiles + .logo-tiles .tile:nth-child(2){ animation-delay:.90s }
+  .logo-tiles + .logo-tiles .tile:nth-child(3){ animation-delay:1.08s }
+  .logo-tiles + .logo-tiles .tile:nth-child(4){ animation-delay:1.26s }
   @keyframes logobob{ 0%,100%{ transform:translateY(0) rotate(-1deg) } 50%{ transform:translateY(-8px) rotate(1.5deg) } }
-  .logo-word{ margin-top:8px; font-family:var(--font-story); font-size:42px; font-weight:650; letter-spacing:4px; padding-left:4px;
-    color:#f7ecd0; text-shadow:0 2px 0 rgba(60,50,90,.55), 0 6px 20px rgba(40,35,70,.6); }
-  .logo-sub{ display:inline-block; margin-top:10px; font-family:var(--font-story); font-style:italic; font-size:12.5px;
-    letter-spacing:1px; color:#4a4066; font-weight:500;
-    background:rgba(247,236,208,.88); border:1px solid rgba(90,80,120,.25); border-radius:999px; padding:4px 15px;
-    box-shadow:0 3px 8px rgba(40,35,70,.35); }
   #btn-play{ width:100px; height:100px; border-radius:50%; font-size:26px; font-weight:900;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
     background:radial-gradient(120% 120% at 38% 28%, #ffe3a0, #f2b348 55%, #d98a2a);
@@ -485,9 +416,10 @@
   #btn-play small{ font-size:11px; font-weight:800; opacity:.8; letter-spacing:1px; }
   @keyframes playpulse{ 50%{ box-shadow:0 9px 0 #a86a20, 0 0 64px rgba(255,196,110,.8); transform:translate(-50%,-50%) scale(1.05); } }
   #btn-play:active{ transform:translate(-50%,-50%) scale(.93); }
-  #home-prog{ position:absolute; left:0; right:0; top:92%; text-align:center; z-index:2;
+  #home-prog{ position:static; text-align:center;
     font-family:var(--font-ui); font-size:12px; font-weight:800; color:#f6efdb;
-    text-shadow:0 1px 3px rgba(30,40,30,.75); }
+    text-shadow:0 1px 2px rgba(0,0,0,.45); }
+  #home-prog:empty{ display:none; }   /* before the tutorial there is no count — no empty gap */
   #home-prog b{ color:var(--gold); }
   #home-prog small{ display:block; font-size:11px; font-weight:700; opacity:.9; margin-top:2px; }
   #home-prog .hbar{ width:148px; height:5px; margin:4px auto 0; border-radius:999px;
@@ -497,20 +429,35 @@
   /* THE CHAPTER HEADING. Set like the top of a page: a spaced small-caps line above,
      the name in a serif that carries weight, an epigraph in italics beneath it, and a
      quiet page count. Everything centred, everything readable over a painted hill. */
-  #home-place{ position:absolute; left:0; right:0; top:85.5%; text-align:center; z-index:2;
+  /* ══ THE SAME GLASS THE DOCK IS MADE OF ══ cream type straight on the painting measured
+     1.57:1 at its worst across the fifteen — illegible, not marginal. A veil over the whole
+     door would have fixed it by dimming the picture the door exists to show, so the fix sits
+     only where the problem is. This is the neutral translucent glass the play screen uses for
+     the party tiles and the bottom dock: the painting still shows through it, it clears the
+     readable floor on every country with room to spare (worst 5.62:1, measured), and the door
+     and the board are finally made of the same material.
+     IT HUGS ITS TEXT rather than spanning the door — a bar across the foot would both cover
+     more painting than it needs to and collide with the chest in the corner. */
+  #home-foot{ position:absolute; left:50%; transform:translateX(-50%);
+    bottom:calc(16px + env(safe-area-inset-bottom)); z-index:2; max-width:80%;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:7px 16px 8px; border-radius:14px;
+    background:rgba(24,22,30,.62);
+    backdrop-filter:blur(6px) saturate(.95);
+    border:1.5px solid rgba(255,255,255,.22);
+    box-shadow:0 6px 18px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.10); }
+  #home-place{ position:static; text-align:center;
     display:flex; flex-direction:column; align-items:center; gap:1px;
-    text-shadow:0 1px 3px rgba(30,40,30,.72); }
+    text-shadow:0 1px 2px rgba(0,0,0,.45); }
   #home-place .ch-pre{ font:700 8.5px/1.2 var(--font-ui); letter-spacing:.22em;
     color:#e7d9a6; text-transform:uppercase; }
   #home-place .ch-name{ font:600 17px/1.18 var(--font-story); color:#fffaec; letter-spacing:.4px; }
   #home-place .ch-line{ font:italic 400 10.5px/1.25 var(--font-story); color:#ded7bd;
-    max-width:78%; text-wrap:balance; }
+    max-width:100%; text-wrap:balance; }
   #home-prog .hp-line{ display:block; font:600 9.5px/1.3 var(--font-ui); letter-spacing:.06em;
     color:#e4dcc0; text-transform:uppercase; }
   #home-place .ch-page{ font:600 9px/1.2 var(--font-ui); letter-spacing:.13em;
     color:#cfc6a8; text-transform:uppercase; margin-top:2px; }
-  /* the creatures peek from the hill crest, safely ABOVE the play button */
-  #hill-near .peek{ top:-36px; }
   /* ===== the slide menu — a simple panel from the left ===== */
   #menu-scrim{ position:absolute; inset:0; z-index:200; background:rgba(40,35,62,.5); backdrop-filter:blur(2px);
     opacity:0; pointer-events:none; transition:opacity .28s; }
@@ -566,13 +513,15 @@
      stage — three things positioned from different edges, so on most screens the chest
      landed squarely on the words. It now hangs beside the play button, well clear of the
      copy, and reads as the tappable thing it is: a real tap target with a lifted rim. */
-  /* Bottom-left corner, and a sibling of the play button rather than a child of the hill.
-     That parentage is the point: z-index only ranks siblings inside a stacking context, so
-     while this lived in #hill-near (z:1) its own z:4 counted for nothing against
-     #home-content (z:2) — which covered the hill and quietly ate every tap aimed here. It
-     looked clickable and wasn't. Sharing a context with the copy it sits beside also makes
-     these offsets mean what they appear to mean. */
-  #homegift{ position:absolute; left:7%; bottom:5%; font-size:26px; cursor:pointer; display:none;
+  /* Bottom-left corner, and a sibling of the play button. That parentage is the point, and
+     it was learned the hard way: z-index only ranks siblings inside a stacking context, so
+     while the chest was a child of the old hill layer (z:1) its own z:4 counted for nothing
+     against #home-content (z:2), which covered the hill and quietly ate every tap aimed
+     here. It looked clickable and wasn't. It shares a context with the copy beside it now,
+     so these offsets mean what they appear to mean — and it sits on the plate's baseline so
+     the two read as one row along the foot. */
+  #homegift{ position:absolute; left:6%; bottom:calc(22px + env(safe-area-inset-bottom));
+    font-size:26px; cursor:pointer; display:none;
     width:46px; height:46px; line-height:46px; text-align:center; border-radius:50%;
     background:radial-gradient(circle at 50% 35%, rgba(255,246,222,.95), rgba(240,214,160,.9));
     box-shadow:0 3px 10px -2px rgba(60,30,0,.45), inset 0 -2px 0 rgba(140,100,40,.25);
@@ -2424,34 +2373,33 @@
 <div id="app">
   <!-- ============ HOME — the cover of the book: the wood at the edge of waking ============ -->
   <div class="scene active" id="scene-home">
-    <div id="sky"><div id="sun"></div>
-      <div class="cloud" style="top:9%;left:-20%;animation-delay:0s"></div>
-      <div class="cloud" style="top:20%;left:-40%;animation-delay:-9s;transform:scale(.7)"></div>
-      <span class="mote" style="left:12%;top:26%;font-size:15px;--mx:26px;--my:-30px;--mdur:13s">e</span>
-      <span class="mote" style="left:76%;top:31%;font-size:12px;--mx:-20px;--my:-40px;--mdur:17s;animation-delay:-6s">a</span>
-      <span class="mote" style="left:30%;top:14%;font-size:11px;--mx:32px;--my:-18px;--mdur:15s;animation-delay:-3s">s</span>
-      <span class="mote" style="left:60%;top:12%;font-size:13px;--mx:-26px;--my:-26px;--mdur:19s;animation-delay:-10s">o</span>
-      <span class="mote" style="left:44%;top:34%;font-size:10px;--mx:18px;--my:-36px;--mdur:16s;animation-delay:-8s">t</span>
-      <span class="mote" style="left:87%;top:18%;font-size:11px;--mx:-16px;--my:-24px;--mdur:14s;animation-delay:-4s">n</span>
-    </div>
-    <div id="hill-far"></div>
-    <div id="hill-near">
-      <span class="sprout" style="left:24%">🌿</span>
-      <span class="sprout" style="right:28%">🌱</span>
-      <span class="peek" id="peek-0" style="left:12%"></span>
-      <span class="peek" id="peek-1" style="left:33%"></span>
-      <span class="peek" id="peek-2" style="right:31%"></span>
-      <span class="peek" id="peek-3" style="right:11%"></span>
-    </div>
+    <!-- ══ THE COUNTRY IS THE COVER ══ this was a hand-drawn evening: a gradient sky with a
+         sun, two clouds and six drifting letters, a treeline of radial-gradient silhouettes,
+         and a rounded hill with sprouts and four friends peeking over it — fifteen palettes
+         deep, one per country. It was built when the game had no paintings. Now every country
+         HAS one, hanging behind the board while you play, and a drawn approximation of the
+         same place standing next to the real thing only asks to be compared with it. The door
+         shows the painting, and the friends come off it: they live in the party row now, and
+         on the hill they were a second cast doing nothing. -->
+    <div id="home-art"></div>
     <div id="home-content">
       <button id="home-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰<span class="cnt" id="grove-badge">0</span></button>
+      <!-- THE WHOLE NAME IS PLAYED, NOT HALF OF IT. "HUSH" was cut from letter tiles and
+           "wood" was set type with a 🌲 in front of it — two materials in one word, and the
+           tree was the last emoji left on the door. Eight tiles in two rows says the same
+           thing in one voice, and it is the game's own object doing the saying. The
+           subtitle plate is gone: the chapter block at the foot already tells you where
+           you are, and a second line of italic explaining the game is a splash screen's
+           habit, not a door's. -->
       <div id="homelogo">
         <div class="logo-tiles">
           <div class="tile">H<small>4</small></div><div class="tile">U<small>1</small></div>
           <div class="tile">S<small>1</small></div><div class="tile">H<small>4</small></div>
         </div>
-        <div class="logo-word">🌲 wood</div>
-        <div class="logo-sub">a storybook of true names</div>
+        <div class="logo-tiles">
+          <div class="tile">W<small>4</small></div><div class="tile">O<small>1</small></div>
+          <div class="tile">O<small>1</small></div><div class="tile">D<small>2</small></div>
+        </div>
       </div>
       <button id="btn-play" onclick="Game.play()">▶<small id="play-lvl">LV 1</small></button>
       <!-- THE CHEST LIVES WITH THE PLAY BUTTON, not out on the hillside. It used to sit
@@ -2462,8 +2410,14 @@
            same context as the copy it must sit above, and makes its offsets mean what they
            look like. -->
       <span id="homegift" onclick="Ads.dailyGift()" title="the wood left something for you">🎁</span>
-      <div id="home-place">— The First Clearing —</div>
-      <div id="home-prog"></div>
+      <!-- ONE PLATE, TWO LINES. The chapter and the names count were separately positioned at
+           85.5% and 92% of the door, which was fine over a gradient and impossible over a
+           painting — two floating blocks each needing their own backing. Wrapped, they share
+           one piece of glass and the ids stay exactly where the JS writes to them. -->
+      <div id="home-foot">
+        <div id="home-place">— The First Clearing —</div>
+        <div id="home-prog"></div>
+      </div>
     </div>
   </div>
 
@@ -4840,7 +4794,6 @@ const Game = {
     Snd.init(); $("ov-meet").classList.remove("active");
     if(UI._meetWord){
       P.metGrove[UI._meetWord]=Date.now();
-      UI._lastWake=GROVE_BY_WORD[UI._meetWord] ? UI._meetWord : null; // greet them on the home cover (by NAME — the peeks are images now, so an emoji compare would never match)
       if((P.equip||[]).length<slotsFor(P.level) && !P.equip.includes(UI._meetWord)) P.equip.push(UI._meetWord); // new friends join the party while there's room
       const complete = Object.keys(P.metGrove).length >= GROVE.length && !P.finale;
       if(complete){ P.finale=Date.now(); }
@@ -7101,12 +7054,20 @@ const UI = {
   },
   home(){
     Ads.giftRefresh(); // the wood's daily chest shows itself only when it can open
-    // the cover takes on the region you're walking — same evening, different air
+    // the cover takes on the region you're walking — now by hanging its actual painting
     const hb=biomeOf(P.level), sh=$("scene-home");
-    // the door has to know all fifteen countries too — this listed four, so every place
-    // past the Listening Pond opened onto the same sky
     for(let i=0;i<BIOME_NAMES.length;i++) sh.classList.remove("hb"+i);
     if(hb) sh.classList.add("hb"+hb);
+    /* THE DOOR READS THE SAME TWO VARIABLES THE BOARD DOES. --bgart and --deep are declared
+       on #app.bgart.bioN, so the country has to be named on #app for the home screen to
+       inherit them. applyBiome() does this on level start — but on a COLD BOOT nothing has
+       started a level yet, so the door opened with no painting at all until you had played
+       one round. Only the two class lines are copied here, deliberately: applyBiome also
+       rebuilds board scenery and the hush, which the door has no business touching. */
+    const app=$("app");
+    app.className = app.className.replace(/\bbio\d+\b/g,"").trim();
+    app.classList.add("bio"+hb);
+    app.classList.toggle("bgart", BG_ART.has(hb));
     $("play-lvl").textContent = P.level<=PROLOGUE_END ? "P"+P.level : "LV "+(P.level-PROLOGUE_END);
     const ring=Math.floor((P.level-1)/RING_LEN)+1;
     { const ch=chapterOf(P.level);
@@ -7132,7 +7093,6 @@ const UI = {
       } }
     $("hm-streak").textContent=P.streak||0;
     $("menu-grove-n").textContent=Object.keys(P.grove).length+" / "+GROVE.length;
-    UI.homeCast();
     // (the quest row is refreshed by menuToggle each open — one writer, no drift)
     const n=Object.keys(P.grove).length;
     $("grove-badge").textContent=n;
@@ -7153,28 +7113,6 @@ const UI = {
         ? '<span>'+q.emoji+' <b>quest done ✓</b></span><em>'+rw+' earned</em>'
         : '<span>'+q.emoji+' today: <b>'+q.text+'</b></span><em>'+Math.min(P.questProgress||0,q.target)+'/'+q.target+' done · earns '+rw+'</em>';
       $("menu-grove-n").textContent=Object.keys(P.grove).length+" / "+GROVE.length; }
-  },
-  homeCast(){ // the wood's edge shows YOUR journey: two most-recent wakes + two more, refreshed each visit
-    const met=GROVE.filter(g=>P.metGrove[g.w]).sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0));
-    let cast;
-    if(met.length>=2){ // your two newest names, plus two random old friends to keep it fresh
-      const recent=met.slice(0,2);
-      const rest=met.slice(2).sort(()=>Math.random()-0.5).slice(0,2);
-      cast=[...recent,...rest];
-      while(cast.length<4) cast.push(GROVE_BY_WORD[cast.length? "dog":"cat"]);
-    } else { // just starting out — the two friends everyone begins with
-      cast=[GROVE_BY_WORD.cat, GROVE_BY_WORD.dog, GROVE_BY_WORD.deer, GROVE_BY_WORD.owl];
-    }
-    for(let i=0;i<4;i++){ const el=$("peek-"+i); if(!el) continue;
-      const g=cast[i]; if(g){ el.innerHTML=UI.artTag(g.w,"peekimg")||g.e; el.dataset.w=g.w;
-        el.style.display=""; el.title=g.w.toUpperCase(); }
-      else el.style.display="none";
-    }
-    // if a name was JUST remembered this session, let it pop in
-    if(UI._lastWake){ const el=[0,1,2,3].map(i=>$("peek-"+i)).find(e=>e && e.dataset.w===UI._lastWake);
-      if(el){ el.classList.remove("newwake"); void el.offsetWidth; el.classList.add("newwake"); }
-      UI._lastWake=null;
-    }
   },
   hud(){
     const an=$("amber-n"); if(an) an.textContent=P.amber||0;
