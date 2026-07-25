@@ -1,1 +1,10 @@
 node_modules/
+
+# THE MASTER PORTRAITS LIVE ON THE ARTIST'S DISK, NOT IN HERE.
+# art/transparent/ holds the 53 painted originals at 568px (~19MB) that art/pets/
+# was derived from — renamed to roster words and downscaled to 256px, which is the
+# only set the game ever loads. Git stores each version of a binary in full, so a
+# revised art pass would cost another 19MB rather than a diff. Keep the originals
+# backed up somewhere real; if you ever need to re-render the portraits (a different
+# size or aspect), you need those files and cannot recover them from art/pets/.
+art/transparent/
