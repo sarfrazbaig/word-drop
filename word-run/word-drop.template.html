@@ -915,6 +915,24 @@
     background:radial-gradient(circle at 40% 38%, var(--moon), color-mix(in srgb, var(--moon) 70%, transparent) 62%, transparent 74%);
     box-shadow:0 0 32px 10px color-mix(in srgb, var(--moon) 55%, transparent);
     animation:moonglow 6s ease-in-out infinite; }
+  /* ART PREVIEW: a painted night-forest scene replaces the gradient sky. Toggled by .artbg
+     on #app so ordinary play is untouched; the scene carries its own moon, so the CSS one
+     and the gradient ground both step aside. */
+  #app.artbg #board{
+    background-image:url("art/bg-night.png") !important;
+    background-size:cover !important;
+    background-position:center bottom !important;
+    background-repeat:no-repeat !important; }
+  #app.artbg #board::after{ display:none; }
+  #app.artbg #board::before{ display:none; }
+  /* JUST THE SCENE. It carries its own moon, fireflies and foliage, so the game's own board
+     decorations step aside: the corner leaves and butterfly (#biodecor), the receding-hush
+     mist (#hushmist) and the drifting leaves. NOT .tw — that is the tile WRAPPER, and hiding
+     it hides every letter on the board (which is exactly what went wrong the first time). */
+  #app.artbg #biodecor,
+  #app.artbg #hushmist,
+  #app.artbg .windleaf,
+  #app.artbg .petal{ display:none !important; }
   /* the floor of the place, under the tiles — the wood has ground, the mountain has scree */
   #board::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:38%;
     z-index:0; pointer-events:none; border-radius:inherit;
@@ -1233,7 +1251,7 @@
      the old one filled 84% — so the same box drew a bigger book. 50 lands it on 45. */
   /* 92px held 41px of seats and 33px of nothing beneath them; the labels want about half
      of that, so twenty go back to the board. */
-  #petbar{ display:none; width:100%; height:78px; z-index:2; position:relative; overflow:visible;
+  #petbar{ display:none; width:100%; height:94px; z-index:2; position:relative; overflow:visible;
     /* gap measured, not guessed: five 46px seats at the old 35px gap came to 370px inside
        355px of usable bar and overflowed by 15. At 26 they fit with room to spare. */
     /* seats sit CENTRED in the taller bar, not welded to its floor: bottom-aligning them in
@@ -1353,6 +1371,17 @@
   @keyframes petgrew{ 0%{ transform:scale(1) } 40%{ transform:scale(1.4) rotate(-6deg) } 70%{ transform:scale(1.1) } 100%{ transform:scale(1) } }
   #pet-right .petbody{ transform:scaleX(-1); }
   .petbody{ display:block; }
+  /* PAINTED PET SPRITES — sit inside the seat and the acting-sprite box, emoji-free. */
+  .petimg{ user-select:none; -webkit-user-drag:none; pointer-events:none; }
+  /* BIGGER PAINTED PETS. The seat shares the bar's width with its neighbours (flex, min-width
+     0) so five still fit without overflow, while the sprite grows to fill the taller bar —
+     tall creatures reach 68px, wide ones are capped by the seat they sit in. */
+  #petbar .petcompanion.has{ flex:1 1 0; min-width:0; display:flex; align-items:center; justify-content:center; }
+  .petcompanion .petimg.petbody{ display:block; margin:0 auto; width:auto; height:auto;
+    max-height:68px; max-width:100%;
+    filter:drop-shadow(0 3px 4px rgba(20,32,12,.5)); }
+  .petsprite .petimg{ width:100%; height:100%; object-fit:contain;
+    filter:drop-shadow(0 3px 4px rgba(20,32,12,.5)); }
   .petcompanion .zsleep{ position:absolute; top:-6px; right:-8px; font-size:14px; opacity:.7; animation:zfloat 3s ease-in-out infinite; }
   @keyframes petidle{ 0%,62%,100%{ transform:translateY(0) rotate(0) } 70%{ transform:translateY(-10px) rotate(-5deg) }
     78%{ transform:translateY(0) } 86%{ transform:translateY(-5px) rotate(4deg) } 94%{ transform:translateY(0) } }
@@ -2071,6 +2100,12 @@
         <button class="charm-btn" id="dbg-ads" onclick="UI.dbgAds()">🎬 test ads</button>
         <button class="charm-btn" id="dbg-finale" onclick="UI.dbgFinale()">🌈 test finale</button>
         <button class="charm-btn" id="dbg-tele" onclick="UI.dbgTele()">📡 telemetry</button>
+        <button class="charm-btn" onclick="UI.artPreview(1)">🎨 art level 1 · frog·pig·snail</button>
+        <button class="charm-btn" onclick="UI.artPreview(2)">🎨 art level 2 · otter·beaver·seal·fish</button>
+        <button class="charm-btn" onclick="UI.artPreview(3)">🎨 art level 3 · boar·moose·badger·deer</button>
+        <button class="charm-btn" onclick="UI.artPreview(4)">🎨 art level 4 · bunny·lamb·chick·mouse·hare</button>
+        <button class="charm-btn" onclick="UI.artPreview(5)">🎨 art level 5 · turtle·lizard·skunk·pony·goat</button>
+        <button class="charm-btn" onclick="UI.artPreviewOff()">🎨 night scene OFF</button>
       </div>
       <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
     </div>
@@ -2954,6 +2989,29 @@ const CALLINGS={
 };
 // every creature MUST have a calling — a roster edit that forgets one gets a gentle default
 GROVE.forEach(g=>{ if(!CALLINGS[g.w]) CALLINGS[g.w]={t:"words",n:40,c:"clear forty words",s:"🐾 something has been watching your words…"}; });
+
+/* ═══ THE PACE OF FRIENDSHIP — minL, the earliest player-level a calling may arrive ═══
+   The callings are still ACHIEVEMENT-LOCKED — you must play the way each creature listens
+   for. minL only stops a fast player from tripping the whole roster in the first ten levels
+   (the "pets are spammed" problem, measured: six friends in six levels). A calling arrives
+   when its achievement is met AND its level has come, whichever is later. Spread so the
+   Clearing gives just THREE (dog·owl·bat), then ~one friend every five levels, all callings
+   answered by ~L228, and the keystones carry the last stretch to the phoenix at L300.
+   Keystones are NOT here — they are gifts at the doors (see KEYSTONE), not spelled. */
+const CALL_MINL={
+  cat:1,
+  // Clearing (L1-20): three, and only three
+  dog:7, owl:12, bat:17,
+  // biomes 2-3 — bee & fox pushed out of the Clearing land here
+  bee:23, fox:30, pig:36, moth:44, hare:51, crow:57,
+  dove:64, frog:71, duck:77, mouse:84, swan:91, wolf:97,
+  fish:105, lamb:112, crab:118, snail:124, snake:131, goat:137,
+  pony:145, skunk:152, bison:158, deer:165, seal:172, robin:178,
+  bunny:184, goose:191, moose:197, fly:205, ant:212, heron:218, chick:228
+};
+Object.keys(CALL_MINL).forEach(w=>{ if(CALLINGS[w]) CALLINGS[w].minL=CALL_MINL[w]; });
+const CALL_GAP=3;   // never two callings summoned within this many player-levels
+const WISH_WORDS=4; // 🌟 the wish is a cooldown, not a purchase: this many words recharge it
 /* ═══ KEYSTONES — the friend you are HANDED at a door, never the one you spell ═══
    Two reasons, and the second is the one that matters.
 
@@ -3038,7 +3096,10 @@ const GATE={
 function gateAt(L){ const A=advOf(L); return A>0 ? (GATE[A]||null) : null; }
 /* a keystone is never called for — it is given, so it must not also sit in the calling
    queue waiting to be spelled */
-const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w));
+/* the window advances in ARRIVAL order now, which is minL order — so a late calling with an
+   early slot can no longer sit at the front of the window blocking the ones due before it */
+const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w))
+  .sort((a,b)=>(CALLINGS[a].minL||999)-(CALLINGS[b].minL||999));
 /* ============ LEVEL GOALS — what a round asks of you ============
    The hush (points) is the baseline; obstacle goals make obstacles the WIN CONDITION,
    Candy-Crush style: melt every ice, smash every stone, or lose the round. Each type
@@ -3451,6 +3512,7 @@ function newState(level){
     goal:{t:"hush",need:0,have:0},
     deadDrops:0, nudging:false, idleNudges:0, lastAction:Date.now(), clearedThisDrop:false,
     usingBreeze:false, usingPluck:false, swapSel:null, revived:false, won:false, newGrove:[], tutorWord:null,
+    wishProg:0, breezeUsedThisDrop:false,   // 🌟 wish recharges over words · 🍃 breeze is one-per-drop
     petCharge:0, petTurn:0, petReady:false, petActing:false, petActs:0, charm:0,
     wake:{}, _woke:[],          // how close each friend is to stirring, and who just did
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
@@ -4498,8 +4560,8 @@ const Game = {
     // fired from inside resolve() — where S.busy stays true for whole seconds — so the
     // check never passed and neither tool ever explained itself to anybody. Players had
     // two buttons they'd never been told how to earn or use. They queue like tiles now.
-    if((P.pow.swap||0)>0) order.push("breeze");
-    if((P.pow.wild||0)>0) order.push("wish");
+    order.push("breeze");                       // 🍃 always in the pocket now — always worth explaining once
+    if((P.pow.wild||0)>0) order.push("wish");    // 🌟 the first time a wish finishes charging
     if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
     for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="spore"||t.kind==="reed"||t.kind==="mire"||t.kind==="current"||t.kind==="wind"||t.kind==="crystal"||t.kind==="scree"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
     for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
@@ -4633,6 +4695,7 @@ const Game = {
       setTimeout(()=>boardEl.classList.remove("shake"),420);
       return; }
     S.busy = true;
+    S.breezeUsedThisDrop=false;   // 🍃 a fresh drop frees the breeze again (one swap per drop)
     UI.ghost(-1);
     if(!P.coach){ P.coach=true; save(); const h=document.querySelector(".coach"); if(h) h.remove(); }
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
@@ -4817,12 +4880,15 @@ const Game = {
     if(S.stars===3) Game.tallyEv("star3");
     if(S.movesLeft>=10) Game.tallyEv("bigwin");
     if(S.movesLeft<=2) Game.tallyEv("closewin");
-    // the pity floor: two quiet levels and the wood sends someone on its own
+    // the pity floor: a LONG quiet stretch (the new pace already leaves ~5 quiet levels
+    // between friends, so pity waits for 6) and the wood sends the next DUE friend on its
+    // own — but only one whose level has actually come, so mercy can never outrun the pace.
     if(P.metGrove.cat){
       if(S.newGrove.length || P.summon || P.summonQ.length) P.quietLvls=0;
-      else if(Object.keys(P.grove).length<10 && ++P.quietLvls>=3){
-        const next=CALLING_ORDER.find(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school");
-        if(next){ P.called[next]=1; P.summonQ.push(next); P.quietLvls=0;
+      else if(Object.keys(P.grove).length<10 && ++P.quietLvls>=6){
+        const plv=advOf(P.level);
+        const next=CALLING_ORDER.find(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school" && plv>=(CALLINGS[w].minL||0));
+        if(next){ P.called[next]=1; P.summonQ.push(next); P.quietLvls=0; P.lastSummonL=plv;
           P.annQ.push("🌿 the wood has grown <b>curious</b> about you…<br><small>a name will hide in a coming level</small>"); save(); }
       }
       save();
@@ -4970,14 +5036,16 @@ const Game = {
       Snd.reject(); return;
     }
     if(S.usingBreeze){ Game.disarmBreeze(); return; }
-    if(!(P.pow.swap>0)){
-      // an empty pocket with amber in it: one tap buys one — 20🟠, no menus
-      if((P.amber||0)>=20){ Game.amber(-20); P.pow.swap=1; save(); UI.breezePill();
-        UI.chip("−20 🟠 · a fresh 🍃 breeze!"); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
-      else{ const el=$("breezepill");
-        el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-        setTimeout(()=>el.classList.remove("deny"),350);
-        Snd.reject(); buzz(30); return; }
+    // 🍃 THE BREEZE IS YOUR EVERYDAY TOOL — always in your pocket, never bought. The only
+    // limit is ONE SWAP BETWEEN DROPS, so it can't be spammed to fish a word out of any
+    // board: swap, then place a letter, then swap again.
+    if(S.breezeUsedThisDrop){
+      const el=$("breezepill");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); buzz(20);
+      UI.say("breeze-wait","🍃 one breeze between drops — <b>place a letter</b>, then you can breeze again",2);
+      return;
     }
     S.usingBreeze=true;
     $("breezepill").classList.remove("pillglow"); // the lesson's gleam is spent the moment it's used
@@ -5012,7 +5080,8 @@ const Game = {
     const a=S.swapSel, b=t;
     a.inner.classList.remove("selswap"); S.swapSel=null;
     S.busy=true;
-    P.pow.swap--; save(); Game.disarmBreeze(); UI.breezePill();
+    S.breezeUsedThisDrop=true; save();   // one breeze spent this drop; resets when you drop
+    Game.disarmBreeze(); UI.breezePill();
     UI.breeze(); // the soft gust + drifting leaves
     const ar=a.r, ac=a.c, br=b.r, bc=b.c;
     S.board[ar][ac]=b; S.board[br][bc]=a;
@@ -5032,9 +5101,12 @@ const Game = {
     Game.checkEnd();
   },
 
-  /* ---- the WISH: your second tool. 4-letter words earn one; pick any letter for your next tile. ---- */
+  /* ---- the WISH: a COOLDOWN power now. It recharges as you make words (WISH_WORDS),
+     never bought with amber — the deliberate, rationed counterpart to the everyday breeze.
+     One charge held at a time. Crates and quests still fill it instantly as a bonus. ---- */
   earnWish(){
-    P.pow.wild=Math.min(3,(P.pow.wild||0)+1); save(); // 🌰 Nest & Stash holds more
+    if((P.pow.wild||0)>0) return;                 // already ready — a single charge
+    P.pow.wild=1; if(S) S.wishProg=0; save();
     UI.wishPill(); UI.pillPop("wishbtn");
     Snd.tone(1046,{dur:.08,type:"sine",gain:.05});
     // the explanation is queued, not raced — see Game.showPendingTip
@@ -5054,13 +5126,13 @@ const Game = {
     }
     if(S.usingBreeze) Game.disarmBreeze();
     if(!(P.pow.wild>0)){
-      // an empty pocket with amber in it: one tap buys one — 25🟠, no menus
-      if((P.amber||0)>=25){ Game.amber(-25); P.pow.wild=1; save(); UI.wishPill();
-        UI.chip("−25 🟠 · a fresh 🌟 wish!"); Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
-      else{ const el=$("wishbtn");
-        el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
-        setTimeout(()=>el.classList.remove("deny"),350);
-        Snd.reject(); buzz(30); return; }
+      // the wish is on cooldown — no more buying it with amber; it gathers as you play
+      const el=$("wishbtn");
+      el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+      setTimeout(()=>el.classList.remove("deny"),350);
+      Snd.reject(); buzz(30);
+      UI.say("wish-charging","🌟 your wish is still gathering — <b>"+Math.max(0,WISH_WORDS-(S.wishProg||0))+" more words</b> and it's ready",2);
+      return;
     }
     // a wish reshapes a LETTER — a hand with no letter to reshape politely refuses,
     // and no wish is spent learning that
@@ -5118,7 +5190,7 @@ const Game = {
     // downgrade sold as a gift. Gold stays gold, restless stays restless; a pet's
     // blessing on your hand survives the wish that reshapes it.
     if(!(P.pow.wild>0)) { Game.closeWish(); return; }
-    P.pow.wild--; save();
+    P.pow.wild--; S.wishProg=0; save();   // spent — the cooldown restarts from zero
     Game.tallyEv("wish");
     const kind = S.cur ? S.cur.kind : "normal";
     S.cur={letter:l, kind};
@@ -5305,17 +5377,25 @@ const Game = {
     // nothing calls before the cat is met — the pet system doesn't exist yet for
     // this player, and a mystery toast about it would be noise, not wonder
     if(!P.metGrove || !P.metGrove.cat) return;
+    const plv = advOf(P.level);
+    // THE SPACING RULE: never two callings summoned within CALL_GAP player-levels, so even
+    // when several achievements land at once the friends still arrive one at a time.
+    const gapOK = plv - (P.lastSummonL==null ? -99 : P.lastSummonL) >= CALL_GAP;
     // THE WINDOW: only the next three un-called creatures are listening at once.
     const win=CALLING_ORDER.filter(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school").slice(0,3);
     for(const w of win){
       const c=CALLINGS[w];
-      // entering the window starts the creature's own clock
+      // entering the window starts the creature's own clock (the achievement can build
+      // toward it even while the LEVEL gate below still holds the arrival back)
       if(CALLING_ORDER.indexOf(w)>=6 && P.callBase[w]==null){
         P.callBase[w] = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0); save();
       }
+      // THE LEVEL GATE: a calling may be earned but not yet DUE — the wood paces itself.
+      if(plv < (c.minL||0)) continue;
+      if(!gapOK) continue;   // a friend arrived too recently; this one waits its turn
       const have = Game.callProgress(w).have;
       if(have>=c.n){
-        P.called[w]=1; P.summonQ.push(w); P.quietLvls=0;
+        P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; P.lastSummonL=plv;
         Game.amber(10);
         // NEVER announced mid-play — the player is busy playing. The summons waits
         // for the win sequence, its own quiet card before the level-clear modal.
@@ -6183,8 +6263,12 @@ const Game = {
       Snd.tone(Snd.PENTA[Math.min(base+len,Snd.PENTA.length-1)]*2,{dur:.32,type:"sine",gain:.06,verb:true});
       if(pts>S.bestWordPts){ S.bestWordPts=pts; S.bestWord=w.word.toUpperCase(); }
       if(len>=5) await Game.jackpot(len);              // 🎆 the moment worth chasing
-      if(len>=4 && S.chain===1) Game.earnWish();       // 4+ letter words earn a wish 🌟
-      else if(len===3 && S.chain===1) Game.earnBreeze(); // 3-letter words buy you the wind 🍃
+      // 🌟 THE WISH RECHARGES OVER WORDS (cooldown model): any direct word ticks it up,
+      // ~WISH_WORDS to fill. The 🍃 breeze is no longer earned per word — it's always on.
+      if(S.chain===1 && !(P.pow.wild>0)){
+        S.wishProg=(S.wishProg||0)+1;
+        if(S.wishProg>=WISH_WORDS){ Game.earnWish(); } else UI.wishPill();
+      }
       const goldN=w.cells.filter(t=>t.kind==="gold").length;
       if(goldN){ Game.tallyEv("gold",goldN); for(let gi=0;gi<goldN;gi++) Game.goalTick("harvest"); }
       const wildN=w.cells.filter(t=>t.kind==="wild").length;
@@ -6734,21 +6818,24 @@ const UI = {
     if(chosen.length) return chosen.slice(0,max);
     return met.sort((a,b)=>(P.metGrove[b.w]||0)-(P.metGrove[a.w]||0)).slice(0,max);
   },
-  breezePill(){ // the wind in your pocket: 3-letter words refill it (up to 3)
+  breezePill(){ // the everyday wind: always in your pocket, one swap between drops
     const el=$("breezepill"); if(!el) return;
-    const bn=P.pow.swap||0;
-    $("breeze-cnt").textContent = bn>0 ? bn : "20🟠";
-    $("breeze-cnt").classList.toggle("price", bn<=0);
-    el.classList.toggle("empty", bn<=0);
-    el.title="every 3-letter word earns a breeze · tap, then tap two tiles to swap them";
+    const spent = !!(S && S.breezeUsedThisDrop);
+    $("breeze-cnt").textContent = "∞";
+    $("breeze-cnt").classList.remove("price");
+    el.classList.toggle("empty", spent);   // dim until your next drop frees it again
+    el.title = spent ? "one breeze per drop — place a letter, then breeze again"
+                     : "your everyday breeze — always ready · tap, then tap two tiles to swap";
   },
-  wishPill(){ // the star in your pocket: 4-letter words refill it (up to 3)
+  wishPill(){ // the wish: a cooldown that recharges as you make words
     const el=$("wishbtn"); if(!el) return;
-    const wn=P.pow.wild||0;
-    $("wish-cnt").textContent = wn>0 ? wn : "25🟠";
-    $("wish-cnt").classList.toggle("price", wn<=0);
-    el.classList.toggle("empty", wn<=0);
-    el.title="every 4-letter word earns a wish · tap to choose any letter for your next tile";
+    const ready=(P.pow.wild||0)>0;
+    const prog=(S ? (S.wishProg||0) : 0);
+    $("wish-cnt").textContent = ready ? "★" : prog+"/"+WISH_WORDS;
+    $("wish-cnt").classList.toggle("price", !ready);   // 'price' styling = the dim charging look
+    el.classList.toggle("empty", !ready);
+    el.title = ready ? "your wish is ready · tap to choose any letter for your next tile"
+                     : "your wish recharges as you make words — "+Math.max(0,WISH_WORDS-prog)+" to go";
   },
   /* what each sign is CALLED, in the wood's own voice — these are the words a player
      reads on a friend's card, so they name the thing that happens, not the event id */
@@ -6999,7 +7086,7 @@ const UI = {
       const el=$("pet-"+s), g=eq[s];
       el.classList.remove("slotopen","slotlocked");
       if(g){ el.dataset.w=g.w; el.style.fontSize="40px";
-        el.innerHTML='<span class="petbody">'+g.e+'</span>';
+        el.innerHTML = UI.artTag(g.w,"petbody") || ('<span class="petbody">'+g.e+'</span>');
         el.title=g.w.toUpperCase()+" · "+g.pn; el.classList.add("has"); }
       else if(s<slots){
         // AN INVITATION ONLY IF THERE IS SOMEBODY TO INVITE. slotsFor floors at one, so
@@ -7500,13 +7587,24 @@ const UI = {
   /* Send a friend out onto the board. Returns a handle whose .home() walks it back —
      the caller runs its power in between, so the pet is standing there while it works
      and there is never any doubt about who did it. */
+  /* PAINTED PETS. Words in PET_ART have a hand-rendered sprite in art/pets/; everything
+     else (cat, dog, the birds not yet cut) falls back to its emoji, so nothing breaks while
+     the roster is half art and half glyph. */
+  // Art set is EMPTY for now — the first sliced sprites were rejected and a clean set is
+  // being regenerated. Every pet falls back to its emoji (known-good), so the live build is
+  // never broken images. Re-add names here (and drop the PNGs in art/pets/) when art lands.
+  PET_ART: new Set([]),
+  artTag(w, cls){ return UI.PET_ART.has(w)
+    ? '<img class="petimg '+(cls||"")+'" src="art/pets/'+w+'.png" alt="" draggable="false">'
+    : null; },
   async petVisit(pet, cell){
     const eq=UI.equipped(); let i=eq.indexOf(pet); if(i<0) i=0;
     const seat=$("pet-"+i); if(!seat) return null;
     const app=$("app"), ar=app.getBoundingClientRect(), sr=seat.getBoundingClientRect(), br=boardEl.getBoundingClientRect();
     if(!sr.width || !br.width) return null;
     const x0=sr.left-ar.left+sr.width/2, y0=sr.top-ar.top+sr.height/2;
-    const sp=document.createElement("div"); sp.className="petsprite"; sp.textContent=pet.e;
+    const sp=document.createElement("div"); sp.className="petsprite";
+    { const art=UI.artTag(pet.w); if(art) sp.innerHTML=art; else sp.textContent=pet.e; }
     sp.style.left=x0+"px"; sp.style.top=y0+"px";
     app.appendChild(sp);
     const k=br.width/(COLS*STEP-GAP);                       // the board is scaled to fit
@@ -7565,8 +7663,8 @@ const UI = {
     UI.sky(msg, 6200);
   },
   TIPS:{
-    breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters. Every <b>3-letter word</b> earns one (up to 3). Tap the 🍃 button, then tap the two tiles you want to trade places. Let\u0027s try it!"},
-    wish:  {i:"🌟", t:"That 4-letter word earned you a 🌟 <b>star-wish</b>! Every <b>4-letter word</b> grants one. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
+    breeze:{i:"🍃", t:"The 🍃 <b>breeze</b> swaps two letters — and it's <b>always in your pocket</b>. The only rule: <b>one swap per drop</b>, so place a letter between breezes. Tap the 🍃 button, then tap the two tiles to trade places. Let\u0027s try it!"},
+    wish:  {i:"🌟", t:"Your 🌟 <b>star-wish</b> is ready! It <b>recharges as you make words</b> (about four), so spend it when it counts. Tap the 🌟 button and <b>choose any letter</b> — the letter in your hand becomes it. A golden letter stays golden ✨."},
     branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter — but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
     spore: {i:"🍄", t:"<b>Spores</b> drift. Like the tangle they spread every few drops — but they do not creep along, they <b>land anywhere on the board</b>. One word beside one clears it."},
     reed:  {i:"🌾", t:"A <b>reed</b> stands in the whole column — <b>nothing drops past it</b>. You cannot go through, so go around: clear a word beside it, <b>twice</b>."},
@@ -7665,6 +7763,33 @@ const UI = {
     UI.dbgClose();
     Game.startLevel(P.level); UI.scene("scene-game");
   },
+  /* ART PREVIEW — five dummy rounds on the painted night scene, each with a different set of
+     sprite pets on the shelf, fired from the keeper's toolbox. Nothing here touches the real
+     schedule; it just stages a board so the new art can be judged in place. */
+  ART_SETS: [
+    ["frog","pig","snail"],
+    ["otter","beaver","seal","fish"],
+    ["boar","moose","badger","deer"],
+    ["bunny","lamb","chick","mouse","hare"],
+    ["turtle","lizard","skunk","pony","goat"],
+  ],
+  artPreview(n){
+    const pets = UI.ART_SETS[(n-1) % UI.ART_SETS.length];
+    P.grove={}; P.metGrove={}; pets.forEach(w=>{ P.grove[w]=Date.now(); P.metGrove[w]=Date.now(); });
+    P.equip = pets.slice(0,5);
+    P.tut=true; P.gradued=1; P.amber=140; P.run=null;
+    P.level = 30;   // player level 25 → five seats, so the whole set shows
+    P.summon=null; P.summonQ=[]; P.called={};
+    P.seenSlots={1:1,2:1,3:1,4:1,5:1}; P.seenTier={1:1,2:1,3:1};
+    P.seenChapter={}; for(let b=0;b<15;b++) P.seenChapter[b]=1;
+    P.graceUsed=null; P.said={"book-intro":2};
+    P.seenTip={}; Object.keys(UI.TIPS||{}).forEach(k=>P.seenTip[k]=1);  // no tutorial toasts in the preview
+    save();
+    UI.dbgClose();
+    $("app").classList.add("artbg");            // the night scene, for the preview only
+    Game.startLevel(P.level); UI.scene("scene-game");
+  },
+  artPreviewOff(){ $("app").classList.remove("artbg"); UI.dbgClose(); },
   dbgAmber(){
     Game.amber(100);
     $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
