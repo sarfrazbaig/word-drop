@@ -4292,9 +4292,28 @@ const FT = {
     pr.remove();
     const tO=S.board[ROWS-1][1], tL=S.board[ROWS-1][2];
     g.swapOnly=[tO&&tO.id, tL&&tL.id].filter(Boolean);
-    FT.clearNote(); FT.note("swap <b>O</b> and <b>L</b> - make <b>GLOW</b>");
-    FT.ringCell(ROWS-1,1); FT.ringCell(ROWS-1,2);
+    /* ══ ASK BEFORE HELPING ══ every other beat of this tutorial rings its target and points
+       a hand at it, so it can be completed start to finish without understanding a word of
+       it - which is exactly what one playtester did. She tapped what was highlighted, learned
+       nothing, reached the first real level, spammed the breeze because she had no idea what
+       it did, and stopped. The lesson never found out, because it never asked.
+       This beat asks. No ring, no hand: four letters on the board and "make GLOW". The help
+       is still there, but it arrives only when it is needed - after three wrong taps, or
+       nine seconds of nothing - so a player who understands is never nagged and a player who
+       does not is never stranded. Either way the game learns which they were, because the
+       result is tracked. */
+    FT.clearNote(); FT.note("now <b>swap two letters</b> to spell <b>GLOW</b>");
+    FT.swapTries=0; FT.swapHelped=false;
+    FT.helpSwap=()=>{
+      if(FT.swapHelped) return;
+      FT.swapHelped=true;
+      FT.ringCell(ROWS-1,1); FT.ringCell(ROWS-1,2);
+      FT.clearNote(); FT.note("these two - swap <b>O</b> and <b>L</b>");
+    };
+    const helpT=setTimeout(FT.helpSwap, 9000);
     await FT.wait("swapped");
+    clearTimeout(helpT); FT.helpSwap=null;
+    Game.track("lesson_swap",{ tries:FT.swapTries||0, helped:!!FT.swapHelped });
     document.querySelectorAll(".ftue-ring").forEach(e=>e.remove());
     FT.clearNote(); FT.note("a 4-letter word - it will bloom on its own. it also earned you a 🌟 <b>star</b>!");
     await FT.wait("wordCleared");
@@ -5711,7 +5730,12 @@ const Game = {
     const t = S.board[row] && S.board[row][col];
     if(!t || NONWORD.has(t.kind)){ Snd.reject(); return; } // stone won't budge; ice is frozen solid
     // in lesson 2 only the two ringed tiles answer the wind - everything else bounces
-    if(S.guide && S.guide.swapOnly && !S.guide.swapOnly.includes(t.id)){ FT.deny(); return; }
+    if(S.guide && S.guide.swapOnly && !S.guide.swapOnly.includes(t.id)){
+      FT.deny();
+      // three misses is someone hunting, not someone thinking. Fetch the help for them.
+      FT.swapTries=(FT.swapTries||0)+1;
+      if(FT.swapTries>=3 && FT.helpSwap) FT.helpSwap();
+      return; }
     if(!S.swapSel){
       S.swapSel=t; t.inner.classList.add("selswap");
       Snd.tone(760,{dur:.09,type:"triangle",gain:.07}); buzz(8);
