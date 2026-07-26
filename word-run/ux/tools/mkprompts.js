@@ -17,16 +17,33 @@ const CENTRED = "Centred with a small even margin.";
    it at random. So the centring clause is per-asset, not shared. */
 const RULES = "No drop shadow, no contact shadow, no ground "
   + "plane. No text, letters, numbers or symbols. Flat even lighting or a soft light from the "
-  + "upper left. Bold simple silhouette that still reads when shrunk to 45 pixels. Fully "
-  + "transparent background.";
+  + "upper left. Bold simple silhouette that still reads when shrunk to 45 pixels.";
+
+/* ASKING FOR A TRANSPARENT BACKGROUND DOES NOT WORK. A generator has no alpha channel to give
+   you, so it paints the checkerboard instead - that is what transparency looks like in every
+   screenshot it ever saw. So ask for a background we can remove on purpose. Two of them:
+
+   magenta  for anything OPAQUE. Keys to a hard edge and leaves the subject's own colours and
+            greys untouched. Maximally far from the greens, browns and greys in this set.
+   black    for the coatings, which are meant to be semi-transparent anyway. Brightness becomes
+            opacity, which is exactly how frost should behave - thick crystals solid, thin
+            edges faint - and it gives honest soft edges with no keying halo. */
+const BG_KEY = "Place the subject on a completely flat, solid, uniform pure magenta background, "
+  + "hex FF00FF, filling the entire frame edge to edge. Do NOT draw a checkerboard pattern, do "
+  + "NOT draw a scene or a surface, and use no magenta or pink anywhere in the subject itself.";
+const BG_BLACK = "Place the subject on a completely flat, solid, uniform pure black background "
+  + "filling the entire frame edge to edge. Do NOT draw a checkerboard pattern and do NOT draw a "
+  + "scene. The subject must be the only bright thing in the frame, fading to pure black at its "
+  + "softest edges.";
 
 const GREY = "Pure white and shades of pale grey ONLY - absolutely no colour of any kind, not "
   + "even a tint. All character must come from texture, shading and shape.";
 
 /* every asset: id, group, name, canvas, grey?, subject, note */
 const A = [];
-const add = (id, group, name, canvas, grey, subject, note, anchor) =>
-  A.push({ id, group, name, canvas, grey, subject, note, anchor: anchor || CENTRED });
+const add = (id, group, name, canvas, grey, subject, note, anchor, bg) =>
+  A.push({ id, group, name, canvas, grey, subject, note,
+           anchor: anchor || CENTRED, bg: bg || BG_KEY });
 
 /* ── 1 · the keystone ───────────────────────────────────────────── */
 add("01", "Keystone", "The letter tile face", "256x256", true,
@@ -39,19 +56,19 @@ add("01", "Keystone", "The letter tile face", "256x256", true,
 add("02", "Coatings", "Ice", "256x256", true,
   "A thin sheet of clear ice over an invisible square surface, seen straight on, with delicate "
   + "frost crystals growing inward from all four edges and the centre left almost clear.",
-  "Greyscale is not a style choice here - it is what stops the measured colour collision returning.");
+  "Greyscale is not a style choice here - it is what stops the measured colour collision returning.", CENTRED, BG_BLACK);
 add("03", "Coatings", "Deep frost", "256x256", true,
   "A thick double layer of hoar frost over an invisible square surface, dense feathery crystals "
   + "covering most of the area, with only a small clear patch remaining at the very centre.",
-  "Two words to clear: this is the full state. See 04 for the shed state.");
+  "Two words to clear: this is the full state. See 04 for the shed state.", CENTRED, BG_BLACK);
 add("04", "Coatings", "Frost, one layer shed", "256x256", true,
   "A layer of hoar frost over an invisible square surface that has partly flaked away, the "
   + "feathery crystals broken and lifting at the edges with more of the centre now clear, small "
   + "flakes coming loose.",
-  "The halfway state after one word beside it.");
+  "The halfway state after one word beside it.", CENTRED, BG_BLACK);
 add("05", "Coatings", "Mist", "256x256", true,
   "A soft veil of fog drifting across an invisible square surface, thickest along the top and "
-  + "thinning toward the bottom, wispy and uneven, like breath on cold glass.", "");
+  + "thinning toward the bottom, wispy and uneven, like breath on cold glass.", "", CENTRED, BG_BLACK);
 
 /* ── 3 · the fourteen solid bodies ─────────────────────────────── */
 const BODIES = [
@@ -210,15 +227,47 @@ Companion documents: **ux/obstacle-art-prompts.md** for the reasoning behind eac
   back. Those prompts carry an explicit no-colour clause.
 - **The rest are full colour.** They are objects - rocks, wood, fungus, water - and objects
   keep their own colour in every country.
-- **256x256 PNG with alpha**, matching the 50 existing pet portraits, unless a prompt says
-  otherwise. Flow can output whatever size is convenient and I will resample.
+- **256x256 PNG**, matching the 50 existing pet portraits, unless a prompt says otherwise.
+  Flow can output whatever size is convenient and I will resample.
 - **Video is fine.** Where a prompt is one frame of a sequence, a short clip works just as
   well and I will pull the frames.
 
+## Nobody asks for a transparent background any more
+
+The first generated tile came back with a checkerboard **painted into the pixels**. That is
+what these tools do: there is no alpha channel to give you, so asking for transparency gets you
+a picture of transparency, because that is what it looked like in every screenshot the model
+ever saw.
+
+Worse, a checkerboard is the single worst background for this set. It is grey and white, and so
+is the tile - a white subject pixel sitting on a white checker square is genuinely
+indistinguishable, and no tool can recover what is not there.
+
+So every prompt now asks for a background that **can** be removed, and there are two:
+
+| Background | Used for | Why | Recovered with |
+|---|---|---|---|
+| Flat pure magenta \`#FF00FF\` | the 37 opaque assets | maximally far from every green, brown and grey in the set, so the cut is clean and the subject's own colours survive untouched | \`--mode=chroma\` |
+| Flat pure black | the 4 coatings - ice, both frosts, mist | these are meant to be semi-transparent anyway, so brightness becomes opacity: thick crystals solid, thin edges faint. Honest soft edges, no keying halo | \`--mode=luma\` |
+
+Each prompt says which one it wants and which mode recovers it. Then:
+
+\`\`\`bash
+node ux/tools/dealpha.js incoming/01-tile.png art/tiles/face.png --mode=chroma --key=ff00ff
+\`\`\`
+
+Run it with \`--report\` on anything and it will tell you whether the file has real alpha, how
+much of it is used, and whether it can see a painted checkerboard.
+
+**If something already came back with a checkerboard**, \`--mode=checker\` will attempt a
+salvage, but read its warning. It cuts away any part of the subject that happens to match a
+checker square, which on a greyscale asset means most of it. Regenerating on magenta is
+cheaper than fighting it.
+
 ## How to use it
 
-Each block below is the whole prompt. Copy one, paste it, generate. Do not add a background,
-a shadow or a border - the constraint text already asks for their absence, and every one of
+Each block below is the whole prompt. Copy one, paste it, generate. Do not add a shadow or a
+border - the constraint text already asks for their absence, and every one of
 them has to sit on fifteen different painted country backgrounds.
 
 `;
@@ -238,10 +287,12 @@ for (const g of groups){
   md += "---\n\n# " + g + " (" + items.length + ")\n\n";
   for (const a of items){
     md += "## " + a.id + " &middot; " + a.name + "\n\n";
-    md += "`" + a.canvas + "`" + (a.grey ? " &middot; **greyscale, tinted at runtime**" : " &middot; full colour") + "\n\n";
+    md += "`" + a.canvas + "`" + (a.grey ? " &middot; **greyscale, tinted at runtime**" : " &middot; full colour")
+      + " &middot; `" + (a.bg === BG_BLACK ? "black bg, recover with --mode=luma"
+                                           : "magenta bg, recover with --mode=chroma") + "`\n\n";
     if (a.note) md += "*" + a.note + "*\n\n";
     md += "```text\n" + STYLE + " " + a.subject + " " + (a.grey ? GREY + " " : "")
-      + a.anchor + " " + RULES + "\n```\n\n";
+      + a.anchor + " " + RULES + " " + a.bg + "\n```\n\n";
   }
 }
 
