@@ -4,7 +4,10 @@
 const fs = require("fs");
 const path = require("path");
 
-function extract(templatePath){
+/* scope: the class the rules get nested under. The caller's container must carry it, or
+   nothing applies at all - and the failure is quiet, because a .tile with no base rule is
+   simply a zero-height box with the right letter in it. */
+function extract(templatePath, scope = ".spec"){
   const src = fs.readFileSync(templatePath, "utf8");
 
   /* ---- the tile rules themselves ---- */
