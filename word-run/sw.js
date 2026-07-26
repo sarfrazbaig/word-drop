@@ -1,12 +1,12 @@
-// Hushwood service worker — offline-first for a single-file game.
+// Hushwood service worker - offline-first for a single-file game.
 // The cache name carries the BUILD STAMP, which build.js rewrites on every build. That
 // matters more than it looks: with a fixed name the browser sees an identical sw.js on
-// each deploy, never installs a new worker, and never clears the old cache — so a
+// each deploy, never installs a new worker, and never clears the old cache - so a
 // playtester can sit on a stale build while you push fixes they never receive. A changed
 // stamp makes the file differ, which triggers install → activate → old caches deleted.
-const CACHE = "hushwood-20260726062903";
+const CACHE = "hushwood-20260726072851";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg",
-  // the raster set the launcher and the install prompt actually use — cached so an
+  // the raster set the launcher and the install prompt actually use - cached so an
   // offline install still shows a proper icon instead of a blank tile
   "./icon-192.png", "./icon-512.png", "./icon-192-maskable.png", "./icon-512-maskable.png"];
 

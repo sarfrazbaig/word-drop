@@ -14,17 +14,17 @@ const words = fs.readFileSync(wordsPath, "utf8")
 const template = fs.readFileSync(path.join(__dirname, "word-run.template.html"), "utf8");
 const out = template.split("__DICT__").join(words.join(" "));
 fs.writeFileSync(path.join(__dirname, "word-run.html"), out);
-console.log(`Built word-run.html (classic) — ${words.length} words, ${(out.length / 1024 / 1024).toFixed(2)} MB`);
+console.log(`Built word-run.html (classic) - ${words.length} words, ${(out.length / 1024 / 1024).toFixed(2)} MB`);
 
 // Word Drop: curated common words so auto-clears feel like real words.
 // google-10k (web frequency) has gaps (hut, owl, hen...) so we union it with
-// OpenSubtitles top-30k (spoken frequency) — both intersected with ENABLE for validity.
+// OpenSubtitles top-30k (spoken frequency) - both intersected with ENABLE for validity.
 const enableSet = new Set(words);
 const g10k = fs.readFileSync(path.join(__dirname, "common10k.txt"), "utf8")
   .split(/\r?\n/)
   .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
 // INCLUSIVE, then blocklist. An earlier build held 3-4 letter words to a strict
-// frequency tier to stop junk like "lei/nos/vee" clearing — but it also silently
+// frequency tier to stop junk like "lei/nos/vee" clearing - but it also silently
 // rejected VARY, OOZE, ORE, OAR, DUNE, FERN, LARK, VALE, DUSK. Players hit those,
 // nothing happened, and it read as the game being broken. Rejecting a word a player
 // KNOWS is far worse than accepting one they don't. So: take the wide list and
@@ -33,7 +33,7 @@ const subsLines = fs.readFileSync(path.join(__dirname, "freq50k.txt"), "utf8").s
 const subsAt = n => subsLines.slice(0, n).map(l => l.split(" ")[0])
   .filter(w => /^[a-z]{3,8}$/.test(w) && enableSet.has(w));
 const subs = subsAt(30000);
-// obscure/foreign/abbreviation/interjection short words — these are the ones that felt
+// obscure/foreign/abbreviation/interjection short words - these are the ones that felt
 // like the game cheating when they popped. Everything else short stays in.
 const SHORT_JUNK = new Set(("sal hah yah umm ava kat deb nan lam goa guv tis ops dex tsk ole "+
   "bah ere yin tao cee lea hup hae kip cox wen eta ami ifs fay taj jag lei naw cor bey rin "+
@@ -45,17 +45,17 @@ const SHORT_JUNK = new Set(("sal hah yah umm ava kat deb nan lam goa guv tis ops
   "rax reh rho ria rya sab sax sei sri suq syn tav taw tef teg tho tid til tod tui tup twa ules uta "+
   "vac vau vig vug wab wae wha wis wot wud wye xis yag yay yeh yid yin yob yod zax zek zin zoa").split(/\s+/));
 // family filter: this is a cozy game that auto-celebrates words with chimes and
-// confetti — crude words must never get the fanfare (playtest cleared "ASS" with applause).
+// confetti - crude words must never get the fanfare (playtest cleared "ASS" with applause).
 const CRUDE = new Set(("ass arse anal anus boob boobs butt clit cock cum dick dildo fag fart hell homo jerk "+
   "kink milf nude oral orgy penis pee piss poo poop porn pube rape scat semen sex sexy sshit slut smut "+
   "tit tits turd twat vagina wank whore damn crap cunt hoe").split(" "));
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
-// every grove creature must stay spellable no matter how the frequency lists shift —
+// every grove creature must stay spellable no matter how the frequency lists shift -
 // pull their names straight out of the template so the two can never drift apart.
 const grove = [...dropTemplate.matchAll(/\{w:"([a-z]+)"/g)].map(m => m[1]);
 // four-letter offenders: proper nouns and transliterations that ENABLE happens to hold
 // lowercase. A cozy game celebrating "WYNN" or "RHEA" reads as a broken dictionary.
-// Deliberately short and conservative — a wrongly-blocked word is the worse failure,
+// Deliberately short and conservative - a wrongly-blocked word is the worse failure,
 // and creature names are exempt below no matter what lands in here.
 const FOUR_JUNK = new Set(("wynn rhea tiki oyer olio ogee oleo nabe alia inca thor odin loki zeus hera "+
   "juno lyra vega ajax saab xmas raja").split(" "));
@@ -64,7 +64,7 @@ const common = [...new Set([...g10k, ...subs, ...grove])]
   .filter(w => groveSet.has(w) || (!CRUDE.has(w)
     && !(w.length <= 3 && SHORT_JUNK.has(w))
     && !(w.length === 4 && FOUR_JUNK.has(w))));
-// a word the player KNOWS must never be rejected — guard the obvious ones in the build
+// a word the player KNOWS must never be rejected - guard the obvious ones in the build
 const MUST = "ooze vary ore oar dune fern lark vale dusk moss glen hush mist reed elm ivy pond brook cove"
   .split(" ").filter(w => enableSet.has(w) && !common.includes(w));
 if (MUST.length) { console.warn("!! missing expected words:", MUST.join(" ")); common.push(...MUST); }
@@ -75,13 +75,13 @@ const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "))
                             .split("__TELEBUILD__").join(stamp);
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
-fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game — it owns the root
+fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game - it owns the root
 const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on main
 if (!fs.existsSync(docs)) fs.mkdirSync(docs);
 fs.writeFileSync(path.join(docs, "index.html"), dropOut);
 // PWA layer: ship manifest, service worker, and icon alongside the game
 // Icons ship as PNG because Play and Android launchers need raster, not vector. The set is
-// regenerated from the one source SVG by tools/icon-forge.html — missing ones are warned
+// regenerated from the one source SVG by tools/icon-forge.html - missing ones are warned
 // about rather than fatal, so a build never breaks just because an icon hasn't been forged.
 const ASSETS = ["manifest.webmanifest", "icon.svg",
   "icon-192.png", "icon-512.png", "icon-192-maskable.png", "icon-512-maskable.png"];
@@ -96,7 +96,7 @@ if (missingIcons.length) {
   console.warn("   open tools/icon-forge.html, click Forge, and move the PNGs into word-run/");
 }
 // PET ART: the painted friends live in art/pets/. The dev server serves them straight from
-// word-run/, but GitHub Pages serves /docs — so mirror them into docs/art/pets on every build,
+// word-run/, but GitHub Pages serves /docs - so mirror them into docs/art/pets on every build,
 // or the deployed site shows broken portraits while localhost looks fine.
 const petsSrc = path.join(__dirname, "art", "pets");
 if (fs.existsSync(petsSrc)) {
@@ -106,7 +106,7 @@ if (fs.existsSync(petsSrc)) {
   pngs.forEach(f => fs.copyFileSync(path.join(petsSrc, f), path.join(petsDst, f)));
   console.log(`Copied ${pngs.length} pet portraits → docs/art/pets`);
 } else {
-  console.warn("!! no art/pets folder — pets will fall back to emoji");
+  console.warn("!! no art/pets folder - pets will fall back to emoji");
 }
 // THE FIFTEEN PAINTED COUNTRIES. Same reason as the portraits: the dev server serves
 // word-run/ but Pages serves /docs, so a background that looks right on localhost is a
@@ -123,10 +123,10 @@ if (fs.existsSync(bgSrc)) {
   });
   console.log(`Copied ${imgs.length} country backgrounds → docs/art/bg (${(bytes / 1048576).toFixed(1)} MB)`);
 } else {
-  console.warn("!! no art/bg folder — countries will draw their own gradient skies");
+  console.warn("!! no art/bg folder - countries will draw their own gradient skies");
 }
 // the service worker is STAMPED, not copied: a fixed cache name means the browser sees an
-// identical sw.js each deploy, never installs a new worker, and never drops the old cache —
+// identical sw.js each deploy, never installs a new worker, and never drops the old cache -
 // so a playtester keeps a stale build while you push fixes they never get. Stamping the
 // file makes it differ every build, which forces install → activate → old caches deleted.
 /* The worker template lives in sw.src.js and BOTH workers are written from it.
@@ -140,5 +140,5 @@ const sw = fs.readFileSync(fs.existsSync(swSrc) ? swSrc : path.join(__dirname,"s
              .split("__BUILD__").join(stamp);
 fs.writeFileSync(path.join(docs, "sw.js"), sw);
 fs.writeFileSync(path.join(__dirname, "sw.js"), sw);   // the one the dev server serves
-console.log(`Service worker stamped ${stamp} — every tester picks this build up`);
-console.log(`Built word-drop.html + index.html + docs/ (game + PWA) — ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
+console.log(`Service worker stamped ${stamp} - every tester picks this build up`);
+console.log(`Built word-drop.html + index.html + docs/ (game + PWA) - ${common.length} common words, ${(dropOut.length / 1024).toFixed(0)} KB`);
