@@ -739,8 +739,49 @@
   /* 🔧 the keeper's toolbox - dev-only, opened by a secret knock */
   #dbg-title{ font-family:var(--font-story); font-weight:800; font-size:19px; color:var(--ink); }
   #dbg-state{ font-size:12px; color:var(--dim); font-weight:700; margin:2px 0 8px; }
-  #dbg-rows{ display:grid; grid-template-columns:1fr 1fr; gap:7px; width:100%; margin-bottom:9px; }
-  #dbg-rows .charm-btn{ padding:10px 6px; }
+  /* THE OLD PANEL OVERFLOWED ITS OWN CARD. Two 1fr columns with long unwrappable labels:
+     a grid track will not shrink below its content's minimum, so the right-hand column ran
+     off the card and half the buttons were unreachable. minmax(0,1fr) lets a track go
+     smaller than its content, and the labels wrap instead. */
+  #ov-debug .card{ max-height:86vh; display:flex; flex-direction:column; padding:14px 12px 12px; }
+  #dbg-body{ flex:1 1 auto; overflow-y:auto; width:100%; margin-bottom:8px;
+    -webkit-overflow-scrolling:touch; }
+  #dbg-tabs{ display:flex; gap:4px; width:100%; margin:8px 0 8px; flex:0 0 auto; }
+  .dbgtab{ flex:1 1 0; min-width:0; font:inherit; font-size:11px; font-weight:900; cursor:pointer;
+    border:1px solid rgba(101,78,48,.22); background:rgba(255,255,255,.5); color:var(--dim);
+    border-radius:9px; padding:7px 2px; letter-spacing:.02em; }
+  .dbgtab.on{ background:var(--accent-deep,#4c7a46); color:#fff; border-color:transparent; }
+  #dbg-rows{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; width:100%; }
+  #dbg-rows .charm-btn{ padding:9px 5px; font-size:11.5px; white-space:normal; line-height:1.25;
+    min-width:0; overflow-wrap:anywhere; }
+  .dbggroup{ font-size:9.5px; font-weight:900; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--dim); margin:10px 0 5px; text-align:left; width:100%; }
+  .dbggroup:first-child{ margin-top:0; }
+  .dbgjump{ display:flex; gap:6px; width:100%; margin-bottom:4px; }
+  .dbgjump input{ flex:1 1 auto; min-width:0; font:inherit; font-size:14px; font-weight:900;
+    text-align:center; border:1px solid rgba(101,78,48,.25); border-radius:9px; padding:8px 6px;
+    background:#fffdf6; color:var(--ink); }
+  .dbgcountry{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; width:100%; }
+  .dbgcountry button{ font:inherit; font-size:10px; font-weight:800; cursor:pointer; min-width:0;
+    border:1px solid rgba(101,78,48,.2); background:rgba(255,255,255,.55); color:var(--ink2,#6b5a3d);
+    border-radius:8px; padding:6px 3px; line-height:1.2; overflow-wrap:anywhere; }
+  .dbgcountry button.on{ background:var(--accent-deep,#4c7a46); color:#fff; border-color:transparent; }
+  .dbgpets{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; width:100%; }
+  .dbgpet{ font:inherit; font-size:9px; font-weight:800; cursor:pointer; min-width:0; line-height:1.15;
+    border:1px solid rgba(101,78,48,.18); background:rgba(255,255,255,.5); color:var(--dim);
+    border-radius:8px; padding:5px 2px; display:flex; flex-direction:column; align-items:center; gap:1px; }
+  .dbgpet b{ font-size:15px; font-weight:400; line-height:1 }
+  .dbgpet img{ width:20px; height:20px; object-fit:contain; display:block }
+  .dbgpet.has{ background:#e8f3e2; border-color:#7fa877; color:#2f5330; }
+  .dbgpet.duty{ background:var(--accent-deep,#4c7a46); color:#fff; border-color:transparent; }
+  #dbg-lock{ display:none; width:100%; flex-direction:column; gap:9px; align-items:center; }
+  #ov-debug.locked #dbg-lock{ display:flex; }
+  #ov-debug.locked #dbg-open{ display:none; }
+  #dbg-lockmsg{ font-size:12px; color:var(--dim); }
+  #dbg-pw{ font:inherit; font-size:22px; font-weight:900; letter-spacing:.3em; text-align:center;
+    width:100%; border:1px solid rgba(101,78,48,.25); border-radius:11px; padding:10px;
+    background:#fffdf6; color:var(--ink); }
+  #dbg-open{ display:flex; flex-direction:column; align-items:center; width:100%; min-height:0; }
 
   /* -------- first-run tutorial: four wordless-leaning slides -------- */
   #tut-slide{ min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
@@ -2631,25 +2672,16 @@
       <div style="font-size:30px">🔧</div>
       <div id="dbg-title">the keeper's toolbox</div>
       <div id="dbg-state"></div>
-      <div id="dbg-rows">
-        <button class="charm-btn" onclick="UI.dbgSkip(1)">⏭️ next level</button>
-        <button class="charm-btn" onclick="UI.dbgSkip(10)">⏩ +10 levels</button>
-        <button class="charm-btn" onclick="UI.dbgSkip(-1)">⏮️ back one</button>
-        <button class="charm-btn" onclick="UI.dbgAmber()">🟠 +100 amber</button>
-        <button class="charm-btn" onclick="UI.dbgSkip(0)">↻ replay level</button>
-        <button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑️ wipe save</button>
-        <button class="charm-btn" id="dbg-shop" onclick="UI.dbgShop()">💳 test payments</button>
-        <button class="charm-btn" id="dbg-ads" onclick="UI.dbgAds()">🎬 test ads</button>
-        <button class="charm-btn" id="dbg-finale" onclick="UI.dbgFinale()">🌈 test finale</button>
-        <button class="charm-btn" id="dbg-tele" onclick="UI.dbgTele()">📡 telemetry</button>
-        <button class="charm-btn" onclick="UI.artPreview(1)">🎨 art level 1 · frog·pig·snail</button>
-        <button class="charm-btn" onclick="UI.artPreview(2)">🎨 art level 2 · otter·beaver·seal·fish</button>
-        <button class="charm-btn" onclick="UI.artPreview(3)">🎨 art level 3 · boar·moose·badger·deer</button>
-        <button class="charm-btn" onclick="UI.artPreview(4)">🎨 art level 4 · penguin·lamb·chick·mouse·hare</button>
-        <button class="charm-btn" onclick="UI.artPreview(5)">🎨 art level 5 · turtle·lizard·skunk·pony·goat</button>
-        <button class="charm-btn" onclick="UI.artPreviewOff()">🎨 night scene OFF</button>
+      <div id="dbg-lock">
+        <div id="dbg-lockmsg">enter the keeper's number</div>
+        <input id="dbg-pw" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="······">
+        <button class="charm-btn go show" onclick="UI.dbgUnlock()">unlock</button>
       </div>
-      <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
+      <div id="dbg-open">
+        <div id="dbg-tabs"></div>
+        <div id="dbg-body"></div>
+        <button class="charm-btn go show" onclick="UI.dbgClose()">close</button>
+      </div>
     </div>
   </div>
 
@@ -3080,6 +3112,27 @@ const BIOME_DECOR=[
 /* which countries have a painted background sitting in art/bg/. Add a number here the moment
    its file lands and that country stops generating its own sky. */
 const BG_ART=new Set([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]);
+/* ══ THE PAINTING HAS TO BE LOADED BEFORE IT CAN BE SHOWN ══
+   Fifteen countries, about 530KB each, and nothing was ever preloaded. Swapping the class
+   swaps the CSS url instantly, but a browser keeps painting the OLD image until the new one
+   has downloaded and decoded - so walking into a country for the first time showed the
+   previous country's art until the file arrived. On a cached country it looked instant, on a
+   fresh one it looked like nothing happened. That is the whole of "sometimes the background
+   does not change", and it was never a toolbox bug: a real player crossing a border for the
+   first time sees exactly the same thing.
+   warmBiome resolves once the file is actually decodable. warmAhead quietly fetches the next
+   country while you are still playing this one, which is the fix for real players. */
+const _warmed = {};
+function warmBiome(b){
+  if(b<0 || b>=BIOME_NAMES.length) return Promise.resolve();
+  if(_warmed[b]) return _warmed[b];
+  return _warmed[b] = new Promise(res=>{
+    const i = new Image();
+    i.onload = i.onerror = () => res();
+    i.src = "art/bg/bio" + b + ".jpg";
+  });
+}
+function warmAhead(L){ const b=biomeOf(L); warmBiome(b); warmBiome(b+1); }
 function applyBiome(L){
   const app=document.getElementById("app");
   // \d, not \d+, meant bio10 through bio14 were never STRIPPED - they piled up on the
@@ -4900,6 +4953,7 @@ const Game = {
     $("ov-wish").classList.remove("active");
     fitBoard(); UI.all(); UI.visitor();
     applyBiome(level);
+    warmAhead(level);      // the next country arrives before the player does
     $("ov-end").classList.remove("active");
     const bi=biomeOf(level);
     $("iv-placeicon").textContent = BIOMES[bi];
@@ -8959,33 +9013,196 @@ const UI = {
 
   /* ---- 🔧 KEEPER'S TOOLBOX - dev drawer behind seven quick taps on the LV chip.
      Nothing here is discoverable by accident; nothing here is load-bearing. ---- */
+  /* ══════════ THE KEEPER'S TOOLBOX ══════════
+     Seven taps on the level chip, then a number. It is behind a lock because it can hand
+     itself every friend in the wood and win any round on demand, and this ships to
+     playtesters. The lock lasts the browser session, not forever - a reload asks again. */
+  DBG_PW:"694739",
   dbgTap(){
     const now=Date.now();
     UI._dbgT = (UI._dbgT && now-UI._dbgT.t<900) ? {n:UI._dbgT.n+1, t:now} : {n:1, t:now};
-    if(UI._dbgT.n>=7){ UI._dbgT=null; UI.dbgShow(); }
+    if(UI._dbgT.n>=7){
+      UI._dbgT=null;
+      let open=false; try{ open = sessionStorage.getItem("hush_dbg")==="1"; }catch(e){}
+      if(open) UI.dbgShow(); else UI.dbgLock();
+    }
+  },
+  dbgLock(){
+    const o=$("ov-debug");
+    o.classList.add("active","locked");
+    $("dbg-lockmsg").textContent="enter the keeper's number";
+    const pw=$("dbg-pw"); pw.value="";
+    pw.onkeydown = e => { if(e.key==="Enter") UI.dbgUnlock(); };
+    setTimeout(()=>pw.focus(), 80);
+  },
+  dbgUnlock(){
+    const pw=$("dbg-pw");
+    if(pw.value.trim()!==UI.DBG_PW){
+      $("dbg-lockmsg").textContent="not that one";
+      pw.value=""; buzz(60); Snd.reject && Snd.reject();
+      return;
+    }
+    try{ sessionStorage.setItem("hush_dbg","1"); }catch(e){}
+    UI.dbgShow();
   },
   dbgShow(){
     UI._dbgWipeArmed=false;
-    $("dbg-wipe").textContent="🗑️ wipe save";
-    $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
+    UI._dbgTab = UI._dbgTab || "road";
+    $("ov-debug").classList.remove("locked");
     $("ov-debug").classList.add("active");
+    UI.dbgRender();
   },
-  dbgClose(){ $("ov-debug").classList.remove("active"); },
-  dbgSkip(n){ // jump the road: n=0 replays, negatives walk back, never below 1
-    P.level=Math.max(1,(P.level||1)+n); P.run=null; save();
+  dbgClose(){ $("ov-debug").classList.remove("active","locked"); },
+
+  DBG_TABS:[["road","🧭 road"],["round","🎯 round"],["friends","🐾 friends"],["save","💾 save"]],
+  dbgTab(t){ UI._dbgTab=t; UI.dbgRender(); },
+  dbgRender(){
+    /* THE WIPE DISARMS ON EVERY REDRAW. Its armed state lived on UI while its label lived in
+       the panel, so arming it and switching tabs put the button back to reading "wipe save"
+       with the trigger still pulled - one tap, no second chance, save gone. A tester already
+       lost a level 15 run to a confirmation that was too easy; this one was worse. */
+    UI._dbgWipeArmed=false;
+    const lv=P.level||1, b=biomeOf(lv);
+    $("dbg-state").innerHTML = levelLabel(lv) + " &middot; " + BIOMES[b] + " " + BIOME_NAMES[b]
+      + "<br>🟠 " + (P.amber||0) + " &middot; " + Object.keys(P.grove||{}).length + "/" + GROVE.length + " friends"
+      + " &middot; 🍃" + (P.pow.swap||0) + " 🌟" + (P.pow.wild||0);
+    $("dbg-tabs").innerHTML = UI.DBG_TABS.map(([k,label]) =>
+      '<button class="dbgtab' + (UI._dbgTab===k?" on":"") + '" onclick="UI.dbgTab(\''+k+'\')">' + label + '</button>').join("");
+    const B = (fn,label) => '<button class="charm-btn" onclick="'+fn+'">'+label+'</button>';
+    let h="";
+    if(UI._dbgTab==="road"){
+      h += '<div class="dbggroup">jump to a level</div>'
+        + '<div class="dbgjump"><input id="dbg-lv" type="number" inputmode="numeric" min="1" value="'+lv+'">'
+        + '<button class="charm-btn" onclick="UI.dbgGoInput()" style="flex:0 0 auto;padding:8px 14px">go</button></div>'
+        + '<div class="dbggroup">or walk</div><div id="dbg-rows">'
+        + B("UI.dbgSkip(1)","▶ next level") + B("UI.dbgSkip(-1)","◀ back one")
+        + B("UI.dbgSkip(10)","▶▶ +10") + B("UI.dbgSkip(-10)","◀◀ -10")
+        + B("UI.dbgSkip(0)","↻ replay this one") + B("UI.dbgGo("+(PROLOGUE_END+1)+")","⇤ first real level")
+        + '</div>'
+        + '<div class="dbggroup">jump to a country</div><div class="dbgcountry">'
+        + BIOME_NAMES.map((n,i)=>'<button class="'+(i===b?"on":"")+'" onclick="UI.dbgCountry('+i+')">'
+            + BIOMES[i] + '<br>' + n.replace(/^The /,"") + '</button>').join("")
+        + '</div>';
+    } else if(UI._dbgTab==="round"){
+      const live = !!(S && !S.over && !S.won);
+      h += '<div class="dbggroup">this round' + (live?"":" (not in one)") + '</div><div id="dbg-rows">'
+        + B("UI.dbgWin()","🏆 win it now") + B("UI.dbgLose()","💀 lose it now")
+        + B("UI.dbgMoves(10)","👣 +10 moves") + B("UI.dbgMoves(-5)","👣 -5 moves")
+        + B("UI.dbgScore()","🎯 meet the target") + B("UI.dbgClearBoard()","🧹 clear the board")
+        + '</div>'
+        + '<div class="dbggroup">pockets</div><div id="dbg-rows">'
+        + B("UI.dbgAmber()","🟠 +100 amber") + B("UI.dbgTool()","🍃🌟 +3 of each tool")
+        + '</div>'
+        + '<div class="dbggroup">drop a trouble on the board</div><div class="dbgcountry">'
+        + OBSTACLE_KINDS.map(k=>'<button onclick="UI.dbgSeed(\''+k+'\')">'
+            + (TROUBLE_ICON[k]||"?") + '<br>' + k + '</button>').join("")
+        + '</div>';
+    } else if(UI._dbgTab==="friends"){
+      const eq = P.equip||[];
+      h += '<div class="dbggroup">tap to give or take a friend &middot; their calling is answered for them</div>'
+        + '<div id="dbg-rows">' + B("UI.dbgPetsAll(1)","🐾 give me all 50") + B("UI.dbgPetsAll(0)","🚫 take them all back") + '</div>'
+        + '<div class="dbggroup">the fifty</div><div class="dbgpets">'
+        + GROVE.map(g=>{
+            const has=!!P.grove[g.w], duty=eq.indexOf(g.w)>=0;
+            const face = UI.artTag ? (UI.artTag(g.w,"") || ("<b>"+g.e+"</b>")) : ("<b>"+g.e+"</b>");
+            return '<button class="dbgpet'+(has?" has":"")+(duty?" duty":"")+'" onclick="UI.dbgPet(\''+g.w+'\')">'
+              + face + g.w + '</button>';
+          }).join("")
+        + '</div>';
+    } else {
+      h += '<div class="dbggroup">test rigs</div><div id="dbg-rows">'
+        + '<button class="charm-btn" id="dbg-shop" onclick="UI.dbgShop()">💳 payments</button>'
+        + '<button class="charm-btn" id="dbg-ads" onclick="UI.dbgAds()">🎬 ads</button>'
+        + '<button class="charm-btn" id="dbg-finale" onclick="UI.dbgFinale()">🌈 finale</button>'
+        + '<button class="charm-btn" id="dbg-tele" onclick="UI.dbgTele()">📡 telemetry</button>'
+        + '</div>'
+        + '<div class="dbggroup">danger</div><div id="dbg-rows">'
+        + '<button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑️ wipe save</button>'
+        + B("UI.dbgRelock()","🔒 lock the toolbox")
+        + '</div>';
+    }
+    $("dbg-body").innerHTML=h;
+  },
+  dbgRelock(){ try{ sessionStorage.removeItem("hush_dbg"); }catch(e){} UI.dbgClose(); },
+  /* the HUD only exists inside a round; the panel always does */
+  dbgRefresh(){ try{ if(typeof S!=="undefined" && S) UI.all(); }catch(e){} UI.dbgRender(); },
+
+  /* ---- the road ---- */
+  dbgGoInput(){ const v=parseInt($("dbg-lv").value,10); if(v>0) UI.dbgGo(v); },
+  dbgCountry(b){ UI.dbgGo(b*BIOME_LEN + 1 + PROLOGUE_END); },
+  dbgSkip(n){ UI.dbgGo(n===0 ? (P.level||1) : Math.max(1,(P.level||1)+n)); },
+  /* the painting is fetched and decoded BEFORE the level starts, so the country always
+     changes on the same frame the number does */
+  async dbgGo(level){
+    level=Math.max(1, level|0);
+    await warmBiome(biomeOf(level));
+    P.level=level; P.run=null; save();
     UI.dbgClose();
     Game.startLevel(P.level); UI.scene("scene-game");
   },
-  /* ART PREVIEW - five dummy rounds on the painted night scene, each with a different set of
-     sprite pets on the shelf, fired from the keeper's toolbox. Nothing here touches the real
-     schedule; it just stages a board so the new art can be judged in place. */
-  ART_SETS: [
-    ["frog","pig","snail"],
-    ["otter","beaver","seal","fish"],
-    ["boar","moose","badger","deer"],
-    ["penguin","lamb","chick","mouse","hare"],
-    ["turtle","lizard","skunk","pony","goat"],
-  ],
+
+  /* ---- the round ---- */
+  dbgWin(){ if(!S || S.over || S.won) return; UI.dbgClose();
+    S.tutorWord=null; S.guestNamed=false;
+    if(S.goal){ S.goal.have=S.goal.need; } if(S.goal2){ S.goal2.have=S.goal2.need; }
+    S.levelScore=Math.max(S.levelScore, S.target||0);
+    Game.winLevel(); },
+  dbgLose(){ if(!S || S.over || S.won) return; UI.dbgClose(); S.movesLeft=0; Game.failLevel(); },
+  dbgMoves(n){ if(!S) return; S.movesLeft=Math.max(0,(S.movesLeft||0)+n); UI.dbgRefresh(); },
+  dbgScore(){ if(!S) return; S.levelScore=Math.max(S.levelScore||0, S.target||0); UI.dbgRefresh(); },
+  dbgTool(){ P.pow.swap=(P.pow.swap||0)+3; P.pow.wild=(P.pow.wild||0)+3; save();
+    try{ UI.breezePill(); UI.wishPill(); }catch(e){}
+    UI.dbgRefresh(); },
+  dbgClearBoard(){ if(!S) return;
+    Object.values(S.tiles).forEach(t=>{ if(OBSTACLE_KINDS.includes(t.kind)){
+      t.kind="normal"; t.cracks=0; t.inner.className="tile"; t.inner.innerHTML=tileFace(t); } });
+    UI.dbgRefresh(); },
+  dbgSeed(kind){ if(!S) return;
+    const spots=Object.values(S.tiles).filter(t=>t.kind==="normal");
+    const t=spots.length?spots[Math.floor(Math.random()*spots.length)]:null;
+    if(!t) return;
+    t.kind=kind; t.cracks=0;
+    t.inner.className="tile "+kind; t.inner.innerHTML=tileFace(t);
+    UI.dbgRefresh(); },
+
+  /* ---- the friends ----
+     Giving a friend answers its calling too. Handing somebody the cat while the wood still
+     believes the cat is unclaimed leaves it queued to be summoned all over again, so the
+     toolbox would create a state the game can never reach on its own - which is the one
+     thing a debug tool must never do. */
+  dbgPet(w){
+    const g=GROVE_BY_WORD[w]; if(!g) return;
+    if(P.grove[w]){
+      delete P.grove[w]; delete P.metGrove[w]; delete P.called[w];
+      P.equip=(P.equip||[]).filter(x=>x!==w);
+      P.summonQ=(P.summonQ||[]).filter(x=>x!==w);
+      if(P.summon===w) P.summon=null;
+    } else {
+      P.grove[w]=Date.now(); P.metGrove[w]=Date.now(); P.called[w]=1;
+      P.summonQ=(P.summonQ||[]).filter(x=>x!==w);
+      if(P.summon===w) P.summon=null;
+      if(P.nameFails) delete P.nameFails[w];
+    }
+    save(); UI.dbgRefresh();
+  },
+  dbgPetsAll(on){
+    GROVE.forEach(g=>{
+      if(on){ P.grove[g.w]=P.grove[g.w]||Date.now(); P.metGrove[g.w]=P.metGrove[g.w]||Date.now(); P.called[g.w]=1; }
+      else { delete P.grove[g.w]; delete P.metGrove[g.w]; delete P.called[g.w]; }
+    });
+    if(!on) P.equip=[];
+    P.summonQ=[]; P.summon=null;
+    save(); UI.dbgRefresh();
+  },
+  /* ART PREVIEW - staged rounds for judging portraits in place. The sets used to name
+     "otter" and "badger", neither of which is one of the fifty, so two of the five preview
+     rounds silently staged short. Built from the roster now, so it cannot say a name the
+     wood does not know. */
+  get ART_SETS(){
+    const w=GROVE.map(g=>g.w), out=[];
+    for(let i=0;i<w.length;i+=4) out.push(w.slice(i,i+4));
+    return out;
+  },
   artPreview(n){
     const pets = UI.ART_SETS[(n-1) % UI.ART_SETS.length];
     P.grove={}; P.metGrove={}; pets.forEach(w=>{ P.grove[w]=Date.now(); P.metGrove[w]=Date.now(); });
@@ -9005,7 +9222,7 @@ const UI = {
   artPreviewOff(){ $("app").classList.remove("artbg"); UI.dbgClose(); },
   dbgAmber(){
     Game.amber(100);
-    $("dbg-state").textContent="Level "+P.level+" · 🟠 "+(P.amber||0)+" · "+Object.keys(P.grove||{}).length+" friends";
+    UI.dbgRefresh();   // one place draws the state line, so it cannot drift from the panel
   },
   dbgShop(){ // session-only test till: the full purchase flow, zero real money
     Shop.provider = Shop.provider ? null : Shop.DEV;
@@ -9229,7 +9446,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726095245",
+  ver:"20260726161747",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
