@@ -786,7 +786,7 @@
   #lvlchip b{ color:var(--dim); font-size:12px; margin-left:1px; }
   #movesbox{ flex:1; text-align:center; }
   /* matched to the goal beside it: these two are read together, so neither outranks
-     the other. It was 34px against the goal’s 12.5px. */
+     the other. It was 34px against the goal's 12.5px. */
   /* the warning belongs to the whole pod: red digits alone on a pale card were easy to
      miss at the exact moment they matter most. */
   @keyframes movespulse{ 50%{ transform:scale(1.12); } }
@@ -2125,7 +2125,7 @@
   /* THE ASK OF THE ROUND, AT THE SIZE IT DESERVES. It used to be a 12.5px pill - the
      smallest text on the screen, for the one thing the player is actually doing. The
      pill chrome is gone because the block around it already provides the container;
-     what is left is the number, with the goal’s own symbol as its label. */
+     what is left is the number, with the goal's own symbol as its label. */
   /* 625/625 is seven characters; at full size that is wider than the centre has, and a
      wrapped row is worse than a smaller number. */
   /* a met ask goes green in the pod, not just in the digits */
@@ -2133,7 +2133,7 @@
      read as a rendering accident beside "MOVES" set in type. */
   /* order:0 - ABOVE its pod. This rule sits later in the sheet than the statusblock one,
     color:var(--dim); text-transform:uppercase; white-space:nowrap; }
-  /* the fill was the chip’s progress shading; there is no chip now, and a bar that
+  /* the fill was the chip's progress shading; there is no chip now, and a bar that
      repeats the number beside it is decoration. */
   /* the naming word is a sentence, not a counter - it keeps its own shape */
   /* a name is not a counter: no pod, no card, just the letters waiting to be spoken */
@@ -5155,6 +5155,14 @@ const Game = {
     UI.scene("scene-home"); UI.home();
   },
 
+  /* A CONTROL THAT REFUSES MUST LOOK LIKE IT REFUSED. Shared by every tool button, so a
+     dead tap is never indistinguishable from a missed tap. */
+  denyPill(id){
+    const el=$(id); if(!el) return;
+    el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+    setTimeout(()=>el.classList.remove("deny"), 380);
+    Snd.reject(); buzz(25);
+  },
   restartBtn(){
     /* CAUGHT IN PLAYTEST TELEMETRY, NOT BY ME. A tester opened the menu, tapped "↻ Restart
        this level", and the log recorded a TypeError on b.classList - because #btn-restart
@@ -5571,11 +5579,19 @@ const Game = {
     if((P.amber||0) < cost){ Snd.reject(); buzz(30); return; }
     Game.amber(-cost);
     P.pow[kind]=(P.pow[kind]||0)+1; save();
-    if(kind==="swap"){ UI.breezePill(); UI.chip("−"+cost+" 🟠 · a fresh 🍃 breeze!"); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
-    else             { UI.wishPill();   UI.chip("−"+cost+" 🟠 · a fresh 🌟 wish!");   Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
+    /* YOU BOUGHT IT TO USE IT. It granted the tool, closed the card and stopped - so the
+       player tapped the board expecting to be in breeze mode and nothing happened. Reported
+       by the owner playing his own build, and visible in the logs as repeat buys.
+       Arming it immediately also removes the need to say anything: the board changing state
+       under your thumb is the receipt. The chip that used to announce the purchase is gone
+       with it - it was the game reading its own counter aloud.
+       (The old chip also carried a U+2212 MINUS SIGN, which is not on a keyboard either.) */
+    if(kind==="swap"){ UI.breezePill(); Snd.tone(880,{dur:.1,type:"triangle",gain:.06}); }
+    else             { UI.wishPill();   Snd.tone(1046,{dur:.1,type:"sine",gain:.06}); }
     Game.track("tool_bought",{ kind, cost, left:P.amber });
     buzz(15);
     Game.closeBuy();
+    if(kind==="swap") Game.armBreeze(); else Game.openWish();
   },
   earnBreeze(){
     P.pow.swap=Math.min(3,(P.pow.swap||0)+1); save(); // 🌰 Nest & Stash holds more
@@ -5584,7 +5600,15 @@ const Game = {
     // the explanation is queued, not raced - see Game.showPendingTip
   },
   armBreeze(){
-    if(!S || S.busy || S.over || S.won) return;
+    /* SILENCE IS WHAT MAKES PEOPLE HAMMER A BUTTON. A tester with one move left tapped this
+       eight times in three seconds and rage_tap fired, because the board was mid-settle and
+       the refusal was a bare early return. She stopped playing shortly after.
+       The pill flinches EVERY time, which is the answer to "did my tap land". The sentence
+       is said once, ever, because that is all it takes to learn what a busy board is. */
+    if(!S || S.over || S.won) return;
+    if(S.busy){ Game.denyPill("breezepill");
+      UI.note("busy-board","🍃 the board is still settling<br><small>the breeze answers the moment it is still</small>","once");
+      return; }
     // a no-tools gate does not TAKE your breezes - they are still in your pocket after,
     // and they still count. They simply do not answer inside this round.
     { const g=gateAt(S.level);
@@ -7690,6 +7714,17 @@ const UI = {
     P.tut=true; P.level=Math.max(P.level,6); P.run=null;
     if(!P.grove.cat){ P.grove.cat=Date.now(); P.metGrove.cat=Date.now(); }
     if(!(P.equip||[]).length) P.equip=["cat"];
+    /* THE SKIPPER WAS AMBUSHED ANYWAY. tutSkip set the level and the cat and never touched
+       P.seenTip, so the breeze card ambushed them at L6 and the wish card at L7 - mid-round,
+       unasked, on top of play. Caught in a tester's own session (skip at 4.4s, breeze card
+       at 25s, wish card at 155s). My own change made it worse: those cards became three
+       tap-through steps each, so a skipper now had six cards to dismiss.
+       The button says "I know the wood". Honour that: the two TOOL cards are what the
+       lessons taught, so they count as taught. Obstacle cards are NOT marked - spore and
+       mire and scree arrive hundreds of levels later and knowing the basics is not knowing
+       those, so they still introduce themselves when they first appear. */
+    P.seenTip = P.seenTip || {};
+    ["breeze","wish"].forEach(k=>{ P.seenTip[k]=true; });
     save();
     Game.track("tutorial_skipped",{ L:P.level });
     UI.say("tut-skipped","🌿 straight on, then - the cat is already with you",3);
@@ -7994,7 +8029,7 @@ const UI = {
     Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(8);
     $("pet-sheet-e").innerHTML=UI.artTag(g.w,"sheetimg")||g.e;
     $("pet-sheet-n").textContent=g.w.toUpperCase();
-    $("pet-sheet-f").textContent="“"+g.f+"”";
+    $("pet-sheet-f").textContent='"'+g.f+'"';
     $("pet-sheet-p").innerHTML="<b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+(g.ps?"<br><small>always on while on duty</small>":"");
     // WHAT WAKES IT - the rule is stated where a party is chosen. Which friends suit
     // which round is never stated anywhere, and stays the player's to notice.
