@@ -10,3 +10,8 @@ node_modules/
 art/transparent/
 ux/.work/
 _shot.html
+
+# Game direction, design docs and their toolchain live locally only.
+# The repo carries what is needed to BUILD the game, not the thinking behind it.
+ux/
+ds/
