@@ -6105,7 +6105,7 @@ const Game = {
      consonants must need MANY of them or give very little. Wake counts below are set from
      those frequencies - get this wrong and the friend watching the commonest event is
      simply the best friend in the game, and nothing else is ever worth a seat. */
-  WAKE_FREQ:{ drop:25, consonant:15, vowel:10, anyWord:9, word3:7, word4:3, word5:1.2,
+  WAKE_FREQ:{ drop:25, consonant:15, vowel:10, anyWord:9, word3:9, word4:3, word5:1.2,
               gold:2, obstacle:3, cascade:2, rare:1, tool:3, crate:1.2 },
 
   /* one event just happened - every friend counting it takes a step toward waking */
@@ -6219,6 +6219,52 @@ const Game = {
       return VAL[b.letter]-VAL[a.letter];
     }).slice(0,n);
   },
+  /* WORDS THROUGH ONE TILE ONLY. findWords() scans the whole board, which is 21 line scans;
+     the cat has to try up to 26 letters on every candidate tile, so the whole-board version
+     would be thousands of scans per turn. Everything the cat cares about passes through the
+     tile it just changed, so three scans answer it. */
+  wordThrough(t){
+    if(!t) return null;
+    const col=S.board.map(r=>r[t.c]);
+    const hits=[...scanLine(S.board[t.r]), ...scanLine(col), ...scanLine([...col].reverse())];
+    return hits.find(w=>w.cells.includes(t) && !w.cells.every(c=>c.heldWord===w.word)) || null;
+  },
+  catFit(cands){
+    const AZ="abcdefghijklmnopqrstuvwxyz".split("");
+    const pool=[...cands].sort(()=>Math.random()-.5);
+    // TIER 1 - a letter that finishes a word where it stands
+    for(const t of pool){
+      const was=t.letter;
+      for(const L of AZ){
+        if(L===was) continue;
+        t.letter=L;
+        if(Game.wordThrough(t)){ t.letter=was; return {t, L, tier:1}; }
+      }
+      t.letter=was;
+    }
+    // TIER 2 - a letter that puts a word one drop away, using the letter already in hand
+    const hand = S.cur && S.cur.kind==="normal" ? S.cur.letter : null;
+    if(hand){
+      for(let c=0;c<COLS;c++){
+        if(S.board[0][c]) continue;
+        let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
+        if(land<0) continue;
+        const fake={ id:"catfake", letter:hand, kind:"normal", r:land, c, inner:null };
+        S.board[land][c]=fake;
+        for(const t of pool){
+          const was=t.letter;
+          for(const L of AZ){
+            if(L===was) continue;
+            t.letter=L;
+            if(Game.wordThrough(fake)){ t.letter=was; S.board[land][c]=null; return {t, L, tier:2}; }
+          }
+          t.letter=was;
+        }
+        S.board[land][c]=null;
+      }
+    }
+    return null;   // TIER 3
+  },
   retype(t,l){ t.letter=l; delete t.heldWord; // a new letter is a new tile - old spends don't apply
     t.inner.innerHTML=t.letter.toUpperCase()+"<small>"+VAL[t.letter]+"</small>";
     t.inner.classList.add("thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); },
@@ -6274,20 +6320,31 @@ const Game = {
          one letter on the board changes, and often a word falls out of it right there.
          Gold moved out entirely; the fox, the fish, the lizard and the goose all carry it,
          and the first rounds are short enough not to need it. */
+      /* ══ THE CARD SAID "ONE THAT FITS" AND NOTHING CHECKED THAT IT FIT ══
+         pawPat retyped a tile to riggedLetter() - a letter that is generally useful, not one
+         that finishes anything. So the first friend anyone ever gets would turn a tile into a
+         Y or a V and nothing would happen, while its card promised otherwise. The owner's
+         words: "it means nothing that it fits", and "getting a pet should immediately change
+         the way you play". The dog, met later, brute-forces the board for a swap that really
+         does make a word - so the SECOND friend was the spectacular one and the first was a
+         dud. Backwards.
+         The cat now looks for a letter that genuinely completes a word, in two tiers, and
+         the two are different in kind from the dog on purpose: the dog FINISHES words for
+         you, the cat SETS THEM UP.
+           1. a letter that completes a word right now - it lands and the word blooms
+           2. failing that, a letter that puts a word one drop away, using the letter you
+              are ALREADY holding, so the cat sets the table and you take the shot
+           3. failing both - a nearly bare board - the old kindness of a spare move
+         Searching only the row and column through the tile, rather than the whole board, is
+         what keeps this cheap enough to run inside a pet's turn. */
       case "pawPat": {
         const ns=normals();
         if(!ns.length){ Game.addMoves(1); break; }
-        // prefer a tile with a neighbour beside it - a changed letter in open space can
-        // spell nothing, and the whole point is that the player SEES it work
-        const social=ns.filter(t=>(t.c>0 && S.board[t.r][t.c-1]) || (t.c<COLS-1 && S.board[t.r][t.c+1]));
-        const pool=social.length?social:ns;
-        // the tile the cat WALKED to, so the player watches the letter it is standing beside
-        const aim=Game.petAim();
-        const picks = aim ? [aim, ...pool.filter(t=>t!==aim)].slice(0, 1*m)
-                          : pool.sort(()=>Math.random()-.5).slice(0, 1*m);
-        for(const t of picks){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#ffd9a8"); }
+        const pick = Game.catFit(ns);
+        if(!pick){ Game.addMoves(1); UI.note("cat-nofit","🐾 nothing to pat into place, so the cat found you a spare move instead","once"); break; }
+        Game.retype(pick.t, pick.L); UI.shards(pick.t.r, pick.t.c, "#ffd9a8");
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
-        S.chain=1; await Game.resolve(picks); break; }
+        S.chain=1; await Game.resolve([pick.t]); break; }
       // reaches as far as it has grown: a maxed dog fishes for FIVE first, which is exactly
       // the length that wakes a legend. `boost?5:4` was left over from the same-home
       // doubling - with boost gone it read 4, so the dog scanned the whole board for a
@@ -6654,7 +6711,16 @@ const Game = {
       // WORD-SHAPED WAKES. Longer counts as shorter - a five-letter word satisfies a friend
       // waiting on four - so reaching further never costs you a wake you had already earned.
       Game.sees("anyWord");
-      if(wl===3) Game.sees("word3");
+      /* WAS wl===3, AND IT PUNISHED GOOD PLAY. word4 and word5 have always been "or more",
+         so a five-letter word feeds both of them - but word3 wanted EXACTLY three, so the
+         same five-letter word fed the cat nothing. Twelve of the fifty friends listen on
+         word3; a player who makes long words was starving a quarter of the roster, and the
+         better they played the worse it got. The owner hit exactly this: cleared levels with
+         long words, the cat never woke, so the dog never arrived, so the first seven levels
+         felt like a grind. It was not pacing, it was this line.
+         Now it is a ladder that never punishes you for climbing it: any word feeds word3,
+         four or more also feeds word4, five or more also feeds word5. */
+      if(wl>=3) Game.sees("word3");
       if(wl>=4)  Game.sees("word4");
       if(wl>=5)  Game.sees("word5");
       if(/[qzxjv]/.test(word.word)) Game.sees("rare");
@@ -7544,13 +7610,13 @@ const UI = {
   /* the Book's section headings - the same signs, said as a place on the shelf */
   SIGN_TITLE:{ drop:"🍂 they stir as you drop", consonant:"🪵 they listen for hard letters",
     vowel:"🌾 they listen for soft letters", anyWord:"📖 they stir at any word",
-    word3:"🌱 they stir at small words", word4:"🌿 they wait for four letters",
+    word3:"🌱 they stir at any word", word4:"🌿 they wait for four letters",
     word5:"🌟 they wait for five", gold:"✨ they follow the gold",
     obstacle:"🪨 they wake when the way clears", crate:"🎁 they wake at an opened gift",
     cascade:"💫 they wake on a tumble", rare:"💎 they wake at a rare letter",
     passive:"♾️ always awake" },
   WAKE_WORDS:{ drop:"tiles dropped", consonant:"hard letters", vowel:"soft letters",
-    anyWord:"words", word3:"small words", word4:"four-letter words",
+    anyWord:"words", word3:"words", word4:"four-letter words",
     word5:"five-letter words", gold:"golden letters cleared", obstacle:"things cleared away",
     crate:"gifts opened", rare:"rare letters", cascade:"tumbles", tool:"tools used" },
   petMeter(){
@@ -8904,7 +8970,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726080810",
+  ver:"20260726081558",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
