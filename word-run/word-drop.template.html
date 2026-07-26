@@ -1987,6 +1987,38 @@
   #iv-obstacles{ font-size:14px; color:var(--dim); letter-spacing:3px; }
   .tile.ghost{ position:absolute; opacity:.5; transition:none; box-shadow:none; background:rgba(255,253,246,.4);
     border:2px dashed rgba(121,92,55,.55); color:rgba(74,59,40,.75); text-shadow:none; }
+  /* ══ THE LETTER COMES LOOSE IN YOUR HAND ══
+     Press and slide has always worked - pointerdown raises the preview, and it follows your
+     finger while the finger is down. The game never said so, and on a tap the preview exists
+     for about a tenth of a second, so nobody found out. A tester never discovered it at all.
+     Meanwhile the one thing meant to show where the letter lands sits directly under the
+     thumb doing the aiming, which is no use on the platform this game is actually for.
+     So the tile itself lifts out of its slot and rides above the fingertip. It answers both
+     problems with one gesture: something visibly comes loose the instant you press, which is
+     how you learn the gesture exists, and it is held a tile and a half clear of the finger,
+     which is how you can see it at all. It is FIXED to the viewport rather than parented into
+     the board, because the stage is scaled to fit the screen - a child of the board would
+     have to be un-scaled by hand to track a real finger, and would be clipped by the board's
+     own rounded corners at the edges. */
+  #carry{ position:fixed; z-index:400; pointer-events:none; border-radius:12px;
+    transform:translate(-50%,-152%) rotate(-2deg);
+    display:flex; align-items:center; justify-content:center; font-weight:900;
+    background:var(--tile-grain), var(--tile-face); color:var(--tile-ink);
+    text-shadow:0 1px 0 rgba(255,255,255,.7), 0 -1px 0 rgba(120,80,20,.25);
+    box-shadow:0 8px 0 var(--tile-edge), 0 16px 22px rgba(40,25,5,.45),
+      inset 0 2px 0 rgba(255,255,255,.9), inset 0 -5px 6px rgba(150,105,45,.4),
+      inset 0 0 0 1.5px rgba(255,240,205,.55);
+    animation:carrypop .13s cubic-bezier(.3,1.5,.5,1); }
+  #carry small{ position:absolute; bottom:2px; right:5px; font-size:.42em; font-weight:800;
+    color:rgba(120,80,25,.65); }
+  @keyframes carrypop{ from{ transform:translate(-50%,-152%) rotate(-2deg) scale(.6); opacity:.4 } }
+  /* THE SLOT STAYS EMPTY UNTIL THE NEXT LETTER ARRIVES. It used to fade while you held the
+     tile and un-fade the instant you let go - which briefly showed the letter you had just
+     played, at full strength, before the new one replaced it. A flash of the wrong state,
+     right where the eye is. The slot is empty from the moment the letter leaves your hand
+     until the moment its replacement is drawn, and UI.piece() is what ends it, because that
+     IS the moment of replacement. */
+  body.handout #currentwrap .tile{ opacity:.22; transition:opacity .1s; }
   .tile::after{ content:""; position:absolute; inset:0; border-radius:9px; pointer-events:none;
     background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.65) 50%,transparent 68%);
     background-size:250% 100%; background-position:200% 0; }
@@ -7573,6 +7605,8 @@ const UI = {
     return el;
   },
   piece(){
+    // the replacement is on screen, so the slot is no longer empty
+    document.body.classList.remove("handout");
     const w=$("currentwrap"); w.innerHTML="";
     const t = S.cur;
     const el=UI.miniTile(t,62,29);
@@ -8344,6 +8378,30 @@ const UI = {
     }
   },
   ghostEl:null,
+  /* the tile in flight. Kept deliberately dumb: it is told where the finger is and draws
+     itself there, and every decision about whether aiming is even allowed is the same set of
+     guards ghost() uses, so the two can never disagree about the state of the round. */
+  handBack(){ document.body.classList.remove("handout"); },   // a refused drop gives it back
+  carry(on, e){
+    // taking the tile away is NOT the same as putting the letter back: on release the slot
+    // must stay empty until its replacement is drawn, so this only removes the floating tile
+    const gone=()=>{ const c=$("carry"); if(c) c.remove(); };
+    if(!on) return gone();
+    if(!S || !S.cur || S.over || S.won || S.busy || S.usingBreeze || S.usingPluck){ gone(); return UI.handBack(); }
+    const r=boardEl.getBoundingClientRect();
+    const size=r.width/COLS;
+    let c=$("carry");
+    if(!c){ c=document.createElement("div"); c.id="carry"; document.body.appendChild(c);
+      const k=S.cur.kind;
+      c.style.width=size+"px"; c.style.height=size+"px"; c.style.fontSize=(size*0.46)+"px";
+      c.innerHTML = k==="bomb" ? "💣" : k==="wild" ? "★"
+        : S.cur.letter.toUpperCase()+"<small>"+VAL[S.cur.letter]+"</small>";
+      if(k==="gold") c.style.background="linear-gradient(150deg,#fff1b0,#ffd54f 45%,#f5a300)";
+      document.body.classList.add("handout");
+    }
+    c.style.left=e.clientX+"px";
+    c.style.top=e.clientY+"px";
+  },
   ghost(col){
     if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
     if(!S || col<0 || S.over || S.won || S.busy || S.usingBreeze || S.usingPluck) return;
@@ -8933,15 +8991,23 @@ function colFromEvent(e){
   if(x<0||x>r.width) return -1;
   return Math.max(0,Math.min(COLS-1,Math.floor(x/(r.width/COLS))));
 }
+/* AIMING IS A HELD STATE, so the carried tile has to know whether the finger is still down.
+   A mouse sends pointermove with no button held all the time; a touch only sends it while
+   pressed. One flag covers both: the tile rides the pointer only between down and up. */
+let aiming=false;
 boardEl.addEventListener("pointermove", e=>{
   if(!S) return;
   const c=colFromEvent(e);
   if(c>=0 && c!==S.hoverCol){ Snd.hover(c); }
   S.hoverCol=c; UI.ghost(c);
+  if(aiming) UI.carry(true, e);
 });
-boardEl.addEventListener("pointerleave", ()=>UI.ghost(-1));
-boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c); });
+boardEl.addEventListener("pointerleave", ()=>{ aiming=false; UI.carry(false); UI.ghost(-1); });
+boardEl.addEventListener("pointercancel", ()=>{ aiming=false; UI.carry(false); });
+boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c);
+  aiming=true; UI.carry(true, e); });
 boardEl.addEventListener("pointerup", e=>{
+  aiming=false; UI.carry(false);          // the floating tile goes; the slot stays empty
   if(!S) return;
   // A TAP THAT CLOSED A LESSON BUBBLE IS NOT A TAP ON THE BOARD. The scrim closes on
   // pointerdown, so the matching pointerup arrives here with the scrim already gone and
@@ -8956,7 +9022,12 @@ boardEl.addEventListener("pointerup", e=>{
     return;
   }
   const c=colFromEvent(e);
-  if(c>=0) Game.drop(c);
+  /* A REFUSED DROP GIVES THE LETTER BACK. drop() bounces on a full column, a reed, a busy
+     board or the wrong column during a lesson - and in those cases the letter is still yours,
+     so the slot must fill again. drop() hands over S.cur synchronously the moment it commits,
+     before it awaits anything, so an unchanged S.cur straight after the call means refused. */
+  if(c>=0){ const was=S.cur; Game.drop(c); if(S.cur===was) UI.handBack(); }
+  else UI.handBack();
 });
 document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
 
