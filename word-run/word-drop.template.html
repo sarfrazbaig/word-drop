@@ -8093,7 +8093,11 @@ const UI = {
       return;
     }
     clearTimeout(UI._wipeT); UI._wipeArmed=false;
-    try{ Game.track("wipe_all",{ L:P.level, friends:Object.keys(P.grove||{}).length }); Tele.flush(true); }catch(e){}
+    try{
+      Game.track("wipe_all",{ L:P.level, friends:Object.keys(P.grove||{}).length, run:Tele.run||1 });
+      Tele.newRun();          // the next boot is run N+1, and says so
+      Tele.flush(true);
+    }catch(e){}
     // a playtester keeps their NAME through a restart - a second run is still their run,
     // and the notes should still say who they belong to.
     const keepName=(P&&P.teleName)||"", keepSeen=!!(P&&P.teleSeen);
@@ -9254,7 +9258,22 @@ const UI = {
   },
   dbgWipe(){ // destructive - ask twice even in a dev drawer
     if(!UI._dbgWipeArmed){ UI._dbgWipeArmed=true; $("dbg-wipe").textContent="⚠️ really? tap again"; return; }
-    localStorage.clear(); location.reload();
+    /* localStorage.clear() took hush_pid and the playtester's name with it, so a wipe from
+       the toolbox turned that device into a brand new anonymous stranger and the run before
+       it could never be tied to the run after. Clear the save, keep the identity, bump the
+       run - exactly what the in-game wipe does. */
+    try{
+      Game.track("wipe_all",{ L:P.level, friends:Object.keys(P.grove||{}).length, run:Tele.run||1, from:"toolbox" });
+      Tele.newRun(); Tele.flush(true);
+    }catch(e){}
+    const keepName=(P&&P.teleName)||"", keepSeen=!!(P&&P.teleSeen);
+    try{
+      localStorage.removeItem("worddrop_v3");
+      localStorage.removeItem("worddrop_v2");
+      localStorage.removeItem("worddrop_ev1");
+      if(keepName||keepSeen) localStorage.setItem("worddrop_v3", JSON.stringify({teleName:keepName, teleSeen:keepSeen}));
+    }catch(e){}
+    location.reload();
   },
 
   // A TIP IS INFORMATION, NOT A GATE.
@@ -9465,14 +9484,43 @@ const Tele = {
     return location.protocol==="file:" || !h || h==="localhost" || h==="127.0.0.1"
       || h==="[::1]" || h==="0.0.0.0" || h.endsWith(".local"); },
   get on(){ return !!TELE_URL && !this.isLocal(); },
+  /* the run number, read once and cached. Lives beside hush_pid so a save wipe cannot reach it. */
+  loadRun(){
+    try{ const r=parseInt(localStorage.getItem("hush_run")||"1",10);
+      this.run = (r>0?r:1);
+      if(!localStorage.getItem("hush_run")) localStorage.setItem("hush_run",String(this.run));
+    }catch(e){ this.run=1; }
+    return this.run;
+  },
+  /* called by every path that clears a save, BEFORE the reload, so the next boot reports the
+     new number. The name and the pid deliberately survive: a second run is still their run. */
+  newRun(){
+    try{ const n=(parseInt(localStorage.getItem("hush_run")||"1",10)||1)+1;
+      localStorage.setItem("hush_run",String(n)); this.run=n;
+      this.log("run_end",{ run:n-1 });
+    }catch(e){}
+  },
   boot(){
     this.t0=Date.now();
+    this.loadRun();
     this.sid=Math.random().toString(36).slice(2,10)+this.t0.toString(36);
+    /* ══ WHO, WHICH RUN, WHICH SESSION - three different questions ══
+       pid is the person and survives everything. sid is one page load. Between them sat a
+       gap: a playtester told to wipe and start again produced a second run that was
+       indistinguishable from the first, interleaved under the same pid and separable only
+       by hunting for the wipe_all row and splitting on its timestamp by hand. So "where did
+       they start, where did they stop" had no answer for anybody who had restarted, which
+       is precisely the group we most wanted to watch.
+       run is a counter in localStorage, next to pid, outside the save - so a wipe cannot
+       take it - and it goes up by one every time the save is cleared. Group by pid+run and
+       every attempt at the game is its own row. */
     try{ this.pid=localStorage.getItem("hush_pid"); if(!this.pid){ this.pid=Math.random().toString(36).slice(2,12); localStorage.setItem("hush_pid",this.pid); } }
     catch(e){ this.pid="anon"; }
     this.log("session_start",{ ua:navigator.userAgent.slice(0,180), lang:navigator.language,
       w:innerWidth, h:innerHeight, dpr:Math.round(devicePixelRatio*100)/100, ref:(document.referrer||"").slice(0,80),
-      wave:this.wave, ver:this.ver, lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
+      wave:this.wave, ver:this.ver, run:this.run||1,
+      lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
+      fresh:!(typeof P!=="undefined"&&P.stats&&P.stats.wins) && (typeof P==="undefined"||(P.level||1)<=1),
       returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who(), host:location.hostname });
     document.addEventListener("click", e=>this._tap(e), true);
     window.addEventListener("error", e=>this.log("js_error",{ msg:(e.message||"").slice(0,180),
@@ -9493,7 +9541,7 @@ const Tele = {
     return { sc, ov, lv, mv, g:guide, goal, ms };
   },
   log(n, props, kind){
-    const e={ t:Date.now(), sid:this.sid, pid:this.pid, who:this.who(), q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
+    const e={ t:Date.now(), sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(), q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
     this.buf.push(e);
     try{ const K="worddrop_ev1"; const q=JSON.parse(localStorage.getItem(K)||"[]"); q.push({t:e.t,n,p:props||{}}); while(q.length>500)q.shift(); localStorage.setItem(K,JSON.stringify(q)); }catch(_){}
     if(this.buf.length>=18) this.flush();
@@ -9534,7 +9582,7 @@ const Tele = {
   async flush(beacon){
     if(!this.buf.length || !this.on) return;
     const batch=this.buf.splice(0, this.buf.length);
-    const body=JSON.stringify({ sid:this.sid, pid:this.pid, who:this.who(),
+    const body=JSON.stringify({ sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(),
       wave:this.wave, ver:this.ver, events:batch });
     try{
       if(beacon && navigator.sendBeacon){ navigator.sendBeacon(TELE_URL, body); return; }
@@ -9571,7 +9619,8 @@ const Tele = {
   who(){ try{ return (P&&P.teleName)||""; }catch(e){ return ""; } },
   status(){ return (this.on?"📡 sending to your collector":(this.isLocal()?"🛠️ dev build - not sending":"📴 local-only (no URL set)"))
     +"\nplaying as: "+(this.who()||"(no name given)")
-    +"\nplayer "+this.pid+" · session "+this.sid+"\n"+this.seq+" events · "+this.buf.length+" waiting"; },
+    +"\nplayer "+this.pid+" · run "+(this.run||1)+" · session "+this.sid
+    +"\n"+this.seq+" events · "+this.buf.length+" waiting"; },
 };
 
 /* boot */

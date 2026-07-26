@@ -34,20 +34,32 @@ function doPost(e) {
   const body = JSON.parse(e.postData.contents);
   const rows = (body.events || []).map(ev => [
     new Date(ev.t),           // time
-    ev.who || body.who || '', // WHO — the name the playtester typed
-    body.pid,                 // player id (stable per device)
-    body.sid,                 // session
+    ev.who || body.who || '', // WHO - the name the playtester typed
+    body.pid,                 // player id (stable per device, survives a wipe)
+    ev.run || body.run || 1,  // RUN - goes up by one every time they wipe and start again
+    body.sid,                 // session (one page load)
     ev.q,                     // sequence #
-    ev.n,                     // event name  (tap, dead_tap, rage_tap, card_shown, level_start…)
-    ev.k,                     // kind (funnel/…)
+    ev.n,                     // event name  (tap, dead_tap, rage_tap, card_shown, level_start...)
+    ev.k,                     // kind (funnel/...)
     JSON.stringify(ev.c),     // context {sc:screen, ov:openCard, lv:level, mv:moves, g:lesson, goal}
-    JSON.stringify(ev.p)      // details {sel,label,x,y,dead,…}
+    JSON.stringify(ev.p)      // details {sel,label,x,y,dead,...}
   ]);
   if (rows.length) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 9).setValues(rows);
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 10).setValues(rows);
   }
   return ContentService.createTextOutput('ok');
 }
+```
+
+**Put a header row in first**, so the ledger can find the run column wherever it ends up:
+
+```
+time	who	pid	run	sid	q	event	kind	context	props
+```
+
+> **If your sheet predates the run column**, leave it alone - the ledger infers runs from the
+> `wipe_all` rows for older data, so nothing already collected is lost. New rows will simply
+> carry the number directly.
 ```
 
 > **Already deployed the earlier 8-column version?** Replace it with the one above (it adds the
