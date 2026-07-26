@@ -5117,18 +5117,21 @@ const Game = {
     UI.scene("scene-home"); UI.home();
   },
 
-  restartAsk:0,
   restartBtn(){
+    /* CAUGHT IN PLAYTEST TELEMETRY, NOT BY ME. A tester opened the menu, tapped "↻ Restart
+       this level", and the log recorded a TypeError on b.classList — because #btn-restart
+       was removed when the once-a-session controls moved behind the ☰, and this function
+       kept reaching for it. The menu item threw on every tap, for every player, silently:
+       the throw happens inside a click handler, so nothing surfaces.
+       The arm-then-confirm dance went with the button. It only ever worked because there was
+       a control on screen to turn red and say "tap again" — from a menu that closes itself
+       first there is nowhere to show that, so a second tap would have been asked for and
+       never hinted at. The menu item is already deliberate (open the menu, choose a named
+       item), and a restart costs one attempt at one level, not progress: it just restarts.
+       Second ghost of this exact shape today. There is now a sweep for the rest of them. */
     if(!S || S.busy) return;
-    const b=$("btn-restart");
-    if(Date.now()-Game.restartAsk < 2500){
-      Game.restartAsk=0; b.classList.remove("armed-danger");
-      Snd.init(); buzz(20); Game.startLevel(S.level);
-    } else {
-      Game.restartAsk=Date.now(); b.classList.add("armed-danger");
-      Snd.tone(300,{dur:.12,type:"triangle",gain:.07});
-      setTimeout(()=>{ if(Date.now()-Game.restartAsk>=2400){ Game.restartAsk=0; b.classList.remove("armed-danger"); } }, 2500);
-    }
+    Snd.init(); buzz(20);
+    Game.startLevel(S.level);
   },
 
   petHint(boost){ // Bright Eyes: your friend spots every place your letter finishes a word
@@ -8687,7 +8690,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260725233459",
+  ver:"20260726062903",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports —
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
