@@ -7779,15 +7779,25 @@ const UI = {
     if(n2){ n2.innerHTML="";
       n2.appendChild(UI.miniTile(deep ? S.next2 : {letter:"?",kind:"normal"}, 44, 19)); }
   },
+  /* ══ THIS USED TO RETURN BEFORE IT DID ANYTHING ══
+     The daily-quest chip was removed and the goal strip took over its job, but the guard that
+     had protected the chip stayed: `const qe=$("quest"); if(!qe){ UI.goalStrip(); return; }`.
+     #quest no longer exists, so that condition was true every single time, and the three
+     lines below it - the paw meter and both tool counts - were never reached from UI.all()
+     again. Nothing errors when an element is missing, which is why it sat there.
+
+     What a player saw: the pills are drawn by their earn and spend handlers, so during a
+     session they look right. On a fresh boot, or when a backgrounded tab is evicted and the
+     round is restored from the save, nothing draws them at all and they keep the value that
+     is hard-coded in the markup - which is 0. The tools still worked, because the click reads
+     P.pow and not the label. The paw pips under each friend were wrong in the same way and
+     for the same reason.
+
+     Same shape of fault as the two dead menu items and the "Your journey" button before it:
+     an element gets deleted, its guard is left behind, and the guard quietly switches off
+     everything after it. */
   cozy(){
-    const qe=$("quest");
-    if(!qe){ UI.goalStrip(); return; }   // the strip owns goal display now
-    if(false){
-      const q=dailyQuest();
-      qe.classList.toggle("done", P.questDone);
-      qe.innerHTML = P.questDone ? q.emoji+" ✓" : q.emoji+" <b>"+Math.min(q.target,P.questProgress)+"</b>/"+q.target;
-      qe.title = q.text;
-    }
+    UI.goalStrip();
     UI.petMeter(); UI.breezePill(); UI.wishPill();
   },
   equipped(){ // the party on duty: chosen in the grove, else your most recent friends
