@@ -54,13 +54,12 @@ function doPost(e) {
 **Put a header row in first**, so the ledger can find the run column wherever it ends up:
 
 ```
-time	who	pid	run	sid	q	event	kind	context	props
+time	who	player	run	session	seq	event	kind	context	details
 ```
 
 > **If your sheet predates the run column**, leave it alone - the ledger infers runs from the
 > `wipe_all` rows for older data, so nothing already collected is lost. New rows will simply
 > carry the number directly.
-```
 
 > **Already deployed the earlier 8-column version?** Replace it with the one above (it adds the
 > `who` column), then **Deploy → Manage deployments → edit → Version: New version → Deploy.**
@@ -71,9 +70,7 @@ time	who	pid	run	sid	q	event	kind	context	props
    - *Execute as:* **Me**
    - *Who has access:* **Anyone**
    - Deploy, authorize, and **copy the Web app URL** (ends in `/exec`).
-4. (Nice to have) Put a header row in the Sheet:
-   `time | who | player | session | seq | event | kind | context | details`
-5. Send me that `/exec` URL. Done.
+4. Send me that `/exec` URL. Done.
 
 > Note: the game POSTs as `text/plain` with `no-cors` on purpose — that's what lets a static
 > page talk to Apps Script without CORS errors. You won't see a reply in the browser; the rows
