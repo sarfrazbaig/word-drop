@@ -530,10 +530,13 @@ footer{text-align:center;color:#6b5c44;font-size:12px;padding:26px 18px 50px}
 <div class="chips"><figure class="chip"><div class="tw"><div class="tile stone cracked"><small>0</small></div></div><figcaption><b>stone, cracked</b><span>one word beside it, one to go</span></figcaption></figure><figure class="chip"><div class="tw"><div class="tile crystal cracked"><small>0</small></div></div><figcaption><b>crystal, cracked</b><span>the next word turns it to gold</span></figcaption></figure><figure class="chip"><div class="tw"><div class="tile root cracked"><small>0</small></div></div><figcaption><b>root, cut</b><span>heals whole again after three drops</span></figcaption></figure><figure class="chip"><div class="tw"><div class="tile shroud cracked"><small>0</small></div></div><figcaption><b>shroud, thinning</b><span>one more word and the gloom lifts</span></figcaption></figure><figure class="chip"><div class="tw"><div class="tile lit">E<small>1</small></div></div><figcaption><b>lit</b><span>part of a word that is about to bloom</span></figcaption></figure><figure class="chip"><div class="tw"><div class="tile ghost">E<small>1</small></div></div><figcaption><b>ghost</b><span>where the letter you are holding will land</span></figcaption></figure></div>
 </div>
 
-<div class="warn"><b>Look at the bramble and the branch against the green countries.</b> Measured against the
-   painting behind them, an ordinary letter tile scores 4.6:1 and those two score 1.26:1 and 1.20:1. They are
-   the two earliest troubles a player meets and they are close to invisible. This is section 15's problem, and
-   the swatches above are the fastest way to see it - switch to the Bramblewood.</div>
+<div class="warn"><b>Switch to the Glimmer Seams, the Snowline or the Frozen Crown, and look at the ice, the
+   frost and the mist.</b> Those three are painted in fixed colours that never change, while the letter tile
+   underneath them takes the country's palette. In the pale, cold countries the tile drifts into the same
+   colour as the coating and the two collide - measured, an iced letter in the Glimmer Seams differs from an
+   ordinary letter by deltaE 2.5, which is the point at which two colours are the same colour. An iced letter
+   you cannot identify is not an aesthetic problem: you will try to use it in a word and it will not work.
+   Full numbers in section 15.</div>
 
 <h3>The sixteen troubles, as rules</h3>
 <p>Each one debuts <b>alone</b>, on an otherwise clean board, so it can be understood by itself before it ever
@@ -861,9 +864,22 @@ footer{text-align:center;color:#6b5c44;font-size:12px;padding:26px 18px 50px}
    three times, another twice, and both stopped playing. Nothing has been done about it yet. This is the
    single highest-stakes problem in the game.</div>
 
-<div class="warn"><b>Obstacle contrast.</b> Measured against the painting behind them: an ordinary letter tile
-   scores 4.6:1, a bramble 1.26:1 and a branch 1.20:1. The two most common early obstacles are close to
-   invisible. A full audit across all 15 countries has not been done.</div>
+<div class="warn"><b>Some coated letters are the same colour as uncoated ones.</b> Ice, mist and frost are
+   fixed colours; the tile under them takes the country's palette. In pale countries they collide. Measured
+   across all 15 countries, 255 obstacle-and-country pairs sampled from rendered pixels: 29
+   fall below deltaE 12, where two colours become hard to separate, and seven fall below 5, where they are the
+   same colour. Worst: ice in the Glimmer Seams at 2.5, mist in the Frozen Crown at 2.7, ice in the Running
+   River at 2.9, mist in the Spore Hollow at 3.0. It is concentrated in ice (9 countries), mist (8), stone (4),
+   pest (4) and frost (4) - every one a trouble that sits <i>on</i> a letter rather than replacing it. Options
+   are in Claude Design; the cause is that the coating is an absolute colour while the thing under it is
+   relative to the country.</div>
+
+<div class="warn"><b>Obstacles are low contrast in lightness, though not invisible.</b> Against the painting an
+   ordinary letter tile averages 6.2:1 while obstacles average 3.4:1, and half of all pairs fall under the 3:1
+   floor WCAG sets for non-text elements. They stay legible because they differ strongly in <i>hue</i> - branch
+   sits at deltaE 46 against its background even at 1.76:1 - so this reads as a low-vision and
+   bright-sunlight problem rather than a general one. Worth fixing, not urgent, and not the same bug as the one
+   above.</div>
 
 <div class="warn"><b>A tap during resolution says nothing.</b> The press is ignored, correctly, but with no
    feedback of any kind.</div>
