@@ -9475,7 +9475,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726203318",
+  ver:"20260726204207",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -9562,6 +9562,15 @@ const Tele = {
     const x=Math.round(e.clientX), y=Math.round(e.clientY), dead=!hit && !onBoard;
     this.log("tap",{ sel, label, x, y, dead });
     if(dead) this.log("dead_tap",{ x, y });
+    /* THE ONE GESTURE THAT IS SUPPOSED TO BE HAMMERED. Opening the keeper's toolbox is seven
+       fast taps on the level chip, which is exactly the shape the rage detector hunts for -
+       so every single toolbox open logged two or three rage_taps and quietly poisoned the
+       most important frustration signal we have. Seen in the wild: 381-384 in one tester's
+       log, three taps on span#lvlcap followed by rage_tap n:3, then the toolbox opening.
+       The chip is deliberately excluded, and so is the toolbox itself, where tapping the
+       backdrop to dismiss also reads as dead space. */
+    const isDebugGesture = !!(e.target.closest("#lvlcap") || e.target.closest("#ov-debug"));
+    if(isDebugGesture){ this.recent=[]; return; }
     // rage: 3+ taps within 700ms and ~45px - the classic "why isn't this working" tell
     const now=Date.now();
     this.recent=this.recent.filter(p=>now-p.t<700);
