@@ -2013,18 +2013,37 @@
      the board, because the stage is scaled to fit the screen - a child of the board would
      have to be un-scaled by hand to track a real finger, and would be clipped by the board's
      own rounded corners at the edges. */
-  #carry{ position:fixed; z-index:400; pointer-events:none; border-radius:12px;
-    transform:translate(-50%,-152%) rotate(-2deg);
-    display:flex; align-items:center; justify-content:center; font-weight:900;
-    background:var(--tile-grain), var(--tile-face); color:var(--tile-ink);
-    text-shadow:0 1px 0 rgba(255,255,255,.7), 0 -1px 0 rgba(120,80,20,.25);
-    box-shadow:0 8px 0 var(--tile-edge), 0 16px 22px rgba(40,25,5,.45),
+  /* ══ THE TILE IN YOUR HAND IS THE TILE THAT LANDS ══
+     It used to be a hand-drawn imitation of a tile hanging off <body>, and it was wrong four
+     separate ways, all of which read as the same thing: the piece did not belong to the board.
+
+     The face was wrong in all fifteen countries. Everything that makes a tile look like a
+     tile of THIS country - the palette, the pebble outline, the letter size - is declared on
+     "#app.bioN .tile", and an element parented to <body> is outside that scope, so it always
+     resolved to the :root fallback. On the Bramblewood that is brown-gold #f6e2ac and a plain
+     12px rectangle, against the board's pale green #d7e8c6 pebble.
+
+     The size was wrong everywhere. It was set to boardWidth/COLS, which is STEP - the pitch
+     from one tile to the next, gap included - where a tile face is CELL. 10.7% too big.
+
+     The acorn was a bomb. It drew its own glyph table and had drifted from tileFace(), so a
+     bomb tile read as a stick of dynamite in your hand and an acorn on the board.
+
+     So it is not an imitation any more. It is the same structure a board tile is built from,
+     a .tw wrapper around a .tile, with its face from tileFace(), living inside #boardwrap -
+     inside #app, where the country's rules can reach it, and outside #board, which clips to
+     rounded corners and would cut the tile off whenever it is held near an edge. Being one
+     level out from the board it does not inherit the board's own scale, so carry() applies
+     that scale itself; that is the one number this has to know, and it is measured, not
+     guessed. */
+  #carry{ z-index:400; pointer-events:none; left:0; top:0;
+    transition:none !important; }   /* .tw eases its moves; this one tracks a finger */
+  /* held clear of the board, so it reads as lifted rather than laid down */
+  #carry > .tile{ box-shadow:0 8px 0 var(--tile-edge), 0 16px 22px rgba(40,25,5,.45),
       inset 0 2px 0 rgba(255,255,255,.9), inset 0 -5px 6px rgba(150,105,45,.4),
       inset 0 0 0 1.5px rgba(255,240,205,.55);
     animation:carrypop .13s cubic-bezier(.3,1.5,.5,1); }
-  #carry small{ position:absolute; bottom:2px; right:5px; font-size:.42em; font-weight:800;
-    color:rgba(120,80,25,.65); }
-  @keyframes carrypop{ from{ transform:translate(-50%,-152%) rotate(-2deg) scale(.6); opacity:.4 } }
+  @keyframes carrypop{ from{ transform:rotate(-2deg) scale(.6); opacity:.4 } }
   /* THE SLOT STAYS EMPTY UNTIL THE NEXT LETTER ARRIVES. It used to fade while you held the
      tile and un-fade the instant you let go - which briefly showed the letter you had just
      played, at full strength, before the new one replaced it. A flash of the wrong state,
@@ -5361,6 +5380,9 @@ const Game = {
   },
 
   async drop(col){
+    // where the letter was let go. Read first, and cleared whatever happens next, so a
+    // bounced drop cannot leave a stale hand position for some later programmatic one.
+    const hand = S && S._fromHand; if(S) S._fromHand=null;
     if(!S||S.over||S.won||S.busy) return;
     Snd.init();
     // school rules: during a lesson the only legal column is the one being taught.
@@ -5397,9 +5419,24 @@ const Game = {
     else S.movesLeft--;
     S._refunded=false; // Quickstep refunds at most once per drop
 
+    /* ══ ONE TILE, NOT TWO ══
+       The tile in your hand used to be deleted at your fingertip while a different tile was
+       created above the column and dropped in. On a tap that is the whole interaction: a
+       flash where you pressed, then something else falling out of the sky. So the piece you
+       are holding is the piece that falls - it keeps its position at the moment of release
+       and carries on down from there, and the held element is removed in the same frame it
+       is replaced, which is why there is nothing to see in the handover.
+       The fall is timed from the distance actually travelled, using the same 42ms-per-cell
+       the sky drop used, so a release high above the stack still falls at the old speed and
+       a tap just above the landing cell takes the 80ms floor rather than dawdling. With
+       nothing in hand - a friend acting, a lesson placing a letter - it drops from the sky
+       exactly as before. */
     const t = newTile(piece.letter, piece.kind, land, col, false);
-    t.el.style.transition="none"; t.el.style.transform=xy(-1.2,col); void t.el.offsetWidth;
-    const fallMs = 80 + land*42;
+    const from = hand ? "translate("+hand.x+"px,"+hand.y+"px)" : xy(-1.2,col);
+    const cells = hand ? Math.max(0,(land*STEP - hand.y)/STEP) : land;
+    t.el.style.transition="none"; t.el.style.transform=from; void t.el.offsetWidth;
+    { const held=$("carry"); if(held) held.remove(); }   // the handover, in one frame
+    const fallMs = 80 + Math.round(cells*42);
     t.el.style.transition="transform "+fallMs+"ms cubic-bezier(.55,0,.85,.55)";
     t.el.style.transform=xy(land,col);
     Snd.whoosh();
@@ -8441,25 +8478,52 @@ const UI = {
      itself there, and every decision about whether aiming is even allowed is the same set of
      guards ghost() uses, so the two can never disagree about the state of the round. */
   handBack(){ document.body.classList.remove("handout"); },   // a refused drop gives it back
+  /* THE STAGE IS SCALED TWICE OVER: #app shrinks the whole thing to fit the screen, and
+     #board scales again inside that. A tile living in #boardwrap sits between the two, so it
+     gets #app's scale for free and has to be given the board's. Both are measured off real
+     elements rather than recomputed, so they cannot drift from what is actually on screen. */
+  carryScale(){
+    const bw=$("boardwrap"), bwr=bw.getBoundingClientRect();
+    const kApp=bwr.width/bw.offsetWidth;                              // what #app did
+    return { bwr, kApp, kBoard:(boardEl.getBoundingClientRect().width/boardEl.offsetWidth)/kApp };
+  },
   carry(on, e){
     // taking the tile away is NOT the same as putting the letter back: on release the slot
     // must stay empty until its replacement is drawn, so this only removes the floating tile
     const gone=()=>{ const c=$("carry"); if(c) c.remove(); };
     if(!on) return gone();
     if(!S || !S.cur || S.over || S.won || S.busy || S.usingBreeze || S.usingPluck){ gone(); return UI.handBack(); }
-    const r=boardEl.getBoundingClientRect();
-    const size=r.width/COLS;
+    const { bwr, kApp, kBoard } = UI.carryScale();
     let c=$("carry");
-    if(!c){ c=document.createElement("div"); c.id="carry"; document.body.appendChild(c);
-      const k=S.cur.kind;
-      c.style.width=size+"px"; c.style.height=size+"px"; c.style.fontSize=(size*0.46)+"px";
-      c.innerHTML = k==="bomb" ? "💣" : k==="wild" ? "★"
-        : S.cur.letter.toUpperCase()+"<small>"+VAL[S.cur.letter]+"</small>";
-      if(k==="gold") c.style.background="linear-gradient(150deg,#fff1b0,#ffd54f 45%,#f5a300)";
+    if(!c){
+      // built exactly as makeTileEl builds a board tile, so there is one idea of what a tile
+      // is: a .tw wrapper the size of a cell, around a .tile that fills it
+      c=document.createElement("div"); c.id="carry"; c.className="tw";
+      c.style.width=CELL+"px"; c.style.height=CELL+"px";
+      const inner=document.createElement("div");
+      inner.className="tile "+(S.cur.kind!=="normal"?S.cur.kind:"");
+      inner.style.fontSize="20px";
+      inner.style.transform="rotate(-2deg)";        // a piece held in a hand is never quite square
+      inner.innerHTML=tileFace(S.cur);              // the board's own face, not a second copy of it
+      c.appendChild(inner);
+      $("boardwrap").appendChild(c);
       document.body.classList.add("handout");
     }
-    c.style.left=e.clientX+"px";
-    c.style.top=e.clientY+"px";
+    // the finger, in #boardwrap's own coordinates
+    const lx=(e.clientX-bwr.left)/kApp, ly=(e.clientY-bwr.top)/kApp;
+    // and held one tile-height clear of it, so the fingertip never covers the letter
+    const lift=CELL*kBoard*1.02;
+    c.style.transform="translate("+(lx-CELL/2)+"px,"+(ly-CELL/2-lift)+"px) scale("+kBoard+")";
+  },
+  /* WHERE THE LETTER IS, at the instant it leaves your hand, in the board's own coordinates -
+     so drop() can start the fall from there instead of inventing a tile above the column.
+     Read before the held tile is taken away; null when there was nothing in hand. */
+  handoff(){
+    const c=$("carry"); if(!c) return null;
+    const cr=c.getBoundingClientRect(), br=boardEl.getBoundingClientRect();
+    const kTot=br.width/boardEl.offsetWidth;
+    return { x:(cr.left+cr.width/2-br.left)/kTot - CELL/2,
+             y:(cr.top +cr.height/2-br.top )/kTot - CELL/2 };
   },
   ghost(col){
     if(this.ghostEl){ if(this.ghostEl._label) this.ghostEl._label.remove(); this.ghostEl.remove(); this.ghostEl=null; }
@@ -9102,6 +9166,7 @@ boardEl.addEventListener("pointercancel", e=>{
 });
 boardEl.addEventListener("pointerup", e=>{
   if(aiming && e.pointerId!==aimId) return;
+  const hand = UI.handoff();          // where the letter is, before the held tile is taken away
   aimStop();
   try{ boardEl.releasePointerCapture(e.pointerId); }catch(_){}
   UI.ghost(-1);
@@ -9122,6 +9187,7 @@ boardEl.addEventListener("pointerup", e=>{
   }
   const c=colFromEvent(e);
   if(c<0) return back();
+  S._fromHand = hand;                 // so the tile falls from your hand, not from the sky
   // drop() hands over S.cur synchronously the moment it commits, before it awaits anything,
   // so an unchanged S.cur straight after the call means it bounced.
   const was=S.cur; Game.drop(c);
@@ -9163,7 +9229,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726093226",
+  ver:"20260726095245",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
