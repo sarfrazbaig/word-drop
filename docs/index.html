@@ -288,6 +288,44 @@
      empty sky at the top of the board, because letters stack from the floor. Translucent so
      a full board still reads through it, and slim enough that at its longest it costs about
      one row -- against the 47% the tip card used to take. */
+  /* ══════════ ONE VOICE ══════════
+     Four surfaces used to be able to speak at the same time: #toast in the middle of the
+     screen, #skyrail across the top of the board, #chiptoast under the counters, #petsay
+     above the board. Four positions, four timers, four z-indexes, and not one of them
+     checked whether another was already talking. Overlap was not a glitch, it was the
+     default. Playtesters described exactly that: things covering other things, and things
+     vanishing before they could be read.
+     There is one element now, and it can be in one of two places depending on one question:
+     DOES IT WAIT FOR YOU? A message you have never seen owns the middle of the screen and
+     stays until you tap it - nothing can cover it, because nothing else can be on screen.
+     A message you have seen before does not wait, so it sits out of the way at the top and
+     leaves on its own. Same element, same queue, one rule. */
+  #note-scrim{ position:absolute; inset:0; z-index:295; border-radius:inherit;
+    background:rgba(20,16,10,.44); backdrop-filter:blur(1.5px); -webkit-backdrop-filter:blur(1.5px);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  #note-scrim.on{ opacity:1; pointer-events:auto; }
+  #note{ position:absolute; z-index:300; opacity:0; pointer-events:none;
+    transition:opacity .22s ease, transform .25s cubic-bezier(.3,1.4,.5,1); }
+  #note.on{ opacity:1; }
+  /* IT WAITS FOR YOU: it owns the middle and holds the room */
+  #note.owns{ left:50%; top:42%; transform:translate(-50%,-50%) scale(.94);
+    width:max-content; max-width:82%;
+    background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:14px 22px 12px;
+    font-size:15.5px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
+    box-shadow:0 14px 34px rgba(90,60,30,.4); pointer-events:auto; cursor:pointer; }
+  #note.owns.on{ transform:translate(-50%,-50%) scale(1); }
+  #note .tapon{ display:block; margin-top:9px; font-family:var(--font-ui); font-size:10.5px;
+    font-weight:900; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent-deep); opacity:.85; }
+  /* IT DOES NOT WAIT: it stays clear of the board and leaves on its own */
+  #note.aside{ left:10px; right:10px; top:8px; transform:translateY(-8px);
+    background:rgba(24,30,26,.92); color:#f7f2e6; border:1px solid rgba(255,255,255,.18);
+    border-radius:13px; padding:8px 12px; text-align:center; font-size:12.5px; line-height:1.42;
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    box-shadow:0 8px 22px -12px rgba(0,0,0,.75); }
+  #note.aside.on{ transform:none; }
+  #note b{ color:#ffe6a2; } #note.owns b{ color:var(--accent-deep); }
+  #note small{ display:block; opacity:.85; font-size:11px; margin-top:3px; }
   #skyrail{ position:absolute; left:10px; right:10px; top:8px; z-index:86;
     background:rgba(24,30,26,.90); color:#f7f2e6; border:1px solid rgba(255,255,255,.18);
     border-radius:13px; padding:8px 12px; text-align:center;
@@ -5743,7 +5781,9 @@ const Game = {
     // the gold branch used to add "and still golden" - the same promise the tip made, now
     // repeated on every wish a player spends while holding a gold tile. Keeping a golden
     // letter golden is the behaviour, not an achievement to announce.
-    UI.say("wish-grant", "🌟 "+l.toUpperCase()+" is yours - drop it anywhere");
+    /* NO SENTENCE HERE. You just chose this letter from a picker and it is now in your hand,
+       in your hand's own tile, at the size of a tile. Being told "S is yours" is the game
+       reading its own UI aloud. The sound and the star-drift already fired above. */
     FT.signal("wishPicked", l);
     S.lastAction=Date.now();
   },
@@ -8144,7 +8184,7 @@ const UI = {
         if(el) el.addEventListener("click", finish, true); }, 450);
     });
   },
-  toast(m, hold){ // announcements take TURNS now - the next used to clobber the last mid-read
+  _toastOld(m, hold){ //
     // A DECIDED ROUND BELONGS TO ITS CARD. Gift bursts, "a name is stirring", milestone
     // banners - they all used to keep floating while the clear/fail card was on screen,
     // competing with the very numbers the player was trying to read. Once the round is
@@ -8182,7 +8222,7 @@ const UI = {
       t._h=setTimeout(advance, ms);
     }
   },
-  petSay(html){ // a power announces itself in the strip ABOVE the board, never over it
+  _petSayOld(html){ //
     let el=$("petsay");
     if(!el){ el=document.createElement("div"); el.id="petsay"; $("boardwrap").appendChild(el); }
     el.innerHTML=html;
@@ -8191,7 +8231,21 @@ const UI = {
   },
   /* A LINE IN THE SKY. Latest wins: these are one-shot teaching lines gated by P.said, so a
      queue would only ever delay the one that matters. Tap dismisses. */
-  sky(html, ms){
+  /* THE OLD FOUR ARE DOORS ONTO THE ONE CHANNEL NOW. They are kept as names because 68 call
+     sites use them and their meanings were never wrong - "sky" meant a line about the board,
+     "chip" meant a note by the counters. What was wrong was that each owned its own patch of
+     screen and its own timer. They all say the same thing through the same mouth now, and a
+     call with no key of its own is keyed by its own words, so the same sentence never
+     arrives twice. */
+  sky(html, ms){ if(html) UI.note(UI._noteKey(html), html, "once"); },
+  chip(html, ms){ if(html) UI.note(UI._noteKey(html), html, "once"); },
+  petSay(html){ if(html) UI.note(UI._noteKey(html), html, "once"); },
+  toast(m, hold){ if(m) UI.note(UI._noteKey(m), m, "once"); },
+  skyClear(){ UI.noteClear(); },
+  chipClear(){ UI.noteClear(); },
+  toastClear(){ UI.noteClear(); },
+  toastQuiet(){ return UI.noteQuiet(); },
+  _skyOld(html, ms){
     if(!html) return;
     // DURING THE LESSONS, THE WOOD WAITS TO BE TAPPED. A prologue line is long and it is
     // the point of the round; a rail that fades on a timer loses it the moment a player
@@ -8205,9 +8259,9 @@ const UI = {
     el.innerHTML=html; el.classList.add("on");
     clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||5200);
   },
-  skyClear(){ const el=$("skyrail"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
+  _skyClearOld(){ const el=$("skyrail"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
   /* A CHIP BY THE COUNTERS. */
-  chip(html, ms){
+  _chipOld(html, ms){
     if(!html) return;
     const app=$("app"); if(!app) return UI.toast(html);
     let el=$("chiptoast");
@@ -8220,7 +8274,7 @@ const UI = {
     el.innerHTML=html; el.classList.add("on");
     clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||3400);
   },
-  chipClear(){ const el=$("chiptoast"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
+  _chipClearOld(){ const el=$("chiptoast"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
   /* RESOLVES WHEN NOTHING IS SPEAKING. The lessons need this: a teaching bubble must never
      be raised over a card the player has not finished reading. Polls rather than hooks the
      queue, because a sticky toast can also retire on its own 12s fallback and there is no
@@ -8233,7 +8287,7 @@ const UI = {
       setTimeout(check, 60);        // give the first card a moment to be raised
     });
   },
-  toastClear(){ // a new level starts with a quiet stage - stale notes don't follow you in
+  _toastClearOld(){ //
     UI._tq=[]; UI._tShowing=false; UI.skyClear(); UI.chipClear();
     const t=$("toast"); clearTimeout(t._h); t.onclick=null; t.classList.remove("on","tapwait");
   },
@@ -8359,14 +8413,73 @@ const UI = {
       from.classList.remove("away");
     } };
   },
+  /* ══ THE ONLY WAY THE GAME SPEAKS ══
+     key   - what this message IS. Seen once, it is not said again.
+     mode  - "once"  (default) never repeats. Waits for a tap the first time.
+             "recur"          may be said again, but only ever waits the first time.
+             "brief"          never waits. For the rare thing that must be said every time.
+     The default is deliberately the strictest one. The constraint from playtesting was:
+     assume they read it when you first surfaced it, and use auto-clearing sparingly. */
+  _noteKey(html){                 // a message with no key of its own is keyed by what it says
+    const t=String(html).replace(/<[^>]+>/g,"").trim();
+    let h=0; for(let i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))|0;
+    return "m"+(h>>>0).toString(36);
+  },
+  NOTEQ:[], _noteOn:false,
+  note(key, html, mode){
+    if(!html) return;
+    if(S && (S.over || S.won) && mode!=="brief") return;   // a decided round belongs to its card
+    mode = mode || "once";
+    try{ P.said = P.said || {}; }catch(e){ return; }
+    const seen = (P.said[key]||0) > 0;
+    if(seen && mode==="once") return;                      // said once, and once was enough
+    UI.NOTEQ.push({ key, html, mode, seen });
+    if(!UI._noteOn) UI._noteNext();
+  },
+  _noteNext(){
+    const q=UI.NOTEQ;
+    if(!q.length){ UI._noteOn=false; return; }
+    // a ritual owns the eyes - anything else waits at the door
+    if($("ov-meet").classList.contains("active") || document.querySelector(".whosthat")){
+      UI._noteOn=true; setTimeout(UI._noteNext, 500); return;
+    }
+    UI._noteOn=true;
+    const { key, html, mode, seen } = q.shift();
+    const waits = !seen && mode!=="brief";
+    let el=$("note"), scrim=$("note-scrim");
+    const host=$("boardwrap")||$("app");
+    if(!scrim){ scrim=document.createElement("div"); scrim.id="note-scrim"; host.appendChild(scrim); }
+    if(!el){ el=document.createElement("div"); el.id="note"; host.appendChild(el); }
+    el.className = waits ? "owns" : "aside";
+    el.innerHTML = html + (waits ? '<span class="tapon">tap to continue</span>' : "");
+    void el.offsetWidth; el.classList.add("on");
+    if(waits) scrim.classList.add("on");
+    try{ P.said[key]=(P.said[key]||0)+1; save(); }catch(e){}
+    const done=()=>{ clearTimeout(el._h); el.onclick=null; scrim.onclick=null;
+      el.classList.remove("on"); scrim.classList.remove("on");
+      setTimeout(UI._noteNext, 240); };
+    if(waits){
+      setTimeout(()=>{ if(el.classList.contains("on")){ el.onclick=done; scrim.onclick=done; } }, 340);
+      el._h=setTimeout(done, 14000);          // a message must never hang the game
+    } else {
+      const words=String(html).replace(/<[^>]+>/g," ").trim().split(/s+/).length;
+      el._h=setTimeout(done, Math.min(5400, 1700+words*260));
+    }
+  },
+  noteQuiet(){                    // resolves when the stage is silent - the lessons wait on this
+    return new Promise(res=>{
+      const check=()=>{ const el=$("note");
+        if(!UI._noteOn && !UI.NOTEQ.length && (!el || !el.classList.contains("on"))) return res();
+        setTimeout(check,120); };
+      setTimeout(check, 60);
+    });
+  },
+  noteClear(){ UI.NOTEQ.length=0; UI._noteOn=false;
+    [$("note"),$("note-scrim")].forEach(e=>{ if(e){ clearTimeout(e._h); e.onclick=null; e.classList.remove("on"); } }); },
   say(key, msg, times){ // teach loudly, then trust the player: instructional messages
     // show center-stage the first couple of times, then go quiet - glow/sound carries it.
-    P.said=P.said||{};
-    if((P.said[key]||0) >= (times||2)) return;
-    P.said[key]=(P.said[key]||0)+1; save();
-    // EVERY say() IS AN INSTRUCTION, and an instruction about the board must not cover the
-    // board. This one routing change moves eighteen of them off centre stage at a stroke.
-    UI.sky(msg, 6200);
+    // was: show it twice, then go quiet. The constraint now is once - assume it was read.
+    UI.note(key, msg, "once");
   },
   TIPS:{
     /* ══ A TOOL IS TAUGHT IN THREE BEATS ══ how you earn it, how you spend it, the one
@@ -8690,7 +8803,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726072851",
+  ver:"20260726073800",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
