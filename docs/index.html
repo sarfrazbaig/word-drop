@@ -9475,7 +9475,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726190545",
+  ver:"20260726201832",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -9574,7 +9574,7 @@ const Tele = {
       const el=m.target;
       if(el.classList&&el.classList.contains("overlay")&&el.classList.contains("active")&&el.dataset._t!=="1"){
         el.dataset._t="1";
-        this.log("card_shown",{ id:el.id, txt:(el.textContent||"").trim().replace(/\s+/g," ").slice(0,90) });
+        this.log("card_shown",{ id:el.id, txt:this.clip((el.textContent||"").trim().replace(/\s+/g," ")) });
       } else if(el.classList&&el.classList.contains("overlay")&&!el.classList.contains("active")){ el.dataset._t=""; }
     }));
     document.querySelectorAll(".overlay").forEach(o=>obs.observe(o,{attributes:true,attributeFilter:["class"]}));
@@ -9617,6 +9617,15 @@ const Tele = {
     this.flush();
   },
   who(){ try{ return (P&&P.teleName)||""; }catch(e){ return ""; } },
+  /* NEVER CUT AN EMOJI IN HALF. slice() counts UTF-16 code units, and every emoji in the
+     game is two of them, so a card whose 90th unit lands mid-character shipped a lone
+     surrogate into the log - a half-character with no partner, which is not text any more.
+     Seen in the wild as a row ending "�". Drop the orphan. */
+  clip(v, n){
+    let t=String(v==null?"":v).slice(0, n||90);
+    if(/[�-�]$/.test(t)) t=t.slice(0,-1);
+    return t;
+  },
   status(){ return (this.on?"📡 sending to your collector":(this.isLocal()?"🛠️ dev build - not sending":"📴 local-only (no URL set)"))
     +"\nplaying as: "+(this.who()||"(no name given)")
     +"\nplayer "+this.pid+" · run "+(this.run||1)+" · session "+this.sid
@@ -9635,8 +9644,8 @@ Tele.boot();
 Game._sink = (n,p)=>Tele.log(n,p,"funnel");   // level_start/win/fail, wake, purchase*, ad*, shop_open
 // what the wood SAID to them - scene changes and every announcement
 { const _sc=UI.scene.bind(UI); UI.scene=(id)=>{ if(id!==Tele.scene){ Tele.log("nav",{to:id}); Tele.scene=id; } return _sc(id); }; }
-{ const _ts=UI.toast.bind(UI); UI.toast=(m,h)=>{ Tele.log("say",{txt:(m||"").replace(/<[^>]+>/g," ").trim().slice(0,90),hold:h||""}); return _ts(m,h); }; }
-{ const _nt=FT.note.bind(FT); FT.note=(h)=>{ Tele.log("lesson_note",{txt:(h||"").replace(/<[^>]+>/g," ").trim().slice(0,90)}); return _nt(h); }; }
+{ const _ts=UI.toast.bind(UI); UI.toast=(m,h)=>{ Tele.log("say",{txt:Tele.clip((m||"").replace(/<[^>]+>/g," ").trim()),hold:h||""}); return _ts(m,h); }; }
+{ const _nt=FT.note.bind(FT); FT.note=(h)=>{ Tele.log("lesson_note",{txt:Tele.clip((h||"").replace(/<[^>]+>/g," ").trim())}); return _nt(h); }; }
 // a one-time, honest notice - testers should know their taps are recorded
 if(Tele.on && !P.teleSeen){ setTimeout(()=>{ const o=$("ov-tele"); if(o){ o.classList.add("active"); } }, 600); }
 // installable + offline: register the service worker (silent, non-blocking)
