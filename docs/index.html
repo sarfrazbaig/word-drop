@@ -1305,16 +1305,25 @@
      sways; everything it cannot goes flat and grey. "What mode am I in" and "what may I
      touch" have the same answer, and it needs no words - which matters, because words are
      the thing there were too many of. */
+  /* RESTLESS, NOT SWAYING. First cut was a slow 2.6s sway, and it was wrong twice over.
+     It was too slow to read as "pick me up" - it read as drifting - and the stagger used a
+     POSITIVE animation-delay, so a tile with a 1.1s delay sat perfectly still for over a
+     second after arming. The mode looked like it was loading.
+     A phone's home screen already solved this: in edit mode the icons twitch, fast and
+     small, and the ones you cannot move simply do not. Same grammar here. The delay is
+     NEGATIVE now, which starts each tile part-way through its cycle, so the whole board is
+     already restless on the very first frame. */
   #board.breezing .tile.canswap{
-    transform:translateY(-3px);
     box-shadow:0 6px 0 #b3a685, 0 9px 14px rgba(40,30,10,.32),
-      0 0 0 1.5px rgba(150,205,240,.95), 0 0 14px rgba(116,180,221,.5);
-    animation:windsway 2.6s ease-in-out infinite; cursor:pointer; }
-  /* stone will not budge and ice is frozen solid: say so by going still and dull */
-  #board.breezing .tile.nowind{ opacity:.38; filter:grayscale(.6) brightness(.9); animation:none; }
-  @keyframes windsway{
-    0%,100%{ transform:translateY(-3px) rotate(-.7deg) }
-    50%    { transform:translateY(-4px) rotate(.7deg) } }
+      0 0 0 1.5px rgba(150,205,240,.9), 0 0 12px rgba(116,180,221,.4);
+    animation:restless .34s ease-in-out infinite; cursor:pointer; }
+  /* stone will not budge and ice is frozen solid. They stay exactly as they are - fully
+     visible, simply still. Fading them to 38% made them all but vanish, which lost the
+     board rather than explaining it: what a player needs to see is what is NOT moving. */
+  #board.breezing .tile.nowind{ animation:none; }
+  @keyframes restless{
+    0%,100%{ transform:translate(-.4px,-2px) rotate(-1.1deg) }
+    50%    { transform:translate(.4px,-2.6px) rotate(1.1deg) } }
   @media (prefers-reduced-motion:reduce){ #board.breezing .tile.canswap{ animation:none; } }
   /* the one you have already picked stops swaying - it is chosen, not waiting */
   .tile.selswap{ transform:scale(1.08)!important; box-shadow:0 0 18px #74b4dd, 0 4px 0 #b3a685; filter:brightness(1.2); z-index:5; animation:none!important; }
@@ -5685,7 +5694,10 @@ const Game = {
       t.inner.classList.toggle("canswap", !!ok);
       t.inner.classList.toggle("nowind", !!(on && !ok));
       // a field of grass does not all sway together
-      if(ok) t.inner.style.animationDelay = (((t.c*7 + t.r*3) % 11) * 0.11).toFixed(2)+"s";
+      // NEGATIVE, so every tile is already mid-twitch on the first frame. A positive delay
+      // makes a tile wait its turn before it moves at all, and the mode looks like it is
+      // still loading - which is exactly how the first version came across.
+      if(ok) t.inner.style.animationDelay = "-" + (((t.c*5 + t.r*3) % 9) * 0.038).toFixed(3) + "s";
       else   t.inner.style.animationDelay = "";
     });
   },
@@ -8886,7 +8898,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726075639",
+  ver:"20260726080326",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
