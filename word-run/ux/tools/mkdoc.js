@@ -2,7 +2,7 @@
    own data dump, screens embedded from the headless captures. No em-dashes anywhere. */
 const fs = require("fs");
 const SP  = require("path").join(__dirname,"..",".work");
-const OUT = require("path").join(__dirname,"..","..") + "/ux/hushwood-handbook.html";
+const OUT = require("path").join(__dirname,"..","..","ux/hushwood-handbook.html");
 const D   = JSON.parse(fs.readFileSync(SP + "/data.json", "utf8"));
 
 const img = n => {
@@ -19,6 +19,54 @@ const shot = (file, cap, note) =>
   + '<figcaption><b>' + esc(cap) + '</b>' + (note ? '<span>' + note + '</span>' : '') + '</figcaption></figure>';
 
 const adv = n => "L" + n;                    // adventure levels, the number the player sees
+
+/* ---------- the building blocks, rendered with the game's own CSS ----------
+   Not pictures of tiles. The real rules, lifted out of the build and scoped, so what is on
+   the page is what is in the game and a designer can inspect it. */
+const TS = require("./tilespec.js").extract(require("path").join(__dirname,"..","..","word-drop.template.html"));
+
+// the same faces tileFace() gives a tile, so a specimen cannot say something the game does not
+const FACE = {
+  bomb:"&#127792;", wild:"&#9733;", current:"&#127744;", wind:"&#127788;&#65039;",
+  crate:"&#127873;", root:"&#129717;", shroud:"&#127761;", pest:"&#128027;", mist:"?"
+};
+const BLANK = ["stone","bramble","branch","spore","reed","mire","crystal","scree"];
+const face = (kind, letter, val) => {
+  if (FACE[kind]) return FACE[kind];
+  if (BLANK.includes(kind)) return "";
+  return letter + "<small>" + val + "</small>";
+};
+const tile = (kind, letter, val, label, note) =>
+  '<figure class="chip"><div class="tw"><div class="tile ' + (kind === "normal" ? "" : kind) + '">'
+  + face(kind, letter, val) + '</div></div>'
+  + '<figcaption><b>' + esc(label) + '</b>' + (note ? '<span>' + note + '</span>' : '') + '</figcaption></figure>';
+
+/* the label goes through the escaper, so it takes plain text only - an entity here comes out
+   as literal &middot; and then gets title-cased by the caption style */
+const letterChips = [["A",1],["E",1],["T",1],["H",4],["K",5],["Q",10]]
+  .map(([l,v]) => tile("normal", l, v, l, v + (v === 1 ? " point" : " points"))).join("");
+
+const specialChips = [
+  tile("gold","E",1,"gold","its letter scores three times over"),
+  tile("wild","",0,"a fallen star","becomes any letter, worth nothing itself"),
+  tile("bomb","",0,"an acorn","bursts in a 3&times;3 blast, never lands as a letter"),
+  tile("crate","",0,"a gift","clear a word beside it and it bursts open")
+].join("");
+
+const troubleChips = Object.keys(D.trouble)
+  .map(k => tile(k, "E", 1, k, D.trouble[k].icon + " debuts " + adv(D.trouble[k].debut))).join("");
+
+const stateChips = [
+  tile("stone cracked","",0,"stone, cracked","one word beside it, one to go"),
+  tile("crystal cracked","",0,"crystal, cracked","the next word turns it to gold"),
+  tile("root cracked","",0,"root, cut","heals whole again after three drops"),
+  tile("shroud cracked","",0,"shroud, thinning","one more word and the gloom lifts"),
+  tile("lit","E",1,"lit","part of a word that is about to bloom"),
+  tile("ghost","E",1,"ghost","where the letter you are holding will land")
+].join("");
+
+const paletteJson = JSON.stringify(
+  D.biomes.map(b => ({ i:b.i, name:b.name, icon:b.icon, p: TS.palettes[b.i] || TS.rootPal })));
 
 /* ---------- tables ---------- */
 const valRows = (() => {
@@ -214,6 +262,31 @@ td.pet i{display:block;font-style:normal;font-size:11px;color:var(--dim);white-s
 .log h5{margin:0 0 2px;font-size:13.5px;font-family:var(--serif);color:var(--green2)}
 .log p{margin:0;font-size:13px;color:var(--ink2)}
 
+/* ===== the game's own tile rules, lifted from the build and scoped to .spec ===== */
+${TS.css}
+/* the board lays tiles out absolutely; here they sit in a row, so undo just that */
+.spec .tw{ position:relative !important; width:54px; height:54px; transition:none !important; flex:0 0 auto }
+.spec .tile{ font-size:24px }
+.spec .tile small{ font-size:10px }
+.spec{ --tile-face:${TS.rootPal["--tile-face"]}; --tile-edge:${TS.rootPal["--tile-edge"]};
+  --tile-ink:${TS.rootPal["--tile-ink"]}; --tile-grain:${TS.rootPal["--tile-grain"]}; }
+.chips{display:flex;flex-wrap:wrap;gap:15px 13px;margin:14px 0 4px}
+.chip{margin:0;width:78px;text-align:center}
+.chip figcaption{font-size:10.5px;line-height:1.35;color:var(--ink2);margin-top:7px}
+.chip figcaption b{display:block;text-transform:capitalize;color:var(--green2);font-size:11px}
+.chip figcaption span{display:block;color:var(--dim);font-size:9.5px;margin-top:2px}
+.countrybar{display:flex;flex-wrap:wrap;gap:5px;margin:14px 0 4px;align-items:center}
+.countrybar button{font:inherit;font-size:11px;font-weight:800;cursor:pointer;border-radius:8px;
+  border:1px solid var(--edge);background:var(--paper2);color:var(--ink2);padding:5px 9px;line-height:1.2}
+.countrybar button:hover{background:#f0e7cf}
+.countrybar button[aria-pressed="true"]{background:var(--green);border-color:var(--green2);color:#eefae9}
+.countrybar .lbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-right:4px}
+.anatomy{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.anatomy .big .tw{width:104px;height:104px}
+.anatomy .big .tile{font-size:46px}
+.anatomy .big .tile small{font-size:17px}
+.anatomy ul{margin:0;font-size:13px}
+
 /* any screen can be opened full size - they are 212px in the flow, which is enough to
    follow along but not enough to read a tile */
 .phone img{cursor:zoom-in}
@@ -245,13 +318,16 @@ footer{text-align:center;color:#6b5c44;font-size:12px;padding:26px 18px 50px}
   <a href="#drop" class="d">tap</a>
   <a href="#drop" class="d">hold and slide</a>
   <a href="#drop" class="d">refused drops</a>
-  <a href="#board">5 &middot; The board and its tiles</a>
-  <a href="#board" class="d">letter values</a>
-  <a href="#board" class="d">obstacles</a>
+  <a href="#board">5 &middot; The building blocks</a>
+  <a href="#board" class="d">anatomy of a tile</a>
+  <a href="#board" class="d">every tile, live</a>
+  <a href="#board" class="d">the sixteen troubles</a>
   <a href="#words">6 &middot; Words</a>
   <a href="#words" class="d">the grace</a>
   <a href="#words" class="d">scoring</a>
   <a href="#tools">7 &middot; Breeze and wish</a>
+  <a href="#tools" class="d">how they are earned</a>
+  <a href="#tools" class="d">what each one does</a>
   <a href="#friends">8 &middot; The fifty friends</a>
   <a href="#ceremony">9 &middot; The naming ceremony</a>
   <a href="#levels">10 &middot; Levels and countries</a>
@@ -400,32 +476,63 @@ footer{text-align:center;color:#6b5c44;font-size:12px;padding:26px 18px 50px}
 </section>
 
 <section id="board">
-<h2>5 &middot; The board and its tiles</h2>
+<h2>5 &middot; The building blocks</h2>
 <p class="lead">${D.consts.COLS} columns, ${D.consts.ROWS} rows, ${D.consts.CELL}px tiles with a
    ${D.consts.GAP}px gap, and the whole stage scaled to whatever screen it lands on.</p>
 
-<h3>Ordinary letters</h3>
-<p>Each letter carries a value, printed small in its corner, and those values are Scrabble-like: common
-   letters are cheap, awkward letters pay.</p>
-<div class="tbl"><table>
+<div class="note"><b>Everything in this section is live.</b> The tiles below are not screenshots. They are drawn
+   with the game's own CSS, lifted out of the build - ${TS.ruleCount} rules and ${TS.keyframeCount} animations -
+   so you are looking at the real thing and can inspect it. The country buttons re-theme them exactly the way
+   walking into a new country does.</div>
+
+<h3>What a tile is made of</h3>
+<div class="spec">
+<div class="anatomy">
+  <div class="big">${tile("normal","H",4,"","")}</div>
+  <ul>
+  <li>A wrapper the size of one cell, holding a face that fills it. The wrapper is what moves; the face is what
+      you see.</li>
+  <li><b>${D.consts.CELL}px</b> face, <b>${D.consts.GAP}px</b> gap, so the pitch from one tile to the next is
+      <b>${D.consts.STEP}px</b>. The whole stage is then scaled to the screen.</li>
+  <li>Four things come from the country you are in: the face gradient, the edge, the ink, and a faint vertical
+      grain. Nothing else about a tile changes.</li>
+  <li>The depth is one hard shadow in the edge colour, not a bevel. The shine along the top is a separate
+      layer, so it stays put when the tile tilts.</li>
+  <li>Every tile is dealt with a slight random rotation, under two degrees. Nothing on the board is perfectly
+      square.</li>
+  </ul>
+</div>
+
+<div class="countrybar">
+  <span class="lbl">country</span>
+  <span id="cbar"></span>
+</div>
+
+<h3>Letters</h3>
+<p>Each carries a value in its corner. Common letters are cheap, awkward letters pay.</p>
+<div class="chips">${letterChips}</div>
+<div class="tbl"><table style="min-width:0">
 <thead><tr><th>Value</th><th>Letters</th></tr></thead><tbody>${valRows}</tbody></table></div>
 
-<h3>The three special tiles</h3>
-<div class="split">
-<div>
-<p><b>&#10024; Gold.</b> ${esc(D.tips.gold.t)}</p>
-<p><b>&#11088; A fallen star.</b> A wild tile. It becomes whichever letter the word needs, and it is worth
-   nothing itself, so a star is a key rather than a prize.</p>
-</div>
-<div>
-<p><b>&#127792; An acorn.</b> Dropped by the phoenix rather than dealt. It bursts in a three by three blast
-   instead of landing as a letter.</p>
-<p><b>&#127744; Mist and ice</b> sit on top of ordinary letters rather than replacing them, which is why they
-   are in the table below rather than here.</p>
-</div>
+<h3>The four that are not letters</h3>
+<div class="chips">${specialChips}</div>
+
+<h3>The sixteen troubles, as they look</h3>
+<p>Eight of them draw themselves entirely in CSS and carry no letter at all - a stone is a stone. The other
+   eight sit on top of a letter you can still read, which is the difference between a wall and a lock.</p>
+<div class="chips">${troubleChips}</div>
+
+<h3>States you will see</h3>
+<p>Several troubles take two words to clear, so they need a halfway face. These are those.</p>
+<div class="chips">${stateChips}</div>
 </div>
 
-<h3>The sixteen troubles</h3>
+<div class="warn"><b>Look at the bramble and the branch against the green countries.</b> Measured against the
+   painting behind them, an ordinary letter tile scores 4.6:1 and those two score 1.26:1 and 1.20:1. They are
+   the two earliest troubles a player meets and they are close to invisible. This is section 15's problem, and
+   the swatches above are the fastest way to see it - switch to the Bramblewood.</div>
+
+<h3>The sixteen troubles, as rules</h3>
 <p>Each one debuts <b>alone</b>, on an otherwise clean board, so it can be understood by itself before it ever
    has to be understood next to anything else. After that it thickens slowly and only appears in the countries
    it belongs to. The wording in this table is the game's own explanation, shown to the player the first time
@@ -482,29 +589,63 @@ footer{text-align:center;color:#6b5c44;font-size:12px;padding:26px 18px 50px}
 
 <section id="tools">
 <h2>7 &middot; Breeze and wish</h2>
-<p class="lead">Two tools, both earned by playing well, both buyable when you run dry.</p>
+<p class="lead">The only two things a player can spend besides a move. Both are earned by spelling, both can
+   be bought, and neither can be stockpiled.</p>
+
+<h3>How you earn them</h3>
+<p>One rule, and it fires on the <b>first</b> word of a chain only:</p>
+<ul>
+<li>a <b>3-letter</b> word earns a &#127811; <b>breeze</b></li>
+<li>a <b>4-letter or longer</b> word earns a &#127775; <b>wish</b></li>
+<li>a cascade earns nothing - the second and third words in a chain are already the payoff</li>
+</ul>
+<p>You can hold <b>three</b> of each. Past that the count stops rising, so there is no hoarding: a full pocket
+   is a nudge to spend one.</p>
+<div class="why"><b>A tool never pays for itself.</b> A word made <i>by</i> a breeze earns no breeze, and a
+   word made by a wish earns no wish. Otherwise either one is a perpetual motion machine: swap, clear, get the
+   swap back, forever. But the <i>other</i> tool still pays - so spending a breeze to reach a four-letter word
+   is a real trade. You spent the wind and bought a star.</div>
+
+<h3>&#127811; The breeze - trade two tiles</h3>
 <div class="shots">
-  ${shot("07-breeze","The breeze, armed","The board enters a mode: the tiles you may trade stir gently, and the ones you may not go still.")}
-  ${shot("08-wish","The wish","Every letter of the alphabet, and the one in your hand becomes whichever you choose.")}
+  ${shot("07-breeze","Armed","The board itself becomes the answer: tiles you may trade stir gently in place, and the ones you may not go completely still.")}
 </div>
-<div class="split">
-<div>
-<h4>&#127811; Breeze</h4>
+<ol class="steps">
+<li>Tap the leaf. The board enters swap mode and every eligible tile begins to stir.</li>
+<li>Tap one tile, then another. They trade places.</li>
+<li>Whatever that spells resolves normally.</li>
+</ol>
+<p><b>What it cannot touch.</b> Any trouble, and an acorn. Stone, bramble, branch, spore, reed, mire, crystal,
+   scree, ice, frost, mist, shroud, root, pest and gift crates are all immovable. The breeze rearranges your
+   letters; it is not a way around a wall.</p>
+<div class="why"><b>Why the whole board answers instead of a button.</b> Arming it used to change a small pill
+   and nothing else, so a player who tapped it could not tell whether anything had happened. One tester with a
+   single move left tapped it eight times in three seconds and then stopped playing. Now the board is visibly
+   in a different state, and eligible and ineligible tiles are told apart before you touch either.</div>
+
+<h3>&#127775; The wish - choose your letter</h3>
+<div class="shots">
+  ${shot("08-wish","The picker","All twenty-six. The letter in your hand becomes whichever you choose.")}
+</div>
+<p>A wish does one of two things, and the second is easy to miss:</p>
 <ul>
-${D.tips.breeze.t.map(l => "<li>" + esc(l) + "</li>").join("\n")}
+<li><b>Change your letter.</b> Pick any of the twenty-six and the tile in your hand becomes it. The board is
+    untouched.</li>
+<li><b>Pluck a letter off the board.</b> The same panel offers this instead - take one tile away entirely.
+    Useful when the problem is not what you are holding but what is already stacked.</li>
 </ul>
-<p class="small dim">Costs ${D.toolPrice.swap} amber to buy.</p>
-</div>
-<div>
-<h4>&#127775; Wish</h4>
-<ul>
-${D.tips.wish.t.map(l => "<li>" + esc(l) + "</li>").join("\n")}
-</ul>
-<p class="small dim">Costs ${D.toolPrice.wild} amber to buy.</p>
-</div>
-</div>
-<div class="why"><b>Why a tool cannot pay for itself.</b> A word made <i>by</i> a breeze does not earn another
-   breeze. Without that rule the tools become a loop that plays the game for you.</div>
+
+<h3>Buying them</h3>
+<p>A breeze costs <b>${D.toolPrice.swap}</b> amber and a wish <b>${D.toolPrice.wild}</b>. Buying one arms it
+   immediately rather than adding it to a pocket to be found later.</p>
+<div class="why"><b>That last part was a bug report.</b> A tester bought several breezes in a row without
+   noticing any of them had arrived, because buying only incremented a counter. If somebody pays mid-round,
+   they want the tool now.</div>
+
+<h3>When they are taken away</h3>
+<p>Some gate levels ban one or both, and the level card says so before you start. Four gates forbid the wish,
+   three forbid tools entirely, and those are the rounds that ask whether you can still read a board without
+   help.</p>
 </section>
 
 <section id="friends">
@@ -766,10 +907,30 @@ the build, so it cannot drift from what ships.
   });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape") lb.classList.remove("on"); });
 })();
+
+/* re-theme every specimen tile, exactly the way walking into a country does: four
+   variables change and nothing else */
+(function(){
+  var COUNTRIES = ${paletteJson};
+  var bar=document.getElementById("cbar"), spec=document.querySelector(".spec");
+  if(!bar||!spec) return;
+  function paint(i){
+    var c=COUNTRIES[i];
+    for(var k in c.p) spec.style.setProperty(k, c.p[k]);
+    [].forEach.call(bar.children, function(b,n){ b.setAttribute("aria-pressed", n===i ? "true":"false"); });
+  }
+  COUNTRIES.forEach(function(c,i){
+    var b=document.createElement("button");
+    b.type="button"; b.innerHTML=c.icon+" "+c.name.replace(/^The /,"");
+    b.onclick=function(){ paint(i); };
+    bar.appendChild(b);
+  });
+  paint(1);   // the Bramblewood: the country the screenshots are taken in
+})();
 </script>
 </body></html>`;
 
-fs.mkdirSync(require("path").join(__dirname,"..","..") + "/ux", { recursive: true });
+fs.mkdirSync(require("path").join(__dirname,"..","..","ux"), { recursive: true });
 fs.writeFileSync(OUT, html);
 const mb = (Buffer.byteLength(html) / 1048576).toFixed(2);
 const dashes = (html.match(/\u2014/g) || []).length;

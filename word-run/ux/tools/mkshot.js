@@ -1,8 +1,8 @@
 /* Builds a throwaway copy of the game that can drive itself into a named state,
    so Chrome headless can photograph each screen. Deleted straight after. */
 const fs = require("fs");
-const SRC = require("path").join(__dirname,"..","..") + "/word-drop.html";
-const OUT = require("path").join(__dirname,"..","..") + "/_shot.html";
+const SRC = require("path").join(__dirname,"..","..","word-drop.html");
+const OUT = require("path").join(__dirname,"..","..","_shot.html");
 let s = fs.readFileSync(SRC, "utf8");
 
 /* ---- seed the save BEFORE the game boots ---- */
