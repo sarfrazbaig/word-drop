@@ -9475,7 +9475,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726201832",
+  ver:"20260726203318",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -9584,11 +9584,32 @@ const Tele = {
     const batch=this.buf.splice(0, this.buf.length);
     const body=JSON.stringify({ sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(),
       wave:this.wave, ver:this.ver, events:batch });
+    /* ══ A SEND THAT CANNOT FAIL CANNOT BE RETRIED ══
+       This used mode:"no-cors", which makes every response opaque: a 404, a 500 and a
+       deployment that has been archived all resolve exactly like success. So the catch below
+       - which exists precisely to put the events back - could only ever fire on a total
+       network outage, and never on a broken collector. When the Apps Script deployment was
+       archived, every batch was posted into nothing, dropped, and the retry never ran. That
+       playtest data is simply gone.
+       Apps Script answers with permissive CORS headers, so no-cors bought nothing. Measured
+       from a browser: mode:"cors" returns type:"cors", status 200, body "ok". Now a bad
+       status is an exception, and an exception puts the events back in the queue.
+       sendBeacon reports only whether the browser accepted the payload for delivery, which
+       is the most it can tell us on a page that is closing - but that is better than the
+       nothing we were reading before. */
     try{
-      if(beacon && navigator.sendBeacon){ navigator.sendBeacon(TELE_URL, body); return; }
-      await fetch(TELE_URL,{ method:"POST", mode:"no-cors", keepalive:true,
+      if(beacon && navigator.sendBeacon){
+        if(!navigator.sendBeacon(TELE_URL, body)) this.buf.unshift(...batch);
+        return;
+      }
+      const res = await fetch(TELE_URL,{ method:"POST", keepalive:true,
         headers:{"Content-Type":"text/plain;charset=utf-8"}, body });
-    }catch(e){ this.buf.unshift(...batch); }   // keep them for the next flush
+      if(!res.ok) throw new Error("collector answered "+res.status);
+    }catch(e){
+      // keep them for the next flush, but never let a dead collector eat the tab
+      this.buf.unshift(...batch);
+      if(this.buf.length > 600) this.buf.splice(0, this.buf.length-600);
+    }
   },
   /* A NAME IS NOT OPTIONAL HERE. These testers are all friends of the owner, and feedback
      that cannot be traced to a person is feedback nobody can follow up on - "somebody got
