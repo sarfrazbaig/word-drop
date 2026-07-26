@@ -1295,7 +1295,29 @@
   #oraclefx{ position:absolute; inset:0; pointer-events:none; z-index:55; opacity:0; transition:opacity .4s;
     background:radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(124,95,208,.28)); }
   #oraclefx.on{ opacity:1; }
-  .tile.selswap{ transform:scale(1.08)!important; box-shadow:0 0 18px #74b4dd, 0 4px 0 #b3a685; filter:brightness(1.2); z-index:5; }
+  /* ══════════ THE BREEZE IS A MODE, SO THE BOARD LOOKS LIKE IT ══════════
+     Arming it used to add a class to a 40px pill in the bottom corner and change nothing
+     else. The code even said the armed pill "says it fine". It does not: one tester bought
+     a breeze, tapped the board expecting to be in breeze mode, and nothing happened; another
+     hammered the pill eight times because she could not tell whether she was in a mode at
+     all. The wish never had this problem, because opening a picker is unmistakable.
+     So the BOARD answers both questions at once. Everything the wind can lift rises and
+     sways; everything it cannot goes flat and grey. "What mode am I in" and "what may I
+     touch" have the same answer, and it needs no words - which matters, because words are
+     the thing there were too many of. */
+  #board.breezing .tile.canswap{
+    transform:translateY(-3px);
+    box-shadow:0 6px 0 #b3a685, 0 9px 14px rgba(40,30,10,.32),
+      0 0 0 1.5px rgba(150,205,240,.95), 0 0 14px rgba(116,180,221,.5);
+    animation:windsway 2.6s ease-in-out infinite; cursor:pointer; }
+  /* stone will not budge and ice is frozen solid: say so by going still and dull */
+  #board.breezing .tile.nowind{ opacity:.38; filter:grayscale(.6) brightness(.9); animation:none; }
+  @keyframes windsway{
+    0%,100%{ transform:translateY(-3px) rotate(-.7deg) }
+    50%    { transform:translateY(-4px) rotate(.7deg) } }
+  @media (prefers-reduced-motion:reduce){ #board.breezing .tile.canswap{ animation:none; } }
+  /* the one you have already picked stops swaying - it is chosen, not waiting */
+  .tile.selswap{ transform:scale(1.08)!important; box-shadow:0 0 18px #74b4dd, 0 4px 0 #b3a685; filter:brightness(1.2); z-index:5; animation:none!important; }
 
   /* -------- targeting mode: armed powers announce themselves -------- */
   #modeaura{ position:absolute; inset:0; pointer-events:none; z-index:3; opacity:0; transition:opacity .25s; border-radius:var(--r-md); }
@@ -5630,6 +5652,7 @@ const Game = {
     S.usingBreeze=true;
     $("breezepill").classList.remove("pillglow"); // the lesson's gleam is spent the moment it's used
     $("breezepill").classList.add("armed");
+    Game.markBreeze(true);
     // no prompt here: lesson 2 gives the breeze a full page AND walks the player through
     // a swap. Repeating the instruction every time they arm it afterwards is nagging
     // someone who already knows - the armed pill and the ghost cursor say it fine.
@@ -5639,8 +5662,32 @@ const Game = {
   },
   disarmBreeze(){
     S.usingBreeze=false;
+    Game.markBreeze(false);
     if(S.swapSel){ S.swapSel.inner.classList.remove("selswap"); S.swapSel=null; }
     $("breezepill").classList.remove("armed");
+  },
+  /* ONE RULE, ONE PLACE. What the breeze will accept is decided in breezeAt below; if the
+     board marked itself from a second copy of that test the two would drift the first time
+     either changed. So the marking asks the same questions in the same order - including the
+     lesson's swapOnly, which means lesson 2 lights exactly the two tiles it rings and
+     nothing else, for free. */
+  breezeTakes(t){
+    if(!t || NONWORD.has(t.kind)) return false;
+    if(S.guide && S.guide.swapOnly && !S.guide.swapOnly.includes(t.id)) return false;
+    return true;
+  },
+  markBreeze(on){
+    if(!S || !S.tiles) return;
+    boardEl.classList.toggle("breezing", !!on);
+    Object.values(S.tiles).forEach(t=>{
+      if(!t.inner) return;
+      const ok = on && Game.breezeTakes(t);
+      t.inner.classList.toggle("canswap", !!ok);
+      t.inner.classList.toggle("nowind", !!(on && !ok));
+      // a field of grass does not all sway together
+      if(ok) t.inner.style.animationDelay = (((t.c*7 + t.r*3) % 11) * 0.11).toFixed(2)+"s";
+      else   t.inner.style.animationDelay = "";
+    });
   },
   async breezeAt(row,col){ // pick two tiles; a gentle gust carries them past each other
     const t = S.board[row] && S.board[row][col];
@@ -5937,6 +5984,7 @@ const Game = {
         console.warn("[hushwood] watchdog: releasing a stuck board");
         S.busy=false; S.playerMove=false; S.pendingReveal=null;
         S.usingBreeze=false; S.usingPluck=false;
+        try{ Game.markBreeze(false); }catch(e){}   // the watchdog must leave a settled board
         if(S.swapSel){ try{ S.swapSel.inner.classList.remove("selswap"); }catch(e){} S.swapSel=null; }
         $("breezepill").classList.remove("armed"); $("wishbtn").classList.remove("armed");
         document.querySelectorAll(".whosthat").forEach(e=>e.remove());
@@ -8838,7 +8886,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726075009",
+  ver:"20260726075639",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
