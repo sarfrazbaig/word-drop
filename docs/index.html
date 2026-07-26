@@ -187,6 +187,12 @@
     background:var(--bg0);
     display:flex; align-items:center; justify-content:center;
     overflow:hidden; user-select:none; -webkit-user-select:none; touch-action:manipulation;
+    /* THE BOARD IS A DRAG SURFACE, so nothing else may claim a gesture that starts on it.
+       "manipulation" still leaves panning to the browser, which means a mostly-vertical slide
+       can be taken as a scroll candidate: the pointer stream stops, pointercancel fires, and
+       the drag dies half way. That is the difference between a hold that works and a hold
+       that does not, and it depends on the angle of your thumb, which is why it felt random.
+       See #board below for the rule that fixes it. */
   }
 
   /* ============ THE PHONE STAGE: a fixed 396×800 logical screen, scaled to fit ============
@@ -312,8 +318,15 @@
     width:max-content; max-width:82%;
     background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:14px 22px 12px;
     font-size:15.5px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
-    box-shadow:0 14px 34px rgba(90,60,30,.4); pointer-events:auto; cursor:pointer; }
-  #note.owns.on{ transform:translate(-50%,-50%) scale(1); }
+    box-shadow:0 14px 34px rgba(90,60,30,.4); }
+  /* ONLY A MESSAGE THAT IS ON SCREEN MAY BE TAPPED. "owns" is the mode and it stays on the
+     element for good; "on" is the only thing that means visible. Granting pointer-events to
+     the mode left a 267x88 invisible rectangle sitting at 42% of the board height - the dead
+     centre of the play area - from the first waiting message of the round onwards, and it ate
+     every press that landed in that band while presses above and below it worked. That is the
+     whole of "sometimes the hold works and sometimes it does not", and it was swallowing plain
+     taps just as happily as drags. */
+  #note.owns.on{ transform:translate(-50%,-50%) scale(1); pointer-events:auto; cursor:pointer; }
   #note .tapon{ display:block; margin-top:9px; font-family:var(--font-ui); font-size:10.5px;
     font-weight:900; letter-spacing:.14em; text-transform:uppercase;
     color:var(--accent-deep); opacity:.85; }
@@ -903,7 +916,7 @@
     padding-bottom:34px; }
   /* THE BOARD IS THE NIGHT SKY OF THE WOOD - a twilight the letters float on.
      stars scattered, a soft moon aglow, a gentle horizon light. no soil, no wood. */
-  #board{ position:relative;
+  #board{ touch-action:none; position:relative;
     background-image:
       radial-gradient(1.4px 1.4px at 18% 14%, rgba(var(--spec),.95), transparent 60%),
       radial-gradient(1.2px 1.2px at 62% 9%, rgba(var(--spec),.85), transparent 60%),
@@ -2379,7 +2392,11 @@
   .wt-tap{ font-size:10.5px; font-weight:800; letter-spacing:1.8px; color:#ffe9a8;
     text-transform:uppercase; animation:tapblink 1.4s infinite;
     text-shadow:0 1px 3px rgba(0,0,0,.7); }
-  #toast.tapwait{ pointer-events:auto; cursor:pointer; }  /* ID specificity beats #toast{pointer-events:none} */
+  /* .on as well as .tapwait, for the same reason #note.owns.on carries it: a mode class can
+     outlive the thing being on screen, and a tappable invisible box over the board eats
+     presses. Nothing feeds this queue today - _toastOld has no callers - but the invariant is
+     cheaper to hold than to rediscover. */
+  #toast.on.tapwait{ pointer-events:auto; cursor:pointer; }  /* ID specificity beats #toast{pointer-events:none} */
   .toast-tap{ margin-top:8px; font-size:11px; font-weight:800; letter-spacing:2px; color:var(--gold-deep);
     text-transform:uppercase; animation:tapblink 1.4s infinite; }
   @keyframes tapblink{ 50%{ opacity:.45 } }
@@ -7605,8 +7622,10 @@ const UI = {
     return el;
   },
   piece(){
-    // the replacement is on screen, so the slot is no longer empty
+    // the replacement is on screen, so the slot is no longer empty - and if any carried tile
+    // somehow outlived its gesture, this is the moment it is provably stale
     document.body.classList.remove("handout");
+    { const stray=$("carry"); if(stray) stray.remove(); }
     const w=$("currentwrap"); w.innerHTML="";
     const t = S.cur;
     const el=UI.miniTile(t,62,29);
@@ -8994,40 +9013,79 @@ function colFromEvent(e){
 /* AIMING IS A HELD STATE, so the carried tile has to know whether the finger is still down.
    A mouse sends pointermove with no button held all the time; a touch only sends it while
    pressed. One flag covers both: the tile rides the pointer only between down and up. */
-let aiming=false;
+/* ══════════ ONE GESTURE, AND IT CANNOT BE LOST ══════════
+   Reported as finnicky: sometimes the hold works, sometimes it does not. It was not one bug,
+   it was four, and every one of them was mine.
+
+   1. THE BROWSER WAS ALLOWED TO STEAL IT. touch-action was "manipulation", which still leaves
+      panning to the browser, so a mostly-vertical drag became a scroll candidate and the
+      pointer stream simply stopped. Whether it happened depended on the angle of your thumb.
+      Fixed on #board with touch-action:none.
+
+   2. LEAVING THE BOARD KILLED IT. pointerleave cleared the aim, so on a mouse any drag that
+      strayed past the edge died, and on touch it depended on whether the browser granted
+      implicit capture. The pointer is captured explicitly now, so the gesture belongs to the
+      board from press to release wherever the finger travels, and pointerleave no longer
+      touches the aim at all.
+
+   3. THE LETTER COULD VANISH WITH NOTHING DROPPED. Three early returns in pointerup - no
+      state, the lesson-bubble guard, and a tool being armed - left the slot empty AND placed
+      nothing, so the letter appeared to be swallowed. That is the one that reads as "the hold
+      did not work": it worked, and then threw the letter away. Every exit now either places
+      the letter or gives it back, and there is exactly one place that decides which.
+
+   4. A SECOND FINGER COULD HIJACK IT. Any pointer's move or release was treated as the aiming
+      one. The gesture now remembers which pointer started it and ignores the rest. */
+let aiming=false, aimId=null;
+function aimStop(){ aiming=false; aimId=null; UI.carry(false); }
+
+boardEl.addEventListener("pointerdown", e=>{
+  if(!S) return;
+  const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c);
+  aiming=true; aimId=e.pointerId;
+  try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  UI.carry(true, e);
+});
 boardEl.addEventListener("pointermove", e=>{
   if(!S) return;
+  if(aiming && e.pointerId!==aimId) return;
   const c=colFromEvent(e);
   if(c>=0 && c!==S.hoverCol){ Snd.hover(c); }
   S.hoverCol=c; UI.ghost(c);
   if(aiming) UI.carry(true, e);
 });
-boardEl.addEventListener("pointerleave", ()=>{ aiming=false; UI.carry(false); UI.ghost(-1); });
-boardEl.addEventListener("pointercancel", ()=>{ aiming=false; UI.carry(false); });
-boardEl.addEventListener("pointerdown", e=>{ if(!S) return; const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c);
-  aiming=true; UI.carry(true, e); });
+// only meaningful when NOT aiming: mid-drag the finger is allowed to roam
+boardEl.addEventListener("pointerleave", ()=>{ if(!aiming) UI.ghost(-1); });
+boardEl.addEventListener("pointercancel", e=>{
+  if(aiming && e.pointerId!==aimId) return;
+  aimStop(); UI.handBack(); UI.ghost(-1);      // nothing was placed, so the letter is still yours
+});
 boardEl.addEventListener("pointerup", e=>{
-  aiming=false; UI.carry(false);          // the floating tile goes; the slot stays empty
-  if(!S) return;
+  if(aiming && e.pointerId!==aimId) return;
+  aimStop();
+  try{ boardEl.releasePointerCapture(e.pointerId); }catch(_){}
+  UI.ghost(-1);
+  // EVERY WAY OUT OF HERE either places the letter or hands it back. One helper, so a future
+  // early return cannot quietly reintroduce a swallowed letter.
+  const back=()=>{ UI.handBack(); };
+  if(!S) return back();
   // A TAP THAT CLOSED A LESSON BUBBLE IS NOT A TAP ON THE BOARD. The scrim closes on
   // pointerdown, so the matching pointerup arrives here with the scrim already gone and
-  // drops a tile the player never meant to drop. 380ms clears the press-to-release gap
-  // without ever catching a deliberate aim.
-  if(Date.now() - (FT.lastDismiss||0) < 380) return;
+  // would drop a tile the player never meant to drop.
+  if(Date.now() - (FT.lastDismiss||0) < 380) return back();
   if(S.usingBreeze || S.usingPluck){ // a tool is armed: taps pick tiles instead of dropping
     const r=boardEl.getBoundingClientRect();
     const col=Math.max(0,Math.min(COLS-1,Math.floor((e.clientX-r.left)/(r.width/COLS))));
     const row=Math.max(0,Math.min(ROWS-1,Math.floor((e.clientY-r.top)/(r.height/ROWS))));
     if(!S.busy && !S.over && !S.won){ S.usingPluck ? Game.pluckAt(row,col) : Game.breezeAt(row,col); }
-    return;
+    return back();
   }
   const c=colFromEvent(e);
-  /* A REFUSED DROP GIVES THE LETTER BACK. drop() bounces on a full column, a reed, a busy
-     board or the wrong column during a lesson - and in those cases the letter is still yours,
-     so the slot must fill again. drop() hands over S.cur synchronously the moment it commits,
-     before it awaits anything, so an unchanged S.cur straight after the call means refused. */
-  if(c>=0){ const was=S.cur; Game.drop(c); if(S.cur===was) UI.handBack(); }
-  else UI.handBack();
+  if(c<0) return back();
+  // drop() hands over S.cur synchronously the moment it commits, before it awaits anything,
+  // so an unchanged S.cur straight after the call means it bounced.
+  const was=S.cur; Game.drop(c);
+  if(S.cur===was) back();
 });
 document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
 
@@ -9065,7 +9123,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260726090403",
+  ver:"20260726093122",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
