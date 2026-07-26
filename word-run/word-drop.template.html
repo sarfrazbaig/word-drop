@@ -963,10 +963,16 @@
   #app.bgart #board::before{ display:none; }   /* the ground wash - likewise */
   /* NOT .tw - that is the tile WRAPPER, and hiding it hides every letter on the board
      (exactly what went wrong the first time this was tried). */
+  /* ONLY THE GENERATED SCENERY GOES. #biodecor is the drawn decoration for a place the
+     painting now depicts, and #hushmist is the fog the painting supplies itself - both are
+     rightly hidden. .windleaf and .petal were swept up with them and they are NOT scenery:
+     they are what an ACTION looks like. The blanket rule silently deleted the leaves that
+     twirl when a breeze blows (8 call sites), the starlight when a wish lands (5), and
+     every burst of confetti in the game (16) - so every celebration has been invisible on
+     every painted country, which is all fifteen of them. Reported as "the leaves are gone";
+     it was considerably more than the leaves. */
   #app.bgart #biodecor,
-  #app.bgart #hushmist,
-  #app.bgart .windleaf,
-  #app.bgart .petal{ display:none !important; }
+  #app.bgart #hushmist{ display:none !important; }
   /* each country's own shadow colour, so the deepening at the foot of the board belongs to
      the place - warm brown under the cave, violet under the crown, never a generic grey */
   #app.bgart.bio0 { --bgtint:20,44,26;  --deep:22,48,28;  --bgart:url("art/bg/bio0.jpg"); }
