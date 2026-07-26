@@ -2371,6 +2371,14 @@
   @keyframes unpop{ 0%{ transform:scale(0) rotate(-20deg); opacity:0 } 55%{ transform:scale(1.3) rotate(8deg) } 100%{ transform:scale(1) } }
   #un-title{ font-family:var(--font-story); font-size:22px; font-weight:750; color:var(--accent-deep); }
   #un-body{ font-size:14px; color:var(--ink); line-height:1.55; }
+  /* the three things you leave the lessons holding, as pictures rather than a paragraph */
+  .refresh{ display:flex; justify-content:center; gap:14px; margin:4px 0 10px; }
+  .refresh span{ display:flex; flex-direction:column; align-items:center; gap:2px; width:78px;
+    font-family:var(--font-ui); font-size:11.5px; font-weight:900; color:var(--ink); }
+  .refresh b{ font-size:30px; line-height:1.05; font-weight:400; }
+  .refresh .refimg{ height:34px; width:34px; object-fit:contain; display:block; }
+  .refresh i{ font-style:normal; font-size:9.5px; font-weight:800; letter-spacing:.02em;
+    color:var(--dim); text-align:center; line-height:1.25; }
   #un-try{ font-size:13px; color:var(--gold-deep); line-height:1.5; background:rgba(240,169,46,.12);
     border:1px dashed rgba(201,138,16,.4); border-radius:12px; padding:8px 12px; }
   #iv-place{ display:flex; flex-direction:column; align-items:center; gap:2px; }
@@ -4240,6 +4248,20 @@ const FT = {
      dangling in mid-air, five rows from anything. It finds the cell the tile will
      actually land in and hovers just above it - and the idle bob dips it into the empty
      slot, which is the whole point of pointing. */
+  /* THE HAND DEMONSTRATES INSTEAD OF POINTING. It used to appear at its column and bob in
+     place, which shows WHERE to drop but never HOW. Sliding it in from a column away performs
+     the gesture in front of the player before they are asked to perform it. */
+  handSlide(col){
+    FT.hand(col);
+    const h=FT._hand; if(!h) return;
+    const from=(col>0?col-1:col+1);
+    h.style.transition="none";
+    h.style.left=(from*STEP+CELL/2)+"px";
+    void h.offsetWidth;
+    h.style.transition="left .62s cubic-bezier(.35,.05,.35,1)";
+    h.style.left=(col*STEP+CELL/2)+"px";
+    setTimeout(()=>{ if(h) h.style.transition=""; }, 700);
+  },
   hand(col){ FT.clearHand(); if(col==null) return;
     const h=FT.bit(document.createElement("div")); h.className="coach ftue-hand"; h.textContent="👇";
     boardEl.appendChild(h);
@@ -4312,7 +4334,12 @@ const FT = {
   async lesson1(){
     await FT.callout("#currentwrap", "this is your <b>letter</b><br><small>tap a column and it drops there</small>");
     await FT.callout("#nextwrap", "your <b>next</b> letter waits here<br><small>so you can plan ahead</small>");
-    FT.hand(4);
+    /* SAY THE GESTURE. The tile now visibly comes loose when you press, which is most of the
+       discovery problem solved - but one sentence on the screen where the drop is being
+       taught anyway costs nothing and removes the last of the doubt. A tester played the
+       whole game without ever finding out he could slide. */
+    await FT.callout("#currentwrap", "you can also <b>hold and slide</b><br><small>press your letter, move across to aim, let go to drop</small>");
+    FT.handSlide(4);
     FT.note("drop the <b>E</b> after O N - spell <b>ONE</b>");
     await FT.wait("wordCleared");
     FT.clearNote(); FT.clearHand();
@@ -4975,13 +5002,25 @@ const Game = {
     if(level===PROLOGUE_END+1 && !P.gradued){
       P.gradued=1; Game.amber(60); save();
       $("un-burst").textContent="🌿";
+      /* A WALL OF PROSE AT THE MOMENT THE HAND-HOLDING STOPS. This card carried four lines
+         restating everything just taught, and buried the 60 amber in a footnote. Nobody reads
+         a paragraph at the exact moment they have been released to play.
+         It is a picture now: the three things they were handed, as the icons they will
+         actually look for on the play screen, one word each. The gift moves onto the button,
+         where it is the reason to press rather than a note beside it. */
       $("un-title").textContent="THE LESSONS ARE DONE";
-      $("un-body").innerHTML = "<b>the wood is yours to walk</b><br>you know how to drop a letter,"
-        +" hold a word, and let a friend wake on its own - what is left is fifty names"
-        +" waiting to be spoken."
-        +"<br><small>\uD83D\uDFE0 <b>60 amber</b> for the road - spend it on a breeze or a"
-        +" wish when a round runs tight</small>";
-      $("un-try").style.display="none";
+      $("un-body").innerHTML =
+        "<div class='refresh'>"
+        + "<span><b>🍃</b>breeze<i>swap two</i></span>"
+        + "<span><b>🌟</b>wish<i>any letter</i></span>"
+        + "<span>"+(UI.artTag("cat","refimg")||"<b>🐱</b>")+"cat<i>wakes on words</i></span>"
+        + "</div>"
+        + "<small>the wood is yours to walk</small>";
+      $("un-try").style.display="block";
+      $("un-try").innerHTML="<b>🟠 take 60 amber and go</b>";
+      // ONE ACTION, NOT TWO. The amber IS the button, so a separate "tap to continue"
+      // underneath it offers the same tap a second time and makes the gift look like a note.
+      $("iv-tap").style.display="none";
       $("ov-unlock").classList.add("active"); Game.shown("unlock");
       Game.track("prologue_done",{ amber:60 });
     }
@@ -5048,6 +5087,7 @@ const Game = {
   guard(key){ const t=Game._shownAt && Game._shownAt[key]; return t && (Date.now()-t)<700; },
   shown(key){ (Game._shownAt=Game._shownAt||{})[key]=Date.now(); },
   closeUnlock(){ if(Game.guard("unlock")) return; Snd.init(); $("ov-unlock").classList.remove("active");
+    $("iv-tap").style.display="";   // the next card to use this overlay gets its prompt back
     if(Game._annCb){ const cb=Game._annCb; Game._annCb=null; cb(); return; } // announce card → its follow-up
     $("ov-intro").classList.add("active"); },
   closeMeet(){
