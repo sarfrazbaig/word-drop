@@ -3565,6 +3565,59 @@ const signTitle = s => (SIGNS[s] && SIGNS[s].title) || "🐾 friends";
 const signNoun  = (s, fb) => (SIGNS[s] && SIGNS[s].noun) || fb || "play";
 const SIGN_ORDER = Object.keys(SIGNS).sort((a,b)=>SIGNS[a].order-SIGNS[b].order);
 
+/* =================== WHERE A FRIEND LIVES =================== */
+/* @module  grove  -  HOME is the pacing mechanism, not decoration.
+
+   A friend can hear you only in its own country (and faintly from the next one over), so
+   the roster paces itself: however well you play, only the creatures who live in the
+   Clearing can answer you there. No counters, no cooldowns, no invented numbers - the map
+   does the work. This replaces "earn the calling, then be summoned" as the way a friend
+   arrives, and it is what makes two players' collections differ: you meet who you travel
+   past, in the order you get good at the things they love.
+
+   [country, depth] - country is 0-14, depth is how far into its twenty levels the creature
+   starts listening. Depth staggers arrivals so the back half of a country is not empty: one
+   from the start, one around a third in, one near the door.
+
+   The shape, deliberately front-loaded so builds exist early and the late game is about the
+   party you have rather than the one you are still assembling:
+     found per country  5 4 4 3 3 2 2 2 2 2 1 1 1 1 0   (33)
+     plus 2 starters and 15 keystones given at the doors = 50
+
+   Keystones are NOT here: they are gifts at doors, placed by KEYSTONE{}, and each hands you
+   the friend for the country AHEAD so you arrive prepared rather than rewarded. */
+const HOME = {
+  // First Clearing - the crumb engine, and the two you begin with
+  cat:[0,0], dog:[0,0], mouse:[0,1], bee:[0,4], owl:[0,8], frog:[0,12], snail:[0,16],
+  // Bramblewood - the long word
+  hare:[1,1], ant:[1,6], moth:[1,11], fox:[1,16],
+  // Mosswood - food and kindness
+  deer:[2,1], pig:[2,5], wolf:[2,10], lamb:[2,15],
+  /* Spore Hollow. My draft had ladybug and cricket here and BOTH are keystones in the
+     shipped KEYSTONE table - a friend cannot be given at a door and also found in the wild,
+     so the audit refused it. Same for raccoon, lizard and turtle below. Five swaps. */
+  fly:[3,2], goat:[3,9], crow:[3,15],
+  // Listening Pond - two at once
+  swan:[4,2], duck:[4,8], fish:[4,15],
+  // Reedmarsh - patience
+  heron:[5,3], robin:[5,12],
+  // Running River - what you kept
+  seal:[6,3], crab:[6,12],
+  // Thunderfalls - loud
+  dove:[7,3], moose:[7,12],
+  // Undercave - backwards. The bat lives one country AFTER the spider who makes her work.
+  bat:[8,4], snake:[8,13],
+  // Deep Dark - mischief
+  skunk:[9,4], bison:[9,13],
+  /* the high country - one each, because by here the game is the party you have.
+     The goose landing in the Glimmer Seams is the happiest accident of the reshuffle: she
+     lays a golden egg and echoes gold, and the Seams are the country made of it. */
+  goose:[10,6], pony:[11,6], chick:[12,6], penguin:[13,6],
+};
+/* how many live in each country, for the Book's map and for the audit that keeps this
+   honest - a curve edited by hand drifts silently otherwise */
+const HOME_CURVE = [5,4,4,3,3,2,2,2,2,2,1,1,1,1,0];
+
 /* =================== THE GROVE =================== */
 /* @module  grove  -  the fifty friends as data, plus callings, gates and goals */
 // The grove is a living place - every friend is a real creature you might meet in a
@@ -9777,7 +9830,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260727143834",
+  ver:"20260727144304",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -9993,6 +10046,35 @@ const Audit = {
       ["freq","order","title","noun"].forEach(f=>{
         if(v[f]===undefined) err.push('SIGNS.'+k+' has no '+f);
       });
+    }
+
+    /* ── WHERE EVERYONE LIVES ──
+       The map is the pacing mechanism, so a friend with no home can never be met and a
+       country with the wrong count silently rewrites the curve. Both are invisible in play
+       and obvious here. Keystones are exempt: they are given at doors, not found. */
+    {
+      const keyed = new Set(Object.values(typeof KEYSTONE!=="undefined" ? KEYSTONE : {}));
+      const perCountry = HOME_CURVE.map(()=>0);
+      const starters = ["cat","dog"];
+      GROVE.forEach(g=>{
+        if(keyed.has(g.w)) {
+          if(HOME[g.w]) warn.push('🗺️ '+g.w+' is a keystone AND has a home - it would arrive twice');
+          return;
+        }
+        const h = HOME[g.w];
+        if(!h){ err.push('🗺️ '+g.w+' lives nowhere - it can never be met'); return; }
+        const [c,d] = h;
+        if(!(c>=0 && c<HOME_CURVE.length)) err.push('🗺️ '+g.w+' lives in country '+c+', which is not on the map');
+        else if(!starters.includes(g.w)) perCountry[c]++;
+        if(!(d>=0 && d<BIOME_LEN)) err.push('🗺️ '+g.w+' starts listening at depth '+d+', outside its country');
+      });
+      perCountry.forEach((n,c)=>{
+        if(n!==HOME_CURVE[c])
+          err.push('🗺️ '+(BIOME_NAMES[c]||('country '+c))+' holds '+n+' friends, the curve says '+HOME_CURVE[c]);
+      });
+      const homed = Object.keys(HOME).length;
+      if(homed + keyed.size !== GROVE.length)
+        err.push('🗺️ '+homed+' homed + '+keyed.size+' keystones = '+(homed+keyed.size)+', but there are '+GROVE.length+' friends');
     }
 
     /* ── every friend ── */
