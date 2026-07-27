@@ -2528,8 +2528,8 @@
   #road{ position:relative; padding:2px 8px 14px 0; }
   #road::before{ content:""; position:absolute; left:25px; top:6px; bottom:16px; width:2px;
     background:repeating-linear-gradient(180deg,#cbb489 0 4px,transparent 4px 9px); }
-  .rstop{ position:relative; padding-left:38px; margin-bottom:7px; }
-  .rpin{ position:absolute; left:18px; top:11px; width:16px; height:16px; border-radius:50%;
+  .rstop{ position:relative; padding-left:38px; margin-bottom:10px; }
+  .rpin{ position:absolute; left:18px; top:40px; width:16px; height:16px; border-radius:50%;
     background:var(--surface,#f6eeda); border:2px solid #c4a973; z-index:3; }
   .rpin.done{ background:#4c7a46; border-color:#3c6437; }
   .rpin.done::after{ content:"✓"; position:absolute; inset:0; font-size:8px; color:#eefae9;
@@ -2537,57 +2537,82 @@
   .rpin.here{ background:var(--gold,#e8b64c); border-color:#a8761c;
     box-shadow:0 0 0 4px rgba(232,182,76,.25); }
   /* collapsed - a band you can tap */
-  .rband{ height:34px; border-radius:9px; overflow:hidden; position:relative; cursor:pointer;
-    display:flex; align-items:center; padding:0 9px; box-shadow:0 2px 5px rgba(70,52,25,.26);
-    background-size:cover; background-position:center; }
+  /* FOUR THICK BANDS, not nine slivers. At 42px the painting was a stripe and the creatures
+     were confetti - a list wearing a map's clothes. A country is a place, so it gets the
+     height to look like one: the art reads, the portraits are big enough to recognise
+     without opening anything, and roughly four fit the screen at once, which is a road you
+     walk rather than a table you scan. */
+  .rband{ height:96px; border-radius:12px; overflow:hidden; position:relative; cursor:pointer;
+    display:flex; flex-direction:column; justify-content:space-between; padding:9px 11px 10px;
+    box-shadow:0 3px 8px rgba(70,52,25,.3);
+    background-size:cover; background-position:center;
+    transition:transform .18s ease, box-shadow .18s ease; }
   .rband::before{ content:""; position:absolute; inset:0;
-    background:linear-gradient(90deg,rgba(20,14,6,.62),rgba(20,14,6,.22)); }
+    background:linear-gradient(180deg,rgba(18,12,5,.28) 0%,rgba(18,12,5,.12) 42%,rgba(18,12,5,.72) 100%); }
   .rband:active{ transform:scale(.985); }
-  .rband.locked{ filter:saturate(.5) brightness(.84); }
-  .rname{ position:relative; z-index:2; font-family:var(--serif,Georgia,serif); font-size:11px;
-    color:#fff6e0; text-shadow:0 1px 3px rgba(0,0,0,.7); }
-  .rmini{ position:relative; z-index:2; margin-left:auto; display:flex; gap:3px; }
-  .rmini i{ width:19px; height:19px; border-radius:5px; background:rgba(255,250,235,.92);
-    display:flex; align-items:center; justify-content:center; font-size:12px; font-style:normal;
-    box-shadow:0 1px 2px rgba(0,0,0,.28); overflow:hidden; }
-  .rmini i img{ width:16px; height:16px; object-fit:contain; }
+  .rband.locked{ filter:saturate(.55) brightness(.86); }
+  .rtext{ position:relative; z-index:2; display:flex; flex-direction:column; gap:1px; }
+  .rsub{ font-size:10px; font-weight:800; letter-spacing:.05em; color:#f0e2bd;
+    text-shadow:0 1px 3px rgba(0,0,0,.75); opacity:.95; }
+  .rname{ position:relative; z-index:2; font-family:var(--serif,Georgia,serif); font-size:16px;
+    color:#fff6e0; text-shadow:0 1px 3px rgba(0,0,0,.75); }
+  .rmini{ position:relative; z-index:2; display:flex; gap:6px; align-self:flex-end;
+    justify-content:flex-end; flex-wrap:wrap; max-width:100%; }
+  .rmini i{ width:38px; height:38px; border-radius:9px; background:rgba(255,250,235,.9);
+    display:flex; align-items:center; justify-content:center; font-size:22px; font-style:normal;
+    box-shadow:0 2px 4px rgba(0,0,0,.34); overflow:hidden; flex:none; }
+  .rmini i img{ width:32px; height:32px; object-fit:contain; }
+  /* the First Clearing holds seven - five found plus the two you begin with - and at full
+     size they ran off the end of the band. Only that one country is crowded, so only that
+     one shrinks. */
+  .rmini.many i{ width:30px; height:30px; border-radius:7px; font-size:18px; }
+  .rmini.many i img{ width:25px; height:25px; }
   .rmini i.dim{ background:rgba(255,250,235,.4); }
   .rmini i.dim img{ filter:brightness(0); opacity:.34; }
   .rmini i.dim span{ filter:brightness(0); opacity:.34; }
   /* opened - the country you are standing in */
+  /* the country unfolds rather than appears - a tap redraws the road, and without this the
+     opened country simply replaces a band in one frame, which reads as a glitch */
+  @keyframes runfold{ from{ opacity:.3; transform:translateY(-5px) } to{ opacity:1; transform:none } }
   .ropen{ border-radius:11px; overflow:hidden; box-shadow:0 4px 12px rgba(70,52,25,.32);
-    border:1.5px solid var(--gold,#e8b64c); }
+    border:1.5px solid var(--gold,#e8b64c); animation:runfold .22s ease-out both; }
+  @media (prefers-reduced-motion: reduce){ .ropen{ animation:none } }
   .ropen.past{ border-color:#c4a973; }
-  .rhead{ height:56px; position:relative; display:flex; align-items:flex-end; padding:0 9px 6px;
+  .rhead{ height:88px; position:relative; display:flex; align-items:flex-end; padding:0 11px 9px;
     background-size:cover; background-position:center; cursor:pointer; }
   .rhead::after{ content:""; position:absolute; inset:0;
     background:linear-gradient(180deg,rgba(0,0,0,.05) 28%,rgba(0,0,0,.55)); }
-  .rhead .rname{ font-size:13px; }
-  .rstate{ position:relative; z-index:2; margin-left:auto; font-size:7px; font-weight:900;
-    letter-spacing:.09em; text-transform:uppercase; color:#ffeec4;
-    background:rgba(40,28,10,.5); border-radius:5px; padding:3px 6px; }
-  /* THREE ACROSS, not two. The album's card is sized to stand alone in a wide grid; inside
-     an opened country it is a plate on a page, and at full width two of them left a hole
-     where the third should be. A country holds at most five, so three across is one tidy
-     row plus a short one - never a ragged grid. */
-  .rbody{ background:var(--surface,#fdf7e6); padding:9px 7px 10px;
-    display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-  .rbody .gcard{ padding:7px 3px 6px; }
-  .rbody .gcard .ge{ font-size:30px; }
-  .rbody .gcard .geimg{ width:38px; height:38px; }
-  .rbody .gcard .gn{ font-size:9px; }
-  .rbody .gcard .gp{ font-size:8px; }
-  .rbody .gcard .gd, .rbody .gcard .gcall{ font-size:7.5px; line-height:1.3; }
+  .rhead .rname{ font-size:17px; }
+  /* the chip sits in the corner rather than in the name's row: side by side, a long country
+     name and a long state ("you are here - 3 listening") fought for the same line and the
+     name wrapped underneath the chip */
+  .rstate{ position:absolute; z-index:3; top:8px; right:9px; font-size:9px; font-weight:900;
+    letter-spacing:.07em; text-transform:uppercase; color:#ffeec4; max-width:58%;
+    text-align:right; background:rgba(40,28,10,.62); border-radius:6px; padding:3px 7px; }
+  /* TWO ACROSS. I fitted three by shrinking the card copy to 7.5px, which walks straight
+     through this project's accessibility floor - nothing under 9px anywhere, and anything
+     informational at 10.5px or more. That floor was set by measuring the DOM after exactly
+     this kind of squeeze, and a Book you cannot read is worse than a Book with a gap in it.
+     Two across at full size, and a country holds at most five, so it is two tidy rows and
+     a short one. */
+  .rbody{ background:var(--surface,#fdf7e6); padding:10px 9px 11px;
+    display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }
+  .rbody .gcard{ padding:10px 6px 8px; }
+  .rbody .gcard .ge{ font-size:38px; }
+  .rbody .gcard .geimg{ width:50px; height:50px; }
+  .rbody .gcard .gn{ font-size:12px; }
+  .rbody .gcard .gp{ font-size:10.5px; }
+  .rbody .gcard .gd, .rbody .gcard .gcall{ font-size:10.5px; line-height:1.35; }
   .rfoot{ background:var(--surface,#fdf7e6); font-family:var(--serif,Georgia,serif);
-    font-style:italic; font-size:9px; color:var(--dim,#93805a); text-align:center;
-    padding:0 0 7px; }
+    font-style:italic; font-size:10.5px; color:var(--dim,#93805a); text-align:center;
+    padding:0 0 8px; }
   .rdoors{ margin:10px 8px 0 38px; background:rgba(200,182,140,.28); border-radius:9px; padding:7px 9px; }
-  .rdoors .rd-t{ font-size:8px; font-weight:900; letter-spacing:.09em; text-transform:uppercase;
+  .rdoors .rd-t{ font-size:10px; font-weight:900; letter-spacing:.08em; text-transform:uppercase;
     color:var(--dim,#937c3e); }
-  .rdoors .rd-g{ display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
-  .rdoors .rd-g i{ width:22px; height:22px; border-radius:6px; background:rgba(255,250,235,.75);
-    display:flex; align-items:center; justify-content:center; font-size:13px; font-style:normal; overflow:hidden; }
-  .rdoors .rd-g i img{ width:18px; height:18px; object-fit:contain; filter:brightness(0); opacity:.32; }
+  .rdoors .rd-g{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .rdoors .rd-g i{ width:28px; height:28px; border-radius:7px; background:rgba(255,250,235,.75);
+    display:flex; align-items:center; justify-content:center; font-size:16px; font-style:normal; overflow:hidden; }
+  .rdoors .rd-g i img{ width:23px; height:23px; object-fit:contain; filter:brightness(0); opacity:.32; }
   .rdoors .rd-g i span{ filter:brightness(0); opacity:.32; }
 
   .gcard{ position:relative; border-radius:14px; padding:10px 6px 8px; text-align:center; cursor:pointer;
@@ -8916,8 +8941,15 @@ const UI = {
         const band=document.createElement("div");
         band.className="rband"+(walked?"":" locked");
         band.style.backgroundImage=art;
-        band.innerHTML='<span class="rname">'+(BIOME_NAMES[c]||"")+'</span>'
-          +'<span class="rmini">'+list.map(g=>{
+        const listening = list.filter(g=>!P.grove[g.w] && Game.canHear(g.w)).length;
+        // the band says where it stands in your walk without you having to open it
+        const sub = !walked ? "further on"
+          : met===list.length ? "all remembered"
+          : listening ? met+" of "+list.length+" &middot; "+listening+" listening"
+          : met+" of "+list.length+" remembered";
+        band.innerHTML='<span class="rtext"><span class="rname">'+(BIOME_NAMES[c]||"")+'</span>'
+          +'<span class="rsub">'+sub+'</span></span>'
+          +'<span class="rmini'+(list.length>5?" many":"")+'">'+list.map(g=>{
               const has=!!P.grove[g.w];
               return '<i class="'+(has?"":"dim")+'">'+(UI.artTag(g.w)||("<span>"+g.e+"</span>"))+'</i>';
             }).join("")+'</span>';
@@ -8939,22 +8971,22 @@ const UI = {
     // …and if the one-time lesson card has fallen below the fold, lift it into view. Only
     // then - nobody wants the party shelf yanked out from under them when it was already
     // in plain sight. Once the lesson retires there is nothing here to chase the player to.
-    f.scrollTop=0;   // always open at the top - the field kept its last position, so reopening
-                     // the Book could drop you halfway down the sky with no idea why
-    /* THE OPEN COUNTRY HAS TO COME TO YOU. Fifteen bands plus an opened one is taller than
-       the screen, so tapping a country further down the road would otherwise open it below
-       the fold and look like nothing happened. */
+    /* ONE SCROLL, AND IT GLIDES.
+       This was three moves fighting each other on every repaint: snap to the top, jump to
+       the open country, then jump again to the one-time lesson card. Tapping a band redraws
+       the whole road, so every tap ran all three and the screen lurched twice - which is
+       what "abrupt, random up and down" was. One target, chosen once, moved to smoothly.
+       Reduced motion still gets the instant version, because gliding a whole screen is
+       exactly the kind of movement that setting exists to refuse. */
     requestAnimationFrame(()=>{
-      const open=f.querySelector(".ropen");
-      if(open){
-        const fr0=f.getBoundingClientRect(), or=open.getBoundingClientRect();
-        if(or.top < fr0.top || or.bottom > fr0.bottom)
-          f.scrollTop += (or.top-fr0.top) - fr0.height*0.18;
-      }
-      const card=f.querySelector(".gcard.nextup"); if(!card) return;
-      const fr=f.getBoundingClientRect(), cr=card.getBoundingClientRect();
-      if(cr.top>=fr.top && cr.bottom<=fr.bottom) return;      // already visible - leave it alone
-      f.scrollTop += (cr.top-fr.top) - fr.height*0.28;         // sit it comfortably, not jammed to the top
+      const target = f.querySelector(".ropen") || f.querySelector(".gcard.nextup");
+      if(!target){ f.scrollTop=0; return; }
+      const fr=f.getBoundingClientRect(), tr=target.getBoundingClientRect();
+      if(tr.top>=fr.top && tr.bottom<=fr.bottom) return;   // already in sight: do not move at all
+      const to = f.scrollTop + (tr.top-fr.top) - fr.height*0.16;
+      const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if(still || typeof f.scrollTo!=="function") f.scrollTop = to;
+      else f.scrollTo({ top:to, behavior:"smooth" });
     });
     UI.scene("scene-grove");
   },
@@ -10057,7 +10089,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260727150951",
+  ver:"20260727152536",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
