@@ -4420,6 +4420,7 @@ function newState(level){
     _actedThisDrop:[],          // one drop, one act each - the brake on a friend-fed runaway
     said:[],                    // every word this round, in order: the round's memory
     sigs:{},                    // how many of each sign this round - what a courtship reads
+    dealtV:0, dealtC:0,         // vowels and consonants dealt, for the deck's governor
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -4882,6 +4883,31 @@ function recordDeal(l){
   S._lastDealt=l;
   (S._recent = S._recent || []).push(l);
   while(S._recent.length>3) S._recent.shift();
+  if("aeiou".includes(l)) S.dealtV=(S.dealtV||0)+1; else S.dealtC=(S.dealtC||0)+1;
+  return l;
+}
+/* ══ THE VOWEL GOVERNOR ══
+   The deck had a FLOOR and no ceiling: drawLetter forces a vowel when the BOARD falls below
+   a quarter vowels, and nothing anywhere caps the top. Measured over twenty rounds at one
+   country, the share of vowels the deck actually handed out ranged from 6% to 78%, and it
+   explained three quarters of the score swing - vowel-rich rounds scored 58 against 112 and
+   made half as many words. English runs near 40%; a word game's deck should sit near that.
+
+   That is not difficulty, it is a round the player cannot win for a reason they can never
+   see: letters arrive one at a time, so nobody perceives "I was dealt 78% vowels". They
+   just feel like they played badly.
+
+   Deliberately narrow in scope: this governs the ORDINARY draw only. Mercy letters, the
+   herd's chosen letters and the tutor's steer are all decisions the game made on purpose,
+   and a governor that overrode them would be breaking the thing that rescues a drought. */
+const GOV_LO = 0.30, GOV_HI = 0.42, GOV_AFTER = 6;
+function governVowels(l){
+  if(!S || !l) return l;
+  const v=S.dealtV||0, c=S.dealtC||0, n=v+c;
+  if(n < GOV_AFTER) return l;              // the opening few fall as they fall
+  const ratio = v/n, isV = "aeiou".includes(l);
+  if(isV  && ratio > GOV_HI) return rand("bcdfghjklmnpqrstvwxyz".split(""));
+  if(!isV && ratio < GOV_LO) return rand(["a","e","i","o","u"]);
   return l;
 }
 function tutorLetter(){ // steer the deck so the guided word (CAT/DOG) is easy to spell
@@ -4928,9 +4954,9 @@ function makePiece(){
   const goldP = (S && S.milestone) ? 0.25 : 0;
   if(shiftOK && roll<0.02)  return {letter:drawLetter(), kind:"shift"};
   if(roll<goldP)            return {letter:recordDeal(riggedLetter()), kind:"gold"};
-  let l=riggedLetter();
+  let l=governVowels(riggedLetter());
   if(Game && Game.hasPassive && S && Game.hasPassive("skipJunk") && "qzxjv".includes(l)){
-    l=riggedLetter(); // 🧠 Clever Beak rerolls once
+    l=governVowels(riggedLetter()); // 🧠 Clever Beak rerolls once
   }
   return {letter:recordDeal(l), kind:"normal"};
 }
@@ -5120,6 +5146,17 @@ function findWords(){
 function wouldClear(piece, c){
   if(piece.kind==="bomb") return null;
   if(S.board[0][c]) return null;
+  /* ⚠️ A REED STANDS IN THE WHOLE COLUMN AND NOTHING DROPS PAST IT. drop() has always
+     refused such a column; this function did not know reeds existed - and it is the
+     foundation of helpfulByLength(), which is what the deck's MERCY, the hints and every
+     "is a word available" check are built on. So in reed country the game would hand you a
+     letter whose only home was behind a reed, point at a column you cannot use, and count
+     itself as having rescued you.
+     Found by autopsy: a round at the Running River scored ZERO from thirty moves while the
+     board reported eleven letters that could complete a word. Reeds live in biomes 4-7 -
+     the Pond, the Marsh, the River and the Falls - which are the four countries where
+     measured capacity collapsed. */
+  if(S.board.some(row => row[c] && row[c].kind === "reed")) return null;
   let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
   const fake={ id:"fake", letter:piece.kind==="wild"?"?":piece.letter, kind:piece.kind==="wild"?"wild":"normal", r:land, c };
   S.board[land][c]=fake;
@@ -10127,7 +10164,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260727190331",
+  ver:"20260727213825",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
