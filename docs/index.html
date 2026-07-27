@@ -6847,6 +6847,26 @@ const Game = {
     const base=P.callBase[w];
     return {have: base==null ? 0 : Math.min(Math.max(0,raw-base),c.n), n:c.n};
   },
+  /* ══ CAN THIS FRIEND HEAR YOU? ══
+     The map replaces the level gate. A friend listens from its own country onwards - you
+     never lose one by walking past, which is what makes the map forgiving rather than a
+     lockout - but you cannot reach ahead into a country you have not yet walked. That is
+     the pacing, and it needs no counter: however well you play, only the creatures who live
+     in the Clearing can answer you in the Clearing.
+     Depth staggers arrivals inside a country so its back half is not empty. */
+  canHear(w){
+    const h = HOME[w];
+    if(!h) return false;                       // keystones are given at doors, never found
+    const [country, depth] = h;
+    const here = biomeOf(P.level);
+    if(here > country) return true;            // you have walked past; the wood remembers
+    if(here < country) return false;           // not yet - this is the whole pacing rule
+    return ((Math.max(1, advOf(P.level)) - 1) % BIOME_LEN) >= depth;
+  },
+  /* who is abroad in this country right now - the Book's map reads this too */
+  hereNow(){ return GROVE.filter(g=>HOME[g.w] && HOME[g.w][0]===biomeOf(P.level))
+                          .map(g=>({ w:g.w, met:!!P.metGrove[g.w], listening:Game.canHear(g.w) })); },
+
   checkCallings(){
     // nothing calls before the cat is met - the pet system doesn't exist yet for
     // this player, and a mystery toast about it would be noise, not wonder
@@ -6855,8 +6875,16 @@ const Game = {
     // THE SPACING RULE: never two callings summoned within CALL_GAP player-levels, so even
     // when several achievements land at once the friends still arrive one at a time.
     const gapOK = plv - (P.lastSummonL==null ? -99 : P.lastSummonL) >= CALL_GAP;
-    // THE WINDOW: only the next three un-called creatures are listening at once.
-    const win=CALLING_ORDER.filter(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school").slice(0,3);
+    /* THE WINDOW IS NOW THE MAP. It used to be the next three un-called creatures in a
+       fixed roster order, which meant every player collected the same friends in the same
+       sequence - convergent by construction, and the reason no two collections could ever
+       differ. Now it is whoever lives where you are standing: the country decides who can
+       answer, and which of them you earn first is decided by how you play. Two players walk
+       the same road and come home with different friends.
+       No .slice() any more - a country holds at most five, and the gap rule below already
+       makes them arrive one at a time. */
+    const win=CALLING_ORDER.filter(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school"
+                                      && Game.canHear(w));
     for(const w of win){
       const c=CALLINGS[w];
       // entering the window starts the creature's own clock (the achievement can build
@@ -6864,8 +6892,10 @@ const Game = {
       if(CALLING_ORDER.indexOf(w)>=6 && P.callBase[w]==null){
         P.callBase[w] = c.t==="friends" ? Object.keys(P.grove).length : (P.tally[c.t]||0); save();
       }
-      // THE LEVEL GATE: a calling may be earned but not yet DUE - the wood paces itself.
-      if(plv < (c.minL||0)) continue;
+      /* THE LEVEL GATE IS GONE - canHear() above is the gate now, and it is a better one
+         because a player can SEE it: you are in the Mosswood, so the Mosswood's friends are
+         the ones who might answer. CALL_MINL described the same pacing as an invisible
+         number per creature, and two systems saying the same thing is one that will drift. */
       if(!gapOK) continue;   // a friend arrived too recently; this one waits its turn
       const have = Game.callProgress(w).have;
       if(have>=c.n){
@@ -9830,7 +9860,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260727144304",
+  ver:"20260727144850",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
