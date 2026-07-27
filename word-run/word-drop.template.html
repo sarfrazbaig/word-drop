@@ -2520,6 +2520,76 @@
   /* album sections + trophy cards */
   .gsection h3{ margin:6px 2px 8px; font-size:13px; color:var(--ink); letter-spacing:1px; }
   .ggrid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; margin-bottom:16px; }
+  /* ══ THE LONG ROAD ══ the Book is the walk, not a list. Fifteen countries on one spine:
+     each is a slim band carrying its own painting, and the one you are standing in opens to
+     full portraits. That is what keeps the art you paid for large exactly where it matters
+     and nowhere else - a page per country was mostly whitespace, and thumbnails everywhere
+     made the portraits furniture. */
+  #road{ position:relative; padding:2px 8px 14px 0; }
+  #road::before{ content:""; position:absolute; left:25px; top:6px; bottom:16px; width:2px;
+    background:repeating-linear-gradient(180deg,#cbb489 0 4px,transparent 4px 9px); }
+  .rstop{ position:relative; padding-left:38px; margin-bottom:7px; }
+  .rpin{ position:absolute; left:18px; top:11px; width:16px; height:16px; border-radius:50%;
+    background:var(--surface,#f6eeda); border:2px solid #c4a973; z-index:3; }
+  .rpin.done{ background:#4c7a46; border-color:#3c6437; }
+  .rpin.done::after{ content:"✓"; position:absolute; inset:0; font-size:8px; color:#eefae9;
+    display:flex; align-items:center; justify-content:center; font-weight:900; }
+  .rpin.here{ background:var(--gold,#e8b64c); border-color:#a8761c;
+    box-shadow:0 0 0 4px rgba(232,182,76,.25); }
+  /* collapsed - a band you can tap */
+  .rband{ height:34px; border-radius:9px; overflow:hidden; position:relative; cursor:pointer;
+    display:flex; align-items:center; padding:0 9px; box-shadow:0 2px 5px rgba(70,52,25,.26);
+    background-size:cover; background-position:center; }
+  .rband::before{ content:""; position:absolute; inset:0;
+    background:linear-gradient(90deg,rgba(20,14,6,.62),rgba(20,14,6,.22)); }
+  .rband:active{ transform:scale(.985); }
+  .rband.locked{ filter:saturate(.5) brightness(.84); }
+  .rname{ position:relative; z-index:2; font-family:var(--serif,Georgia,serif); font-size:11px;
+    color:#fff6e0; text-shadow:0 1px 3px rgba(0,0,0,.7); }
+  .rmini{ position:relative; z-index:2; margin-left:auto; display:flex; gap:3px; }
+  .rmini i{ width:19px; height:19px; border-radius:5px; background:rgba(255,250,235,.92);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-style:normal;
+    box-shadow:0 1px 2px rgba(0,0,0,.28); overflow:hidden; }
+  .rmini i img{ width:16px; height:16px; object-fit:contain; }
+  .rmini i.dim{ background:rgba(255,250,235,.4); }
+  .rmini i.dim img{ filter:brightness(0); opacity:.34; }
+  .rmini i.dim span{ filter:brightness(0); opacity:.34; }
+  /* opened - the country you are standing in */
+  .ropen{ border-radius:11px; overflow:hidden; box-shadow:0 4px 12px rgba(70,52,25,.32);
+    border:1.5px solid var(--gold,#e8b64c); }
+  .ropen.past{ border-color:#c4a973; }
+  .rhead{ height:56px; position:relative; display:flex; align-items:flex-end; padding:0 9px 6px;
+    background-size:cover; background-position:center; cursor:pointer; }
+  .rhead::after{ content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.05) 28%,rgba(0,0,0,.55)); }
+  .rhead .rname{ font-size:13px; }
+  .rstate{ position:relative; z-index:2; margin-left:auto; font-size:7px; font-weight:900;
+    letter-spacing:.09em; text-transform:uppercase; color:#ffeec4;
+    background:rgba(40,28,10,.5); border-radius:5px; padding:3px 6px; }
+  /* THREE ACROSS, not two. The album's card is sized to stand alone in a wide grid; inside
+     an opened country it is a plate on a page, and at full width two of them left a hole
+     where the third should be. A country holds at most five, so three across is one tidy
+     row plus a short one - never a ragged grid. */
+  .rbody{ background:var(--surface,#fdf7e6); padding:9px 7px 10px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .rbody .gcard{ padding:7px 3px 6px; }
+  .rbody .gcard .ge{ font-size:30px; }
+  .rbody .gcard .geimg{ width:38px; height:38px; }
+  .rbody .gcard .gn{ font-size:9px; }
+  .rbody .gcard .gp{ font-size:8px; }
+  .rbody .gcard .gd, .rbody .gcard .gcall{ font-size:7.5px; line-height:1.3; }
+  .rfoot{ background:var(--surface,#fdf7e6); font-family:var(--serif,Georgia,serif);
+    font-style:italic; font-size:9px; color:var(--dim,#93805a); text-align:center;
+    padding:0 0 7px; }
+  .rdoors{ margin:10px 8px 0 38px; background:rgba(200,182,140,.28); border-radius:9px; padding:7px 9px; }
+  .rdoors .rd-t{ font-size:8px; font-weight:900; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--dim,#937c3e); }
+  .rdoors .rd-g{ display:flex; gap:4px; margin-top:5px; flex-wrap:wrap; }
+  .rdoors .rd-g i{ width:22px; height:22px; border-radius:6px; background:rgba(255,250,235,.75);
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-style:normal; overflow:hidden; }
+  .rdoors .rd-g i img{ width:18px; height:18px; object-fit:contain; filter:brightness(0); opacity:.32; }
+  .rdoors .rd-g i span{ filter:brightness(0); opacity:.32; }
+
   .gcard{ position:relative; border-radius:14px; padding:10px 6px 8px; text-align:center; cursor:pointer;
     background:linear-gradient(180deg,#fffdf6,#f7efdb); border:1.5px solid rgba(121,92,55,.16);
     box-shadow:0 3px 8px rgba(90,60,30,.14), inset 0 1.5px 0 rgba(255,255,255,.85); }
@@ -8741,11 +8811,11 @@ const UI = {
       P.groveMile[mi.n]=true; save();
       setTimeout(()=>{ UI.confetti(); Snd.levelUp(); UI.toast(mi.i+" <b>"+mi.t+"</b>", "tap"); }, 500); } });
     // ---- the album: sky then ground, every friend a trophy card ----
-    const section=(title, list)=>{
-      const sec=document.createElement("div"); sec.className="gsection";
-      sec.innerHTML="<h3>"+title+"</h3>";
-      const grid=document.createElement("div"); grid.className="ggrid";
-      list.forEach(g=>{
+    /* ONE CARD, BUILT ONCE. It used to live inside section(), which meant the only way to
+       show a friend was to also show a heading and a grid - and the road needs the card
+       without either. Hoisted, not duplicated: a second copy would be the third place in
+       this file that decides what a friend's card says. */
+    const mkCard=(g)=>{
         const has=!!P.grove[g.w];
         const el=document.createElement("div");
         if(has){
@@ -8790,73 +8860,97 @@ const UI = {
           el.onclick=()=>{ el.classList.remove("wiggle"); void el.offsetWidth; el.classList.add("wiggle");
             Snd.tone(520,{dur:.08,type:"triangle",gain:.05}); };
         }
-        grid.appendChild(el);
-      });
-      sec.appendChild(grid); f.appendChild(sec);
+        return el;
     };
-    // GROUND FIRST, because that is the order the wood is actually met in. The cat, the dog
-    // and everything else a player earns in their first hours live on the ground - putting
-    // the sky above them buried the one card that matters (your next friend) below the fold,
-    // so a beginner had to scroll past thirty strangers to find the creature they were
-    // being told to chase.
-    /* GROUPED BY SIGN, not by habitat. Ground and sky meant something when same-home
-       friends doubled each other; now it is trivia, and it could never answer the one
-       question a player has at the shelf - "who answers a four-letter word?" Fifty
-       portraits sorted by where they live made that unanswerable without opening fifty
-       cards. Sorted by sign, it is one glance.
-       The hushed ones stay together at the end: that section is the hunt, not the shelf. */
-    const owned=GROVE.filter(g=>P.grove[g.w]), hushed=GROVE.filter(g=>!P.grove[g.w]);
-    const bySign={};
-    owned.forEach(g=>{ const k = g.ps ? "passive" : ((g.wake&&g.wake.on)||"passive");
-      (bySign[k]=bySign[k]||[]).push(g); });
-    /* everyday signs first, rare ones last - the order a player meets them in, which is
-       SIGNS' own order field. This was a hand-written array, and it had quietly lost a
-       sign: "tool" was missing from it, so a friend waking on a tool would have been
-       filtered clean out of the Book rather than merely mis-headed. Nobody waked on tool
-       yet, so nobody ever saw it - the kind of thing that only bites the day you add the
-       fifty-first friend. Derived from the registry, it cannot drift again. */
-    SIGN_ORDER.filter(k=>bySign[k]).forEach(k=>section(signTitle(k), bySign[k]));
-    /* ══ THE HUNT IS A MAP ══
-       The unmet used to be one heap called "still hushed", which told you fifty creatures
-       exist and nothing about how to meet any of them - and only about a third of testers
-       ever opened this screen. A heap is not a reason to come back.
-       Grouped by country it answers the question a player actually has: who is out here,
-       and where do I have to walk. The country you are standing in comes FIRST and says so,
-       because those are the only ones who can hear you right now. The rest are a road
-       ahead, which is a better feeling than a wall.
-       Keystones are separated out: they are given at doors, never found, and listing them
-       among the findable would send somebody hunting for a creature that is a gift. */
-    if(hushed.length){
-      const keyed = new Set(Object.values(KEYSTONE));
-      const here = biomeOf(P.level);
-      const byCountry = {};
-      const gifts = [];
-      hushed.forEach(g=>{
-        if(keyed.has(g.w) || !HOME[g.w]){ gifts.push(g); return; }
-        const c = HOME[g.w][0];
-        (byCountry[c]=byCountry[c]||[]).push(g);
-      });
-      // your country first, then the road ahead, then the countries behind you
-      const order = Object.keys(byCountry).map(Number).sort((a,b)=>{
-        const rank = c => c===here ? 0 : (c>here ? 1 : 2);
-        return rank(a)-rank(b) || a-b;
-      });
-      order.forEach(c=>{
-        const listening = byCountry[c].filter(g=>Game.canHear(g.w)).length;
-        const name = BIOME_NAMES[c] || ("country "+(c+1));
-        const tail = c===here
-          ? (listening ? " - "+listening+" listening" : " - none listening yet")
-          : (c>here ? " - further on" : " - behind you, still listening");
-        section((BIOMES[c]||"🌿")+" "+name+tail, byCountry[c]);
-      });
-      if(gifts.length) section("🗝️ waiting at the doors ahead", gifts);
+    /* ══ THE LONG ROAD ══
+       The Book was a scrolling list of fifty, which is why only about a third of testers
+       ever opened it: a heap tells you creatures exist and nothing about how to meet one.
+       It is the walk now. Fifteen countries on one spine, each a slim band carrying its own
+       painting, and the country you are standing in OPENS to full portraits and the
+       courtship each friend is asking for right now. Tap any other band to open it in place.
+
+       Three things become readable that no list could say, and none of them is written out:
+       how far you have come (the ticked pins behind you), that a country you have left still
+       listens so nobody is ever stranded, and that the wood keeps going a long way past you.
+
+       A page per country was the other candidate and it was rejected on sight - countries
+       hold between one and five friends, so a full page each is mostly whitespace and the
+       last four countries would be a painting and a single frame. */
+    const keyed = new Set(Object.values(KEYSTONE));
+    const here  = biomeOf(P.level);
+    if(UI._roadOpen==null) UI._roadOpen = here;
+    const road = document.createElement("div"); road.id="road";
+    const byCountry = {};
+    GROVE.forEach(g=>{ const h=HOME[g.w]; if(!h || keyed.has(g.w)) return;
+      (byCountry[h[0]]=byCountry[h[0]]||[]).push(g); });
+
+    for(let c=0;c<BIOME_NAMES.length;c++){
+      const list = byCountry[c]; if(!list || !list.length) continue;
+      const met  = list.filter(g=>P.grove[g.w]).length;
+      const walked = here>=c;
+      const stop = document.createElement("div"); stop.className="rstop";
+      const pin  = document.createElement("div");
+      pin.className = "rpin"+(c===here ? " here" : (walked && met===list.length ? " done" : (walked?" done":"")));
+      stop.appendChild(pin);
+      const art = 'url("art/bg/bio'+c+'.jpg")';
+
+      if(c===UI._roadOpen){
+        const box=document.createElement("div"); box.className="ropen"+(c===here?"":" past");
+        const head=document.createElement("div"); head.className="rhead";
+        head.style.backgroundImage=art;
+        const listening = list.filter(g=>!P.grove[g.w] && Game.canHear(g.w)).length;
+        head.innerHTML='<span class="rname">'+(BIOMES[c]||"")+' '+(BIOME_NAMES[c]||"")+'</span>'
+          +'<span class="rstate">'+(c===here
+              ? (listening ? "you are here &middot; "+listening+" listening" : "you are here")
+              : (c<here ? (listening?"behind you &middot; still listening":"behind you")
+                        : "further on"))+'</span>';
+        head.onclick=()=>{ UI._roadOpen = (UI._roadOpen===c ? -1 : c); UI.groveShow(); };
+        const body=document.createElement("div"); body.className="rbody";
+        list.forEach(g=>body.appendChild(mkCard(g)));
+        const foot=document.createElement("div"); foot.className="rfoot";
+        foot.innerHTML = met===list.length ? "every name here is remembered"
+          : met+" of "+list.length+" remembered here";
+        box.appendChild(head); box.appendChild(body); box.appendChild(foot);
+        stop.appendChild(box);
+      } else {
+        const band=document.createElement("div");
+        band.className="rband"+(walked?"":" locked");
+        band.style.backgroundImage=art;
+        band.innerHTML='<span class="rname">'+(BIOME_NAMES[c]||"")+'</span>'
+          +'<span class="rmini">'+list.map(g=>{
+              const has=!!P.grove[g.w];
+              return '<i class="'+(has?"":"dim")+'">'+(UI.artTag(g.w)||("<span>"+g.e+"</span>"))+'</i>';
+            }).join("")+'</span>';
+        band.onclick=()=>{ UI._roadOpen=c; UI.groveShow(); };
+        stop.appendChild(band);
+      }
+      road.appendChild(stop);
     }
+    /* the keystones get their own tray. They are given at doors, never found, and listing
+       them among the findable would send somebody hunting for a gift. */
+    const gifts = GROVE.filter(g=>keyed.has(g.w) && !P.grove[g.w]);
+    if(gifts.length){
+      const tray=document.createElement("div"); tray.className="rdoors";
+      tray.innerHTML='<div class="rd-t">🗝️ waiting at the doors ahead</div>'
+        +'<div class="rd-g">'+gifts.map(g=>'<i>'+(UI.artTag(g.w)||("<span>"+g.e+"</span>"))+'</i>').join("")+'</div>';
+      road.appendChild(tray);
+    }
+    f.appendChild(road);
     // …and if the one-time lesson card has fallen below the fold, lift it into view. Only
     // then - nobody wants the party shelf yanked out from under them when it was already
     // in plain sight. Once the lesson retires there is nothing here to chase the player to.
     f.scrollTop=0;   // always open at the top - the field kept its last position, so reopening
                      // the Book could drop you halfway down the sky with no idea why
+    /* THE OPEN COUNTRY HAS TO COME TO YOU. Fifteen bands plus an opened one is taller than
+       the screen, so tapping a country further down the road would otherwise open it below
+       the fold and look like nothing happened. */
     requestAnimationFrame(()=>{
+      const open=f.querySelector(".ropen");
+      if(open){
+        const fr0=f.getBoundingClientRect(), or=open.getBoundingClientRect();
+        if(or.top < fr0.top || or.bottom > fr0.bottom)
+          f.scrollTop += (or.top-fr0.top) - fr0.height*0.18;
+      }
       const card=f.querySelector(".gcard.nextup"); if(!card) return;
       const fr=f.getBoundingClientRect(), cr=card.getBoundingClientRect();
       if(cr.top>=fr.top && cr.bottom<=fr.bottom) return;      // already visible - leave it alone
