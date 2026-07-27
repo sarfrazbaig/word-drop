@@ -3536,8 +3536,23 @@ const SIGNS = {
      over 552 drops a palindrome was available to spell exactly once. Anything waiting on
      this alone would wait forever, so it pays as a multiplier and wants a friend that
      manufactures the chance. */
-  mirror:    { freq: 0.13,order:14, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways" },
+  mirror:    { freq: 0.07,order:22, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways" },
   tool:      { freq: 3,  order:13, title:"🌬️ they wake when you use a tool", noun:"tools used" },
+  /* ══ THE SHAPE AND MEANING SIGNS ══
+     Every freq below is MEASURED from real playtesters (673 words over 183 rounds, dev
+     sessions removed), not estimated - which matters because the numbers above it are not.
+     Players make 3.68 words a round, and the table above assumes nine, so everything up
+     there waits two to three times longer than it was written to. Fix that separately.
+     rising / twin / held / gilded have no measurement yet: the engine computed all four and
+     threw them away, so nothing has ever counted them. They now travel to the sheet. */
+  nested:    { freq: 0.46,order:15, title:"🪆 they wake at a word inside a word", noun:"words hiding words" },
+  doubled:   { freq: 0.44,order:16, title:"👯 they wake at a doubled letter",     noun:"doubled letters" },
+  echo:      { freq: 0.19,order:17, title:"🔁 they wake when a word follows on",  noun:"words that follow on" },
+  truename:  { freq: 0.18,order:18, title:"🐾 they wake at a friend's true name", noun:"true names spoken" },
+  rising:    { freq: null,order:19, title:"🌱 they wake at a word read upward",   noun:"words read upward" },
+  twin:      { freq: null,order:20, title:"👬 they wake at two words at once",    noun:"double words" },
+  held:      { freq: null,order:21, title:"✋ they wake at a word you kept",       noun:"words kept back" },
+  gilded:    { freq: null,order:23, title:"✨ they wake at a word spending gold",  noun:"golden words" },
   // not an event at all: the shelf's last section, where the always-on friends live
   passive:   { freq: 0,  order:99, title:"♾️ always awake",                  noun:"play" },
 };
@@ -4231,6 +4246,9 @@ function newState(level){
     _noWishGrant:false, _noBreezeGrant:false,   // a tool never pays for itself - see resolve()
     petCharge:0, petTurn:0, petReady:false, petActing:false, petActs:0, charm:0,
     wake:{}, _woke:[],          // how close each friend is to stirring, and who just did
+    petActor:null,              // WHICH friend is mid-act, so its own word cannot feed it
+    _actedThisDrop:[],          // one drop, one act each - the brake on a friend-fed runaway
+    said:[],                    // every word this round, in order: the round's memory
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -4821,6 +4839,32 @@ function isMirror(w){
   if(!w || w.length<3) return false;
   for(let i=0,j=w.length-1;i<j;i++,j--) if(w[i]!==w[j]) return false;
   return true;
+}
+/* a word with a shorter real word hiding inside it. Measured at 0.46 a round in real play,
+   which makes it a payer rather than the curiosity it was assumed to be. */
+function nestedWord(w){
+  if(!w || w.length<4) return null;
+  for(let L=w.length-1; L>=MIN_LEN; L--)
+    for(let i=0; i+L<=w.length; i++){
+      const s=w.slice(i,i+L);
+      if(s!==w && COMMON.has(s)) return s;
+    }
+  return null;
+}
+/* THE WORD YOU ALMOST MADE. Returns the real word a string is one letter away from, or null.
+   556 three-letter words exist and 10,361 strings sit one letter off them, so anything built
+   on this must be rationed - once a round, never a passive. Kept here with the other pure
+   reading rules so it can be tested without a board. */
+function nearWord(s){
+  if(!s || s.length<MIN_LEN) return null;
+  const A="abcdefghijklmnopqrstuvwxyz";
+  for(let i=0;i<s.length;i++)
+    for(const c of A){
+      if(c===s[i]) continue;
+      const t=s.slice(0,i)+c+s.slice(i+1);
+      if(COMMON.has(t)) return t;
+    }
+  return null;
 }
 function cellsToPattern(cells){ return cells.map(t=>t.kind==="wild"?".":t.letter).join(""); }
 function matchPattern(pat){
@@ -5930,6 +5974,9 @@ const Game = {
       setTimeout(()=>boardEl.classList.remove("shake"),420);
       return; }
     S.busy = true;
+    // a fresh drop, so every friend may act once more. This list is the only thing standing
+    // between "the row conducts" and "the party plays itself".
+    S._actedThisDrop = [];
     // a wished letter is being placed: whatever word it makes must not pay for another wish
     S._noWishGrant = !!S._wishedHand; S._wishedHand=false;
     UI.ghost(-1);
@@ -6784,10 +6831,26 @@ const Game = {
      set against SIGNS[sign].freq, which is where those numbers now live. */
 
   /* one event just happened - every friend counting it takes a step toward waking */
-  sees(ev, n){
+  /* except - the friend that CAUSED this sign, which must not be fed by its own work.
+     The old rule was blunter: a friend's word emitted nothing at all, to stop a friend
+     buying its own next act (a modelled runaway once scored 946 against a 530 target).
+     That guard was right about the danger and too wide about the cure - it also stopped the
+     cat from ever feeding the dog, which is why a party of four behaves like four separate
+     animals instead of a row. Now the maker is excluded and everyone else hears it. */
+  sees(ev, n, except){
     if(!S || S.over || S.won || !ev) return;
+    /* AND IT IS DEAF TO EVERYTHING IT CAUSES, not only to the words it spells. A power that
+       tumbles the board raises `cascade`, one that breaks a stone raises `obstacle`, and
+       neither passed an exclusion - so a friend listening for the very thing its own power
+       produces could crank itself. Defaulting the exclusion to whoever is mid-act closes
+       every path at once instead of at each call site, where the next one would be missed. */
+    if(!except && S.petActing && S.petActor) except = S.petActor;
     S.wake = S.wake || {};
     for(const g of Game.petActives()){
+      if(except && g.w===except) continue;
+      // ONE DROP, ONE ACT EACH, however long the chain runs. Without this a cat can wake a
+      // dog whose word wakes the cat again, and the move budget stops limiting anything.
+      if((S._actedThisDrop||[]).includes(g.w)) continue;
       const w=g.wake; if(!w || w.on!==ev) continue;
       S.wake[g.w] = (S.wake[g.w]||0) + (n||1);
       /* THE COUNT IS NOT CLEARED HERE ANY MORE. It used to zero the moment it filled, which
@@ -6957,6 +7020,11 @@ const Game = {
     // milestone upgrades in phase 3 are what will make a friend stronger instead
     const boost=false;
     S.petActing=true;
+    /* WHO is acting, not just THAT somebody is. recordWord needs the name so a friend's own
+       word can feed the rest of the party without feeding the friend that made it. */
+    S.petActor=pet.w;
+    S._actedThisDrop = S._actedThisDrop || [];
+    if(!S._actedThisDrop.includes(pet.w)) S._actedThisDrop.push(pet.w);
     const el=$("pet-"+eq.indexOf(pet)) || $("pet-0");
     el.classList.remove("happy"); void el.offsetWidth; el.classList.add("happy");
     Snd.discover(); buzz([25,40,60]);
@@ -6992,7 +7060,7 @@ const Game = {
     else console.warn("no power handler for \"" + fx.t + "\" (" + pet.w + ")");
     // 🛶 River Games: frog & otter play on - a bonus paw charge
     if(visit) await visit.home();                                   // back to its seat, job done
-    S.petActing=false;
+    S.petActing=false; S.petActor=null;
     UI.petMeter(); UI.all(); saveRun();
   },
   /* WHERE THE FRIEND STANDS, and - more importantly - WHICH TILE IT IS ABOUT TO TOUCH.
@@ -7059,10 +7127,20 @@ const Game = {
     return false;
   },
 
-  recordWord(word, points, chain){
+  recordWord(word, points, chain, shape){
+    shape = shape || {};
     FT.signal("wordCleared", word);
+    /* THE ROUND REMEMBERS WHAT IT SAID. S.wordsMade was a count, so nothing could ask what
+       came before - no echo, no "you said that already", no rhythm of any kind. */
+    S.said = S.said || [];
+    S.said.push({ w:word.word, n:word.cells.length, pts:points, chain,
+                  by: S.petActing ? "pet" : "player",
+                  dir:shape.dir||null, twin:!!shape.twin, held:!!shape.held, gilded:!!shape.gilded });
+    // the shape travels to the sheet too, so the next playtest can measure the four tastes
+    // that were drafted on judgement because the engine used to discard them
     Game.track("word_made", { w:word.word, n:word.cells.length, pts:points,
-      chain, by: S.petActing ? "pet" : "player", L:S.level });
+      chain, by: S.petActing ? "pet" : "player", L:S.level,
+      dir:shape.dir||null, twin:!!shape.twin, held:!!shape.held, gilded:!!shape.gilded });
     P.stats.words++;
     Game.tallyEv("words");
     // THE FOX'S TRAIL. Points are what its Gilded Trail multiplies, so points are what
@@ -7077,10 +7155,16 @@ const Game = {
     // …and ONLY the wakes are withheld. A friend's word is still a word: it still counts
     // toward callings, still fills the round's word count, still unlocks a name. What it must
     // not do is buy the next act. An early return here would have taken all of that with it.
-    if(!S.petActing){
+    /* A FRIEND'S WORD IS A WORD. The guard above used to be `if(!S.petActing)`, which kept
+       a friend from earning its own next act - right - but also silenced its word for
+       everybody else, which is the whole reason no party ever became a machine. Now the
+       word speaks, and only its MAKER is deaf to it. S.petActor carries who that is. */
+    {
+      const maker = S.petActing ? S.petActor : null;
+      const sees = (sign, k) => Game.sees(sign, k, maker);
       // WORD-SHAPED WAKES. Longer counts as shorter - a five-letter word satisfies a friend
       // waiting on four - so reaching further never costs you a wake you had already earned.
-      Game.sees("anyWord");
+      sees("anyWord");
       /* WAS wl===3, AND IT PUNISHED GOOD PLAY. word4 and word5 have always been "or more",
          so a five-letter word feeds both of them - but word3 wanted EXACTLY three, so the
          same five-letter word fed the cat nothing. Twelve of the fifty friends listen on
@@ -7090,12 +7174,25 @@ const Game = {
          felt like a grind. It was not pacing, it was this line.
          Now it is a ladder that never punishes you for climbing it: any word feeds word3,
          four or more also feeds word4, five or more also feeds word5. */
-      if(wl>=3) Game.sees("word3");
-      if(wl>=4)  Game.sees("word4");
-      if(wl>=5)  Game.sees("word5");
-      if(/[qzxjv]/.test(word.word)) Game.sees("rare");
+      if(wl>=3) sees("word3");
+      if(wl>=4)  sees("word4");
+      if(wl>=5)  sees("word5");
+      if(/[qzxjv]/.test(word.word)) sees("rare");
       // …and the first sign about the word rather than the board
-      if(isMirror(word.word)) Game.sees("mirror");
+      if(isMirror(word.word)) sees("mirror");
+      /* THE SHAPE SIGNS. All four of these were computed and thrown away: the word knew its
+         direction, whether it arrived with a sibling, whether you had held it and whether it
+         spent gold, and nothing could listen for any of it. */
+      if(shape.dir==="up") sees("rising");
+      if(shape.twin) sees("twin");
+      if(shape.held) sees("held");
+      if(shape.gilded) sees("gilded");
+      if(nestedWord(word.word)) sees("nested");
+      if(/(.)\1/.test(word.word)) sees("doubled");
+      if(GROVE_BY_WORD[word.word]) sees("truename");
+      // a word that starts where the last one stopped
+      { const prev=(S.said||[])[(S.said||[]).length-1];
+        if(prev && prev.w && prev.w.slice(-1)===word.word[0]) sees("echo"); }
     }
     Game.tallyEv(wl>=6?"word6":"word"+wl);
     if(/[qzxjv]/.test(word.word)) Game.tallyEv("qzxjv");
@@ -7438,7 +7535,10 @@ const Game = {
       if(w.dir==="up") Game.tallyEv("upword");
       { const g=gateAt(S.level);
         if(g && g.small && w.cells.length<4) pts=0; }   // it still clears; it just does not pay
-      Game.recordWord(w, pts, S.chain);
+      Game.recordWord(w, pts, S.chain, {
+        dir: w.dir, twin: !!twin,
+        held: w.cells.some(t=>t.heldWord),          // you kept this one back before it bloomed
+        gilded: goldN>0 });
       // THE announcement of this game - the word you made and what it paid - used to sit
       // for 700ms and vanish. Nobody could read it, and the bigger the word the more
       // there was to miss. It holds long enough to land now, longer for the big ones.
