@@ -2972,7 +2972,38 @@
 
 <script>
 "use strict";
+/* ============ 🗺️ HOW THIS FILE IS LAID OUT ============
+   One file, because a game that ships as a single page loads fastest that way, and one
+   file is genuinely the right answer right up until it isn't. It stopped being the right
+   answer somewhere around nine thousand lines: the sections below are honest boundaries
+   that nothing enforces, so anything can reach anything, and twice in one afternoon a
+   careful search over this file returned a confident wrong answer about its own contents.
+
+   The plan is TypeScript modules before launch, not after - once players' saves are in
+   the wild, moving this becomes an operation with stakes. Each banner below names the
+   file it becomes, so that migration is a cut rather than a judgement:
+
+     dictionary   the word list, injected by build.js
+     world        board size, biomes, decor, obstacle debuts
+     signs        every event a friend can listen for            ← already split out
+     grove        the fifty friends as data, callings, gates, goals
+     powers       what each friend does, one function each       ← already split out
+     save         P and localStorage
+     round        S, true only mid-round
+     tiles        tile elements
+     words        reading the board - PURE, so it gets tests first
+     game         the rules
+     ui           screens, cards, animation
+     input        pointer and stage fitting
+     audit        the checks a type system will replace          ← already split out
+
+   The three marked ones were pulled out first on purpose: they are the ones the pet work
+   is about to touch, and doing them now means that work lands in the new shape rather
+   than being migrated twice. Everything below the fold is still one scope - that is known,
+   and it is the next job, not a surprise. */
+
 /* =================== DICTIONARY =================== */
+/* @module  dictionary  -  the word list, injected at build time */
 const COMMON = new Set("__COMMON__".split(" "));
 if(COMMON.size < 500){
   document.body.innerHTML = '<div style="padding:40px 24px;font-family:system-ui;text-align:center;color:#fff">'+
@@ -2983,6 +3014,7 @@ const BY_LEN = {};
 COMMON.forEach(w=>{ (BY_LEN[w.length] = BY_LEN[w.length]||[]).push(w); });
 
 /* =================== CONSTANTS =================== */
+/* @module  world  -  board size, biomes, decor, obstacle debuts - the shape of the place */
 const COLS=7, ROWS=8, CELL=44, GAP=4, STEP=CELL+GAP;
 const VAL = {a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10};
 const FREQ = "aaaaaaaaabbcccddddeeeeeeeeeeeeffggghhiiiiiiiiijkllllmmnnnnnnooooooooppqrrrrrrssssssttttttuuuuvwwxyyz";
@@ -3315,6 +3347,7 @@ function recipe(L){
 }
 
 /* =================== SOUND =================== */
+/* @module  sound  -  every tone the wood makes */
 const Snd = {
   ctx:null, master:null, wet:null, on:true, ambientTimer:null, musicTimer:null,
   init(){
@@ -3455,7 +3488,68 @@ const Snd = {
 };
 function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 
+/* =================== SIGNS =================== */
+/* @module  signs  -  one list of everything a friend can listen for.
+
+   A sign is something the wood notices: a letter lands, a word is made, an obstacle
+   gives way. Friends declare wake:{on:<sign>, n:<count>} and Game.sees(<sign>) fires
+   them. Every sign the game knows about is in this table and nowhere else.
+
+   ══ THIS WAS FOUR TABLES ══
+   WAKE_FREQ sat on Game, SIGN_TITLE and WAKE_WORDS on UI, and the Book's section order
+   was a bare array five hundred lines further down - four lists keyed on the same names
+   with nothing checking they agreed. Adding a sign meant remembering four places, and
+   forgetting one failed quietly rather than loudly: "tool" never got a title, so any
+   friend waking on it dropped into a generic bucket in the Book, and "passive" never got
+   a noun. Both had been wrong for as long as they had existed and neither ever threw.
+   Merging them made those two gaps visible in about a second, which is the whole argument
+   for one table. Hush.audit() now checks the rest at boot.
+
+   Each entry says everything about one sign:
+     freq  - roughly how often it fires in a round. THE LAW, and the reason this number is
+             written down rather than guessed: a consonant lands about fifteen times a
+             round and a five-letter word about once, so a friend watching consonants must
+             need MANY of them or give very little. Get this wrong and the friend watching
+             the commonest event is simply the best friend in the game and no other seat
+             is ever worth taking.
+     title - the Book's section heading, said in the wood's voice
+     noun  - what the count is called on a friend's card ("hard letters")
+     order - where it sits in the Book: everyday signs first, rare ones last, so the list
+             runs roughly in the order a player meets them */
+const SIGNS = {
+  drop:      { freq:25,  order: 1, title:"🍂 they stir as you drop",         noun:"tiles dropped" },
+  consonant: { freq:15,  order: 2, title:"🪵 they listen for hard letters",  noun:"hard letters" },
+  vowel:     { freq:10,  order: 3, title:"🌾 they listen for soft letters",  noun:"soft letters" },
+  anyWord:   { freq: 9,  order: 4, title:"📖 they stir at any word",         noun:"words" },
+  word3:     { freq: 9,  order: 5, title:"🌱 they stir at any word",         noun:"words" },
+  word4:     { freq: 3,  order: 6, title:"🌿 they wait for four letters",    noun:"four-letter words" },
+  word5:     { freq: 1.2,order: 7, title:"🌟 they wait for five",            noun:"five-letter words" },
+  gold:      { freq: 2,  order: 8, title:"✨ they follow the gold",          noun:"golden letters cleared" },
+  obstacle:  { freq: 3,  order: 9, title:"🪨 they wake when the way clears", noun:"things cleared away" },
+  crate:     { freq: 1.2,order:10, title:"🎁 they wake at an opened gift",   noun:"gifts opened" },
+  cascade:   { freq: 2,  order:11, title:"💫 they wake on a tumble",         noun:"tumbles" },
+  rare:      { freq: 1,  order:12, title:"💎 they wake at a rare letter",    noun:"rare letters" },
+  /* THE FIRST SIGN THAT IS ABOUT THE WORD ITSELF rather than about the board. Everything
+     above fires because something happened - a tile landed, a stone broke. This one fires
+     because of what a word IS, which is the whole point of putting it in a word game.
+     Its freq is the lowest in the table by a wide margin and that is measured, not guessed:
+     over 552 drops a palindrome was available to spell exactly once. Anything waiting on
+     this alone would wait forever, so it pays as a multiplier and wants a friend that
+     manufactures the chance. */
+  mirror:    { freq: 0.13,order:14, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways" },
+  tool:      { freq: 3,  order:13, title:"🌬️ they wake when you use a tool", noun:"tools used" },
+  // not an event at all: the shelf's last section, where the always-on friends live
+  passive:   { freq: 0,  order:99, title:"♾️ always awake",                  noun:"play" },
+};
+/* the three ways the rest of the game asks about a sign. Falling back rather than
+   throwing is deliberate - a missing title should cost a player a pretty heading, never
+   a crash - but Hush.audit() shouts about it at boot so it never survives to a build. */
+const signTitle = s => (SIGNS[s] && SIGNS[s].title) || "🐾 friends";
+const signNoun  = (s, fb) => (SIGNS[s] && SIGNS[s].noun) || fb || "play";
+const SIGN_ORDER = Object.keys(SIGNS).sort((a,b)=>SIGNS[a].order-SIGNS[b].order);
+
 /* =================== THE GROVE =================== */
+/* @module  grove  -  the fifty friends as data, plus callings, gates and goals */
 // The grove is a living place - every friend is a real creature you might meet in a
 // garden or a national park. Spell its name and it comes to live in your grove.
 /* PETS ARE THE POWERS. There is no separate powerup bar - your equipped friends
@@ -3494,7 +3588,7 @@ const GROVE = [
   {w:"swan",wake:{on:"word4",n:1},e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
   {w:"goose",wake:{on:"vowel",n:3},e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word - <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
-  {w:"bat",wake:{on:"vowel",n:4},e:"🦇",z:"sky",pn:"Echo Nudge",pi:"🔄",pd:"slides <b>one letter</b> into the space beside it",fx:{t:"nudge"},f:"reads the bottom row backwards for fun"},
+  {w:"bat",e:"🦇",z:"sky",ps:true,pn:"Read It Backwards",pi:"🔄",pd:"<b>every row reads both ways</b> - and a word that reads the <b>same</b> both ways pays double",fx:{t:"readsBoth"},f:"reads the bottom row backwards for fun"},
   {w:"heron",wake:{on:"word4",n:2},e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"grants <b>+1 move per 2 words</b> you've made this level",fx:{t:"movesScale"},f:"stands so still that moves come to him"},
   {w:"golem",wake:{on:"word5",n:1},e:"🗿",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"was a mountain once, and remembers how mountains break"},
   {w:"fly",wake:{on:"vowel",n:4},e:"🪰",z:"sky",pn:"Vowel Swarm",pi:"🍃",pd:"every <b>awkward letter softens into a vowel</b>",fx:{t:"vowelSwarm"},f:"turns the awkward letters soft and speakable"},
@@ -4005,6 +4099,7 @@ function dailyQuest(){
 }
 
 /* =================== PERSISTENCE (v2: level-based) =================== */
+/* @module  save  -  P, localStorage, migration between save versions */
 let S = null;
 function load(){
   const defaults = {level:1, sound:true, streak:0, lastDay:0, dailyWordDay:-1, grove:{}, bestWord:"", finale:0,
@@ -4123,6 +4218,7 @@ function loadRun(){
 }
 
 /* =================== STATE =================== */
+/* @module  round  -  S - everything true only while a round is being played */
 function newState(level){
   return { level, milestone:isMilestone(level), board:Array.from({length:ROWS},()=>Array(COLS).fill(null)),
     tiles:{}, seq:0, levelScore:0, target:TARGET(level),
@@ -4555,7 +4651,7 @@ const FT = {
     const catSeat="#pet-"+(seat<0?0:seat);
     // the SIGN, not the count - the dots beneath the cat are the count, which is the whole
     // reason they exist. "listening for 2 small words" made the sentence do the pips' job.
-    const catG=GROVE_BY_WORD.cat, catSign=UI.WAKE_WORDS[catG.wake.on]||"words";
+    const catG=GROVE_BY_WORD.cat, catSign=signNoun(catG.wake.on,"words");
     await FT.callout(catSeat,
       "<b>every friend listens for something different</b><br><small>the cat is listening for <b>"+catSign+"</b> - each one you spell lights a dot beneath it</small>", "below");
     await FT.callout(catSeat,
@@ -4651,6 +4747,7 @@ function makePiece(){
 }
 
 /* =================== BOARD DOM =================== */
+/* @module  tiles  -  making, moving and destroying tile elements */
 const $ = id=>document.getElementById(id);
 const boardEl = $("board");
 boardEl.style.width = (COLS*STEP-GAP)+"px";
@@ -4715,6 +4812,16 @@ function removeTile(t){
 function boardFull(){ for(let c=0;c<COLS;c++) if(!S.board[0][c]) return false; return true; }
 
 /* =================== WORD SCAN =================== */
+/* @module  words  -  reading rows and columns and deciding what is a word. PURE - test it first */
+/* a word that reads the same both ways. Kept here with the other pure reading rules
+   rather than beside the bat, because it is a fact about a word, not about a creature -
+   the mirror sign, the bat's double and anything later that cares about shape all ask
+   this same question. Two letters do not count: "aa" is not a delight. */
+function isMirror(w){
+  if(!w || w.length<3) return false;
+  for(let i=0,j=w.length-1;i<j;i++,j--) if(w[i]!==w[j]) return false;
+  return true;
+}
 function cellsToPattern(cells){ return cells.map(t=>t.kind==="wild"?".":t.letter).join(""); }
 function matchPattern(pat){
   if(!pat.includes(".")) return COMMON.has(pat) ? pat : null;
@@ -4755,6 +4862,28 @@ function findWords(){
     seen.add(key); found.push(h);
   };
   for(let r=0;r<ROWS;r++) scanLine(S.board[r]).forEach(h=>{ h.dir="row"; push(h); });
+  /* 🦇 AND THEN THERE IS THE BAT. The rule directly above - rows read left to right and
+     never back - is a good rule, and it stays for everyone except the one creature whose
+     card has always said otherwise. While the bat is on duty the wood reads both ways.
+
+     ══ WHY THIS IS A PASSIVE AND NOT A POWER ══
+     It was written first as an act: the bat wakes, reads the bottom row backwards, takes
+     whatever it finds. It worked perfectly and it was worthless. Measured over 380 drops,
+     a backwards-only word existed in the bottom row on 5.5% of them and anywhere on the
+     board on 7.6% - so a friend that fires about 1.5 times a round would have paid off
+     roughly once every twelve rounds. That is not a power, it is a rumour, and it would
+     have been the second time in a row this creature's card described something a player
+     could never see happening.
+     Reading is reactive: it can only hope the board already did something. On duty and
+     always-on it is the opposite - the rule changes while you are still choosing where to
+     drop, so you can go looking for it, which is the only version of this that changes how
+     anybody plays. The 7.6% still arrives on its own as a small steady gift; the rest is
+     the player deliberately spelling backwards, which nothing else in the game rewards.
+     push() de-dupes on cell ids, so a palindrome read both ways is one word and pays once. */
+  if(S.batReads || (Game.hasPassive && Game.hasPassive("readsBoth"))){
+    for(let r=0;r<ROWS;r++)
+      scanLine([...S.board[r]].reverse()).forEach(h=>{ h.dir="rowback"; push(h); });
+  }
   for(let c=0;c<COLS;c++){
     const col=S.board.map(row=>row[c]);
     scanLine(col).forEach(h=>{ h.dir="down"; push(h); });                 // read down the column
@@ -4837,7 +4966,352 @@ function riggedLetter(){
       ?? drawLetter();
 }
 
+/* ============ POWERS - what a friend actually does ============
+   @module  powers
+
+   One entry per power, keyed by the fx.t on a friend in GROVE. This was a single
+   304-line switch inside petAct, which had become the place where every new friend
+   went and where nothing could be found: adding the fifty-first meant reading to the
+   middle of a function to learn what names were already taken, and a typo in an fx.t
+   produced a friend that simply never did anything, with no error anywhere.
+
+   Each power is handed only the things it uses, so the signature is the documentation:
+     fx        the effect spec off the friend ({t, n})
+     m         tier multiplier - a grown friend gives more of whatever it gives
+     pet       the friend doing the work
+     boost     legacy same-home doubling, always false now
+     el        the friend's seat on the shelf, for animations that start there
+     normals   () every plain letter tile on the board
+     cols      () how many tiles stand in each column
+     rowTiles  (r) the scoreable tiles in one row
+     buzzT     the friend the bee has chosen to help
+
+   `break` became `return` because a power now ends by returning rather than by
+   leaving a switch - EXCEPT where a break belonged to a nested loop. sweepTops and
+   antlerSort both scan columns with an inner `for` that breaks out of itself, and
+   converting those two would have quietly destroyed the moose. Hush.audit() checks
+   that every friend's fx.t has a handler here, which is the other half of what the
+   switch's default case never did. */
+const POWERS = {
+  async pawPat({ normals }){
+        const ns=normals();
+        if(!ns.length){ Game.addMoves(1); return; }
+        const pick = Game.catFit(ns);
+        if(!pick){ Game.addMoves(1); UI.note("cat-nofit","🐾 nothing to pat into place, so the cat found you a spare move instead","once"); return; }
+        Game.retype(pick.t, pick.L); UI.shards(pick.t.r, pick.t.c, "#ffd9a8");
+        Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
+        S.chain=1; await Game.resolve([pick.t]); return;
+  },
+      // reaches as far as it has grown: a maxed dog fishes for FIVE first, which is exactly
+      // the length that wakes a legend. `boost?5:4` was left over from the same-home
+      // doubling - with boost gone it read 4, so the dog scanned the whole board for a
+      // four twice over and the first pass was pure waste.
+  async weave({ m }){ const done = await Game.petAlign(m>=2?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
+        // no word to dig up on this board - rather than nothing, the dog brings back a
+        // star. Players saw their letter silently become ★ and had no idea why.
+        if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
+          UI.sky((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up - so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } return;
+  },
+      // rainHelp lived here - the bee's old power, two helpful tiles a fire. It went with
+      // the bee's rethink: at six fires a round it buried a small board, and burying the
+      // board is how a beginner loses. Nothing else used it.
+  async wildHand({ boost }){ if(S.cur) S.cur={letter:"★",kind:"wild"};
+        if(boost && S.next) S.next={letter:"★",kind:"wild"};
+        UI.piece(); UI.stardrift(); Game.handPop(); return;
+  },
+  async charm({ pet, m, fx }){ S.charm=(S.charm||0)+fx.n*m; // 🎼 Grace Notes
+        UI.say("charm-sing", (UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
+        for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
+          h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
+          $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
+        Snd.tone(1046,{dur:.3,type:"sine",gain:.07,verb:true}); return;
+  },
+  async moves({ m, fx }){Game.addMoves(fx.n*m); return; // 🐾 Pond Patrol
+  },
+  async wildOld({ normals, fx }){ const old=normals().sort((a,b)=>a.id.localeCompare?a.id.localeCompare(b.id):(a.id-b.id)).slice(0,fx.n);
+        old.forEach(t=>{ t.kind="wild"; t.inner.className="tile wild thawpop"; t.inner.innerHTML=tileFace(t); });
+        UI.stardrift(); S.chain=1; await Game.resolve(old); return;
+  },
+  async goldenEgg({ boost }){{ S.cur={letter:"e",kind:"gold"}; if(boost) S.next={letter:"e",kind:"gold"};
+        UI.piece(); Snd.gold(); Game.handPop(); return; }
+      /* 🦇 ECHO NUDGE. Reversing the whole bottom row could shred letters a player was
+         deliberately assembling - a friend that undoes your plan is anti-magical, and at
+         two and a half fires a round it would have happened most rounds. One letter slides
+         one space instead, and it looks for a slide that MAKES a word before settling for
+         any slide at all. */
+  },
+      // the slide was already chosen by petTarget, and the bat is standing beside that
+      // exact letter - this only carries it out
+  /* 🦇 READ IT BACKWARDS is a passive and does nothing here - findWords() asks
+     hasPassive("readsBoth") directly, because the rule has to be true at the moment the
+     player is choosing a column, not at the moment a friend takes a turn. S.batReads stays
+     as a manual override so tools and tests can switch backwards reading on without
+     equipping anybody. */
+  async readsBoth(){ /* passive - the rule lives in findWords() */
+
+      /* 🐝 THE BEE MAKES SPACE, it does not make letters. Two helpful tiles a fire at six
+         fires a round was about twelve extra tiles per round, which buries a small board -
+         and burying the board is exactly how a beginner loses. It was also the cat's beat
+         wearing a different coat: both handed you a letter you could use. Lifting the top
+         off the tallest pile is the opposite of the cat, and answers the real failure. */
+      /* 🐝 THE ONLY POWER THAT IS PURELY ABOUT THE OTHERS.
+         Lifting a tile off a pile was correct and dull: it ended in silence, while the cat
+         and the dog both end in a word. And an automatic pluck was worse than useless
+         beside the wish, which plucks whatever the PLAYER chooses.
+         So the bee does what a bee does - it goes friend to friend. Its whole power is
+         other friends, which makes it the one pet that grows with every creature you ever
+         meet, and it teaches the second lesson of the wood out loud: your friends are not
+         five separate powers, they are a party.
+         It nudges whoever is CLOSEST to stirring, so the buzz is felt now rather than
+         banked - and if that tips them over, they act inside this same turn. The drain
+         loop in tryPetAct is still running, so the chain resolves as one moment. */
+  },
+  async buzz({ pet, m, buzzT }){
+        const others=Game.petActives().filter(g=>g!==pet && g.wake && !(S._woke||[]).includes(g.w));
+        if(!others.length){ Game.addMoves(1); return; }
+        const togo=g=>Game.wakeNeed(g)-((S.wake&&S.wake[g.w])||0);
+        others.sort((a,b)=>togo(a)-togo(b));
+        // the one the bee actually flew to, so the animation and the effect agree
+        const friend=buzzT||others[0];
+        S.wake=S.wake||{};
+        S.wake[friend.w]=(S.wake[friend.w]||0)+1*m;
+        const woke = S.wake[friend.w] >= Game.wakeNeed(friend);
+        // the buzzed friend's pips FILL and stay full until it has had its turn - same rule
+        // as every other wake (see sees()), so the bee's help is something you watch land
+        if(woke){ S._woke=S._woke||[];
+          if(!S._woke.includes(friend.w)) S._woke.push(friend.w); }
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" buzzes - "+(UI.artTag(friend.w,"toastimg")||friend.e)+(woke?" <b>wakes!</b>":" stirs"));
+        Snd.tone(woke?990:760,{dur:.11,type:"triangle",gain:.06,verb:true}); buzz(10);
+        UI.petMeter(); return;
+  },
+  async movesScale({ m }){Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); return;
+  },
+  async crackAll({ boost }){ const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
+        if(!rocks.length){ Game.addMoves(2); return; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(const t of rocks){ if(boost||t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); Game.credit("stone"); removeTile(t); S.levelScore+=5; Snd.crack(true); }
+          else { t.cracks=1; t.inner.classList.add("cracked"); Snd.crack(false); } await wait(110); }
+        UI.hud(); await Game.settle(); return;
+  },
+  async eatWorst({ m, fx }){ const picks=Game.worstTiles(fx.n*m);
+        if(!picks.length){ Game.addMoves(2); return; }
+        for(const t of picks){ UI.shards(t.r,t.c,"#c9b18a"); removeTile(t); Snd.crack(true); await wait(160); }
+        await Game.settle(); return;
+  },
+  async flatBonus({ m, fx }){S.flatB=(S.flatB||0)+fx.n*m; return;
+  },
+  async chainBoost(){S.chainBoost=true; return;
+  },
+      // gilds the SHORTEST column, not the tallest. Gold on the tallest pile is the
+      // hardest gold on the board to ever reach - measured earlier, a fox-gilded column
+      // sat untouched for twenty-six drops. Down in the low ground it gets spent.
+      // the shortest column that actually HAS something in it. Plain Math.min picks an
+      // empty column on a sparse early board, and gilding nothing at all is a worse
+      // failure than gilding the unreachable tallest pile was.
+  async goldCol({ cols }){ const h=cols(); let c=-1, low=Infinity;
+        for(let i=0;i<COLS;i++) if(h[i]>0 && h[i]<low){ low=h[i]; c=i; }
+        if(c<0){ Game.addMoves(1); return; }
+        const changed=[]; for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t&&t.kind==="normal"){ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); changed.push(t); UI.shards(t.r,t.c,"#ffd54f"); } }
+        Snd.gold(); return;
+  },
+  async swapCols({ cols, el }){ const h=cols(); const opts=[]; for(let c=0;c<COLS-1;c++) if(h[c]&&h[c+1]) opts.push(c);
+        if(!opts.length){ Game.addMoves(2); return; }
+        const c=rand(opts); const moved=[];
+        for(let r=0;r<8;r++){ const a=S.board[r][c], b=S.board[r][c+1];
+          S.board[r][c]=b; S.board[r][c+1]=a;
+          if(a){ a.c=c+1; moved.push(a); } if(b){ b.c=c; moved.push(b); } }
+        moved.forEach(t=>{ t.el.style.transition="transform .45s cubic-bezier(.4,.05,.35,1)"; placeTile(t,t.r,t.c,false); });
+        UI.breeze(); await wait(480); moved.forEach(t=>t.el.style.transition="");
+        await Game.settle(moved); return;
+  },
+  async eatRow({ rowTiles }){ const ts=rowTiles(ROWS-1);
+        for(const t of ts){ UI.shards(t.r,t.c,"#a8c9a0"); removeTile(t); }
+        Snd.collapse(ts.length); await Game.settle(); return;
+  },
+  async midRow({ rowTiles }){ const ts=rowTiles(ROWS-2);
+        if(!ts.length){ Game.addMoves(2); return; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(const t of ts){ UI.shards(t.r,t.c,"#d8b077"); removeTile(t); }
+        Snd.collapse(ts.length); await Game.settle(); return;
+  },
+  async smashPatch(){ const picks=[];
+        for(let r=ROWS-2;r<ROWS;r++) for(let c=3;c<=4;c++){ const t=S.board[r][c]; if(t) picks.push(t); }
+        if(!picks.length){ Game.addMoves(2); return; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(const t of picks){ UI.shards(t.r,t.c,"#c5a3e0"); Game.creditTile(t); removeTile(t); Snd.crack(true); await wait(90); }
+        await Game.settle(); return;
+  },
+  async digCrate({ cols }){ const h=cols(); const c=h.indexOf(Math.min(...h));
+        let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+        if(land<0){ Game.addMoves(2); return; }
+        newTile("?","crate",land,c); Snd.gold(); return;
+  },
+  async churn({ normals, m, fx }){ const picks=normals().sort(()=>Math.random()-.5).slice(0,fx.n*m);
+        picks.forEach(t=>Game.retype(t, riggedLetter()));
+        S.chain=1; await Game.resolve(picks); return;
+  },
+  async slideRow({ rowTiles }){ const ts=rowTiles(ROWS-1); if(ts.length<2){ Game.addMoves(2); return; }
+        const contents=ts.map(t=>({l:t.letter,k:t.kind}));
+        contents.unshift(contents.pop());
+        ts.forEach((t,i)=>{ t.letter=contents[i].l; t.kind=contents[i].k;
+          t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
+        UI.breeze(); S.chain=1; await Game.resolve(ts); return;
+  },
+  async goldSchool({ normals }){ const count={}; normals().forEach(t=>count[t.letter]=(count[t.letter]||0)+1);
+        const top=Object.keys(count).sort((a,b)=>count[b]-count[a])[0];
+        if(!top){ Game.addMoves(2); return; }
+        normals().filter(t=>t.letter===top).forEach(t=>{ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); UI.shards(t.r,t.c,"#ffd54f"); });
+        Snd.gold(); return;
+  },
+  async bestHand(){ const best=helpfulByLength(); const ks=Object.keys(best).sort((a,b)=>best[b]-best[a]);
+        const l=ks[0] || (builderLetters()[0]) || riggedLetter();
+        S.cur={letter:l, kind:(S.cur&&S.cur.kind==="gold")?"gold":"normal"}; // 🎯 Sharp Hunters gild the strike
+        UI.piece(); Game.handPop(); return;
+  },
+  async twinHand(){ if(S.cur) S.next={letter:S.cur.letter,kind:S.cur.kind}; UI.piece(); Game.handPop(); return;
+  },
+  async thawAll(){ const ices=Object.values(S.tiles).filter(t=>t.kind==="ice");
+        if(!ices.length){ Game.addMoves(2); return; }
+        ices.forEach(t=>{ Game.credit("ice"); t.kind="normal"; t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#a8dcf5"); });
+        Snd.thaw(); S.chain=1; await Game.resolve(ices); return;
+  },
+  async smashCol({ cols }){ const h=cols(); const c=h.indexOf(Math.max(...h));
+        if(!h[c]){ Game.addMoves(2); return; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); Game.creditTile(t); removeTile(t); } }
+        Snd.collapse(6); return;
+  },
+  async sweepTops(){ const picks=[];
+        for(let c=0;c<COLS;c++){ for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ if(t.kind==="normal"||t.kind==="gold"||t.kind==="wild") picks.push(t); break; } } }
+        if(!picks.length){ Game.addMoves(2); return; }
+        for(const t of picks){ UI.shards(t.r,t.c,"#9fd4f2"); removeTile(t); }
+        Snd.collapse(picks.length); return;
+  },
+  async splash({ m, fx }){{ S.splash=(S.splash||0)+fx.n*m;
+        return; } // 🏖️ Beach Day
+  },
+  async damFill({ cols, el, fx }){ const h=cols(); const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0,fx.n);
+        const added=[];
+        for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+          if(land<2) continue; const t=newTile(riggedLetter(),"normal",land,c,false); added.push(t);
+          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,c); void t.el.offsetWidth;
+          t.el.style.transition="transform 240ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(land,c);
+          await wait(250); t.el.style.transition=""; }
+        S.chain=1; await Game.resolve(added); return;
+  },
+  async freePluck({ pet }){ S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
+        UI.sky((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole - tap any letter to pluck it FREE"); return;
+  },
+  async stoneGold(){ const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
+        if(!rocks.length){ Game.addMoves(2); return; }
+        rocks.forEach(t=>{ Game.credit("stone"); t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
+        Snd.gold(); S.chain=1; await Game.resolve(rocks); return;
+  },
+  async shuffleCols({ el }){ const perm=[...Array(COLS).keys()].sort(()=>Math.random()-.5);
+        const grid=[]; for(let r=0;r<8;r++){ grid.push([...S.board[r]]); }
+        const moved=[];
+        for(let r=0;r<8;r++) for(let c=0;c<COLS;c++){ const t=grid[r][perm[c]]; S.board[r][c]=t||null;
+          if(t){ t.c=c; moved.push(t); } }
+        moved.forEach(t=>{ t.el.style.transition="transform .55s cubic-bezier(.4,.05,.35,1)"; placeTile(t,t.r,t.c,false); });
+        UI.breeze(); await wait(580); moved.forEach(t=>t.el.style.transition="");
+        await Game.settle(moved); return;
+  },
+  async vowelize({ normals, m, fx }){ const picks=normals().filter(t=>!"aeiou".includes(t.letter)).sort(()=>Math.random()-.5).slice(0,fx.n*m);
+        if(!picks.length){ Game.addMoves(2); return; }
+        picks.forEach(t=>Game.retype(t, rand(["a","e","i","o","u"])));
+        S.chain=1; await Game.resolve(picks); return;
+  },
+  async clearRoom({ normals }){ const ts=normals(); if(!ts.length){ Game.addMoves(2); return; }
+        const junk=ts.filter(t=>"qzxjv".includes(t.letter));
+        const target = junk.length ? junk[0].letter
+          : ts.slice().sort((a,b)=>VAL[b.letter]-VAL[a.letter])[0].letter;
+        const picks=ts.filter(t=>t.letter===target);
+        for(const t of picks){ UI.shards(t.r,t.c,"#c9e29a"); removeTile(t); await wait(120); }
+        Snd.collapse(picks.length); await Game.settle(); return;
+  },
+  async junkToGift(){ const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") || Game.worstTiles(1)[0];
+        if(!cand){ Game.addMoves(2); return; }
+        Game.creditTile(cand);   // the rummaged obstacle is genuinely gone - pay the ask for it
+        cand.kind="crate"; cand.inner.className="tile thawpop"; cand.inner.innerHTML=tileFace(cand);
+        UI.shards(cand.r,cand.c,"#ffd54f"); Snd.gold(); return;
+  },
+  async acornBlast({ cols }){ const h=cols(); const c=h.indexOf(Math.max(...h));
+        let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+        if(land<0){ Game.addMoves(2); return; }
+        const t=newTile("🌰","bomb",land,c);
+        await wait(550);
+        const fell=await Game.explode(t);
+        S.chain=1; await Game.resolve(fell); return;
+  },
+  async webWrap({ m }){S.web=(S.web||0)+1*m; return;
+
+      /* ---- the five re-aimed powers ------------------------------------------------
+         The roster was fourteen ways to clear things and two ways to build a word, which
+         is why a party could never be built toward anything. These five were the weakest
+         or the most duplicated, and each becomes a distinct way to MAKE a word possible. */
+  },
+
+      // 🪰 the fly's old power was wolf's, at a third the strength - an exact duplicate
+  async vowelSwarm({ normals }){ const junk=normals().filter(t=>"qzxjv".includes(t.letter));
+        if(!junk.length){ Game.addMoves(2); return; }
+        for(const t of junk){ Game.retype(t, rand(["a","e","i","o","u"])); UI.shards(t.r,t.c,"#c9e29a"); }
+        Snd.thaw(); S.chain=1; await Game.resolve(junk); return;
+  },
+
+      // 🦬 the herd calls ahead: the next three letters are all ones that fit
+  async herdCall({ pet, m }){ S._helpNext=(S._helpNext||0)+3*m;
+        if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
+        UI.say("herd-call", (UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd - the next letters are <b>chosen for you</b>", 3);
+        return;
+  },
+
+      // 🫎 the sweep only ever touched plain tiles and read as a weaker row clear
+  async antlerSort(){ const tops=[];
+        for(let c=0;c<COLS;c++){ for(let r=0;r<ROWS;r++){ const t=S.board[r][c];
+          if(t){ if(t.kind==="normal") tops.push(t); break; } } }
+        if(!tops.length){ Game.addMoves(2); return; }
+        for(const t of tops){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#9fd4f2"); }
+        Snd.gold(); S.chain=1; await Game.resolve(tops); return;
+  },
+
+      // 🐞 a flat +5 on three words was the thinnest power in the wood
+  async luckyTile({ normals, m }){ const ns=normals();
+        if(!ns.length){ Game.addMoves(2); return; }
+        const picks=ns.sort(()=>Math.random()-.5).slice(0, 1*m);
+        for(const t of picks){ t.kind="wild"; t.inner.className="tile wild thawpop";
+          t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#e8b64c"); }
+        Snd.gold(); S.chain=1; await Game.resolve(picks); return;
+  },
+
+      // 🦭 "next two words score half again" sat on top of three other score powers
+  async tidePool({ cols, el }){ const h=cols();
+        const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0, 2);
+        const added=[];
+        for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
+          if(land<2) continue;
+          const t=newTile(rand(["a","e","i","o","u"]),"normal",land,c,false); added.push(t);
+          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,c); void t.el.offsetWidth;
+          t.el.style.transition="transform 260ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(land,c); }
+        if(!added.length){ Game.addMoves(2); return; }
+        await wait(300); added.forEach(t=>t.el.style.transition="");
+        Snd.thaw(); S.chain=1; await Game.resolve(added); return;
+  },
+  async whisper(){
+  },
+  async next2(C){ return POWERS.whisper(C); },
+  async skipJunk(C){ return POWERS.whisper(C); },
+  async vowelDeck(C){ return POWERS.whisper(C); },
+  async alwaysHint(C){ return POWERS.whisper(C); },
+  async refund4(){ /* passive - petActives() filters these out before petAct */ },
+  async crumb(){ /* passive - petActives() filters these out before petAct */ },
+  async freeStep(){ /* passive - petActives() filters these out before petAct */ },
+  async helpDeck(){ /* passive - petActives() filters these out before petAct */ },
+  async kindred(){ /* passive - petActives() filters these out before petAct */ },
+  async firstFree(){ /* passive - petActives() filters these out before petAct */ },
+};
+
 /* =================== GAME =================== */
+/* @module  game  -  the rules: dropping, resolving, scoring, waking, winning */
 const Game = {
   play(){
     Snd.init();
@@ -5213,7 +5687,7 @@ const Game = {
     $("fin-grove").innerHTML = grove.map((e,i)=>
       '<span style="animation-delay:'+(0.4+i*0.045).toFixed(2)+'s">'+e+'</span>').join("");
     $("fin-body").innerHTML =
-      "Fifty names, spoken back into the world.<br>The wood is loud with them now &mdash; "
+      "Fifty names, spoken back into the world.<br>The wood is loud with them now - "
       + "and the quiet that swallowed this place is <b>gone</b>.<br><br>"
       + "<b>You</b> are the one who remembered. The wood will not forget it.";
     Game.track("finale",{ names:woken.length, level:P.level, streak:P.streak||0 });
@@ -6306,11 +6780,8 @@ const Game = {
 
      THE LAW, enforced by how often a trigger fires rather than by hand: a consonant lands
      roughly fifteen times a round and a five-letter word about once, so a friend watching
-     consonants must need MANY of them or give very little. Wake counts below are set from
-     those frequencies - get this wrong and the friend watching the commonest event is
-     simply the best friend in the game, and nothing else is ever worth a seat. */
-  WAKE_FREQ:{ drop:25, consonant:15, vowel:10, anyWord:9, word3:9, word4:3, word5:1.2,
-              gold:2, obstacle:3, cascade:2, rare:1, tool:3, crate:1.2 },
+     consonants must need MANY of them or give very little. Every wake count in GROVE is
+     set against SIGNS[sign].freq, which is where those numbers now live. */
 
   /* one event just happened - every friend counting it takes a step toward waking */
   sees(ev, n){
@@ -6516,298 +6987,9 @@ const Game = {
     const normals=()=>Object.values(S.tiles).filter(t=>t.kind==="normal");
     const cols=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0; for(let r=0;r<8;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
     const rowTiles=(r)=>{ const out=[]; for(let c=0;c<COLS;c++){ const t=S.board[r][c]; if(t&&(t.kind==="normal"||t.kind==="gold"||t.kind==="wild")) out.push(t); } return out; };
-    switch(fx.t){
-      /* 🐱 THE FIRST FRIEND ANYONE MEETS, so it has to be the most legible thing in the
-         game. Golden Paw gilded your next letter and paid off later, somewhere, if you
-         cleared it - a player finished two whole rounds without ever seeing the cat do
-         anything. A first power must be small, frequent, and visible in the same breath:
-         one letter on the board changes, and often a word falls out of it right there.
-         Gold moved out entirely; the fox, the fish, the lizard and the goose all carry it,
-         and the first rounds are short enough not to need it. */
-      /* ══ THE CARD SAID "ONE THAT FITS" AND NOTHING CHECKED THAT IT FIT ══
-         pawPat retyped a tile to riggedLetter() - a letter that is generally useful, not one
-         that finishes anything. So the first friend anyone ever gets would turn a tile into a
-         Y or a V and nothing would happen, while its card promised otherwise. The owner's
-         words: "it means nothing that it fits", and "getting a pet should immediately change
-         the way you play". The dog, met later, brute-forces the board for a swap that really
-         does make a word - so the SECOND friend was the spectacular one and the first was a
-         dud. Backwards.
-         The cat now looks for a letter that genuinely completes a word, in two tiers, and
-         the two are different in kind from the dog on purpose: the dog FINISHES words for
-         you, the cat SETS THEM UP.
-           1. a letter that completes a word right now - it lands and the word blooms
-           2. failing that, a letter that puts a word one drop away, using the letter you
-              are ALREADY holding, so the cat sets the table and you take the shot
-           3. failing both - a nearly bare board - the old kindness of a spare move
-         Searching only the row and column through the tile, rather than the whole board, is
-         what keeps this cheap enough to run inside a pet's turn. */
-      case "pawPat": {
-        const ns=normals();
-        if(!ns.length){ Game.addMoves(1); break; }
-        const pick = Game.catFit(ns);
-        if(!pick){ Game.addMoves(1); UI.note("cat-nofit","🐾 nothing to pat into place, so the cat found you a spare move instead","once"); break; }
-        Game.retype(pick.t, pick.L); UI.shards(pick.t.r, pick.t.c, "#ffd9a8");
-        Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
-        S.chain=1; await Game.resolve([pick.t]); break; }
-      // reaches as far as it has grown: a maxed dog fishes for FIVE first, which is exactly
-      // the length that wakes a legend. `boost?5:4` was left over from the same-home
-      // doubling - with boost gone it read 4, so the dog scanned the whole board for a
-      // four twice over and the first pass was pure waste.
-      case "weave": { const done = await Game.petAlign(m>=2?5:4) || await Game.petAlign(4) || await Game.petAlign(3);
-        // no word to dig up on this board - rather than nothing, the dog brings back a
-        // star. Players saw their letter silently become ★ and had no idea why.
-        if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
-          UI.sky((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up - so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } break; }
-      // rainHelp lived here - the bee's old power, two helpful tiles a fire. It went with
-      // the bee's rethink: at six fires a round it buried a small board, and burying the
-      // board is how a beginner loses. Nothing else used it.
-      case "wildHand": { if(S.cur) S.cur={letter:"★",kind:"wild"};
-        if(boost && S.next) S.next={letter:"★",kind:"wild"};
-        UI.piece(); UI.stardrift(); Game.handPop(); break; }
-      case "charm": { S.charm=(S.charm||0)+fx.n*m; // 🎼 Grace Notes
-        UI.say("charm-sing", (UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
-        for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
-          h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
-          $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
-        Snd.tone(1046,{dur:.3,type:"sine",gain:.07,verb:true}); break; }
-      case "moves": Game.addMoves(fx.n*m); break; // 🐾 Pond Patrol
-      case "wildOld": { const old=normals().sort((a,b)=>a.id.localeCompare?a.id.localeCompare(b.id):(a.id-b.id)).slice(0,fx.n);
-        old.forEach(t=>{ t.kind="wild"; t.inner.className="tile wild thawpop"; t.inner.innerHTML=tileFace(t); });
-        UI.stardrift(); S.chain=1; await Game.resolve(old); break; }
-      case "goldenEgg": { S.cur={letter:"e",kind:"gold"}; if(boost) S.next={letter:"e",kind:"gold"};
-        UI.piece(); Snd.gold(); Game.handPop(); break; }
-      /* 🦇 ECHO NUDGE. Reversing the whole bottom row could shred letters a player was
-         deliberately assembling - a friend that undoes your plan is anti-magical, and at
-         two and a half fires a round it would have happened most rounds. One letter slides
-         one space instead, and it looks for a slide that MAKES a word before settling for
-         any slide at all. */
-      // the slide was already chosen by petTarget, and the bat is standing beside that
-      // exact letter - this only carries it out
-      case "nudge": {
-        const s = S._petSlide;
-        if(!s || !S.tiles[s.t.id] || S.board[s.t.r][s.to]){ Game.addMoves(1); break; }
-        S.board[s.t.r][s.t.c]=null; S.board[s.t.r][s.to]=s.t; s.t.c=s.to;
-        s.t.el.style.transition="transform .42s cubic-bezier(.4,.05,.35,1)";
-        placeTile(s.t, s.t.r, s.t.c, false);
-        UI.breeze(); await wait(440); s.t.el.style.transition="";
-        S._petSlide=null;
-        S.chain=1; await Game.settle([s.t]); break; }
-
-      /* 🐝 THE BEE MAKES SPACE, it does not make letters. Two helpful tiles a fire at six
-         fires a round was about twelve extra tiles per round, which buries a small board -
-         and burying the board is exactly how a beginner loses. It was also the cat's beat
-         wearing a different coat: both handed you a letter you could use. Lifting the top
-         off the tallest pile is the opposite of the cat, and answers the real failure. */
-      /* 🐝 THE ONLY POWER THAT IS PURELY ABOUT THE OTHERS.
-         Lifting a tile off a pile was correct and dull: it ended in silence, while the cat
-         and the dog both end in a word. And an automatic pluck was worse than useless
-         beside the wish, which plucks whatever the PLAYER chooses.
-         So the bee does what a bee does - it goes friend to friend. Its whole power is
-         other friends, which makes it the one pet that grows with every creature you ever
-         meet, and it teaches the second lesson of the wood out loud: your friends are not
-         five separate powers, they are a party.
-         It nudges whoever is CLOSEST to stirring, so the buzz is felt now rather than
-         banked - and if that tips them over, they act inside this same turn. The drain
-         loop in tryPetAct is still running, so the chain resolves as one moment. */
-      case "buzz": {
-        const others=Game.petActives().filter(g=>g!==pet && g.wake && !(S._woke||[]).includes(g.w));
-        if(!others.length){ Game.addMoves(1); break; }
-        const togo=g=>Game.wakeNeed(g)-((S.wake&&S.wake[g.w])||0);
-        others.sort((a,b)=>togo(a)-togo(b));
-        // the one the bee actually flew to, so the animation and the effect agree
-        const friend=buzzT||others[0];
-        S.wake=S.wake||{};
-        S.wake[friend.w]=(S.wake[friend.w]||0)+1*m;
-        const woke = S.wake[friend.w] >= Game.wakeNeed(friend);
-        // the buzzed friend's pips FILL and stay full until it has had its turn - same rule
-        // as every other wake (see sees()), so the bee's help is something you watch land
-        if(woke){ S._woke=S._woke||[];
-          if(!S._woke.includes(friend.w)) S._woke.push(friend.w); }
-        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" buzzes - "+(UI.artTag(friend.w,"toastimg")||friend.e)+(woke?" <b>wakes!</b>":" stirs"));
-        Snd.tone(woke?990:760,{dur:.11,type:"triangle",gain:.06,verb:true}); buzz(10);
-        UI.petMeter(); break; }
-      case "movesScale": Game.addMoves(Math.max(1, Math.min(6, Math.floor((S.wordsMade||0)/2)))*m); break;
-      case "crackAll": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
-        if(!rocks.length){ Game.addMoves(2); break; }
-        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(const t of rocks){ if(boost||t.cracks){ UI.shards(t.r,t.c,"#8a8f99"); Game.credit("stone"); removeTile(t); S.levelScore+=5; Snd.crack(true); }
-          else { t.cracks=1; t.inner.classList.add("cracked"); Snd.crack(false); } await wait(110); }
-        UI.hud(); await Game.settle(); break; }
-      case "eatWorst": { const picks=Game.worstTiles(fx.n*m);
-        if(!picks.length){ Game.addMoves(2); break; }
-        for(const t of picks){ UI.shards(t.r,t.c,"#c9b18a"); removeTile(t); Snd.crack(true); await wait(160); }
-        await Game.settle(); break; }
-      case "flatBonus": S.flatB=(S.flatB||0)+fx.n*m; break;
-      case "chainBoost": S.chainBoost=true; break;
-      // gilds the SHORTEST column, not the tallest. Gold on the tallest pile is the
-      // hardest gold on the board to ever reach - measured earlier, a fox-gilded column
-      // sat untouched for twenty-six drops. Down in the low ground it gets spent.
-      // the shortest column that actually HAS something in it. Plain Math.min picks an
-      // empty column on a sparse early board, and gilding nothing at all is a worse
-      // failure than gilding the unreachable tallest pile was.
-      case "goldCol": { const h=cols(); let c=-1, low=Infinity;
-        for(let i=0;i<COLS;i++) if(h[i]>0 && h[i]<low){ low=h[i]; c=i; }
-        if(c<0){ Game.addMoves(1); break; }
-        const changed=[]; for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t&&t.kind==="normal"){ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); changed.push(t); UI.shards(t.r,t.c,"#ffd54f"); } }
-        Snd.gold(); break; }
-      case "swapCols": { const h=cols(); const opts=[]; for(let c=0;c<COLS-1;c++) if(h[c]&&h[c+1]) opts.push(c);
-        if(!opts.length){ Game.addMoves(2); break; }
-        const c=rand(opts); const moved=[];
-        for(let r=0;r<8;r++){ const a=S.board[r][c], b=S.board[r][c+1];
-          S.board[r][c]=b; S.board[r][c+1]=a;
-          if(a){ a.c=c+1; moved.push(a); } if(b){ b.c=c; moved.push(b); } }
-        moved.forEach(t=>{ t.el.style.transition="transform .45s cubic-bezier(.4,.05,.35,1)"; placeTile(t,t.r,t.c,false); });
-        UI.breeze(); await wait(480); moved.forEach(t=>t.el.style.transition="");
-        await Game.settle(moved); break; }
-      case "eatRow": { const ts=rowTiles(ROWS-1);
-        for(const t of ts){ UI.shards(t.r,t.c,"#a8c9a0"); removeTile(t); }
-        Snd.collapse(ts.length); await Game.settle(); break; }
-      case "midRow": { const ts=rowTiles(ROWS-2);
-        if(!ts.length){ Game.addMoves(2); break; }
-        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(const t of ts){ UI.shards(t.r,t.c,"#d8b077"); removeTile(t); }
-        Snd.collapse(ts.length); await Game.settle(); break; }
-      case "smashPatch": { const picks=[];
-        for(let r=ROWS-2;r<ROWS;r++) for(let c=3;c<=4;c++){ const t=S.board[r][c]; if(t) picks.push(t); }
-        if(!picks.length){ Game.addMoves(2); break; }
-        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(const t of picks){ UI.shards(t.r,t.c,"#c5a3e0"); Game.creditTile(t); removeTile(t); Snd.crack(true); await wait(90); }
-        await Game.settle(); break; }
-      case "digCrate": { const h=cols(); const c=h.indexOf(Math.min(...h));
-        let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
-        if(land<0){ Game.addMoves(2); break; }
-        newTile("?","crate",land,c); Snd.gold(); break; }
-      case "churn": { const picks=normals().sort(()=>Math.random()-.5).slice(0,fx.n*m);
-        picks.forEach(t=>Game.retype(t, riggedLetter()));
-        S.chain=1; await Game.resolve(picks); break; }
-      case "slideRow": { const ts=rowTiles(ROWS-1); if(ts.length<2){ Game.addMoves(2); break; }
-        const contents=ts.map(t=>({l:t.letter,k:t.kind}));
-        contents.unshift(contents.pop());
-        ts.forEach((t,i)=>{ t.letter=contents[i].l; t.kind=contents[i].k;
-          t.inner.className="tile"+(t.kind!=="normal"?" "+t.kind:""); t.inner.innerHTML=tileFace(t); });
-        UI.breeze(); S.chain=1; await Game.resolve(ts); break; }
-      case "goldSchool": { const count={}; normals().forEach(t=>count[t.letter]=(count[t.letter]||0)+1);
-        const top=Object.keys(count).sort((a,b)=>count[b]-count[a])[0];
-        if(!top){ Game.addMoves(2); break; }
-        normals().filter(t=>t.letter===top).forEach(t=>{ t.kind="gold"; t.inner.classList.add("gold","thawpop"); setTimeout(()=>t.inner.classList.remove("thawpop"),560); UI.shards(t.r,t.c,"#ffd54f"); });
-        Snd.gold(); break; }
-      case "bestHand": { const best=helpfulByLength(); const ks=Object.keys(best).sort((a,b)=>best[b]-best[a]);
-        const l=ks[0] || (builderLetters()[0]) || riggedLetter();
-        S.cur={letter:l, kind:(S.cur&&S.cur.kind==="gold")?"gold":"normal"}; // 🎯 Sharp Hunters gild the strike
-        UI.piece(); Game.handPop(); break; }
-      case "twinHand": { if(S.cur) S.next={letter:S.cur.letter,kind:S.cur.kind}; UI.piece(); Game.handPop(); break; }
-      case "thawAll": { const ices=Object.values(S.tiles).filter(t=>t.kind==="ice");
-        if(!ices.length){ Game.addMoves(2); break; }
-        ices.forEach(t=>{ Game.credit("ice"); t.kind="normal"; t.inner.className="tile thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#a8dcf5"); });
-        Snd.thaw(); S.chain=1; await Game.resolve(ices); break; }
-      case "smashCol": { const h=cols(); const c=h.indexOf(Math.max(...h));
-        if(!h[c]){ Game.addMoves(2); break; }
-        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
-        for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); Game.creditTile(t); removeTile(t); } }
-        Snd.collapse(6); break; }
-      case "sweepTops": { const picks=[];
-        for(let c=0;c<COLS;c++){ for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ if(t.kind==="normal"||t.kind==="gold"||t.kind==="wild") picks.push(t); break; } } }
-        if(!picks.length){ Game.addMoves(2); break; }
-        for(const t of picks){ UI.shards(t.r,t.c,"#9fd4f2"); removeTile(t); }
-        Snd.collapse(picks.length); break; }
-      case "splash": { S.splash=(S.splash||0)+fx.n*m;
-        break; } // 🏖️ Beach Day
-      case "damFill": { const h=cols(); const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0,fx.n);
-        const added=[];
-        for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
-          if(land<2) continue; const t=newTile(riggedLetter(),"normal",land,c,false); added.push(t);
-          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,c); void t.el.offsetWidth;
-          t.el.style.transition="transform 240ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(land,c);
-          await wait(250); t.el.style.transition=""; }
-        S.chain=1; await Game.resolve(added); break; }
-      case "freePluck": { S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
-        UI.sky((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole - tap any letter to pluck it FREE"); break; }
-      case "stoneGold": { const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
-        if(!rocks.length){ Game.addMoves(2); break; }
-        rocks.forEach(t=>{ Game.credit("stone"); t.kind="gold"; t.letter=riggedLetter(); t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#ffd54f"); });
-        Snd.gold(); S.chain=1; await Game.resolve(rocks); break; }
-      case "shuffleCols": { const perm=[...Array(COLS).keys()].sort(()=>Math.random()-.5);
-        const grid=[]; for(let r=0;r<8;r++){ grid.push([...S.board[r]]); }
-        const moved=[];
-        for(let r=0;r<8;r++) for(let c=0;c<COLS;c++){ const t=grid[r][perm[c]]; S.board[r][c]=t||null;
-          if(t){ t.c=c; moved.push(t); } }
-        moved.forEach(t=>{ t.el.style.transition="transform .55s cubic-bezier(.4,.05,.35,1)"; placeTile(t,t.r,t.c,false); });
-        UI.breeze(); await wait(580); moved.forEach(t=>t.el.style.transition="");
-        await Game.settle(moved); break; }
-      case "vowelize": { const picks=normals().filter(t=>!"aeiou".includes(t.letter)).sort(()=>Math.random()-.5).slice(0,fx.n*m);
-        if(!picks.length){ Game.addMoves(2); break; }
-        picks.forEach(t=>Game.retype(t, rand(["a","e","i","o","u"])));
-        S.chain=1; await Game.resolve(picks); break; }
-      case "clearRoom": { const ts=normals(); if(!ts.length){ Game.addMoves(2); break; }
-        const junk=ts.filter(t=>"qzxjv".includes(t.letter));
-        const target = junk.length ? junk[0].letter
-          : ts.slice().sort((a,b)=>VAL[b.letter]-VAL[a.letter])[0].letter;
-        const picks=ts.filter(t=>t.letter===target);
-        for(const t of picks){ UI.shards(t.r,t.c,"#c9e29a"); removeTile(t); await wait(120); }
-        Snd.collapse(picks.length); await Game.settle(); break; }
-      case "junkToGift": { const cand=Object.values(S.tiles).find(t=>t.kind==="stone"||t.kind==="ice"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") || Game.worstTiles(1)[0];
-        if(!cand){ Game.addMoves(2); break; }
-        Game.creditTile(cand);   // the rummaged obstacle is genuinely gone - pay the ask for it
-        cand.kind="crate"; cand.inner.className="tile thawpop"; cand.inner.innerHTML=tileFace(cand);
-        UI.shards(cand.r,cand.c,"#ffd54f"); Snd.gold(); break; }
-      case "acornBlast": { const h=cols(); const c=h.indexOf(Math.max(...h));
-        let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
-        if(land<0){ Game.addMoves(2); break; }
-        const t=newTile("🌰","bomb",land,c);
-        await wait(550);
-        const fell=await Game.explode(t);
-        S.chain=1; await Game.resolve(fell); break; }
-      case "webWrap": S.web=(S.web||0)+1*m; break;
-
-      /* ---- the five re-aimed powers ------------------------------------------------
-         The roster was fourteen ways to clear things and two ways to build a word, which
-         is why a party could never be built toward anything. These five were the weakest
-         or the most duplicated, and each becomes a distinct way to MAKE a word possible. */
-
-      // 🪰 the fly's old power was wolf's, at a third the strength - an exact duplicate
-      case "vowelSwarm": { const junk=normals().filter(t=>"qzxjv".includes(t.letter));
-        if(!junk.length){ Game.addMoves(2); break; }
-        for(const t of junk){ Game.retype(t, rand(["a","e","i","o","u"])); UI.shards(t.r,t.c,"#c9e29a"); }
-        Snd.thaw(); S.chain=1; await Game.resolve(junk); break; }
-
-      // 🦬 the herd calls ahead: the next three letters are all ones that fit
-      case "herdCall": { S._helpNext=(S._helpNext||0)+3*m;
-        if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
-        UI.say("herd-call", (UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd - the next letters are <b>chosen for you</b>", 3);
-        break; }
-
-      // 🫎 the sweep only ever touched plain tiles and read as a weaker row clear
-      case "antlerSort": { const tops=[];
-        for(let c=0;c<COLS;c++){ for(let r=0;r<ROWS;r++){ const t=S.board[r][c];
-          if(t){ if(t.kind==="normal") tops.push(t); break; } } }
-        if(!tops.length){ Game.addMoves(2); break; }
-        for(const t of tops){ Game.retype(t, riggedLetter()); UI.shards(t.r,t.c,"#9fd4f2"); }
-        Snd.gold(); S.chain=1; await Game.resolve(tops); break; }
-
-      // 🐞 a flat +5 on three words was the thinnest power in the wood
-      case "luckyTile": { const ns=normals();
-        if(!ns.length){ Game.addMoves(2); break; }
-        const picks=ns.sort(()=>Math.random()-.5).slice(0, 1*m);
-        for(const t of picks){ t.kind="wild"; t.inner.className="tile wild thawpop";
-          t.inner.innerHTML=tileFace(t); UI.shards(t.r,t.c,"#e8b64c"); }
-        Snd.gold(); S.chain=1; await Game.resolve(picks); break; }
-
-      // 🦭 "next two words score half again" sat on top of three other score powers
-      case "tidePool": { const h=cols();
-        const order=[...Array(COLS).keys()].sort((a,b)=>h[a]-h[b]).slice(0, 2);
-        const added=[];
-        for(const c of order){ let land=ROWS-1; while(land>=0&&S.board[land][c]) land--;
-          if(land<2) continue;
-          const t=newTile(rand(["a","e","i","o","u"]),"normal",land,c,false); added.push(t);
-          t.el.style.transition="none"; t.el.style.transform=xy(-1.2,c); void t.el.offsetWidth;
-          t.el.style.transition="transform 260ms cubic-bezier(.55,0,.85,.55)"; t.el.style.transform=xy(land,c); }
-        if(!added.length){ Game.addMoves(2); break; }
-        await wait(300); added.forEach(t=>t.el.style.transition="");
-        Snd.thaw(); S.chain=1; await Game.resolve(added); break; }
-      case "whisper": case "next2": case "skipJunk": case "vowelDeck": case "alwaysHint":
-      case "refund4": case "crumb": case "freeStep": case "helpDeck": case "kindred": case "firstFree":
-        break; // passives never reach here (filtered), but stay safe
-    }
+    const run = POWERS[fx.t];
+    if(run) await run({ fx, m, pet, boost, el, normals, cols, rowTiles, buzzT });
+    else console.warn("no power handler for \"" + fx.t + "\" (" + pet.w + ")");
     // 🛶 River Games: frog & otter play on - a bonus paw charge
     if(visit) await visit.home();                                   // back to its seat, job done
     S.petActing=false;
@@ -6835,26 +7017,10 @@ const Game = {
       case "pawPat": { const ns=ts.filter(x=>x.kind==="normal");
         const social=ns.filter(x=>(x.c>0 && S.board[x.r][x.c-1]) || (x.c<COLS-1 && S.board[x.r][x.c+1]));
         t=pick(social.length?social:ns); break; }
-      /* THE SLIDE IS CHOSEN HERE, not later. If the power went looking for a word-making
-         slide of its own after the bat had already flown somewhere, it would routinely
-         pick a different tile - and the player watches the friend stand next to a letter
-         that never moves. Deciding once means the aim IS the decision. */
-      case "nudge": {
-        const slides=[];
-        for(const x of ts){ if(x.kind!=="normal") continue;
-          for(const dc of [-1,1]){ const c=x.c+dc;
-            if(c<0||c>=COLS||S.board[x.r][c]) continue; slides.push({t:x,to:c}); } }
-        if(!slides.length) break;
-        const move=(s,to)=>{ const from=s.t.c;
-          S.board[s.t.r][from]=null; S.board[s.t.r][to]=s.t; s.t.c=to; };
-        let chosen=null;
-        for(const s of slides){ const home=s.t.c; move(s,s.to);
-          if(findWords().some(w=>w.cells.includes(s.t) && !w.cells.every(c=>c.heldWord===w.word))) chosen=s;
-          move(s,home);                                  // always put it back; the fx does the real move
-          if(chosen) break; }
-        S._petSlide = chosen || pick(slides);
-        t = S._petSlide ? S._petSlide.t : null; break; }
     }
+    /* the bat used to be aimed from here, back when it flew down and slid a letter
+       sideways. It is a passive now and never leaves the shelf, so there is nothing to
+       aim - the rule it changes is true everywhere on the board at once. */
     t = t
       || (/stone|rock|crack|boulder/i.test(fx.t) && pick(ts.filter(x=>x.kind==="stone")))
       || (/ice|thaw|frost|melt/i.test(fx.t)     && pick(ts.filter(x=>x.kind==="ice")))
@@ -6928,6 +7094,8 @@ const Game = {
       if(wl>=4)  Game.sees("word4");
       if(wl>=5)  Game.sees("word5");
       if(/[qzxjv]/.test(word.word)) Game.sees("rare");
+      // …and the first sign about the word rather than the board
+      if(isMirror(word.word)) Game.sees("mirror");
     }
     Game.tallyEv(wl>=6?"word6":"word"+wl);
     if(/[qzxjv]/.test(word.word)) Game.tallyEv("qzxjv");
@@ -7209,6 +7377,15 @@ const Game = {
       if(S.flatB>0){ pts+=5; S.flatB--; }                          // 🍀 Lucky Spots: +5 a word
       if(len===3 && Game.hasPassive("crumb")) pts+=3;              // 🧀 Crumb Collector
       if(GROVE_BY_WORD[w.word] && Game.hasPassive("kindred")) pts*=(2); // 🐾 Kindred Call (🌼 Meadow Kin sings louder)
+      /* 🔄 THE OTHER HALF OF THE BAT. She reads every row both ways, so the word that
+         reads the SAME both ways is the one she is really waiting for. Deliberately a
+         multiplier on a power that already earns its seat, never a power of its own:
+         measured in play, a palindrome was available to spell on 1 drop in 552 - about
+         once every eight rounds, and that is the ceiling for a player hunting them, not
+         the average. A creature whose whole job fired that rarely would be a rumour.
+         Which is also why the palindrome-maker is not a nice-to-have: without something
+         that manufactures the chance, this line almost never pays. */
+      if(isMirror(w.word) && Game.hasPassive("readsBoth")) pts*=2;  // 🔄 true both ways
       if(len>=(4) && S.chain===1 && Game.hasPassive("refund4") && !S._refunded){ S._refunded=true; Game.addMoves(1); } // 💨 Quickstep (🌪️ The Chase widens it)
       // 🌑 a shroud dims every word cleared in its shadow - half the joy, rounded up
       if(w.cells.some(t=>[[1,0],[-1,0],[0,1],[0,-1]].some(d=>{
@@ -7607,6 +7784,7 @@ const Game = {
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 /* =================== UI =================== */
+/* @module  ui  -  every screen, card and animation */
 const UI = {
   scene(id){
     document.querySelectorAll(".scene").forEach(s=>s.classList.remove("active"));
@@ -7823,20 +8001,8 @@ const UI = {
     el.classList.toggle("empty", wn<=0);
     el.title="every 4-letter word earns a wish · tap to choose any letter for your next tile";
   },
-  /* what each sign is CALLED, in the wood's own voice - these are the words a player
-     reads on a friend's card, so they name the thing that happens, not the event id */
-  /* the Book's section headings - the same signs, said as a place on the shelf */
-  SIGN_TITLE:{ drop:"🍂 they stir as you drop", consonant:"🪵 they listen for hard letters",
-    vowel:"🌾 they listen for soft letters", anyWord:"📖 they stir at any word",
-    word3:"🌱 they stir at any word", word4:"🌿 they wait for four letters",
-    word5:"🌟 they wait for five", gold:"✨ they follow the gold",
-    obstacle:"🪨 they wake when the way clears", crate:"🎁 they wake at an opened gift",
-    cascade:"💫 they wake on a tumble", rare:"💎 they wake at a rare letter",
-    passive:"♾️ always awake" },
-  WAKE_WORDS:{ drop:"tiles dropped", consonant:"hard letters", vowel:"soft letters",
-    anyWord:"words", word3:"words", word4:"four-letter words",
-    word5:"five-letter words", gold:"golden letters cleared", obstacle:"things cleared away",
-    crate:"gifts opened", rare:"rare letters", cascade:"tumbles", tool:"tools used" },
+  /* what a sign is CALLED, in the wood's own voice, now lives beside the sign itself in
+     SIGNS - use signTitle(s) for a Book heading and signNoun(s) for the word on a card. */
   petMeter(){
     // EVERY FRIEND CARRIES ITS OWN COUNT. There is no shared meter to read any more -
     // one friend may be two consonants from stirring while another waits on a word you
@@ -7891,7 +8057,7 @@ const UI = {
   signPhrase(g){
     if(!g) return "";
     if(g.ps) return "always awake";
-    const sign = UI.WAKE_WORDS[g.wake && g.wake.on] || "words";
+    const sign = signNoun(g.wake && g.wake.on, "words");
     return (g.wake && g.wake.n > 1) ? g.wake.n + " " + sign : sign;
   },
   petInfo(slot){ // tap a pet: what it does, and exactly when it acts - no mystery
@@ -8320,7 +8486,7 @@ const UI = {
             // is what wakes this one.
             +'<span class="gd">'+(g.ps ? "always awake"
                 : "wakes at "+(Game.wakeNeed(g)>1 ? Game.wakeNeed(g)+" " : "")
-                  +(UI.WAKE_WORDS[g.wake&&g.wake.on]||"play"))+'</span>';
+                  +signNoun(g.wake&&g.wake.on))+'</span>';
           el.onclick=()=>UI.petSheet(g.w);
         } else {
           const isNext = g.w===UI.teachingQuarry();      // the one-time lesson, and nothing else
@@ -8359,11 +8525,14 @@ const UI = {
     const bySign={};
     owned.forEach(g=>{ const k = g.ps ? "passive" : ((g.wake&&g.wake.on)||"passive");
       (bySign[k]=bySign[k]||[]).push(g); });
-    // everyday signs first, rare ones last - the order a player meets them in
-    ["drop","consonant","vowel","anyWord","word3","word4","word5",
-     "gold","obstacle","crate","cascade","rare","passive"]
-      .filter(k=>bySign[k]).forEach(k=>section(UI.SIGN_TITLE[k]||"🐾 friends", bySign[k]));
-    if(hushed.length) section("🌙 Still hushed &mdash; names not yet spoken", hushed);
+    /* everyday signs first, rare ones last - the order a player meets them in, which is
+       SIGNS' own order field. This was a hand-written array, and it had quietly lost a
+       sign: "tool" was missing from it, so a friend waking on a tool would have been
+       filtered clean out of the Book rather than merely mis-headed. Nobody waked on tool
+       yet, so nobody ever saw it - the kind of thing that only bites the day you add the
+       fifty-first friend. Derived from the registry, it cannot drift again. */
+    SIGN_ORDER.filter(k=>bySign[k]).forEach(k=>section(signTitle(k), bySign[k]));
+    if(hushed.length) section("🌙 Still hushed - names not yet spoken", hushed);
     // …and if the one-time lesson card has fallen below the fold, lift it into view. Only
     // then - nobody wants the party shelf yanked out from under them when it was already
     // in plain sight. Once the lesson retires there is nothing here to chase the player to.
@@ -8389,7 +8558,7 @@ const UI = {
     // which round is never stated anywhere, and stays the player's to notice.
     $("pet-sheet-mate").innerHTML = g.ps ? ""
       : "stirs at <b>"+((g.wake&&g.wake.n>1 ? g.wake.n+" " : "")
-        +(UI.WAKE_WORDS[g.wake&&g.wake.on]||"play"))+"</b>";
+        +signNoun(g.wake&&g.wake.on))+"</b>";
     $("pet-sheet-met").textContent="part of your grove since "+new Date(P.grove[w]).toLocaleDateString(undefined,{month:"long",day:"numeric"});
     const isMet=!!P.metGrove[w], on=UI.equipped().some(x=>x.w===w);
     const btn=$("pet-sheet-btn");
@@ -9335,6 +9504,7 @@ const UI = {
 };
 
 /* =================== LAYOUT & INPUT =================== */
+/* @module  input  -  pointer handling and fitting the stage to the phone */
 function fitBoard(){
   const wrap=$("boardwrap");
   if(!wrap.clientWidth) return;
@@ -9662,6 +9832,147 @@ const Tele = {
     +"\n"+this.seq+" events · "+this.buf.length+" waiting"; },
 };
 
+/* ============ 🔎 THE AUDIT - the type checker we do not have yet ============
+   @module  audit
+
+   Everything in here is a question a compiler would answer for free, asked at boot
+   instead. It exists because this file has grown past the size where reading it tells
+   you the truth: twice in one afternoon a careful grep over these 9,700 lines produced
+   a confident WRONG answer about which signs the game fires, and a wrong answer is far
+   more expensive than no answer. Regexes see text. This sees the objects.
+
+   Every check is something that fails SILENTLY today. A friend waiting on a sign nobody
+   fires simply never acts, and looks like a balance problem. A creature whose name is
+   not in the dictionary can never be spelled, so it can never be met, and looks like bad
+   luck. None of these throw. That is exactly why they need a nagger.
+
+   Runs by itself on localhost and file:// only - a player must never see this - and can
+   be called from the console anywhere as Hush.audit(). When the codebase moves to
+   TypeScript, most of this becomes types and can be deleted; the LAW check and the
+   dictionary check stay, because no type system knows how often a sign fires or whether
+   a word is spellable. */
+const Audit = {
+  run(loud){
+    const err=[], warn=[], note=[];
+    const isCreature = w => !!GROVE_BY_WORD[w];
+
+    /* ── the registry itself ── */
+    for(const [k,v] of Object.entries(SIGNS)){
+      ["freq","order","title","noun"].forEach(f=>{
+        if(v[f]===undefined) err.push('SIGNS.'+k+' has no '+f);
+      });
+    }
+
+    /* ── every friend ── */
+    const seen=new Set();
+    GROVE.forEach(g=>{
+      const at='🐾 '+g.w+': ';
+      if(seen.has(g.w)) err.push(at+'two friends share this name');
+      seen.add(g.w);
+      ["e","z","pn","pi","pd","f","fx"].forEach(f=>{
+        if(g[f]===undefined || g[f]==="") err.push(at+'no '+f);
+      });
+      if(g.z!=="sky" && g.z!=="ground") err.push(at+'lives in "'+g.z+'", which is neither sky nor ground');
+      if(g.fx && !g.fx.t) err.push(at+'fx has no t');
+
+      // A NAME YOU CANNOT SPELL IS A FRIEND YOU CANNOT MEET. The whole game is spelling
+      // these fifty words; one missing from the dictionary is a creature sealed out of
+      // its own game, and nothing anywhere would ever say so.
+      if(typeof COMMON!=="undefined" && !COMMON.has(g.w))
+        err.push(at+'its name is not in the dictionary, so it can never be spelled');
+
+      if(!g.ps && !g.wake) err.push(at+'is not passive and waits for nothing, so it can never act');
+      // A PASSIVE'S wake IS DEAD DATA, not a bug. petActives() is equipped().filter(g=>!g.ps),
+      // so sees() never counts for them, and every card and Book path tests g.ps before it
+      // looks at the sign. It reads like a trigger and is inert, which is the kind of thing
+      // that wastes an afternoon later - worth saying once, not worth shouting about.
+      if(g.ps && g.wake) note.push(at+'is passive, so its wake on "'+g.wake.on+'" is never counted');
+
+      if(g.wake){
+        if(!SIGNS[g.wake.on]) err.push(at+'waits for "'+g.wake.on+'", which is not a sign');
+        else if(!g.ps){
+          /* judged on the DESIGNED count, not the tier-adjusted one. wakeNeed() divides by
+             tierMul, so running this against a level-60 save made five friends look broken
+             that are fine at the tier they were balanced for - a boot check whose answer
+             depends on the save file is a check nobody will trust. (That tiering really
+             does push some friends to ~9 stirs a round at the top end is a live design
+             question, but it is a question about tiering, not about these numbers.) */
+          const need = g.wake.n;
+          const per  = SIGNS[g.wake.on].freq / (need||1);   // times it should stir per round
+          // THE LAW, checked rather than trusted. A friend that stirs six times a round is
+          // not a friend, it is the weather; one that stirs every third round was never
+          // worth a seat. Both are invisible until someone plays fifty rounds.
+          if(per > 5)    warn.push(at+'stirs about '+per.toFixed(1)+'x a round - far too often for a seat to be a choice');
+          if(per < 0.35) warn.push(at+'stirs about once every '+(1/per).toFixed(1)+' rounds - too rare to feel owned');
+        }
+      }
+    });
+
+    /* ── does anyone listen? ── */
+    const listened={};
+    GROVE.forEach(g=>{ if(g.wake) listened[g.wake.on]=(listened[g.wake.on]||0)+1; });
+    Object.keys(SIGNS).forEach(k=>{
+      if(k==="passive") return;
+      if(!listened[k]) note.push('🔕 nothing listens for "'+k+'" - a sign the wood fires into an empty room');
+    });
+
+    /* ── the tables that point at friends ──
+       GATE is NOT one of them, which the first version of this audit got wrong and said so
+       thirty times: it is keyed by level and holds the shape of a round (moves, seats,
+       door), and the only creature in it is the optional friend a gate bars. */
+    const pointsAt = (obj,label,pick) => {
+      if(typeof obj==="undefined" || !obj) return;
+      Object.entries(obj).forEach(([k,v])=>{
+        const w = pick ? pick(k,v) : k;
+        if(w && !isCreature(w)) err.push(label+' names "'+w+'", which is not a friend');
+      });
+    };
+    pointsAt(typeof CALLINGS!=="undefined"&&CALLINGS, "CALLINGS");
+    pointsAt(typeof KEYSTONE!=="undefined"&&KEYSTONE, "KEYSTONE", (k,v)=>v);
+    // a gate that bars a friend who does not exist bars nobody, and silently
+    if(typeof GATE!=="undefined" && GATE) Object.entries(GATE).forEach(([lv,g])=>{
+      if(g && g.bars && !isCreature(g.bars)) err.push('GATE '+lv+' bars "'+g.bars+'", which is not a friend');
+    });
+
+    /* ── every power has somewhere to go ── */
+    if(typeof POWERS!=="undefined"){
+      const handled=new Set(Object.keys(POWERS));
+      GROVE.forEach(g=>{ if(g.fx && g.fx.t && !g.ps && !handled.has(g.fx.t))
+        err.push('🐾 '+g.w+': its power "'+g.fx.t+'" has no handler in POWERS'); });
+      const used=new Set(GROVE.filter(g=>g.fx).map(g=>g.fx.t));
+      handled.forEach(k=>{ if(!used.has(k)) note.push('🧹 POWERS.'+k+' is not used by any friend'); });
+      /* THE SECOND TABLE KEYED ON fx.t. Game.petTarget() is its own switch deciding which
+         tile a friend flies to before it works, so a power added to POWERS and forgotten
+         there sends the creature to the middle of the board to do something at the edge.
+         Nothing enforces the pairing, so say plainly which powers have no aimed target. */
+      /* ONLY MEANINGFUL WITH A BOARD IN FRONT OF IT. The first version ran at boot, where
+         S is null, so petTarget returned null for everything and it reported all 39 active
+         friends as broken - a check that cries wolf is worse than no check, because the one
+         time it is right nobody reads it. Aiming is a property of THIS board, not of the
+         data, so it only speaks mid-round and says so. */
+      if(Game.petTarget && S && S.board && Object.keys(S.tiles||{}).length){
+        const aimless=[];
+        GROVE.filter(g=>g.fx && !g.ps).forEach(g=>{
+          let t=null; try{ t=Game.petTarget(g.fx); }catch(e){}
+          if(t===null || t===undefined) aimless.push(g.w+"/"+g.fx.t);
+        });
+        if(aimless.length) note.push('🎯 on THIS board petTarget aims nowhere for '+aimless.length+' powers, so they would play at the centre: '+aimless.join(", "));
+      }
+    }
+
+    const out={ err, warn, note, ok: !err.length };
+    if(loud!==false){
+      const tag='%c🔎 Hushwood audit';
+      const style='background:#2f2416;color:#ffd9a8;padding:2px 8px;border-radius:6px';
+      if(err.length)  { console.groupCollapsed(tag+'%c  '+err.length+' broken', style, 'color:#e06a5a'); err.forEach(m=>console.log('  '+m)); console.groupEnd(); }
+      if(warn.length) { console.groupCollapsed(tag+'%c  '+warn.length+' suspect', style, 'color:#d9a441'); warn.forEach(m=>console.log('  '+m)); console.groupEnd(); }
+      if(note.length) { console.groupCollapsed(tag+'%c  '+note.length+' worth knowing', style, 'color:#8aa06a'); note.forEach(m=>console.log('  '+m)); console.groupEnd(); }
+      if(out.ok && !warn.length) console.log(tag+'%c  all clear - '+GROVE.length+' friends, '+Object.keys(SIGNS).length+' signs', style, 'color:#8aa06a');
+    }
+    return out;
+  },
+};
+
 /* boot */
 fitApp();
 UI.home();
@@ -9669,7 +9980,28 @@ Game.watchdog();
 document.querySelectorAll(".soundbtn").forEach(el=>el.textContent = P.sound?"🔊":"🔇");
 { const st=document.getElementById("menu-snd-state"); if(st) st.textContent=P.sound?"on":"off"; }
 Snd.on = P.sound;
+/* ============ 🌰 THE CONSOLE HANDLE ============
+   One name to reach everything from devtools, because hunting for which of nine hundred
+   script-scope consts holds the thing you want is not debugging, it is archaeology.
+   S and P are getters on purpose: S is replaced wholesale at the start of every round and
+   P is replaced by a restore, so anything that captured them by value would be quietly
+   inspecting last round's game. */
+window.Hush = {
+  get S(){ return S; }, get P(){ return P; },
+  Game, UI, Snd, Tele, Audit, GROVE, GROVE_BY_WORD, SIGNS, SIGN_ORDER,
+  get POWERS(){ return typeof POWERS!=="undefined" ? POWERS : null; },
+  audit: loud => Audit.run(loud),
+  /* who is on duty and how close each one is to stirring - the single question I ask
+     most often and used to answer by hand out of two different objects */
+  duty(){ return UI.equipped().map(g=>({ friend:g.w, power:g.pn,
+    sign:g.wake?g.wake.on:"passive",
+    at:(S&&S.wake&&S.wake[g.w])||0, needs:g.wake?(Game.wakeNeed?Game.wakeNeed(g):g.wake.n):"-" })); },
+};
+// the loose globals stay: the ux/tools harnesses drive the game through them over CDP,
+// and the handbook's console recipes are written against them
 window.S = ()=>S; window.Game=Game; window.UI=UI; window.Snd=Snd; window.P=P; window.Tele=Tele;
+// dev machines only - a player must never see the audit, and never pay for it either
+if(Tele.isLocal()) setTimeout(()=>{ try{ Audit.run(); }catch(e){ console.warn("audit fell over:",e); } }, 0);
 Tele.boot();
 Game._sink = (n,p)=>Tele.log(n,p,"funnel");   // level_start/win/fail, wake, purchase*, ad*, shop_open
 // what the wood SAID to them - scene changes and every announcement
