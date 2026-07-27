@@ -3520,15 +3520,24 @@ const SIGNS = {
   drop:      { freq:25,  order: 1, title:"🍂 they stir as you drop",         noun:"tiles dropped" },
   consonant: { freq:15,  order: 2, title:"🪵 they listen for hard letters",  noun:"hard letters" },
   vowel:     { freq:10,  order: 3, title:"🌾 they listen for soft letters",  noun:"soft letters" },
-  anyWord:   { freq: 9,  order: 4, title:"📖 they stir at any word",         noun:"words" },
-  word3:     { freq: 9,  order: 5, title:"🌱 they stir at any word",         noun:"words" },
-  word4:     { freq: 3,  order: 6, title:"🌿 they wait for four letters",    noun:"four-letter words" },
-  word5:     { freq: 1.2,order: 7, title:"🌟 they wait for five",            noun:"five-letter words" },
+  /* ⚠️ THE FOUR WORD ROWS ARE NOW MEASURED, and they were all badly wrong. Real players
+     make 3.68 words a round, not nine, and 1.03 four-letter words, not three. Every wake
+     threshold in the roster was written against the old numbers, so friends were waiting
+     two to three times longer than anyone intended - and once courtships started reading
+     this column to size themselves, the error stopped being cosmetic. Source: 673 words
+     over 183 rounds from the real testers, dev sessions removed.
+     word3 matches anyWord because the ladder feeds it every word of three letters or more.
+     The rows below them are still estimates - no telemetry counts a tumble or a thawed
+     stone - and they say so rather than pretending. */
+  anyWord:   { freq: 3.68,order: 4, title:"📖 they stir at any word",         noun:"words" },
+  word3:     { freq: 3.68,order: 5, title:"🌱 they stir at any word",         noun:"words" },
+  word4:     { freq: 1.03,order: 6, title:"🌿 they wait for four letters",    noun:"four-letter words" },
+  word5:     { freq: 0.13,order: 7, title:"🌟 they wait for five",            noun:"five-letter words" },
   gold:      { freq: 2,  order: 8, title:"✨ they follow the gold",          noun:"golden letters cleared" },
   obstacle:  { freq: 3,  order: 9, title:"🪨 they wake when the way clears", noun:"things cleared away" },
   crate:     { freq: 1.2,order:10, title:"🎁 they wake at an opened gift",   noun:"gifts opened" },
   cascade:   { freq: 2,  order:11, title:"💫 they wake on a tumble",         noun:"tumbles" },
-  rare:      { freq: 1,  order:12, title:"💎 they wake at a rare letter",    noun:"rare letters" },
+  rare:      { freq: 0.26,order:12, title:"💎 they wake at a rare letter",    noun:"rare letters" },
   /* THE FIRST SIGN THAT IS ABOUT THE WORD ITSELF rather than about the board. Everything
      above fires because something happened - a tile landed, a stone broke. This one fires
      because of what a word IS, which is the whole point of putting it in a word game.
@@ -4304,6 +4313,7 @@ function newState(level){
     petActor:null,              // WHICH friend is mid-act, so its own word cannot feed it
     _actedThisDrop:[],          // one drop, one act each - the brake on a friend-fed runaway
     said:[],                    // every word this round, in order: the round's memory
+    sigs:{},                    // how many of each sign this round - what a courtship reads
     wordsMade:0, flatB:0, splash:0, web:0, chainBoost:false, freePluck:false, next2:null, stepN:0,
     bestWord:"", bestWordPts:0, cur:null, next:null,
     over:false, busy:true, hoverCol:3, killers:{} };
@@ -6854,6 +6864,44 @@ const Game = {
      the pacing, and it needs no counter: however well you play, only the creatures who live
      in the Clearing can answer you in the Clearing.
      Depth staggers arrivals inside a country so its back half is not empty. */
+  /* ══ THE COURTSHIP ══
+     How a friend is earned: do the thing it loves, in one round, while it is listening.
+
+     This is the same taste it will reward once it is yours, which makes the courtship the
+     cheapest tutorial in the game - you learn what the mouse wants by earning her, so when
+     she takes a seat you already know how to play her. Nothing is explained anywhere.
+
+     The COUNT comes from the measured rate of that taste, not from taste: crumbs happen
+     2.65 times a round so the crumb-lovers ask for four, a four-letter word happens 1.03
+     times so those ask for two, and anything rarer asks once. A courtship you would pass by
+     accident is not a courtship, and one you can never pass is a wall. */
+  courtNeed(g){
+    const sign = g.wake && g.wake.on;
+    if(!sign) return null;                     // passives are courted by their own meaning below
+    const f = SIGNS[sign] && SIGNS[sign].freq;
+    if(f==null) return 2;                      // unmeasured taste: ask twice and watch it
+    if(f >= 8)   return 10;                    // per-drop things: four of them is not an ask
+    if(f >= 2)   return 4;                     // everyday - crumbs, tumbles
+    if(f >= 0.8) return 2;                     // most rounds - four-letter words, obstacles
+    return 1;                                  // rare enough that once is the whole ask
+  },
+  /* the two meaning passives ask for their meaning; every other passive asks for words,
+     since an always-on friend has no taste of its own to demonstrate */
+  COURT_PASSIVE: { deer:["food",1], heron:["weather",1] },
+  courtship(g){
+    const p = Game.COURT_PASSIVE[g.w];
+    if(p) return { sign:p[0], n:p[1] };
+    if(g.ps) return { sign:"anyWord", n:4 };
+    const sign = g.wake && g.wake.on;
+    return sign ? { sign, n:Game.courtNeed(g) } : null;
+  },
+  /* has this round satisfied it? */
+  courted(w){
+    const g = GROVE_BY_WORD[w]; if(!g) return false;
+    const c = Game.courtship(g); if(!c) return false;
+    return ((S && S.sigs && S.sigs[c.sign]) || 0) >= c.n;
+  },
+
   canHear(w){
     const h = HOME[w];
     if(!h) return false;                       // keystones are given at doors, never found
@@ -6897,8 +6945,13 @@ const Game = {
          the ones who might answer. CALL_MINL described the same pacing as an invisible
          number per creature, and two systems saying the same thing is one that will drift. */
       if(!gapOK) continue;   // a friend arrived too recently; this one waits its turn
+      /* EARNED BY DOING THE THING IT LOVES, in this round, while it is listening. The old
+         calling still counts as a second door - some of them are lovely and lifetime-shaped
+         ("clear 150 words") in a way a single round cannot express - so a friend answers to
+         either. What changed is that the everyday way in is now something you can feel
+         happening rather than a hidden lifetime tally. */
       const have = Game.callProgress(w).have;
-      if(have>=c.n){
+      if(Game.courted(w) || have>=c.n){
         P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; P.lastSummonL=plv;
         Game.amber(10);
         // NEVER announced mid-play - the player is busy playing. The summons waits
@@ -6949,6 +7002,11 @@ const Game = {
        produces could crank itself. Defaulting the exclusion to whoever is mid-act closes
        every path at once instead of at each call site, where the next one would be missed. */
     if(!except && S.petActing && S.petActor) except = S.petActor;
+    /* THE ROUND COUNTS WHAT IT HAS SEEN. A courtship asks for a creature's own taste N
+       times in one round, so this is the meter it reads - and it counts the sign whoever
+       raised it, because a friend helping you court another friend is a lovely thing and
+       not a cheat. */
+    S.sigs = S.sigs || {}; S.sigs[ev] = (S.sigs[ev]||0) + (n||1);
     S.wake = S.wake || {};
     for(const g of Game.petActives()){
       if(except && g.w===except) continue;
@@ -8710,9 +8768,20 @@ const UI = {
           // listening - the drumroll that a naming level is coming
           const c=CALLINGS[g.w]||{};
           const pr=Game.callProgress(g.w);
+          /* WHAT THE CARD ASKS FOR HAS TO BE WHAT THE GAME ASKS FOR. The courtship is the
+             everyday door now - do this creature's own thing, in one round, while it can
+             hear you - but the card still advertised the lifetime calling, which is the
+             slower second door. A player would have chased "clear 300 words" while the
+             friend was two crumbs away. So: while it is listening, the card says the thing
+             you can do RIGHT NOW; the lifetime calling stays for the friends whose country
+             is still ahead, where it is the only progress that means anything yet. */
+          const court = Game.courtship(g);
+          const canHear = Game.canHear(g.w);
           const callLine = P.called[g.w]
             ? '<span class="gcall listening">💫 it is LISTENING…<br>its name comes soon</span>'
-            : '<span class="gcall">'+ (c.c||"") +' <b>'+pr.have+'/'+pr.n+'</b></span>';
+            : (canHear && court)
+              ? '<span class="gcall">'+court.n+' &times; '+signNoun(court.sign)+' <b>in one round</b></span>'
+              : '<span class="gcall">'+ (c.c||"") +' <b>'+pr.have+'/'+pr.n+'</b></span>';
           el.innerHTML='<span class="ge">'+(UI.artTag(g.w,"geimg")||g.e)+'</span><span class="mound"></span>'
             +(isNext?'<span class="nexttag">your next friend</span>':'')
             +'<span class="gn">a hushed friend</span>'
@@ -8747,7 +8816,41 @@ const UI = {
        yet, so nobody ever saw it - the kind of thing that only bites the day you add the
        fifty-first friend. Derived from the registry, it cannot drift again. */
     SIGN_ORDER.filter(k=>bySign[k]).forEach(k=>section(signTitle(k), bySign[k]));
-    if(hushed.length) section("🌙 Still hushed - names not yet spoken", hushed);
+    /* ══ THE HUNT IS A MAP ══
+       The unmet used to be one heap called "still hushed", which told you fifty creatures
+       exist and nothing about how to meet any of them - and only about a third of testers
+       ever opened this screen. A heap is not a reason to come back.
+       Grouped by country it answers the question a player actually has: who is out here,
+       and where do I have to walk. The country you are standing in comes FIRST and says so,
+       because those are the only ones who can hear you right now. The rest are a road
+       ahead, which is a better feeling than a wall.
+       Keystones are separated out: they are given at doors, never found, and listing them
+       among the findable would send somebody hunting for a creature that is a gift. */
+    if(hushed.length){
+      const keyed = new Set(Object.values(KEYSTONE));
+      const here = biomeOf(P.level);
+      const byCountry = {};
+      const gifts = [];
+      hushed.forEach(g=>{
+        if(keyed.has(g.w) || !HOME[g.w]){ gifts.push(g); return; }
+        const c = HOME[g.w][0];
+        (byCountry[c]=byCountry[c]||[]).push(g);
+      });
+      // your country first, then the road ahead, then the countries behind you
+      const order = Object.keys(byCountry).map(Number).sort((a,b)=>{
+        const rank = c => c===here ? 0 : (c>here ? 1 : 2);
+        return rank(a)-rank(b) || a-b;
+      });
+      order.forEach(c=>{
+        const listening = byCountry[c].filter(g=>Game.canHear(g.w)).length;
+        const name = BIOME_NAMES[c] || ("country "+(c+1));
+        const tail = c===here
+          ? (listening ? " - "+listening+" listening" : " - none listening yet")
+          : (c>here ? " - further on" : " - behind you, still listening");
+        section((BIOMES[c]||"🌿")+" "+name+tail, byCountry[c]);
+      });
+      if(gifts.length) section("🗝️ waiting at the doors ahead", gifts);
+    }
     // …and if the one-time lesson card has fallen below the fold, lift it into view. Only
     // then - nobody wants the party shelf yanked out from under them when it was already
     // in plain sight. Once the lesson retires there is nothing here to chase the player to.
@@ -9860,7 +9963,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260727144850",
+  ver:"20260727145622",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
