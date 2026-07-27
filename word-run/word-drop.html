@@ -3615,24 +3615,30 @@ const SIGNS = {
   drop:      { freq:25,  order: 1, title:"🍂 they stir as you drop",         noun:"tiles dropped" },
   consonant: { freq:15,  order: 2, title:"🪵 they listen for hard letters",  noun:"hard letters" },
   vowel:     { freq:10,  order: 3, title:"🌾 they listen for soft letters",  noun:"soft letters" },
-  /* ⚠️ THE FOUR WORD ROWS ARE NOW MEASURED, and they were all badly wrong. Real players
-     make 3.68 words a round, not nine, and 1.03 four-letter words, not three. Every wake
-     threshold in the roster was written against the old numbers, so friends were waiting
-     two to three times longer than anyone intended - and once courtships started reading
-     this column to size themselves, the error stopped being cosmetic. Source: 673 words
-     over 183 rounds from the real testers, dev sessions removed.
+  /* ⚠️ MEASURED AGAINST PLAYERS WHO KNOW THE GAME - and the cut matters more than the
+     measurement. My first pass took every round from anyone who reached level 15, which
+     dragged the prologue in: those rounds are short, scripted and rigged, and they pulled
+     the figure down to 3.68 a round. Filtered properly - players who got past level 20,
+     counting only their rounds past level 20 - it is SEVEN. Nearly double.
+       all rounds from L15+ players   3.79 a round
+       the same players past L6       5.09
+       L20+ players, past L20         7.04   <- what these numbers are set to
+     The LENGTH MIX barely moves across those cuts (70-72% threes, 25-26% fours, 3.4-4.0%
+     five-plus), so the shape of what people spell is solid and only the rate was wrong.
+     Thresholds sized against 3.68 asked a knowing player for half of what was intended.
+     Thin sample, honestly: 28 rounds, 197 words, 3 players. Treat these as "about" figures
+     and do not tune anything to two decimal places against them.
      word3 matches anyWord because the ladder feeds it every word of three letters or more.
-     The rows below them are still estimates - no telemetry counts a tumble or a thawed
-     stone - and they say so rather than pretending. */
-  anyWord:   { freq: 3.68,order: 4, title:"📖 they stir at any word",         noun:"words" },
-  word3:     { freq: 3.68,order: 5, title:"🌱 they stir at any word",         noun:"words" },
-  word4:     { freq: 1.03,order: 6, title:"🌿 they wait for four letters",    noun:"four-letter words" },
-  word5:     { freq: 0.13,order: 7, title:"🌟 they wait for five",            noun:"five-letter words" },
+     The rows below are still estimates - no telemetry counts a tumble or a thawed stone. */
+  anyWord:   { freq: 7.04,order: 4, title:"📖 they stir at any word",         noun:"words" },
+  word3:     { freq: 7.04,order: 5, title:"🌱 they stir at any word",         noun:"words" },
+  word4:     { freq: 2.10,order: 6, title:"🌿 they wait for four letters",    noun:"four-letter words" },
+  word5:     { freq: 0.25,order: 7, title:"🌟 they wait for five",            noun:"five-letter words" },
   gold:      { freq: 2,  order: 8, title:"✨ they follow the gold",          noun:"golden letters cleared" },
   obstacle:  { freq: 3,  order: 9, title:"🪨 they wake when the way clears", noun:"things cleared away" },
   crate:     { freq: 1.2,order:10, title:"🎁 they wake at an opened gift",   noun:"gifts opened" },
   cascade:   { freq: 2,  order:11, title:"💫 they wake on a tumble",         noun:"tumbles" },
-  rare:      { freq: 0.26,order:12, title:"💎 they wake at a rare letter",    noun:"rare letters" },
+  rare:      { freq: 0.46,order:12, title:"💎 they wake at a rare letter",    noun:"rare letters" },
   /* THE FIRST SIGN THAT IS ABOUT THE WORD ITSELF rather than about the board. Everything
      above fires because something happened - a tile landed, a stone broke. This one fires
      because of what a word IS, which is the whole point of putting it in a word game.
@@ -3640,7 +3646,7 @@ const SIGNS = {
      over 552 drops a palindrome was available to spell exactly once. Anything waiting on
      this alone would wait forever, so it pays as a multiplier and wants a friend that
      manufactures the chance. */
-  mirror:    { freq: 0.07,order:22, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways" },
+  mirror:    { freq: 0.13,order:22, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways" },
   tool:      { freq: 3,  order:13, title:"🌬️ they wake when you use a tool", noun:"tools used" },
   /* ══ THE SHAPE AND MEANING SIGNS ══
      Every freq below is MEASURED from real playtesters (673 words over 183 rounds, dev
@@ -3649,12 +3655,14 @@ const SIGNS = {
      there waits two to three times longer than it was written to. Fix that separately.
      rising / twin / held / gilded have no measurement yet: the engine computed all four and
      threw them away, so nothing has ever counted them. They now travel to the sheet. */
-  food:      { freq: 0.03,order:24, title:"🌰 they wake at something good to eat", noun:"good things to eat" },
-  weather:   { freq: 0.05,order:25, title:"🌦️ they wake at the weather",          noun:"weathers named" },
-  nested:    { freq: 0.46,order:15, title:"🪆 they wake at a word inside a word", noun:"words hiding words" },
-  doubled:   { freq: 0.44,order:16, title:"👯 they wake at a doubled letter",     noun:"doubled letters" },
-  echo:      { freq: 0.19,order:17, title:"🔁 they wake when a word follows on",  noun:"words that follow on" },
-  truename:  { freq: 0.18,order:18, title:"🐾 they wake at a friend's true name", noun:"true names spoken" },
+  /* same correction as the word rows: SHARE of words measured, times seven words a round
+     rather than the 3.68 the unfiltered cut suggested */
+  food:      { freq: 0.07,order:24, title:"🌰 they wake at something good to eat", noun:"good things to eat" },
+  weather:   { freq: 0.11,order:25, title:"🌦️ they wake at the weather",          noun:"weathers named" },
+  nested:    { freq: 0.82,order:15, title:"🪆 they wake at a word inside a word", noun:"words hiding words" },
+  doubled:   { freq: 0.78,order:16, title:"👯 they wake at a doubled letter",     noun:"doubled letters" },
+  echo:      { freq: 0.42,order:17, title:"🔁 they wake when a word follows on",  noun:"words that follow on" },
+  truename:  { freq: 0.37,order:18, title:"🐾 they wake at a friend's true name", noun:"true names spoken" },
   rising:    { freq: null,order:19, title:"🌱 they wake at a word read upward",   noun:"words read upward" },
   twin:      { freq: null,order:20, title:"👬 they wake at two words at once",    noun:"double words" },
   held:      { freq: null,order:21, title:"✋ they wake at a word you kept",       noun:"words kept back" },
@@ -3727,7 +3735,9 @@ const HOME_CURVE = [5,4,4,3,3,2,2,2,2,2,1,1,1,1,0];
 // The grove is a living place - every friend is a real creature you might meet in a
 // garden or a national park. Spell its name and it comes to live in your grove.
 /* PETS ARE THE POWERS. There is no separate powerup bar - your equipped friends
-   (up to 4 as your grove grows) act automatically every few words. Eight jobs:
+   (up to 4 as your grove grows) act on their own, each waking to ITS OWN taste - what the
+   word you just made IS, in shape or in meaning. Not "every few words": that was the shared
+   paw meter, and it has been gone since the friends started listening for themselves. Jobs:
    gold  ✨ Golden Touch - turns a tile golden (×3 letter scores)
    align 🍀 Word Weaver  - nudges tiles together to line up a 4+ letter word
    wild  ⭐ Star Gift - a fallen star that matches any letter
@@ -3739,7 +3749,7 @@ const HOME_CURVE = [5,4,4,3,3,2,2,2,2,2,1,1,1,1,0];
 /* ============ 50 FRIENDS, 50 POWERS ============
    Every pet owns a power the base game never gives you. pn/pi/pd = power name/icon/
    description; fx = effect spec (petAct's switchboard); ps:true = PASSIVE, always on
-   while on duty (passives don't use the paw meter - they just work). */
+   while on duty (a passive has no taste to wait for - it simply works). */
 const GROVE = [
   // your first friends - taught in the early levels (f: = the little plaque on their album card)
   /* THE OPENING PAIR, and the first lesson in how friends work together.
@@ -3876,14 +3886,15 @@ const CALLINGS={
 // every creature MUST have a calling - a roster edit that forgets one gets a gentle default
 GROVE.forEach(g=>{ if(!CALLINGS[g.w]) CALLINGS[g.w]={t:"words",n:40,c:"clear forty words",s:"🐾 something has been watching your words…"}; });
 
-/* ═══ THE PACE OF FRIENDSHIP - minL, the earliest player-level a calling may arrive ═══
-   The callings are still ACHIEVEMENT-LOCKED - you must play the way each creature listens
-   for. minL only stops a fast player from tripping the whole roster in the first ten levels
-   (the "pets are spammed" problem, measured: six friends in six levels). A calling arrives
-   when its achievement is met AND its level has come, whichever is later. Spread so the
-   Clearing gives just THREE (dog·owl·bat), then ~one friend every five levels, all callings
-   answered by ~L228, and the keystones carry the last stretch to the phoenix at L300.
-   Keystones are NOT here - they are gifts at the doors (see KEYSTONE), not spelled. */
+/* ═══ ⚠️ RETIRED AS A GATE, KEPT ONLY AS AN ORDERING ═══
+   minL used to be the pace of friendship: the earliest player-level at which a calling
+   could arrive, spread so the Clearing gave three friends and the rest came about one
+   every five levels. HOME replaced it. A friend is paced by WHERE IT LIVES now, which a
+   player can see and an invisible per-creature number never could, and two systems
+   describing the same pacing is one that drifts.
+   checkCallings no longer reads it. The table survives for one reason only: CALLING_ORDER
+   sorts by it, so it still decides the order friends are considered within a country.
+   Do not add a number here expecting it to gate anything. */
 const CALL_MINL={
   cat:1,
   // Clearing (L1-20): three, and only three
@@ -7500,9 +7511,26 @@ const Game = {
           if(S.level===4 && g.w==="cat"){ S.levelScore=Math.max(S.levelScore,S.target); UI.hud(); }
           Game.checkCallings();                // the goat counts its kindred as the grove grows
         } else if(P.metGrove.cat){
+          /* SAY THE REAL REASON. This always quoted the lifetime calling - "wake it: clear
+             150 words (0/150)" - which since the map arrived is usually not why nobody
+             answered. Spell FLY in the Bramblewood and the fly is two countries away; being
+             told to clear a hundred and fifty words sends you off to grind something that
+             was never the obstacle. A name spoken where its owner cannot hear it should say
+             so, and name the place, because the place is now the answer. */
+          const home = HOME[g.w];
           const c=CALLINGS[g.w];
           const pr=Game.callProgress(g.w);
-          UI.say("stir-"+g.w, "🌫️ <b>"+g.w.toUpperCase()+"</b> is a true name - but nothing answers yet.<br><small>wake it: "+c.c+" ("+pr.have+"/"+pr.n+")</small>", 2);
+          let why;
+          if(Object.values(KEYSTONE).includes(g.w))
+            why = "it waits at a door further on";
+          else if(home && !Game.canHear(g.w))
+            why = "it lives in <b>"+(BIOME_NAMES[home[0]]||"a country further on")+"</b>, too far to hear you";
+          else {
+            const ct = Game.courtship(g);
+            why = ct ? ct.n+" &times; "+signNoun(ct.sign)+" in one round"
+                     : c.c+" ("+pr.have+"/"+pr.n+")";
+          }
+          UI.say("stir-"+g.w, "🌫️ <b>"+g.w.toUpperCase()+"</b> is a true name - but nothing answers yet.<br><small>"+why+"</small>", 2);
         }
       }
       const day=Math.floor(Date.now()/864e5);
@@ -9292,7 +9320,17 @@ const UI = {
      arrives twice. */
   sky(html, ms){ if(html) UI.note(UI._noteKey(html), html, "once"); },
   chip(html, ms){ if(html) UI.note(UI._noteKey(html), html, "once"); },
-  petSay(html){ if(html) UI.note(UI._noteKey(html), html, "once"); },
+  /* A FRIEND ACTING IS SOMETHING TO WATCH, NOT SOMETHING TO READ OVER.
+     This used mode "once", and note() promotes the FIRST showing of any message to centre
+     stage with a scrim and a tap-to-continue - so the very first time each friend acted,
+     its card covered the board precisely while its effect was playing out behind it, and
+     the player tapped it away having seen nothing. Worse, "once" then suppressed it
+     forever, so every later act was silent: the one moment it mattered was hidden, and the
+     rest said nothing at all.
+     "brief" never blocks and never waits, so the banner rides alongside the board every
+     time a friend goes out. The power is legible from what happens to the tiles; the
+     banner only needs to say who did it. */
+  petSay(html){ if(html) UI.note(UI._noteKey(html), html, "brief"); },
   toast(m, hold){ if(m) UI.note(UI._noteKey(m), m, "once"); },
   skyClear(){ UI.noteClear(); },
   chipClear(){ UI.noteClear(); },
@@ -10089,7 +10127,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260727152536",
+  ver:"20260727190331",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
