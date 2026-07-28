@@ -270,13 +270,6 @@
   .card .rowstat div{ font-size:var(--fs-sm); color:var(--dim); }
   .card .rowstat b{ display:block; font-size:22px; color:var(--gold-deep); font-variant-numeric:tabular-nums; }
 
-  #tiptip{ position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); z-index:110; display:none;
-    width:80%; max-width:270px; background:#fffdf6; border:2px solid var(--gold); border-radius:18px; padding:16px 18px;
-    text-align:center; box-shadow:0 16px 36px -12px rgba(90,60,30,.5); }
-  #tiptip.on{ display:block; animation:scenein .3s; }
-  #tiptip .ti{ font-size:44px; }
-  #tiptip .tt{ font-size:14px; color:var(--ink); line-height:1.5; margin-top:6px; }
-  #tiptip .tk{ margin-top:10px; font-size:12px; color:var(--accent-deep); font-weight:800; letter-spacing:1px; }
   /* the empty-name nudge: hidden until they try to walk past it, then it stays */
   #tele-nag{ display:none; margin-top:7px; font-size:11px; font-style:italic; color:#a8552f; }
   #tele-nag.on{ display:block; }
@@ -288,87 +281,10 @@
     pointer-events:none; filter:saturate(.35); }
   /* nothing to press but the letter being asked for */
   #ov-wish.guided .cardx, #ov-wish.guided #wish-pluck{ display:none; }
-  /* "1 of 3" - a beginner reading a tool card should be able to see how much is left. It
-     sits on its own line above the words so it never reads as part of the sentence. */
-  .tipstep{ display:block; margin-bottom:5px;
-    font-family:var(--font-ui); font-size:9.5px; font-weight:900; letter-spacing:.16em;
-    text-transform:uppercase; color:var(--accent-deep); opacity:.85; }
-  /* announcements land CENTER STAGE - toasts are website furniture, players miss them */
-  /* ══ THE SKY RAIL ══ anything you have to read while looking at the board. It rides the
-     empty sky at the top of the board, because letters stack from the floor. Translucent so
-     a full board still reads through it, and slim enough that at its longest it costs about
-     one row -- against the 47% the tip card used to take. */
   /* ══════════ ONE VOICE ══════════
-     Four surfaces used to be able to speak at the same time: #toast in the middle of the
-     screen, #skyrail across the top of the board, #chiptoast under the counters, #petsay
-     above the board. Four positions, four timers, four z-indexes, and not one of them
-     checked whether another was already talking. Overlap was not a glitch, it was the
-     default. Playtesters described exactly that: things covering other things, and things
-     vanishing before they could be read.
-     There is one element now, and it can be in one of two places depending on one question:
-     DOES IT WAIT FOR YOU? A message you have never seen owns the middle of the screen and
-     stays until you tap it - nothing can cover it, because nothing else can be on screen.
-     A message you have seen before does not wait, so it sits out of the way at the top and
-     leaves on its own. Same element, same queue, one rule. */
-  #note-scrim{ position:absolute; inset:0; z-index:295; border-radius:inherit;
-    background:rgba(20,16,10,.44); backdrop-filter:blur(1.5px); -webkit-backdrop-filter:blur(1.5px);
-    opacity:0; pointer-events:none; transition:opacity .2s ease; }
-  #note-scrim.on{ opacity:1; pointer-events:auto; }
-  #note{ position:absolute; z-index:300; opacity:0; pointer-events:none;
-    transition:opacity .22s ease, transform .25s cubic-bezier(.3,1.4,.5,1); }
-  #note.on{ opacity:1; }
-  /* IT WAITS FOR YOU: it owns the middle and holds the room */
-  #note.owns{ left:50%; top:42%; transform:translate(-50%,-50%) scale(.94);
-    width:max-content; max-width:82%;
-    background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:14px 22px 12px;
-    font-size:15.5px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
-    box-shadow:0 14px 34px rgba(90,60,30,.4); }
-  /* ONLY A MESSAGE THAT IS ON SCREEN MAY BE TAPPED. "owns" is the mode and it stays on the
-     element for good; "on" is the only thing that means visible. Granting pointer-events to
-     the mode left a 267x88 invisible rectangle sitting at 42% of the board height - the dead
-     centre of the play area - from the first waiting message of the round onwards, and it ate
-     every press that landed in that band while presses above and below it worked. That is the
-     whole of "sometimes the hold works and sometimes it does not", and it was swallowing plain
-     taps just as happily as drags. */
-  #note.owns.on{ transform:translate(-50%,-50%) scale(1); pointer-events:auto; cursor:pointer; }
-  #note .tapon{ display:block; margin-top:9px; font-family:var(--font-ui); font-size:10.5px;
-    font-weight:900; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--accent-deep); opacity:.85; }
-  /* IT DOES NOT WAIT: it stays clear of the board and leaves on its own */
-  #note.aside{ left:10px; right:10px; top:8px; transform:translateY(-8px);
-    background:rgba(24,30,26,.92); color:#f7f2e6; border:1px solid rgba(255,255,255,.18);
-    border-radius:13px; padding:8px 12px; text-align:center; font-size:12.5px; line-height:1.42;
-    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-    box-shadow:0 8px 22px -12px rgba(0,0,0,.75); }
-  #note.aside.on{ transform:none; }
-  #note b{ color:#ffe6a2; } #note.owns b{ color:var(--accent-deep); }
-  #note small{ display:block; opacity:.85; font-size:11px; margin-top:3px; }
-  #skyrail{ position:absolute; left:10px; right:10px; top:8px; z-index:86;
-    background:rgba(24,30,26,.90); color:#f7f2e6; border:1px solid rgba(255,255,255,.18);
-    border-radius:13px; padding:8px 12px; text-align:center;
-    font-size:12.5px; line-height:1.42;
-    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-    box-shadow:0 8px 22px -12px rgba(0,0,0,.75);
-    opacity:0; transform:translateY(-8px); transition:opacity .26s ease, transform .26s ease;
-    pointer-events:none; }
-  /* NO pointer-events, ever: a tap here is a tap meant for the column underneath. */
-  #skyrail.on{ opacity:1; transform:none; }
-  #skyrail b{ color:#ffe6a2; font-weight:700; }
-  #skyrail small{ display:block; margin-top:3px; opacity:.82; font-size:11px; }
-
-  /* ══ THE CHIP ══ amber spent, seats opened, friends swapped. None of it refers to the
-     board, so none of it belongs over the board -- it appears beside the counters it just
-     changed. */
-  #chiptoast{ position:absolute; right:10px; top:86px; z-index:87; max-width:74%;
-    background:rgba(26,32,28,.88); color:#f3eee1; border:1px solid rgba(255,255,255,.14);
-    border-radius:12px; padding:7px 11px; font-size:12px; line-height:1.4; text-align:right;
-    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-    box-shadow:0 8px 20px -12px rgba(0,0,0,.7);
-    opacity:0; transform:translateY(-6px); transition:opacity .22s ease, transform .22s ease;
-    pointer-events:none; }
-  #chiptoast.on{ opacity:1; transform:none; }
-  #chiptoast b{ color:#ffe6a2; }
-  #chiptoast small{ display:block; opacity:.8; font-size:10.5px; }
+     The whole family of old speaking surfaces - #toast centre card, #note + its scrim,
+     #skyrail, #chiptoast, #tiptip - is DELETED. Alder's pill (#alder) and Alder's pages
+     (#ov-alder) are the only two ways the game speaks, and the stage manager owns both. */
 
   /* the tile a friend is working on. The friend hovers in the sky above its column now, so
      the tile needs to say for itself that it is the one being changed. */
@@ -377,22 +293,12 @@
     0%,100%{ box-shadow:0 0 0 3px rgba(255,214,110,.85), 0 0 12px 1px rgba(255,214,110,.45); }
     50%    { box-shadow:0 0 0 4px rgba(255,214,110,1),   0 0 18px 3px rgba(255,214,110,.7); } }
   @media (prefers-reduced-motion:reduce){
-    #skyrail, #chiptoast{ transition:opacity .01s ease; }
     .tile.petmark{ animation:none; box-shadow:0 0 0 3px rgba(255,214,110,.95); } }
-  #toast{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%) scale(.6); opacity:0;
-    background:#fffdf6; border:2.5px solid var(--gold); border-radius:18px; padding:13px 22px;
-    font-size:16px; font-weight:800; color:var(--ink); text-align:center; line-height:1.45;
-    /* a flex parent was shrinking this to min-content, so announcements wrapped every
-       two or three words and read like a ransom note. Let it take its natural width. */
-    width:max-content; max-width:84%;
-    box-shadow:0 14px 34px rgba(90,60,30,.4); z-index:300; pointer-events:none;
-    transition:opacity .22s, transform .25s cubic-bezier(.3,1.4,.5,1); }
-  #toast.on{ opacity:1; transform:translate(-50%,-50%) scale(1); }
 
   /* ================= HOME - a garden gate ================= */
   #scene-home{ justify-content:flex-start; gap:0; overflow:hidden; padding:0; }
   /* the book's voice: every storybook heading speaks in serif */
-  h2, #meet-name, #meet-label, #un-title, #wish-title, #pet-sheet-n, #pet-sheet-f,
+  h2, #meet-name, #meet-label, #wish-title, #pet-sheet-n, #pet-sheet-f,
   .gsection h3, .gparty h4, #iv-placename, .jackpotburst, .wordbanner, #tut-slide p{
     font-family:var(--font-story); }
   #meet-name, #pet-sheet-n{ font-weight:750; }
@@ -935,14 +841,6 @@
      The pill lives in the HOLD button's spot instead: a word made by a friend can never
      be held, so during a pet act that slot is guaranteed empty. Nothing on the board is
      ever covered, nothing ever waits for a tap, the newest line simply replaces the last. */
-  #petsaypill{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 12px);
-    z-index:69; display:flex; align-items:center; max-width:92vw;
-    background:#fffdf6; border:2px solid var(--accent,#7fa877); border-radius:999px;
-    padding:5px 16px; min-height:30px; font-size:12.5px; font-weight:800; letter-spacing:.2px;
-    color:var(--ink); box-shadow:0 6px 16px rgba(90,60,30,.35); animation:bannerin .2s;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
-  #petsaypill.fade{ opacity:0; transition:opacity .4s; }
-  #petsaypill img.toastimg{ height:1.2em; width:1.2em; vertical-align:-3px; }
   /* ══ ALDER - one voice, three shapes ══
      The ASIDE lives in the speaking band between board and dock: light parchment, two
      lines max, never blocks, never waits. The PAGE is the boundary card: story beat on
@@ -951,23 +849,25 @@
   /* ONE LINE, ONE BREATH. The pill is a single slim block; a longer thought arrives as
      a sequence of single lines, advanced by tap (or by an 8s patience timer, so an
      ignored tail never parks). Designer's ruling: a tall box steals the board's air. */
-  /* THE SAME SLOT AS THE GRACE BUBBLE, to the pixel. The two swap on one stage (rule zero),
-     so they must stand on one mark - 12px of air above the dock, floating in the band,
-     never touching the dock's edge. It shipped at calc(100% - 6px), which welded the pill
-     to the dock and sank its bottom 7px INTO the panel (designer caught it on device). */
-  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% + 12px);
-    z-index:69; display:flex; align-items:center; gap:8px; max-width:min(96%, 352px);
-    height:34px; overflow:hidden;
+  /* THE SAME SLOT AND THE SAME HEIGHT AS THE GRACE BUBBLE. The two swap on one stage
+     (rule zero), so they stand on one mark - 9px of air above the dock, 38px tall,
+     centred in the speaking band, touching neither the board nor the dock. The bubble
+     shipped 44px tall on a 12px anchor and its crown brushed the board's bottom edge
+     (designer caught it on device) - both surfaces are cut to one shared geometry now. */
+  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% + 9px);
+    z-index:69; display:flex; align-items:center; gap:8px; max-width:min(96%, 360px);
+    height:38px; overflow:hidden;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:3px 12px 3px 4px;
     box-shadow:0 4px 0 rgba(150,110,40,.25), 0 10px 22px rgba(90,60,30,.3);
     opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease; }
   #alder.on{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
-  #alder .atxt img{ height:15px; width:auto; vertical-align:-3px; border-radius:4px; }
-  #alder .aface{ flex:none; width:26px; height:26px; border-radius:50%; overflow:hidden;
+  #alder .atxt img{ height:17px; width:auto; vertical-align:-3px; border-radius:4px; }
+  #alder .aface{ flex:none; width:30px; height:30px; border-radius:50%; overflow:hidden;
     background:linear-gradient(150deg,#eef3e2,#d9e4c8); border:1px solid rgba(120,140,90,.4);
-    display:flex; align-items:center; justify-content:center; font-size:17px; }
+    display:flex; align-items:center; justify-content:center; font-size:19px; }
   #alder .aface img{ width:100%; height:100%; object-fit:cover; display:block; }
-  #alder .atxt{ font-family:var(--font-ui); font-size:12.5px; font-weight:700; line-height:1.2;
+  /* 14px, not 12.5: the pill is read at arm's length on a phone (designer: too small) */
+  #alder .atxt{ font-family:var(--font-ui); font-size:14px; font-weight:700; line-height:1.2;
     color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #alder .amore{ flex:none; font-family:var(--font-label); font-size:9.5px; letter-spacing:1px;
     color:var(--gold-deep,#8a6d1f); text-transform:uppercase; padding-left:2px; display:none; }
@@ -989,19 +889,33 @@
   #ov-alder .ap-tap{ display:block; text-align:center; margin-top:12px;
     font-family:var(--font-label); font-size:10.5px; letter-spacing:1.6px; color:var(--dim);
     text-transform:uppercase; }
+  /* the Field Guide stands at the TOP - summoned over a live board, it must sit clear of
+     the letters a thumb was just working, and the close is always in the same corner */
+  #ov-info{ justify-content:flex-start; }   /* .overlay is a column - this is the vertical axis */
+  #ov-info .card{ margin-top:calc(40px + env(safe-area-inset-top)); text-align:left;
+    padding:18px 18px 14px; }
+  #ov-info .i-story{ font-family:var(--font-story); font-size:15.5px; font-weight:500;
+    line-height:1.45; color:var(--ink); margin-bottom:10px; }
+  #ov-info .i-game{ font-family:var(--font-ui); font-size:13px; font-weight:700; line-height:1.45;
+    color:#6b5322; background:linear-gradient(180deg,#fdf3d6,#f8e8bb); border:1.5px solid var(--gold);
+    border-radius:12px; padding:9px 12px; }
+  #ov-info .i-note{ font-family:var(--font-ui); font-size:12px; font-weight:700; line-height:1.4;
+    color:var(--dim); margin-top:9px; }
+  #ov-info .ap-who{ font-size:12px; }
   #ov-journal .card{ max-height:76vh; overflow-y:auto; text-align:left; }
   #ov-journal .j-entry{ margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed rgba(120,95,60,.25); }
   #ov-journal .j-story{ font-family:var(--font-story); font-size:14px; line-height:1.4; color:var(--ink); }
   #ov-journal .j-game{ font-family:var(--font-ui); font-size:11.5px; font-weight:700; color:#6b5322;
     margin-top:5px; background:#fdf3d6; border-radius:8px; padding:6px 9px; }
-  .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 12px);
-    z-index:70; display:flex; align-items:center; justify-content:center;
-    background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:4px;
+  /* 38px on the 9px mark - the exact geometry of #alder, because they share the stage */
+  .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 9px);
+    z-index:70; display:flex; align-items:center; justify-content:center; height:38px;
+    background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:3px;
     box-shadow:0 6px 16px rgba(90,60,30,.42); animation:bannerin .2s; overflow:hidden; }
-  .gracebubble .gwait{ display:flex; align-items:center; padding:0 16px; min-height:32px;
-    font-size:12.5px; font-weight:800; letter-spacing:.3px; color:var(--gold-deep); }
+  .gracebubble .gwait{ display:flex; align-items:center; padding:0 16px; min-height:28px;
+    font-size:13px; font-weight:800; letter-spacing:.3px; color:var(--gold-deep); }
   .gracebubble .ghold{ flex:none; border:none; border-radius:999px; padding:0 15px;
-    min-width:92px; min-height:32px; font-size:12.5px; font-weight:900; letter-spacing:.4px;
+    min-width:92px; min-height:28px; font-size:13px; font-weight:900; letter-spacing:.4px;
     background:linear-gradient(148deg,#e3f7ee,#c2ebd6); color:#2e6b4c; cursor:pointer;
     box-shadow:0 2px 0 #6aa98a; }
   .gracebubble .ghold:active{ transform:translateY(2px); box-shadow:0 1px 0 #6aa98a; }
@@ -1689,13 +1603,7 @@
   /* the paw meter, made LITERAL: one paw per word, sitting on the shelf's left edge.
      The old meter was a glow on the shelf's border - nobody read a border as a meter,
      and the level-5 lesson needs something it can point an arrow at. */
-  /* a pet's power speaks here - top of the play area, clear of the letters below */
-  #petsay{ position:absolute; left:50%; top:2px; transform:translate(-50%,-6px); z-index:60;
-    background:rgba(30,22,50,.82); color:#fff6df; border:1.5px solid rgba(255,220,140,.5);
-    border-radius:999px; padding:5px 14px; font-family:var(--font-ui); font-size:12.5px;
-    font-weight:800; white-space:nowrap; max-width:94%; overflow:hidden; text-overflow:ellipsis;
-    opacity:0; pointer-events:none; transition:opacity .22s, transform .22s; }
-  #petsay.on{ opacity:1; transform:translate(-50%,0); }
+  /* a pet's power speaks through Alder's pill now - the old #petsay bubble is deleted */
   /* the shared paw meter and its pips are gone: friends carry their own counters on
      their own portraits now, so a single bar spoke for nobody. */
   /* THE "ONE SIGN AWAY" JIG IS RETIRED. A badge shaking twice a second, right beside the
@@ -2516,21 +2424,7 @@
 
   /* ================= LEVEL INTRO / WIN / FAIL ================= */
   #ov-intro .card{ gap:var(--sp4); cursor:pointer; }
-  #ov-unlock .card{ cursor:pointer; gap:var(--sp3); }
-  #un-burst{ font-size:64px; animation:unpop .6s; filter:drop-shadow(0 4px 14px rgba(240,169,46,.55)); }
-  @keyframes unpop{ 0%{ transform:scale(0) rotate(-20deg); opacity:0 } 55%{ transform:scale(1.3) rotate(8deg) } 100%{ transform:scale(1) } }
-  #un-title{ font-family:var(--font-story); font-size:22px; font-weight:750; color:var(--accent-deep); }
-  #un-body{ font-size:14px; color:var(--ink); line-height:1.55; }
-  /* the three things you leave the lessons holding, as pictures rather than a paragraph */
-  .refresh{ display:flex; justify-content:center; gap:14px; margin:4px 0 10px; }
-  .refresh span{ display:flex; flex-direction:column; align-items:center; gap:2px; width:78px;
-    font-family:var(--font-ui); font-size:11.5px; font-weight:900; color:var(--ink); }
-  .refresh b{ font-size:30px; line-height:1.05; font-weight:400; }
-  .refresh .refimg{ height:34px; width:34px; object-fit:contain; display:block; }
-  .refresh i{ font-style:normal; font-size:9.5px; font-weight:800; letter-spacing:.02em;
-    color:var(--dim); text-align:center; line-height:1.25; }
-  #un-try{ font-size:13px; color:var(--gold-deep); line-height:1.5; background:rgba(240,169,46,.12);
-    border:1px dashed rgba(201,138,16,.4); border-radius:12px; padding:8px 12px; }
+  /* the #ov-unlock card and its dressings are retired - boundary moments are Alder Pages */
   #iv-place{ display:flex; flex-direction:column; align-items:center; gap:2px; }
   #iv-placeicon{ font-size:44px; animation:peekbob 3s ease-in-out infinite; }
   #iv-placename{ font-size:20px; font-weight:900; color:var(--accent-deep); }
@@ -2554,9 +2448,6 @@
      outlive the thing being on screen, and a tappable invisible box over the board eats
      presses. Nothing feeds this queue today - _toastOld has no callers - but the invariant is
      cheaper to hold than to rediscover. */
-  #toast.on.tapwait{ pointer-events:auto; cursor:pointer; }  /* ID specificity beats #toast{pointer-events:none} */
-  .toast-tap{ margin-top:8px; font-size:11px; font-weight:800; letter-spacing:2px; color:var(--gold-deep);
-    text-transform:uppercase; animation:tapblink 1.4s infinite; }
   @keyframes tapblink{ 50%{ opacity:.45 } }
   #ov-end .buttons{ display:flex; flex-direction:column; gap:var(--sp2); }
   #ov-end .minirow{ display:flex; gap:10px; justify-content:center; }
@@ -3039,6 +2930,15 @@
       <span class="ap-tap" onclick="Alder.pageClose()">tap to walk on</span>
     </div>
   </div>
+  <!-- 📖 THE FIELD GUIDE - held-down info, player-summoned, blocks play while open -->
+  <div class="overlay" id="ov-info" onclick="Info.hide()">
+    <div class="card infocard" onclick="event.stopPropagation()">
+      <button class="cardx" onclick="Info.hide()" aria-label="close">✕</button>
+      <div class="ap-head"><span class="ap-face" id="info-face">🌳</span><span class="ap-who" id="info-title"></span></div>
+      <div id="info-body"></div>
+      <div class="ap-tap">tap ✕ or anywhere outside to close</div>
+    </div>
+  </div>
   <!-- 🌳 ALDER'S JOURNAL - every page he has ever shown you, kept -->
   <div class="overlay" id="ov-journal" onclick="Alder.journalHide()">
     <div class="card" onclick="event.stopPropagation()">
@@ -3060,15 +2960,7 @@
     </div>
   </div>
 
-  <div class="overlay" id="ov-unlock" onclick="Game.closeUnlock()">
-    <div class="card">
-      <div id="un-burst">🎁</div>
-      <div id="un-title">You learned a power!</div>
-      <div id="un-body"></div>
-      <div id="un-try" style="display:none"></div>
-      <div id="iv-tap">TAP TO CONTINUE</div>
-    </div>
-  </div>
+  <!-- the #ov-unlock announcement card is retired - every boundary moment is an Alder Page -->
 
   <!-- ============ MEET A NEW FRIEND - the discovery ritual ============ -->
   <div class="overlay" id="ov-meet" onclick="Game.closeMeet()">
@@ -3173,8 +3065,6 @@
     </div>
   </div>
 
-  <div id="tiptip" onclick="UI.hideTip()"><div class="ti"></div><div class="tt"></div><div class="tk">TAP TO CONTINUE</div></div>
-  <div id="toast"></div>
 </div>
 
 <script>
@@ -4562,22 +4452,152 @@ function loadRun(){
    blocks. The PAGE: a boundary card, story beat over game beat - two readings of every
    event. The JOURNAL: every page kept, so a fast thumb loses nothing. All seven old
    channels route here or die. */
+/* ══ THE STORY BIBLE ══ Alder, Keeper of the Wood, speaks every page. Two beats each:
+     s - one story breath. Plain and warm, never poetry for its own sake.
+     g - what it means at the tiles: icon first, the verbs in bold.
+     f - the heads-up Alder gives the round BEFORE ("|" splits into tap-throughs).
+     b - the face the page wears (defaults to Alder's 🌳).
+   The law of the register: a player who reads only the g line can play perfectly; a
+   player who reads both knows why the wood is the way it is.
+   THE STORY: the hush fell FROM the mountain - the phoenix at the summit forgot her own
+   name first, and forgetting spreads. Every country's trouble below is a caretaker who
+   stopped tending when its name went (the worm kept the soil, the beaver kept the dam).
+   Naming mends. The walk ends where the trouble began. */
 const ALDER_PAGES = {
-  /* seed entries - the full table is the story bible, written in the content pass */
+  /* -- the opening. Also seeded into the Journal when the door slides finish. -- */
+  "story-1": { b:"🏔️", s:"The forgetting started at the top of the mountain, with the one who lived there. A name left unspoken too long fades - and fading, once it starts, travels.",
+               g:"🌲 Every creature in the wood has forgotten its name, and with the names went their gifts." },
+  "story-2": { b:"📖", s:"I am Alder. I kept this wood, and I kept its Book - but the hush is taking my memory with the rest. So the Book is yours now.",
+               g:"📖 You are the Namekeeper. Clear words to thin the hush, and creatures will remember themselves and join you." },
+  "story-3": { b:"👑", s:"Fifty names sleep between here and the summit. The last one burns brighter than all the others put together. Bring her back and the wood wakes.",
+               g:"🐾 50 friends to meet, one country at a time. The walk ends at the Frozen Crown." },
+
+  /* -- the ways of the wood: one page per mechanic -- */
+  graduate:{ b:"🌿", s:"That is everything I can teach you standing still. The rest, the wood teaches walking.",
+             g:"🟠 Take 60 amber for the road. Your kit: 🍃 a breeze trades two letters, 🌟 a wish becomes any letter, and the cat wakes on your words." },
   hold:    { s:"Words like to linger a moment before they go. If you ask, one will stay.",
-             g:"🌱 When a word pauses, tap HOLD to keep its letters and build something bigger." },
+             g:"🌱 When a word pauses, tap HOLD to keep its letters on the board - then grow them into something longer." },
   breeze:  { s:"The wood lends a little wind to anyone who asks politely.",
-             g:"🍃 Tap the breeze, then two letters - they trade places. 3-letter words refill it (max 3)." },
-  wish:    { s:"Stars fall here sometimes. Catch one, and it becomes whatever letter you need.",
-             g:"🌟 Tap the star and pick any letter for your hand. 4-letter words earn one (max 3)." },
-  amber:   { s:"Amber drips from the old trees. The wood trades kindly for it.",
-             g:"🟠 Amber buys a fresh breeze or wish when yours run dry, and second chances when moves run out." },
+             g:"🍃 Tap the breeze, then two letters - they trade places. Every 3-letter word refills it (you can keep 3). A word the breeze itself makes earns nothing back." },
+  wish:    { s:"Stars fall here, some nights. Catch one and it becomes whatever you were missing.",
+             g:"🌟 Tap the star and choose any letter - the one in your hand becomes it. Every 4-letter word earns one (keep 3). A word the wish itself makes earns nothing back." },
+  amber:   { s:"Amber drips from the old trees, slow as memory. The wood trades kindly for it.",
+             g:"🟠 When a breeze or wish runs dry, tap its empty pill and amber buys a fresh one. Amber also buys second chances when moves run out." },
   swap:    { s:"Friends do not mind resting. They mind being forgotten.",
-             g:"🐾 Double-tap a friend's tile to swap them for another from the Book." },
-  meeting: { s:"When a creature likes you, it steps out of hiding - but it wants to see the thing it loves, first.",
-             g:"🎭 The strip shows what it wants. Do that in this round and it joins you. The score does not matter." },
-  current: { s:"This stream was calm once. The currents run strong now - careful, they will shake the board.",
-             g:"🌀 Currents drag a row of letters sideways every few drops. Mud and held words stay put." },
+             g:"🐾 Double-tap a friend on the shelf to open the Book and swap them. Different rounds suit different friends." },
+  meeting: { b:"🎭", s:"When a creature is ready to remember itself, it steps halfway out of hiding. It only wants to see the thing it loves, first.",
+             g:"🎭 The strip shows its ask. Do that in this round and it joins you - the score target does not decide a meeting." },
+  book:    { b:"📖", s:"Everything I ever knew is written in the Book. What I forget, it remembers for me.",
+             g:"📖 The Book of Names maps every country: who lives there, what each one loves, and who is on duty today." },
+
+  /* -- the party growing -- */
+  "seat-2":{ b:"🐾", s:"Two can walk with you now. The paths were full of company once - it is good to see a pair again.",
+             g:"🐾 A second seat is open. Two friends means two powers working together - open the Book 📖 and choose your pair." },
+  "seat-3":{ b:"🐾", s:"Three now. The wood trusts you a little further every day.",
+             g:"🐾 A third seat is open. Bring friends who wake on different signs and something is always about to happen." },
+  "seat-4":{ b:"🐾", s:"Four walkers. That was a whole family, by the old counting.",
+             g:"🐾 The full party: four friends, four signs. The real question now is who fits the round ahead." },
+  "tier-1":{ b:"🌿", s:"Something has deepened. I can feel it in the roots.",
+             g:"🌿 Every friend you have met has grown - they stir sooner and give more when they do. The ones resting at home grew too." },
+  "tier-2":{ b:"🌿", s:"They know your hand by heart now.",
+             g:"🌿 Grown again: signs come quicker, and the wood asks more of you to match." },
+  "tier-3":{ b:"🌿", s:"As awake as I can make them. What comes now, you meet together.",
+             g:"🌿 Your friends are fully grown. From here the wood tests the keeper, not the kept." },
+
+  /* -- the troubles. Each one is a caretaker who forgot. s tells you who; g tells you
+        the rule; f is what Alder says the round BEFORE it first appears. -- */
+  branch:  { s:"I used to walk these paths every morning and clear the deadfall myself. My arms are not what they were.",
+             g:"🪾 A fallen branch holds no letter. Clear one word right beside it and it is gone.",
+             f:"The path ahead has not been swept in a long while. That used to be my job.|🪾 Fallen branches next round - one word right beside a branch clears it." },
+  bramble: { s:"These hedges were kept once. Untended thorn does what untended thorn always does - it reaches.",
+             g:"🌿 Every few drops the tangle grabs another letter. Clear a word right beside a tangle to cut it away.",
+             f:"I can smell thorn on the wind. The hedges have gone wild since the hush.|🌿 Brambles next round - they spread every few drops. Cut them with words right beside them." },
+  root:    { s:"The worm kept the soil loose so the roots slept deep. The worm forgot her work, and the roots woke hungry.",
+             g:"🪵 One word beside a root cuts it - but left alone three drops, it heals whole. Cut twice, quickly.",
+             f:"The ground ahead is knotted. The one who kept the soil soft has forgotten how.|🪵 Roots next round - cut each one twice, quickly, or it heals itself whole." },
+  spore:   { s:"The raccoon used to tidy this hollow and cart the drift away. Nobody has tidied in years.",
+             g:"🍄 Spores land anywhere on the board every few drops. One word beside one clears it.",
+             f:"Breathe lightly through here - the low air hangs thick.|🍄 Spores next round - they land anywhere, and one word beside each clears it." },
+  reed:    { s:"The boar kept the banks thinned with his rooting. The reeds have not been walked through in an age.",
+             g:"🌾 A reed blocks its whole column - nothing drops past it. Go around: clear a word beside it, twice.",
+             f:"The banks ahead are overgrown taller than you are.|🌾 Reeds next round - a reed blocks its whole column. Two words beside it bring it down." },
+  mire:    { s:"A little red gardener knew every dry path through this marsh. The mud has forgotten them all.",
+             g:"🟤 Mire does not fall - it hangs where it is and holds a shelf in the air. One word beside it pulls it free.",
+             f:"Mind your step past here. The ground stops holding.|🟤 Mire next round - it hangs in the air while everything settles around it. One word beside it pulls it free." },
+  current: { s:"The beaver's dam kept this river slow and thoughtful. The dam is unmended, and the water remembers how to run.",
+             g:"🌀 Every few drops the current shoves a whole row sideways. Held words and mire stay put.",
+             f:"The river was calm, the last time I stood here. It is not calm now.|🌀 Currents next round - every few drops a row is shoved sideways. Held words stay put." },
+  pest:    { s:"The spider kept the small biters tangled in her web. The web hangs empty now.",
+             g:"🐛 Every few drops the pest trades places with one of your letters. One word right beside it shoos it off.",
+             f:"Something small is loose ahead, and it likes to move your things.|🐛 A pest next round - it swaps seats with your letters until one word beside it shoos it off." },
+  stone:   { s:"The bear rolled the fallen stones off these paths, in the years the bear still remembered to.",
+             g:"🪨 A mossy stone blocks words. A word beside it cracks it - a second one smashes it.",
+             f:"Stone has crept onto the path while nobody was rolling it away.|🪨 Stones next round - one word beside cracks, a second smashes." },
+  mist:    { s:"The hawk saw through every fog on this dark stretch and called the shapes below. Nobody calls them now.",
+             g:"🌫️ A misted letter hides its face - no word can use it. Clear a word beside it and the mist lifts.",
+             f:"The air ahead is going white.|🌫️ Mist next round - a hidden letter cannot be used until a word beside it lifts the fog." },
+  shroud:  { s:"Some dark is just night. This dark leans in close and drinks the sound of your words.",
+             g:"🌑 Words cleared beside a shroud score half. Two words beside it lift the gloom for good.",
+             f:"Past here, even I keep my voice down.|🌑 Shrouds next round - words beside them pay half until two words lift them." },
+  crystal: { s:"The lizard baked on these seams and kept them warm. Warm crystal gives kindly - it remembers her, I think.",
+             g:"💎 Two clears to break - and it does not vanish, it turns to gold. The one trouble that leaves you richer.",
+             f:"The walls ahead glitter. Not everything hard is unkind.|💎 Crystal next round - break it twice and it turns to gold." },
+  scree:   { s:"The turtle walked these slopes slow and settled the loose rock with her weight. The slope is loose again.",
+             g:"🪨 Clear scree and it breaks into more, once. The slope always ends - keep swinging.",
+             f:"Watch your footing on the climb ahead.|🪨 Scree next round - clearing it splits it once more before it goes for good." },
+  wind:    { s:"The cricket sang this ridge to sleep every night. Without the song, the wind never settles.",
+             g:"🌬️ Every few drops the wind lifts the top letter off your tallest pile and drops it somewhere else.",
+             f:"Hold onto your hat past here.|🌬️ Wind next round - it carries the top of your tallest pile somewhere new every few drops." },
+  ice:     { s:"The dragon's warm breath kept the Snowline gentle. The cold has had years to itself since.",
+             g:"🧊 A frozen letter cannot be used yet. Clear a word beside it and it thaws.",
+             f:"It gets colder with every step now.|🧊 Ice next round - a frozen letter thaws when a word clears beside it." },
+  frost:   { s:"The golem stoked a fire under the Crown that is older than I am. The fire is down to embers.",
+             g:"❄️ Deep frost is winter twice over. One word beside it sheds a layer - a second sets the letter free.",
+             f:"The last climb is the coldest.|❄️ Deep frost next round - two words beside it, one for each layer." },
+  crate:   { s:"Travellers used to leave parcels along the way for whoever came next. Some are still waiting.",
+             g:"🎁 Clear a word beside a crate and it bursts open - points, a 🍃 breeze, a 🌟 wish, sometimes a move or two." },
+
+  /* -- what a round can ask. Shown once, at the round's own doorstep. -- */
+  "goal-thaw":    { b:"🧊", s:"The hush does not want points here. It wants the cold gone.",
+                    g:"🧊 Melt every frozen letter before your moves run out - clear words beside the ice. Points do not decide this round." },
+  "goal-boulder": { b:"🪨", s:"The stones have taken the path. Take it back.",
+                    g:"🪨 Smash every mossy stone - two words beside each one. That is the whole ask." },
+  "goal-harvest": { b:"✨", s:"Gold is only gold if somebody gathers it.",
+                    g:"✨ Use every golden letter in a word. The gold is the goal, not the points." },
+  "goal-unravel": { b:"🎁", s:"Parcels left for whoever came next. You came next.",
+                    g:"🎁 Burst every gift crate with words beside them. What is inside is still yours." },
+  "goal-lift":    { b:"🌫️", s:"The fog here is thick enough to lose a friend in.",
+                    g:"🌫️ Lift every misted letter - clear words beside the fog until no letter hides." },
+  "goal-cut":     { b:"🌿", s:"The tangle grows faster than it used to. Cut it back.",
+                    g:"🌿 Cut the asked number of brambles before moves run out - words right beside them." },
+  "goal-long":    { b:"🏔️", s:"Small words will not carry up here. Speak properly.",
+                    g:"🏔️ Only words of 4 letters or more count this round. Build tall." },
+  "goal-star":    { b:"⭐", s:"Stars fell in the night. They are still lying where they landed.",
+                    g:"⭐ Use every fallen star in a word - a star becomes any letter you need it to be." },
+  "goal-gauntlet":{ b:"👑", s:"The wood asks two things at once here. It only does that near crowns.",
+                    g:"👑 Two asks stand on the strip - finish BOTH to clear the round." },
+
+  /* -- the fifteen chapters. s is the land and its missing caretaker; the g beat is
+        assembled live (what new trouble, who can be met) by the border code. -- */
+  "ch-0": { b:"🌼", s:"<b>The First Clearing</b> - where every name begins. This one was mine to keep, and it is still the gentlest country the wood has. We begin where beginning is easy." },
+  "ch-1": { b:"🌿", s:"<b>The Bramblewood.</b> There was a hedge here, and a keeper for it. The thorns have closed over the path since - my fault as much as anyone's." },
+  "ch-2": { b:"🌱", s:"<b>The Mosswood.</b> Soft ground, and everything furred. The worm who kept the soil loose is down there somewhere, nameless, and the roots grow bold without her." },
+  "ch-3": { b:"🍄", s:"<b>The Spore Hollow.</b> The low air hangs thick with drifting. The raccoon who tidied this hollow has forgotten what tidying is." },
+  "ch-4": { b:"🌊", s:"<b>The Listening Pond.</b> Still water, and something listening. The boar who kept the banks thinned has gone quiet with the rest." },
+  "ch-5": { b:"🪷", s:"<b>The Reedmarsh.</b> The ground stops holding here. A little red gardener knew every dry path through - the mud has forgotten them all." },
+  "ch-6": { b:"🌀", s:"<b>The Running River.</b> Nothing here stays where you put it. The beaver's dam is unmended, and the water remembers how to run." },
+  "ch-7": { b:"💦", s:"<b>The Thunderfalls.</b> Loud water, and a rainbow standing in it. The spider who kept the small biters strung her last web years ago." },
+  "ch-8": { b:"🕳️", s:"<b>The Undercave.</b> The sky closes over here. The bear who rolled the stones off the path sleeps somewhere deep, past waking by anything but a name." },
+  "ch-9": { b:"🌑", s:"<b>The Deep Dark.</b> No light, and no need of it - so they said, when the hawk still called the shapes below. Stay close to your letters." },
+  "ch-10":{ b:"💎", s:"<b>The Glimmer Seams.</b> The wood is generous, for once. The lizard who kept these seams warm is gone - but warm crystal remembers how to give." },
+  "ch-11":{ b:"🪨", s:"<b>The Scree Slopes.</b> The ground breaks as you climb it. The turtle who settled the stones walks slower than ever, and remembers less." },
+  "ch-12":{ b:"🌬️", s:"<b>The Windward Ridge.</b> High enough for weather. The cricket used to sing the wind to sleep - the ridge has not slept since." },
+  "ch-13":{ b:"❄️", s:"<b>The Snowline.</b> The first snow, at last. The dragon's warm breath kept winter polite here. Winter has stopped being polite." },
+  "ch-14":{ b:"👑", s:"<b>The Frozen Crown.</b> The top of the wood, and the last name. She is up here - the one who forgot first. Everything below only followed her." },
+};
+/* the round-before warnings that have no trouble page of their own */
+const ALDER_EVES = {
+  "door-eve": "Tomorrow we reach this country's far door.|🗝️ Win the next round and a keeper gets its name back - it will join you at the door, no meeting needed.",
 };
 /* ══ THE STAGE MANAGER ══ one stage, two tenants, four priorities.
    RULE ZERO: the grace bubble is a CONTROL, not a message - it owns the stage
@@ -4686,33 +4706,126 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
       if(!Alder.cur) Alder._pump();
     }, 600);
   },
+  /* A PAGE is the storybook card: story beat, then the gold game beat. o.g / o.s
+     override the table (the border pages assemble their g beat live); the resolved
+     text is what the Journal keeps, so a reread never shows a template. */
   page(key, o){ o=o||{};
     const pg=ALDER_PAGES[key]; if(!pg) return false;
+    const s=o.s||pg.s, g=(o.g!=null?o.g:pg.g), b=o.b||pg.b;
     try{ P.said=P.said||{};
       if(P.said["pg-"+key] && !o.again) return false;
       P.said["pg-"+key]=1;
-      P.journal=P.journal||[]; if(!P.journal.includes(key)) P.journal.push(key);
+      Alder._journalKeep(key, s, g, b);
       save(); }catch(e){}
-    $("ap-story").innerHTML=pg.s;
-    $("ap-game").innerHTML=pg.g||"";
-    $("ap-game").style.display=pg.g?"block":"none";
-    Alder._pageCb=o.cb||null;
+    Alder._pageShow(s, g, b, o.cb);
+    return true;
+  },
+  /* a one-off page built at the call site (a door opening, a summons). Repeatable
+     events show every time - the Journal keeps only the first telling of each k. */
+  pageData(d, o){ o=o||{};
+    if(!d || !d.s) return false;
+    try{ P.said=P.said||{};
+      if(d.k && o.once){ if(P.said["pg-"+d.k]) return false; P.said["pg-"+d.k]=1; }
+      Alder._journalKeep(d.k||null, d.s, d.g, d.b);
+      save(); }catch(e){}
+    Alder._pageShow(d.s, d.g, d.b, o.cb);
+    return true;
+  },
+  /* several pages in a row (the doorstep can owe more than one) - each waits for its
+     tap. Items: "key" | ["key",{opts}] | {s,g,b,k} - anything unreadable is skipped. */
+  pageSeq(items, cb){
+    const next=()=>{
+      const it=(items||[]).shift();
+      if(it===undefined){ if(cb) cb(); return; }
+      let shown=false;
+      try{
+        if(typeof it==="string") shown=Alder.page(it,{cb:next});
+        else if(Array.isArray(it)) shown=Alder.page(it[0], Object.assign({}, it[1]||{}, {cb:next}));
+        else if(it && it.s) shown=Alder.pageData(it,{cb:next});
+      }catch(e){}
+      if(!shown) next();               // already read, or unreadable - straight on
+    };
+    next();
+  },
+  _journalKeep(key, s, g, b){
+    P.journal=P.journal||[];
+    const flat = key && ALDER_PAGES[key] && ALDER_PAGES[key].s===s && ALDER_PAGES[key].g===g;
+    if(flat){ if(!P.journal.includes(key)) P.journal.push(key); return; }
+    if(key && P.journal.some(e=>e && e.k===key)) return;
+    P.journal.push({ k:key||undefined, s, g, b });
+  },
+  _pageShow(s, g, b, cb){
+    $("ap-story").innerHTML=s;
+    $("ap-game").innerHTML=g||"";
+    $("ap-game").style.display=g?"block":"none";
+    { const f=document.querySelector("#ov-alder .ap-face"); if(f) f.innerHTML=b||"🌳"; }
+    Alder._pageCb=cb||null;
     $("ov-alder").classList.add("active");
     Snd.tone(523,{dur:.25,type:"sine",gain:.05,verb:true});
-    return true;
   },
   pageClose(){ $("ov-alder").classList.remove("active");
     const cb=Alder._pageCb; Alder._pageCb=null; if(cb) cb(); },
   tease(key, html){ Alder.aside("tz-"+key, html, {once:true, pri:3}); },
+  /* resolves when Alder is silent and owes nothing - the prologue lessons wait on this */
+  quietWait(){
+    return new Promise(res=>{
+      const check=()=>{ if(!Alder.cur && !Alder.Q.length) return res(); setTimeout(check,120); };
+      setTimeout(check, 60);
+    });
+  },
   journalShow(){ if(UI.menuToggle) UI.menuToggle(false);
-    const list=(P.journal||[]).map(k=>{ const p=ALDER_PAGES[k]; if(!p) return "";
+    const list=(P.journal||[]).map(e=>{
+      const p = typeof e==="string" ? ALDER_PAGES[e] : e;
+      if(!p || !p.s) return "";
       return '<div class="j-entry"><div class="j-story">'+p.s+'</div>'
         +(p.g?'<div class="j-game">'+p.g+'</div>':'')+'</div>'; }).join("");
     $("j-list").innerHTML = list
-      || '<div class="j-story">Alder has not written anything here yet. Walk on - he will.</div>';
+      || '<div class="j-story">I have not written anything here yet. Walk on - I will.</div>';
     $("ov-journal").classList.add("active");
   },
   journalHide(){ $("ov-journal").classList.remove("active"); },
+};
+
+/* ══ THE FIELD GUIDE ══ the one loud surface the PLAYER summons. Hold a trouble tile,
+   hold the breeze or the wish, or tap a friend, and this card opens at the top with the
+   full story-and-rule reading - no clipping, no timer. It is a real overlay: while it is
+   open nothing else can be played, so it never has to fight the board, and it leaves the
+   moment you tap ✕ or anywhere outside it. Alder's pill pauses while it is up (an active
+   overlay is never a free stage) and resumes on its own after. */
+const Info = {
+  _ate:false, _boardAte:false, _pt:null,
+  show(d){
+    $("info-face").innerHTML = d.b || "🌳";
+    $("info-title").textContent = d.t || "";
+    $("info-body").innerHTML = d.body || "";
+    $("ov-info").classList.add("active");
+    Snd.tone(660,{dur:.14,type:"sine",gain:.04,verb:true}); buzz(15);
+  },
+  hide(){ $("ov-info").classList.remove("active"); },
+  tile(kind){
+    const pg=ALDER_PAGES[kind], tip=UI.TIPS[kind];
+    const icon=(typeof TROUBLE_ICON!=="undefined" && TROUBLE_ICON[kind]) || (tip&&tip.i) || (pg&&pg.b) || "🌳";
+    if(pg) Info.show({ b:icon, t:"the "+kind,
+      body:'<div class="i-story">'+pg.s+'</div><div class="i-game">'+(pg.g||"")+'</div>' });
+    else if(tip) Info.show({ b:tip.i, t:"the "+kind, body:'<div class="i-game">'+tip.t+'</div>' });
+  },
+  tool(k){
+    const pg=ALDER_PAGES[k]; if(!pg) return;
+    Info.show({ b:(k==="breeze"?"🍃":"🌟"), t:"the "+k,
+      body:'<div class="i-story">'+pg.s+'</div><div class="i-game">'+pg.g+'</div>' });
+  },
+  /* hold the breeze or the wish half a second to read it - a plain tap still arms it */
+  wireTools(){
+    [["breezepill","breeze"],["wishbtn","wish"]].forEach(([id,k])=>{
+      const el=$(id); if(!el) return;
+      let t=null;
+      el.addEventListener("pointerdown", ()=>{ clearTimeout(t);
+        t=setTimeout(()=>{ Info._ate=true; Info.tool(k); }, 550); });
+      ["pointerup","pointerleave","pointercancel"].forEach(ev=>el.addEventListener(ev, ()=>clearTimeout(t)));
+      el.addEventListener("click", e=>{ if(Info._ate){ Info._ate=false;
+        e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+    });
+  },
 };
 
 /* =================== STATE =================== */
@@ -4899,17 +5012,13 @@ const FT = {
       b.addEventListener("pointerdown",done,{once:true});
     });
   },
-  async waitTip(kind){ // the tool cards at lesson start: show them, wait until READ
+  async waitTip(kind){ // the tool page at lesson start: Alder tells it, and waits for the tap
     if(P.seenTip[kind]) return;                    // replays skip the reading
-    UI.tileTip(kind);
-    /* IT WAS NOT WAITING. This polled #tiptip - the old full-page card - but tileTip stopped
-       using that element when the tips moved into the sky rail, so the loop found a element
-       that is never switched on, fell straight through, and the lesson carried on 350ms
-       later WHILE the card was still on screen asking to be tapped. The teaching bubble
-       then landed on top of the thing the player was still reading. Wait on the announcement
-       queue instead, which is where the cards actually live. */
-    await UI.toastQuiet();
-    await wait(350);                               // one breath between the card and the lesson
+    P.seenTip[kind]=true; save();
+    /* The tool teaching is an Alder Page now: story beat, gold game beat, one tap - and
+       page() only returns once the player has closed it, so the lesson genuinely waits. */
+    await new Promise(res=>{ if(!Alder.page(kind, {again:true, cb:res})) res(); });
+    await wait(350);                               // one breath between the page and the lesson
   },
   note(html){ FT.clearNote(); const n=FT.bit(document.createElement("div")); n.className="ftue-note";
     n.innerHTML=html; boardEl.appendChild(n); FT._note=n; },  // on the board, clear of the HUD
@@ -5026,7 +5135,7 @@ const FT = {
     FT.note("drop the <b>T</b> - spell <b>TEN</b>");
     const gr=await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("the word pauses… then <b>blooms</b> (clears) by itself. tap the board to hurry it");
+    FT.note("the word pauses… then <b>clears</b> by itself. tap the board to hurry it");
     await FT.wait("wordCleared");
     FT.clearNote();
     await wait(900);                    // a clean breath - never two instructions at once
@@ -5062,7 +5171,7 @@ const FT = {
     clearTimeout(helpT); FT.helpSwap=null;
     Game.track("lesson_swap",{ tries:FT.swapTries||0, helped:!!FT.swapHelped });
     document.querySelectorAll(".ftue-ring").forEach(e=>e.remove());
-    FT.clearNote(); FT.note("a 4-letter word - it will bloom on its own. it also earned you a 🌟 <b>star</b>!");
+    FT.clearNote(); FT.note("a 4-letter word - it will clear on its own. it also earned you a 🌟 <b>star</b>!");
     await FT.wait("wordCleared");
     FT.clearNote();
     P.said.grace=2; save();
@@ -5077,7 +5186,7 @@ const FT = {
     FT.note("spell <b>TEN</b> one more time");
     const gr=await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("tap 🌱 <b>HOLD</b> - holding <b>stops</b> the bloom and keeps the letters");
+    FT.note("tap 🌱 <b>HOLD</b> - holding <b>keeps the letters</b> instead of clearing them");
     const hb=gr.bubble.querySelector(".ghold"); if(hb) FT.ringEl(hb);
     await FT.wait("held");
     g.mustHold=false;
@@ -5131,7 +5240,7 @@ const FT = {
   },
   async lesson5(){ // the cat is awake - show where friends STAND, what wakes them, and the Book
     if(!P.metGrove.cat){ S.guide=null; return; }   // freak path: L4 won on points - no lesson to give
-    $("toast").classList.remove("on");             // the Book toast has had its moment
+    Alder._dismiss();                              // the Book line has had its moment
     const seat=UI.equipped().findIndex(g=>g.w==="cat");
     // "your party lives on this shelf" - there is no shelf. The friends stand free on the
     // country now, which is a nicer thing to say anyway: they are companions, not inventory.
@@ -6400,123 +6509,76 @@ const Game = {
       + 'it finishes when you <b>'+g.n+'</b>'
       + (S.goal2 ? ' and <b>'+GOALS[S.goal2.t].n+'</b>' : '')+'</small>'; }
     else iv.style.display="none";
-    $("ov-unlock").classList.remove("active"); $("ov-intro").classList.remove("active");
-    // did the grove grow a new duty slot at this level? celebrate it BEFORE the level begins
+    $("ov-intro").classList.remove("active");
+    /* ══ THE DOORSTEP READS FROM THE BOOK ══ every announcement that used to fight for
+       the one #ov-unlock card is an Alder Page now: same storybook shape, each waits for
+       its own tap, all of it kept in the Journal for the player who tapped too fast.
+       Pages self-once (page() checks P.said), so this list holds only what is DUE - and
+       on the rare level where two things are due at once, they simply read in order. */
     const slots=slotsFor(level);
-    P.seenSlots=P.seenSlots||{};
-    // A GROWING is the biggest thing that happens to a party, and it happens to ALL of
-    // them at once - it has to be a moment, not a number that quietly changed.
     const tier=Game.petTier();
-    P.seenTier=P.seenTier||{};
-    P.seenChapter=P.seenChapter||{};
-    // THE LESSONS ARE OVER, AND SOMEBODY SHOULD SAY SO. Five rounds of being taught, and
-    // then level one used to arrive with no acknowledgement at all. Once, on the way out
-    // of the prologue: a word for finishing, and a purse to walk in with.
+    P.seenSlots=P.seenSlots||{}; P.seenTier=P.seenTier||{}; P.seenChapter=P.seenChapter||{};
+    const duePages=[];
+    // the graduation: a word for finishing the lessons, and a purse to walk in with
     if(level===PROLOGUE_END+1 && !P.gradued){
-      P.gradued=1; Game.amber(60); save();
-      $("un-burst").textContent="🌿";
-      /* A WALL OF PROSE AT THE MOMENT THE HAND-HOLDING STOPS. This card carried four lines
-         restating everything just taught, and buried the 60 amber in a footnote. Nobody reads
-         a paragraph at the exact moment they have been released to play.
-         It is a picture now: the three things they were handed, as the icons they will
-         actually look for on the play screen, one word each. The gift moves onto the button,
-         where it is the reason to press rather than a note beside it. */
-      $("un-title").textContent="THE LESSONS ARE DONE";
-      $("un-body").innerHTML =
-        "<div class='refresh'>"
-        + "<span><b>🍃</b>breeze<i>swap two</i></span>"
-        + "<span><b>🌟</b>wish<i>any letter</i></span>"
-        + "<span>"+(UI.artTag("cat","refimg")||"<b>🐱</b>")+"cat<i>wakes on words</i></span>"
-        + "</div>"
-        + "<small>the wood is yours to walk</small>";
-      $("un-try").style.display="block";
-      $("un-try").innerHTML="<b>🟠 take 60 amber and go</b>";
-      // ONE ACTION, NOT TWO. The amber IS the button, so a separate "tap to continue"
-      // underneath it offers the same tap a second time and makes the gift look like a note.
-      $("iv-tap").style.display="none";
-      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      P.gradued=1; Game.amber(60);
+      // the opening story goes into the Journal here, tap-skippers included
+      P.journal=P.journal||[];
+      ["story-1","story-2","story-3"].forEach(k=>{ if(!P.journal.includes(k)) P.journal.push(k); });
+      save();
+      duePages.push("graduate");
       Game.track("prologue_done",{ amber:60 });
     }
-    // THE BOOK TURNS A PAGE. Walking into a new country used to be silent - the palette
-    // simply changed and nothing said why you were somewhere else. Every one of the
-    // fifteen now opens with its chapter, once.
-    /* THE BORDER IS A MOMENT. This used to key on raw level while countries key on the
-       adventure count, so Chapter Two announced five levels early inside Chapter One and
-       every later chapter never announced at all (caught in the replay batch). It fires
-       at the true border now, and it says the three things a border should: what this
-       land is, what NEW trouble lives here, and who can be met - which is also the door
-       into the Book for the player who never opens it. */
-    else if(advOf(level)>1 && (advOf(level)-1)%BIOME_LEN===0 && !P.seenChapter[biomeOf(level)]){
-      const b=biomeOf(level), ch=chapterOf(level), A0=advOf(level);
+    /* THE BORDER IS A MOMENT. Keys on the adventure count (the raw-level version announced
+       Chapter Two five levels early - caught in the replay batch). The chapter page says
+       what this land is and who stopped tending it; the g beat is assembled here because
+       only this moment knows the counts: what new trouble, how many friends to meet. */
+    if(advOf(level)>1 && (advOf(level)-1)%BIOME_LEN===0 && !P.seenChapter[biomeOf(level)]){
+      const b=biomeOf(level), A0=advOf(level);
       P.seenChapter[b]=1; save();
       const newTrouble = TROUBLE_KEYS.filter(k=>TROUBLE[k] && TROUBLE[k].at>=A0 && TROUBLE[k].at<A0+BIOME_LEN && !TROUBLE[k].todo);
       const residents = Object.keys(HOME).filter(w=>HOME[w][0]===b && !P.grove[w]).length;
-      $("un-burst").textContent=BIOMES[b];
-      $("un-title").textContent=ch.pre;
-      $("un-body").innerHTML="<b>"+ch.name+"</b><br>"+ch.line
-        +(newTrouble.length ? "<br><small>new trouble lives here: <b>"+newTrouble.join(", ")+"</b></small>" : "");
-      $("un-try").style.display="block";
-      $("un-try").innerHTML = residents
-        ? '🐾 <b>'+residents+' friend'+(residents>1?'s':'')+' live'+(residents>1?'':'s')+' in this country</b><br>the Book 📖 knows what each one loves'
-        : '🗝️ <b>a friend waits at this country\'s far door</b>';
-      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      const gline = (newTrouble.length ? "New trouble lives here: <b>"+newTrouble.map(k=>(TROUBLE_ICON[k]||"")+" "+k).join(", ")+"</b>.<br>" : "")
+        + (residents ? "🐾 <b>"+residents+" friend"+(residents>1?"s":"")+"</b> can be met in this country - the Book 📖 knows what each one loves."
+                     : "🗝️ A friend waits at this country's far door.");
+      duePages.push(["ch-"+b, { g: gline }]);
       Game.track("chapter_open",{ b, L:level });
     }
-    else
-    if(tier>0 && !P.seenTier[tier] && Object.keys(P.metGrove).length){
+    // A GROWING happens to every friend at once - it has to be a moment
+    if(tier>0 && !P.seenTier[tier] && Object.keys(P.metGrove).length && ALDER_PAGES["tier-"+tier]){
       P.seenTier[tier]=true; save();
-      $("un-burst").textContent="🌿";
-      $("un-title").textContent=TIER_MSG[tier].t;
-      $("un-body").textContent=TIER_MSG[tier].b;
-      $("un-try").style.display="block";
-      $("un-try").innerHTML='<b>every friend you own has grown</b><br>the ones you keep resting grew too';
-      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      duePages.push("tier-"+tier);
       Snd.levelUp(); UI.confetti(); buzz([40,60,120]);
     }
-    else if(SLOT_MSG[slots] && !P.seenSlots[slots] && Object.keys(P.metGrove).length){
+    if(SLOT_MSG[slots] && !P.seenSlots[slots] && Object.keys(P.metGrove).length && ALDER_PAGES["seat-"+slots]){
       P.seenSlots[slots]=true; save();
-      $("un-burst").textContent="🐾";
-      $("un-title").textContent=SLOT_MSG[slots].t;
-      $("un-body").textContent=SLOT_MSG[slots].b;
-      $("un-try").style.display="block";
-      $("un-try").innerHTML='<b>Open the Book of Names 📔</b><br>tap a friend to add them to your party';
-      $("ov-unlock").classList.add("active"); Game.shown("unlock");
+      duePages.push("seat-"+slots);
       Snd.levelUp(); UI.confetti(); buzz([40,60,120]);
     }
-    /* SAY WHAT THIS ROUND IS BEFORE ITS CARD, NOT AFTER ITS END. The level card carried one
-       line - "someone is hiding here, spell CAT" - and everything else about naming rounds
-       was explained in the outro, AFTER the first one had already been played. So a player
-       met their strangest round type with no idea what it was, and got the manual once it no
-       longer mattered. This is the same unlock-card slot the tier and seat announcements use,
-       so it lands in a shape the player already knows, and closeUnlock() hands straight on to
-       the level card behind it. */
-    else if(S.tutorWord && !P.said["naming-intro"]){
-      P.said["naming-intro"]=1; save();
-      $("un-burst").textContent="🎭";
-      $("un-title").textContent="A meeting";
-      $("un-body").innerHTML="Someone is hiding in this round - <b>show it the thing it loves</b> and it will step out and tell you its name."
-        + "<br><small>The strip counts it for you. You do not have to reach the target.</small>";
-      $("un-try").style.display="block";
-      { const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
-        $("un-try").innerHTML='<b>this one loves '
-          +(cg ? cg.n+" &times; "+signNoun(cg.sign) : "words")
-          +'</b><br>it already knows its own name - what it wants is the loving'; }
-      $("ov-unlock").classList.add("active"); Game.shown("unlock");
-      Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true});
-      Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
-    }
-    else {
-      $("ov-intro").classList.add("active");
-    }
+    /* SAY WHAT A MEETING IS BEFORE THE FIRST ONE, never after. The ask itself lives on
+       the level card and the strip - this page only has to teach the shape of the thing. */
+    if(S.tutorWord && !P.said["pg-meeting"]) duePages.push("meeting");
+    /* A TROUBLE INTRODUCES ITSELF ON ITS OWN DOORSTEP. The debut level seeds the trouble
+       alone precisely so it can be understood alone - the page is its introduction, story
+       first, rule second, before a single letter falls on it. (Alder already gave the
+       heads-up at the end of the round before - the foreshadow.) */
+    { const A=advOf(level);
+      for(const k of TROUBLE_KEYS)
+        if(TROUBLE[k].at===A && !TROUBLE[k].todo && ALDER_PAGES[k]){
+          P.seenTip[k]=true; duePages.push(k); } }   // the page IS the tip - never both
+    // a special round explains its whole contract before it starts, once per goal type
+    if(S.goal && S.goal.t!=="hush" && ALDER_PAGES["goal-"+S.goal.t]){
+      P.seenTip["goal-"+S.goal.t]=true; duePages.push("goal-"+S.goal.t); }
+    if(S.goal2 && ALDER_PAGES["goal-"+S.goal2.t]){
+      P.seenTip["goal-"+S.goal2.t]=true; duePages.push("goal-"+S.goal2.t); }
+    if(duePages.length) Alder.pageSeq(duePages, ()=>{ $("ov-intro").classList.add("active"); });
+    else $("ov-intro").classList.add("active");
   },
   // spam-guard: fast tappers were skipping their own rewards before seeing them.
   // important cards ignore taps for the first beat - long enough to register, never annoying.
   guard(key){ const t=Game._shownAt && Game._shownAt[key]; return t && (Date.now()-t)<700; },
   shown(key){ (Game._shownAt=Game._shownAt||{})[key]=Date.now(); },
-  closeUnlock(){ if(Game.guard("unlock")) return; Snd.init(); $("ov-unlock").classList.remove("active");
-    $("iv-tap").style.display="";   // the next card to use this overlay gets its prompt back
-    if(Game._annCb){ const cb=Game._annCb; Game._annCb=null; cb(); return; } // announce card → its follow-up
-    $("ov-intro").classList.add("active"); },
+  /* closeUnlock is retired with its overlay - Alder.pageClose() runs the hand-offs now */
   closeMeet(){
     if(Game.guard("meet")) return;
     Snd.init(); $("ov-meet").classList.remove("active");
@@ -6546,9 +6608,9 @@ const Game = {
          first naming round, i.e. after the player had already lived through it. The round now
          introduces itself beforehand, so this card no longer has to teach anything: it only
          has to say that it happens again, and where to watch for it. */
-      P.annQ.push((UI.artTag("cat","toastimg")||"🐱")+" <b>CAT answered.</b> Play a certain way and something notices - "
-        + "then its name hides in a round, just like that one.<br>"
-        + "<small>the <b>Book of Names</b> holds all fifty, and what each is listening for.</small>");
+      P.annQ.push({ k:"ann-cat-answered", b:(UI.artTag("cat")||"🐱"),
+        s:"The cat answered you. Play a certain way and something notices - then its name hides in a round, just like that one.",
+        g:"📖 The Book of Names holds all fifty, and what each one is listening for." });
       save();
     }
     // …and once the Book has spoken, the shelf lesson takes the stage
@@ -6620,9 +6682,8 @@ const Game = {
       setTimeout(()=>UI.say("pets-doze",
         "\uD83D\uDCA4 your friends are <b>asleep</b> for a meeting<br>"
         +"<small>they will not touch the board while you court the newcomer - they wake the moment it joins</small>", 2), 900);
-    // a goal type introduces itself ONCE, full-page, before its first round is played
-    if(S.goal && S.goal.t!=="hush" && !P.seenTip["goal-"+S.goal.t])
-      setTimeout(()=>UI.tileTip("goal-"+S.goal.t), 500);
+    // a goal type introduces itself ONCE, as an Alder Page at the round's own doorstep -
+    // wired into the duePages chain in startLevel, so nothing fires here any more
     // the pity speaks once: after two letdowns the ask is waived and the friend simply comes
     if(S.tutorWord && P.level>6 && (P.nameFails[S.tutorWord]||0)>=2)
       setTimeout(()=>UI.say("mercy-"+S.tutorWord+"-"+P.nameFails[S.tutorWord],
@@ -6643,29 +6704,53 @@ const Game = {
       setTimeout(()=>{ if(S && !S.busy && !S.over && !S.won && !$("ov-meet").classList.contains("active"))
         UI.say("amber-teach","🟠 your amber isn't just for show - when a 🍃 breeze or 🌟 wish runs dry, <b>tap it</b> and amber buys a fresh one", 4); }, 1400);
     }
+    /* ══ THE FORESHADOW ══ Alder looks one level ahead and says so DURING this round,
+       in a quiet moment (P3 pocket) - so a new trouble is warned about the round before
+       it appears, and its full page then opens on its own doorstep. The heads-up and the
+       lesson are two different beats on two different days, the way a keeper would do it. */
+    { const nA=advOf(level)+1;
+      if(nA>1 && !S.guide){
+        for(const k of TROUBLE_KEYS)
+          if(TROUBLE[k].at===nA && !TROUBLE[k].todo && ALDER_PAGES[k] && ALDER_PAGES[k].f)
+            Alder.aside("f-"+k, ALDER_PAGES[k].f, {once:true, pri:3});
+        if(KEYSTONE[nA] && GROVE_BY_WORD[KEYSTONE[nA]] && !P.grove[KEYSTONE[nA]])
+          Alder.aside("f-door-"+nA, ALDER_EVES["door-eve"], {once:true, pri:3});
+      } }
     saveRun();
     setTimeout(()=>{ if(!Game.showPendingMeet()) Game.showPendingTip(); }, 450); // meet new friends, then explain tiles
   },
   showPendingTip(){ // first time you meet a special tile - or earn a tool - explain it
-    if(!S || S.busy || S.over || S.won) return;
-    if(S.guide) return; // a lesson explains things in its own voice - no tip cards mid-class
-    // NOR DURING A NAMING. The board is already asking the player to find a name in the
-    // letters; a card explaining the wish, or the gold, or anything else is a second new
-    // thing at the same moment. Holding obstacles back from a ceremony board and then
-    // teaching a TOOL on it would have missed the point. Nothing is lost - a tip is owed
-    // until it is shown, so it introduces itself on the next ordinary round.
+    if(!S || S.over || S.won) return;
+    if(S.guide) return; // a lesson explains things in its own voice - no tips mid-class
+    // NOR DURING A NAMING - the board is already asking for one exact thing. A tip is
+    // owed until it is shown, so it introduces itself on the next ordinary round.
     if(S.tutorWord) return;
     if($("ov-meet").classList.contains("active")) return; // never slide a tip under a ritual
-    const order=[];
-    // TOOLS FIRST. The breeze and the wish were introducing themselves on a 700ms timer
-    // fired from inside resolve() - where S.busy stays true for whole seconds - so the
-    // check never passed and neither tool ever explained itself to anybody. Players had
-    // two buttons they'd never been told how to earn or use. They queue like tiles now.
-    if((P.pow.swap||0)>0) order.push("breeze");
-    if((P.pow.wild||0)>0) order.push("wish");
-    if(S.cur && (S.cur.kind==="gold"||S.cur.kind==="shift")) order.push(S.cur.kind);
-    for(const t of Object.values(S.tiles)){ if(t.kind==="gold"||t.kind==="branch"||t.kind==="spore"||t.kind==="reed"||t.kind==="mire"||t.kind==="current"||t.kind==="wind"||t.kind==="crystal"||t.kind==="scree"||t.kind==="stone"||t.kind==="ice"||t.kind==="crate"||t.kind==="frost"||t.kind==="mist"||t.kind==="bramble"||t.kind==="root"||t.kind==="shroud"||t.kind==="pest") order.push(t.kind); }
-    for(const k of order){ if(!P.seenTip[k]){ UI.tileTip(k); return; } }
+    /* THE TWO TOOLS read as full Pages, and only at a round's own doorstep - no letters
+       down yet, nothing to cover. (Lessons and the skip path mark these seen, so this is
+       the safety net for tools that arrive by gift.) */
+    if(!S.drops && !S.busy){
+      if((P.pow.swap||0)>0 && !P.seenTip.breeze){ P.seenTip.breeze=true; save(); Alder.page("breeze",{again:true}); return; }
+      if((P.pow.wild||0)>0 && !P.seenTip.wish){ P.seenTip.wish=true; save(); Alder.page("wish",{again:true}); return; }
+    }
+    /* EVERYTHING ELSE is one idea, and it can arrive mid-round - so it rides Alder's
+       pocket: the trouble's own g line, spoken in the next quiet moment, never a card
+       over live letters. (Troubles met at their authored debut got their full page at
+       the doorstep already - this catches golds, shifts, crates, and old saves walking
+       into things out of order.) */
+    const kinds=[];
+    if(S.cur && S.cur.kind && S.cur.kind!=="normal") kinds.push(S.cur.kind);
+    for(const t of Object.values(S.tiles)){ if(t.kind && t.kind!=="normal" && kinds.indexOf(t.kind)<0) kinds.push(t.kind); }
+    for(const k of kinds){
+      if(P.seenTip[k]) continue;
+      const pg=ALDER_PAGES[k], tip=UI.TIPS[k];
+      const line = pg ? pg.g : (tip && !Array.isArray(tip.t) ? "<b>"+tip.i+"</b> "+tip.t : null);
+      if(!line) continue;
+      P.seenTip[k]=true; save();
+      Alder.aside("tip-"+k, line, {pri:3});
+      Game.track("tip_shown",{ kind:k, L:S.level });
+      return;
+    }
   },
   retryLevel(){
     // A RETRY IS A GRACE TOO. It was free and unlimited, which is why amber had nothing
@@ -6996,14 +7081,10 @@ const Game = {
     }
   },
 
-  showAnnounce(cb){ // the "you achieved something…" beat: one quiet card, tap, then on
+  showAnnounce(cb){ // the doorstep beat: Alder reads what the round earned, page by page
     const items=P.annQ.splice(0); save();
-    $("un-burst").textContent="🐾";
-    $("un-title").textContent="The wood whispers…"; // fits a summons and a Book page alike
-    $("un-body").innerHTML=items.join("<hr style='border:none;border-top:1px dashed rgba(150,120,70,.35);margin:8px 0'>");
-    $("un-try").style.display="none";
-    Game._annCb=cb;
-    $("ov-unlock").classList.add("active"); Game.shown("unlock");
+    // items are {s,g,b,k} pages now; strings from an old save cannot be read and are let go
+    Alder.pageSeq(items.filter(it=>it && it.s), cb);
     Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true}); Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
   },
   async doubleThanks(){ // one tap, one reel, the same thanks again - then the button retires
@@ -7035,9 +7116,9 @@ const Game = {
            meet ritual follows as its second beat. */
         const kg=GROVE_BY_WORD[key];
         P.annQ=P.annQ||[];
-        P.annQ.push("🗝️ <b>THE DOOR OPENS</b><br>"+(UI.artTag(key,"toastimg")||kg.e)
-          +" <b>"+key.toUpperCase()+"</b> was waiting for you - it joins you for the country ahead"
-          +"<br><small>+25 🟠 · meet them next round</small>");
+        P.annQ.push({ k:"door-"+key, b:(UI.artTag(key)||kg.e),
+          s:"The door opens. The <b>"+key.toUpperCase()+"</b> was one of the wood's keepers before the hush - at this door, the keeping came back to it, and the name came with it.",
+          g:"🗝️ <b>"+key.toUpperCase()+"</b> joins you for the country ahead - no meeting needed. +25 🟠" });
         save();
         Game.track("keystone",{w:key, L:S.level});
         Game.amber(25);
@@ -7051,7 +7132,8 @@ const Game = {
     // sequence, never over something the player is reading mid-game
     if(S.level===3 && !P.grove.cat && !P.called.cat){
       P.called.cat=1; P.summon="cat";
-      P.annQ.push(CALLINGS.cat.s+"<br><small>meet them next round</small>"); save();
+      P.annQ.push({ k:"ann-cat-call", b:(UI.artTag("cat")||"🐱"),
+        s:CALLINGS.cat.s, g:"🐾 Meet them next round." }); save();
     }
     // THE TAPS GROW WITH THE SINKS. A flat 10+stars*5 forever meant scaling grace prices
     // would have priced the late game out of its own economy.
@@ -7074,7 +7156,9 @@ const Game = {
         const plv=advOf(P.level);
         const next=CALLING_ORDER.find(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school" && plv>=(CALLINGS[w].minL||0));
         if(next){ P.called[next]=1; P.summonQ.push(next); P.quietLvls=0; P.lastSummonL=plv;
-          P.annQ.push("🌿 the wood has grown <b>curious</b> about you…<br><small>a name will hide in a coming level</small>"); save(); }
+          P.annQ.push({ k:"ann-curious", b:"🌿",
+            s:"The wood has grown curious about you. I heard a name trying to remember itself.",
+            g:"🐾 A name will hide in a coming level - watch for the meeting." }); save(); }
       }
       save();
     }
@@ -7266,7 +7350,7 @@ const Game = {
        is said once, ever, because that is all it takes to learn what a busy board is. */
     if(!S || S.over || S.won) return;
     if(S.busy){ Game.denyPill("breezepill");
-      UI.note("busy-board","🍃 the board is still settling<br><small>the breeze answers the moment it is still</small>","once");
+      Alder.aside("busy-board","🍃 the board is still settling - the breeze answers the moment it is still",{once:true,pri:1});
       return; }
     // a no-tools gate does not TAKE your breezes - they are still in your pocket after,
     // and they still count. They simply do not answer inside this round.
@@ -7811,9 +7895,9 @@ const Game = {
       const h=HOME[w], floor=(FLOOR_AT[w]!=null ? FLOOR_AT[w] : h[0]*20+(h[1]||0));
       if(plv >= floor){
         P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; P.lastSummonL=plv;
-        P.annQ.push((UI.artTag(w,"toastimg")||GROVE_BY_WORD[w].e)
-          +" <b>steps out of "+(BIOME_NAMES[h[0]]||"the wood")+"</b> - it has been watching you walk"
-          +"<br><small>meet them next round</small>");
+        P.annQ.push({ k:"ann-sum-"+w, b:(UI.artTag(w)||GROVE_BY_WORD[w].e),
+          s:"The <b>"+w+"</b> steps out of "+(BIOME_NAMES[h[0]]||"the wood")+". It has been watching you walk for a while now.",
+          g:"🐾 Meet them next round - show them the thing they love." });
         save();
         break;   // one scheduled arrival at a time - same spirit as the gap rule
       }
@@ -7845,7 +7929,8 @@ const Game = {
         Game.amber(10);
         // NEVER announced mid-play - the player is busy playing. The summons waits
         // for the win sequence, its own quiet card before the level-clear modal.
-        P.annQ.push(c.s+"<br><small>a name will hide in a coming level</small>"); save();
+        P.annQ.push({ k:"ann-sum-"+w, b:(UI.artTag(w)||(GROVE_BY_WORD[w]&&GROVE_BY_WORD[w].e)||"🐾"),
+          s:c.s, g:"🐾 A name will hide in a coming level - watch for the meeting." }); save();
         return; // one summon at a time; the next event re-checks
       }
     }
@@ -8209,8 +8294,9 @@ const Game = {
     if(typeof P!=="undefined" && P.bearRest){
       P.bearRest.have=(P.bearRest.have||0)+1;
       if(P.bearRest.have>=P.bearRest.need){ P.bearRest=null; save();
-        P.annQ=P.annQ||[]; P.annQ.push((UI.artTag("bear","toastimg")||"🐻")
-          +" the bear wakes - rested, proud of you, <b>ready to be asked again</b>"); }
+        P.annQ=P.annQ||[]; P.annQ.push({ k:"ann-bearwake", b:(UI.artTag("bear")||"🐻"),
+          s:"The bear wakes under the big tree - rested, and proud of you.",
+          g:"🐻 Ready to be asked again. Its seat is still warm." }); }
     }
     /* THE ROUND REMEMBERS WHAT IT SAID. S.wordsMade was a count, so nothing could ask what
        came before - no echo, no "you said that already", no rhythm of any kind. */
@@ -8460,12 +8546,12 @@ const Game = {
     });
     const noHold = !!(S.guide && S.guide.noHold);   // a lesson beat that must end in a bloom
     const b=document.createElement("div"); b.className="gracebubble";
-    b.innerHTML=(noHold ? '<span class="gwait">🌸 blooming…</span>'
+    b.innerHTML=(noHold ? '<span class="gwait">🌸 clearing…</span>'
                         : '<button class="ghold">🌱 HOLD</button>')+'<i class="gbar"></i>';
     $("dock").appendChild(b);   // a pill above the tray - same place, every single time.
     // the word itself is named by the glow on the board, not repeated down here.
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
-    if(!S.guide) UI.say("grace", "words pause, then <b>bloom</b> (clear) on their own - tap 🌱 <b>HOLD</b> to stop one and keep its letters", 2);
+    if(!S.guide) UI.say("grace", "a word pauses a breath, then clears on its own - tap 🌱 <b>HOLD</b> to keep its letters and grow them", 2);
     FT.signal("graceShown",{bubble:b,words});
     let held=false, skip=false;
     { const hb=b.querySelector(".ghold"); if(hb) hb.onclick=e=>{ e.stopPropagation(); held=true; }; }
@@ -8491,7 +8577,7 @@ const Game = {
       // the player was told they're normal letters, so they must look like it too.
       Game.tallyEv("hold");
       words.forEach(w=>w.cells.forEach(t=>{ if(S.tiles[t.id]) t.heldWord=w.word; }));
-      if(!S.guide) UI.say("hold-saved", "🌱 saved - these letters only bloom in a bigger word now");
+      if(!S.guide) UI.say("hold-saved", "🌱 kept - these letters now only clear as part of a bigger word");
       Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
       FT.signal("held");
       // the queued tile was drawn before this word existed and is blind to it -
@@ -9422,7 +9508,10 @@ const UI = {
       turn = "wakes on <b>"+UI.signPhrase(g)+"</b>"
            + (togo<=0 ? " - <b>stirring now!</b>" : "<br><small>"+togo+" to go</small>");
     }
-    UI.chip((UI.artTag(g.w,"chipimg")||g.e)+" <b>"+g.pn+" "+g.pi+"</b><br>"+g.pd+"<br><small>"+turn+"</small>");
+    /* the pill clipped this - a power description is three lines of reading, not one.
+       A tapped friend opens the Field Guide: room to read, closes on your own tap. */
+    Info.show({ b:(UI.artTag(g.w)||g.e), t:g.w.toUpperCase()+" · "+g.pn+" "+g.pi,
+      body:'<div class="i-game">'+g.pd+'</div><div class="i-note">'+turn+'</div>' });
   },
   /* ONE TAP tells you what a tile's friend does; TWO taps opens the Book to change that
      tile. No swap buttons anywhere - the tile IS the control. */
@@ -9529,12 +9618,17 @@ const UI = {
     $("ev-blessed").style.display = (won && Shop.blessed()) ? "block" : "none";
     $("ov-end").classList.add("active");
   },
+  /* ══ THE DOOR SLIDES CARRY THE STORY BIBLE ══ the same tale ALDER_PAGES tells - the
+     forgetting fell FROM the mountain, you carry the Book - so the first minute and the
+     next forty hours are one story. The three story pages are seeded into the Journal at
+     graduation, so a player who tapped through can always read it back. */
   TUT:[
-    '<div class="big">🌲</div><p>A hush fell over the wood -<br>and every creature forgot its name.</p><small>a name unspoken too long fades for good</small>',
+    '<div class="big">🏔️</div><p>The forgetting started at the top of the mountain -<br>and it spread. Every creature forgot its name.</p><small>a name unspoken too long fades - and fading travels</small>',
+    '<div class="big">🌳</div><p>"I am Alder. I kept this wood, and I kept its Book.<br>The hush is taking my memory too - <b>so the Book is yours now.</b>"</p><small>the old Keeper will walk with you and point the way</small>',
     '<div class="demo"><div class="tile">C</div><div class="tile">A</div><div class="tile">T</div></div><p>You are the <b>Namekeeper</b>.<br>Weave letters into words ✨</p><small>words read left → right across a row, and either way up a column</small>',
     '<div class="tut-goals"><span>🎯<b>'+TARGET(1)+'</b>target</span><span>👣<b>'+MOVES(1)+'</b>moves</span></div><p>Every word thins the hush.<br>Clear it before your moves run out.</p><small>spare moves become bonus ⭐ stars</small>',
-    '<div class="big"><img class="petimg tutbig" src="art/pets/fox.png" alt=""><img class="petimg tutbig" src="art/pets/owl.png" alt=""><img class="petimg tutbig" src="art/pets/bee.png" alt=""></div><p>Spell a creature\'s <b>true name</b><br>and it remembers itself - and joins you.</p><small>50 friends to wake · every one has its OWN power</small>',
-    '<div class="big">🌈</div><p>Wake all fifty,<br>and the hush lifts.</p><small>the wood has been waiting a long time for you</small>',
+    '<div class="big"><img class="petimg tutbig" src="art/pets/fox.png" alt=""><img class="petimg tutbig" src="art/pets/owl.png" alt=""><img class="petimg tutbig" src="art/pets/bee.png" alt=""></div><p>Show a creature <b>the thing it loves</b><br>and it remembers itself - and joins you.</p><small>50 friends to meet · every one has its OWN power</small>',
+    '<div class="big">👑</div><p>Fifty names sleep between here and the summit.<br><b>The last one burns.</b> Bring her back, and the wood wakes.</p><small>the walk ends at the Frozen Crown</small>',
   ],
   _tut:0,
   tutShow(i){
@@ -9798,7 +9892,9 @@ const UI = {
     P.groveMile=P.groveMile||{};
     UI.GROVE_MILES.forEach(mi=>{ if(found>=mi.n && !P.groveMile[mi.n]){
       P.groveMile[mi.n]=true; save();
-      setTimeout(()=>{ UI.confetti(); Snd.levelUp(); UI.toast(mi.i+" <b>"+mi.t+"</b>", "tap"); }, 500); } });
+      setTimeout(()=>{ UI.confetti(); Snd.levelUp();
+        Alder.pageData({ k:"mile-"+mi.n, b:mi.i, s:"<b>"+mi.t+"</b>",
+          g:"🐾 "+mi.n+" names remembered. The wood is louder for it." }, {once:true}); }, 500); } });
     // ---- the album: sky then ground, every friend a trophy card ----
     /* ONE CARD, BUILT ONCE. It used to live inside section(), which meant the only way to
        show a friend was to also show a heading and a grid - and the road needs the card
@@ -10218,62 +10314,16 @@ const UI = {
         if(el) el.addEventListener("click", finish, true); }, 450);
     });
   },
-  _toastOld(m, hold){ //
-    // A DECIDED ROUND BELONGS TO ITS CARD. Gift bursts, "a name is stirring", milestone
-    // banners - they all used to keep floating while the clear/fail card was on screen,
-    // competing with the very numbers the player was trying to read. Once the round is
-    // settled the stage goes quiet and the card says everything.
-    if(S && (S.over || S.won)) return;
-    UI._tq=UI._tq||[];
-    if(UI._tq.length>=4) UI._tq.shift();      // a flood keeps only its freshest four
-    UI._tq.push({m, hold});
-    if(!UI._tShowing) UI._tNext();
-  },
-  _tNext(){
-    const q=UI._tq||[];
-    if(!q.length){ UI._tShowing=false; return; }
-    // a ritual on stage owns the eyes - announcements wait at the door
-    if($("ov-meet").classList.contains("active") || document.querySelector(".whosthat")){
-      UI._tShowing=true; setTimeout(()=>UI._tNext(), 600); return;
-    }
-    UI._tShowing=true;
-    const {m, hold}=q.shift();
-    const t=$("toast");
-    const sticky = hold==="tap";       // a reward/story beat waits for a tap
-    t.innerHTML = m + (sticky?'<div class="toast-tap">tap to continue</div>':"");
-    t.classList.remove("on","tapwait"); void t.offsetWidth; t.classList.add("on");
-    clearTimeout(t._h); t.onclick=null;
-    const advance=()=>{ clearTimeout(t._h); t.onclick=null; FT.lastDismiss=Date.now();
-      t.classList.remove("on","tapwait"); setTimeout(()=>UI._tNext(), 280); };
-    if(sticky){
-      t.classList.add("tapwait");
-      setTimeout(()=>{ if(t.classList.contains("tapwait")) t.onclick=advance; }, 400); // spam-guard
-      t._h=setTimeout(advance, 12000);          // a reward should never hang the game
-    } else {
-      // timed to the words: short notes leave quickly, long ones hold to be read
-      const words=m.replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
-      const ms=(typeof hold==="number"?hold:0) || Math.min(7000, Math.max(2200, 1200+words*300));
-      t._h=setTimeout(advance, ms);
-    }
-  },
-  _petSayOld(html){ //
-    let el=$("petsay");
-    if(!el){ el=document.createElement("div"); el.id="petsay"; $("boardwrap").appendChild(el); }
-    el.innerHTML=html;
-    el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
-    clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), 2600);
-  },
-  /* A LINE IN THE SKY. Latest wins: these are one-shot teaching lines gated by P.said, so a
-     queue would only ever delay the one that matters. Tap dismisses. */
   /* THE OLD FOUR ARE DOORS ONTO THE ONE CHANNEL NOW. They are kept as names because 68 call
      sites use them and their meanings were never wrong - "sky" meant a line about the board,
      "chip" meant a note by the counters. What was wrong was that each owned its own patch of
      screen and its own timer. They all say the same thing through the same mouth now, and a
      call with no key of its own is keyed by its own words, so the same sentence never
-     arrives twice. */
-  /* ══ EVERY LIGHT CHANNEL IS ALDER NOW ══ sky, chip, toast, say and petSay all route
-     into the one speaking band. The old note() machinery keeps only the boundary cards
-     until the content pass finishes moving them onto Alder's pages. */
+     arrives twice. (The _toastOld/_petSayOld implementations are deleted with their DOM.) */
+  /* ══ EVERY CHANNEL IS ALDER NOW ══ sky, chip, toast, say and petSay route into the one
+     speaking band; the boundary cards are Alder's Pages. The old surfaces - the note
+     centre card, the sky rail, the chip toast, their scrims and timers - are DELETED,
+     not parked: seven channels became one keeper, and nothing else may speak. */
   sky(html, ms){ if(html) Alder.aside(UI._noteKey(html), html, {once:true, pri:2}); },
   chip(html, ms){ if(html) Alder.aside(UI._noteKey(html), html, {pri:1}); },   // a chip answers a tap - now
   /* A FRIEND ACTING IS SOMETHING TO WATCH, NOT SOMETHING TO READ OVER.
@@ -10290,56 +10340,11 @@ const UI = {
      centre stage. One pill in the hold slot; the newest line replaces the last. */
   petSay(html){ if(html) Alder.aside(UI._noteKey(html), html); },
   toast(m, hold){ if(m) Alder.aside(UI._noteKey(m), m, {once:true}); },
-  skyClear(){ UI.noteClear(); },
-  chipClear(){ UI.noteClear(); },
-  toastClear(){ UI.noteClear(); },
-  toastQuiet(){ return UI.noteQuiet(); },
-  _skyOld(html, ms){
-    if(!html) return;
-    // DURING THE LESSONS, THE WOOD WAITS TO BE TAPPED. A prologue line is long and it is
-    // the point of the round; a rail that fades on a timer loses it the moment a player
-    // looks down at the board. Centre stage covers the board - which is exactly right
-    // while the board is not yet the thing being taught. After the prologue the rail
-    // takes over again and never blocks a tile.
-    if(typeof P!=="undefined" && P.level<=PROLOGUE_END){ UI.toast(html, "tap"); return; }
-    const host=$("boardwrap"); if(!host) return UI.toast(html);   // no board yet: fall back
-    let el=$("skyrail");
-    if(!el){ el=document.createElement("div"); el.id="skyrail"; host.appendChild(el); }
-    el.innerHTML=html; el.classList.add("on");
-    clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||5200);
-  },
-  _skyClearOld(){ const el=$("skyrail"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
-  /* A CHIP BY THE COUNTERS. */
-  _chipOld(html, ms){
-    if(!html) return;
-    const app=$("app"); if(!app) return UI.toast(html);
-    let el=$("chiptoast");
-    if(!el){ el=document.createElement("div"); el.id="chiptoast"; app.appendChild(el); }
-    // HANG IT FROM THE COUNTERS, never over them. Measured at show time so it follows the
-    // layout rather than trusting a number typed into the stylesheet.
-    const pill=$("amberchip");
-    if(pill){ const p=pill.getBoundingClientRect(), a=app.getBoundingClientRect();
-      if(p.height) el.style.top=Math.round(p.bottom-a.top+5)+"px"; }
-    el.innerHTML=html; el.classList.add("on");
-    clearTimeout(el._h); el._h=setTimeout(()=>el.classList.remove("on"), ms||3400);
-  },
-  _chipClearOld(){ const el=$("chiptoast"); if(el){ clearTimeout(el._h); el.classList.remove("on"); } },
-  /* RESOLVES WHEN NOTHING IS SPEAKING. The lessons need this: a teaching bubble must never
-     be raised over a card the player has not finished reading. Polls rather than hooks the
-     queue, because a sticky toast can also retire on its own 12s fallback and there is no
-     single place that always fires. */
-  toastQuiet(){
-    return new Promise(res=>{
-      const t=$("toast");
-      const done=()=> !UI._tShowing && !((UI._tq||[]).length) && (!t || !t.classList.contains("on"));
-      const check=()=>{ if(done()) return res(); setTimeout(check,120); };
-      setTimeout(check, 60);        // give the first card a moment to be raised
-    });
-  },
-  _toastClearOld(){ //
-    UI._tq=[]; UI._tShowing=false; UI.skyClear(); UI.chipClear();
-    const t=$("toast"); clearTimeout(t._h); t.onclick=null; t.classList.remove("on","tapwait");
-  },
+  skyClear(){ if(Alder.cur) Alder._dismiss(); },
+  chipClear(){ if(Alder.cur) Alder._dismiss(); },
+  toastClear(){ Alder.Q.length=0; if(Alder.cur) Alder._dismiss(); },
+  /* RESOLVES WHEN ALDER IS SILENT - the lessons wait on this before raising a bubble */
+  toastQuiet(){ return Alder.quietWait(); },
   /* Send a friend out onto the board. Returns a handle whose .home() walks it back -
      the caller runs its power in between, so the pet is standing there while it works
      and there is never any doubt about who did it. */
@@ -10462,138 +10467,24 @@ const UI = {
       from.classList.remove("away");
     } };
   },
-  /* ══ THE ONLY WAY THE GAME SPEAKS ══
-     key   - what this message IS. Seen once, it is not said again.
-     mode  - "once"  (default) never repeats. Waits for a tap the first time.
-             "recur"          may be said again, but only ever waits the first time.
-             "brief"          never waits. For the rare thing that must be said every time.
-     The default is deliberately the strictest one. The constraint from playtesting was:
-     assume they read it when you first surfaced it, and use auto-clearing sparingly. */
+  /* THE NOTE MACHINERY IS GONE. note()/_noteNext and their centre card, scrim, and
+     14-second timers were the last of the seven channels - every caller now speaks
+     through Alder (aside for lines, page for cards), and the one law lives in the
+     stage manager: nothing covers a live board, nothing demands a tap to play. */
   _noteKey(html){                 // a message with no key of its own is keyed by what it says
     const t=String(html).replace(/<[^>]+>/g,"").trim();
     let h=0; for(let i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))|0;
     return "m"+(h>>>0).toString(36);
   },
-  NOTEQ:[], _noteOn:false,
-  note(key, html, mode){
-    if(!html) return;
-    if(S && (S.over || S.won) && mode!=="brief") return;   // a decided round belongs to its card
-    mode = mode || "once";
-    try{ P.said = P.said || {}; }catch(e){ return; }
-    const seen = (P.said[key]||0) > 0;
-    if(seen && mode==="once") return;                      // said once, and once was enough
-    /* ══ THE ROUTER'S ONE LAW ══ while letters are falling or resolving, NOTHING covers
-       the board and NOTHING waits for a tap. Seven channels each patched separately never
-       stayed fixed - this is the single gate they all pass through now. A teach-note that
-       fires mid-round still appears and still marks itself said, but as the aside pill:
-       visible, auto-paced, never a scrim over live play. Boundaries (no round, round not
-       yet begun, round decided) keep the full card treatment. */
-    const live = S && !S.over && !S.won && (S.drops||0) > 0;
-    UI.NOTEQ.push({ key, html, mode, seen: seen || (live && mode==="once" ? false : seen), live });
-    if(!UI._noteOn) UI._noteNext();
-  },
-  _noteNext(){
-    const q=UI.NOTEQ;
-    if(!q.length){ UI._noteOn=false; return; }
-    // a ritual owns the eyes - anything else waits at the door
-    if($("ov-meet").classList.contains("active") || document.querySelector(".whosthat")){
-      UI._noteOn=true; setTimeout(UI._noteNext, 500); return;
-    }
-    UI._noteOn=true;
-    const { key, html, mode, seen, live } = q.shift();
-    const waits = !seen && mode!=="brief" && !live;   // the router's law: live rounds never wait
-    let el=$("note"), scrim=$("note-scrim");
-    const host=$("boardwrap")||$("app");
-    if(!scrim){ scrim=document.createElement("div"); scrim.id="note-scrim"; host.appendChild(scrim); }
-    if(!el){ el=document.createElement("div"); el.id="note"; host.appendChild(el); }
-    el.className = waits ? "owns" : "aside";
-    el.innerHTML = html + (waits ? '<span class="tapon">tap to continue</span>' : "");
-    void el.offsetWidth; el.classList.add("on");
-    if(waits) scrim.classList.add("on");
-    try{ P.said[key]=(P.said[key]||0)+1; save(); }catch(e){}
-    const done=()=>{ clearTimeout(el._h); el.onclick=null; scrim.onclick=null;
-      el.classList.remove("on"); scrim.classList.remove("on");
-      setTimeout(UI._noteNext, 240); };
-    if(waits){
-      setTimeout(()=>{ if(el.classList.contains("on")){ el.onclick=done; scrim.onclick=done; } }, 340);
-      el._h=setTimeout(done, 14000);          // a message must never hang the game
-    } else {
-      /* THE MISSING BACKSLASH. This read /s+/ and split on the LETTER s, not on whitespace,
-         so the word count was nonsense and the median message stood for 2.5 seconds instead
-         of the ~5 it was written for. A playtester: "instructions screen pe aa rahe hai, toh
-         padhne se pehle hi gayab ho ja raha hai. I read slow." He was reading the bug. */
-      const words=String(html).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
-      el._h=setTimeout(done, Math.min(5400, 1700+words*260));
-    }
-  },
-  noteQuiet(){                    // resolves when the stage is silent - the lessons wait on this
-    return new Promise(res=>{
-      const check=()=>{ const el=$("note");
-        if(!UI._noteOn && !UI.NOTEQ.length && (!el || !el.classList.contains("on"))) return res();
-        setTimeout(check,120); };
-      setTimeout(check, 60);
-    });
-  },
-  noteClear(){ UI.NOTEQ.length=0; UI._noteOn=false;
-    [$("note"),$("note-scrim")].forEach(e=>{ if(e){ clearTimeout(e._h); e.onclick=null; e.classList.remove("on"); } }); },
   say(key, msg, times){ // teaching goes to the POCKET: spoken once, in a quiet moment
     Alder.aside(key, msg, {once:true, pri:3});
   },
+  /* TIPS holds ONLY what has no Alder Page: the two treats that arrive mid-round.
+     Every trouble, goal and tool teaching lives in ALDER_PAGES now - one copy, one voice. */
   TIPS:{
-    /* ══ A TOOL IS TAUGHT IN THREE BEATS ══ how you earn it, how you spend it, the one
-       catch. As a single block this ran 43 words and the catch was the last clause of the
-       last sentence - the part a beginner skims. Three cards, three taps, the player's own
-       pace, and the catch gets a card to itself instead of a trailing subordinate clause. */
-    breeze:{i:"🍃", t:[
-      "Every <b>3-letter word</b> you spell earns a <b>breeze</b>.",
-      "Tap the 🍃 button, then tap two tiles - they trade places.",
-      "One catch: a word the breeze itself makes won't earn another."]},
-    /* THE MEASUREMENT THAT DROVE THE SPLIT: across all 21 tip cards the median is 24 words.
-       The wish ran 47 and the breeze 43 - the two longest in the game, and the two shown
-       earliest, to somebody about a minute into their first session. The length was a
-       symptom; the cause was three separate ideas crammed into one box, with the catch
-       always last and always skimmed. Split into beats, no card exceeds 18 words and the
-       catch gets one to itself. (The golden-letter promise did NOT come back: keeping gold
-       gold is simply how the game works, and saying it out loud invites the doubt it
-       answers.) */
-    wish:  {i:"🌟", t:[
-      "Every <b>4-letter word</b> you spell earns a <b>star-wish</b>.",
-      "Tap the 🌟 and <b>choose any letter</b> - the one in your hand becomes it.",
-      "One catch: a word the wish itself makes won't earn another."]},
-    branch:{i:"🪾", t:"A <b>fallen branch</b> lies across the way. It holds no letter - but spell a word <b>right beside it</b> and it is cleared in one. The wood is full of these."},
-    spore: {i:"🍄", t:"<b>Spores</b> drift. Like the tangle they spread every few drops - but they do not creep along, they <b>land anywhere on the board</b>. One word beside one clears it."},
-    reed:  {i:"🌾", t:"A <b>reed</b> stands in the whole column - <b>nothing drops past it</b>. You cannot go through, so go around: clear a word beside it, <b>twice</b>."},
-    mire:  {i:"🟤", t:"<b>Mire</b> does not fall. Everything else settles around it and it hangs where it is, holding a shelf in the air. One word beside it pulls it free."},
-    current:{i:"🌀",t:"The <b>current</b> runs. Every few drops it <b>shoves a whole row sideways</b> - the board will not be where you left it."},
-    wind:  {i:"🌬️", t:"The <b>wind</b> is up here. Every few drops it lifts the top letter off your <b>tallest pile</b> and drops it somewhere else."},
-    crystal:{i:"💎",t:"<b>Crystal.</b> Two clears to break - and it does not vanish, it <b>turns to gold</b>. The only trouble in the wood that leaves you better off."},
-    scree: {i:"🪨", t:"<b>Scree</b> is loose rock. Clear it and it <b>breaks into more</b>, once. The slope always ends - but the first swing never feels like winning."},
     gold:  {i:"✨", t:"A <b>golden tile</b>! Use it in a word and its letter scores <b>triple</b>."},
-    stone: {i:"🪨", t:"A <b>mossy stone</b> blocks words. Clear a word right beside it to crack it - twice to smash it. A 💥 Boulder Buster friend clears them all at once!"},
-    ice:   {i:"🧊", t:"A <b>frozen letter</b> can't be used yet. Clear a word next to it and it thaws into a normal tile."},
-    /* "and your friends' paw meter fills at once" - it does not. Game.cheer(), which the crate
-       calls, was hollowed out when each friend got its own sign; it repaints and plays a tone
-       and touches no wake counter. The crate DOES give generously, so the card lists what it
-       actually gives and stops advertising the one thing that was removed. */
-    crate: {i:"🎁", t:"A <b>gift crate</b>! Clear a word beside it and it bursts open - <b>points, a 🍃 breeze, a 🌟 wish</b>, sometimes a move or two."},
     shift: {i:"🌀", t:"A <b>restless tile</b> - it changes its letter every few drops. Catch it at the right moment!"},
-    frost: {i:"❄️", t:"<b>Deep frost</b> - winter twice over. A word beside it sheds one layer; a <b>second</b> word sets the letter free."},
-    mist:  {i:"🌫️", t:"A <b>misted letter</b> hides its face - no word can use it while it hides. Clear a word beside it and the mist lifts."},
-    bramble:{i:"🌿", t:"<b>Brambles!</b> Every few drops the tangle reaches for another letter. Clear a word <b>right beside</b> a tangle to cut it away."},
-    root:  {i:"🪵", t:"A <b>stubborn root</b>! One word beside it cuts it - but left alone for three drops, <b>it heals whole</b>. Cut it twice, quickly."},
-    shroud:{i:"🌑", t:"A <b>shroud</b> dims the wood - words cleared <b>beside it score half</b>. Two words beside it lift the gloom for good."},
-    pest:  {i:"🐛", t:"A <b>little pest</b>! Every few drops it trades places with one of your letters. One word cleared <b>right beside it</b> shoos it off."},
-    "goal-thaw":   {i:"🧊", t:"A <b>THAW round</b>! The hush doesn\u0027t want points here - <b>melt every frozen letter</b> before your moves run out. Clear words BESIDE the ice to thaw it."},
-    "goal-boulder":{i:"🪨", t:"A <b>BOULDER round</b>! <b>Smash every mossy stone</b> to clear the level - clear words beside a stone twice and it crumbles."},
-    "goal-harvest":{i:"✨", t:"A <b>HARVEST round</b>! <b>Use every golden letter in a word</b> - the gold on the board is the goal, not the points."},
-    "goal-unravel":{i:"🎁", t:"An <b>UNRAVEL round</b>! <b>Burst every gift crate</b> - clear words beside them. The gifts inside are still yours."},
-    "goal-lift":   {i:"🌫️", t:"A <b>MIST round</b>! The hush wants no points here - <b>lift every misted letter</b>. Clear words BESIDE the fog until no letter hides."},
-    "goal-cut":    {i:"🌿", t:"A <b>TANGLE round</b>! The brambles keep growing - <b>cut the asked number of tangles</b> before your moves run out. Clear words right beside them."},
-    "goal-long":   {i:"🏔️", t:"A <b>LONG TRIAL</b>! Only <b>words of 4 letters or more</b> count toward this round. Build tall, speak long."},
-    "goal-star":   {i:"⭐", t:"A <b>STAR COURSE</b>! Fallen stars rest on the board - <b>use every ⭐ in a word</b>. A star becomes any letter you need it to be."},
-    "goal-gauntlet":{i:"👑", t:"A <b>CROWN TRIAL</b>! The wood asks <b>two things at once</b>. Finish BOTH asks on the strip to clear the round."},
-  },
-  /* ---- 🧿 KEEPER'S CHARM - export/restore. iOS quietly evicts a PWA's storage after
+  },  /* ---- 🧿 KEEPER'S CHARM - export/restore. iOS quietly evicts a PWA's storage after
      ~a week of neglect; until a real cloud save exists, the charm is the lifeboat.
      Format: HW1.<checksum36>.<base64 of P> - the checksum catches half-pasted codes. */
   _charmSum(raw){ let h=0; for(let i=0;i<raw.length;i++){ h=(h*31+raw.charCodeAt(i))>>>0; } return h.toString(36); },
@@ -10894,54 +10785,9 @@ const UI = {
     location.reload();
   },
 
-  // A TIP IS INFORMATION, NOT A GATE.
-  // This used to set S.busy - and drop() opens with a SILENT `if(busy) return`, so every
-  // tap on a board that still looked completely live did nothing: no shake, no sound, no
-  // word. Worse, the stall watchdog counted an open tip as a legitimate surface and stood
-  // down, so the one safety net declined to help. A tester spent ~40 taps and two rage
-  // bursts on level 13 hammering a board that had quietly stopped listening, went to the
-  // home screen, came back, and found it still dead. The card is small and centred; the
-  // board around it stays reachable. So the tip now floats over a PLAYABLE board and
-  // retires on its own - nothing it does can ever cost someone the game again.
-  tileTip(kind){ if(!S || P.seenTip[kind] || S.over || S.won) return false;
-    P.seenTip[kind]=true; save();
-    const tip=UI.TIPS[kind]; if(!tip) return false;
-    /* ══ A TOOL IS THREE IDEAS, NOT ONE PARAGRAPH ══ how you earn it, how you spend it, and
-       the one catch. Written as a single block they arrive as a wall a beginner skims, and
-       the catch - always the last clause - is the part that gets skimmed. Split, each idea
-       gets its own card and its own tap, and the player sets the pace. A step counter says
-       how much is left, so three cards read as a short lesson rather than an interruption
-       that will not stop.
-       An obstacle tip stays ONE card: it is one idea, and it fires mid-round where a
-       three-tap sequence would be an ambush. Those keep the timed sky rail. */
-    const steps = Array.isArray(tip.t) ? tip.t : null;
-    if(steps){
-      steps.forEach((step,i)=>{
-        UI.toast('<span class="tipstep">'+(i+1)+' of '+steps.length+'</span>'
-                 +'<b>'+tip.i+'</b> '+step, "tap");
-      });
-      Game.shown("tip");
-      Game.track("tip_shown",{ kind, L:S.level, steps:steps.length });
-      Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
-      return true;
-    }
-    // 270x236 in the middle of a 507px board - 47% of the play surface, opaque, while
-    // telling you to go and look at the play surface. Same words, in the sky.
-    UI.sky('<b>'+tip.i+'</b> '+tip.t, 9000); Game.shown("tip");
-    Game.track("tip_shown",{ kind, L:S.level });
-    UI._tipAt=Date.now();
-    clearTimeout(UI._tipT);
-    UI._tipT=setTimeout(()=>{ UI.skyClear();
-      Game.track("tip_gone",{ kind, how:"timeout", ms:Date.now()-(UI._tipAt||Date.now()) }); }, 7000); // reads in ~4s; leaves before it's in the way
-    Snd.tone(1046,{dur:.12,type:"sine",gain:.06,verb:true}); buzz(20);
-    return true;
-  },
-  // note: this must NOT touch S.busy any more. Tips no longer set it, so clearing it here
-  // would release a board that something else (a resolve, a ceremony) is legitimately holding.
-  hideTip(){ if(Game.guard("tip")) return;
-    if($("skyrail") && $("skyrail").classList.contains("on"))
-      Game.track("tip_gone",{ how:"tapped", ms:Date.now()-(UI._tipAt||Date.now()) });
-    clearTimeout(UI._tipT); UI.skyClear(); },
+  /* tileTip is RETIRED. Troubles and goals introduce themselves as Alder Pages on their
+     debut doorstep; golds, shifts and out-of-order meetings ride Alder's pocket - see
+     Game.showPendingTip. The tool lessons page through FT.waitTip. */
   confetti(){
     const colors=["#7dd87d","#ffd54f","#4fc3f7","#ff8a5c","#b388ff"];
     for(let i=0;i<24;i++){ const c=document.createElement("div"); c.className="confetti";
@@ -11008,16 +10854,33 @@ function colFromEvent(e){
 let aiming=false, aimId=null;
 function aimStop(){ aiming=false; aimId=null; UI.carry(false); }
 
+/* ══ ASK THE WOOD ABOUT A TILE ══ hold a finger on any trouble tile for half a second
+   (without dragging) and the Field Guide opens with its reading. The timer dies the
+   moment the finger travels, so aiming never trips it - and when it DOES fire, the
+   matching pointerup is swallowed so no letter drops behind the card. */
+let pressT=null, pressX=0, pressY=0;
+function pressClear(){ clearTimeout(pressT); pressT=null; }
 boardEl.addEventListener("pointerdown", e=>{
   if(!S) return;
   const c=colFromEvent(e); S.hoverCol=c; UI.ghost(c);
   aiming=true; aimId=e.pointerId;
   try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
   UI.carry(true, e);
+  pressClear(); pressX=e.clientX; pressY=e.clientY;
+  { const r=boardEl.getBoundingClientRect();
+    const row=Math.floor((e.clientY-r.top)/(r.height/ROWS));
+    const t=(c>=0 && row>=0 && row<ROWS && S.board[row]) ? S.board[row][c] : null;
+    if(t && t.kind && t.kind!=="normal" && !S.usingBreeze && !S.usingPluck){
+      const kind=t.kind;
+      pressT=setTimeout(()=>{ pressT=null;
+        Info._boardAte=true; aimStop(); UI.handBack(); UI.ghost(-1);
+        Info.tile(kind); }, 550);
+    } }
 });
 boardEl.addEventListener("pointermove", e=>{
   if(!S) return;
   if(aiming && e.pointerId!==aimId) return;
+  if(pressT && (Math.abs(e.clientX-pressX)>8 || Math.abs(e.clientY-pressY)>8)) pressClear();
   const c=colFromEvent(e);
   if(c>=0 && c!==S.hoverCol){ Snd.hover(c); }
   S.hoverCol=c; UI.ghost(c);
@@ -11026,10 +10889,15 @@ boardEl.addEventListener("pointermove", e=>{
 // only meaningful when NOT aiming: mid-drag the finger is allowed to roam
 boardEl.addEventListener("pointerleave", ()=>{ if(!aiming) UI.ghost(-1); });
 boardEl.addEventListener("pointercancel", e=>{
+  pressClear();
   if(aiming && e.pointerId!==aimId) return;
   aimStop(); UI.handBack(); UI.ghost(-1);      // nothing was placed, so the letter is still yours
 });
 boardEl.addEventListener("pointerup", e=>{
+  pressClear();
+  // THE PRESS THAT OPENED THE GUIDE IS NOT A DROP. Its pointerup arrives with the card
+  // already on screen; letting it fall through would drop a letter behind the reading.
+  if(Info._boardAte){ Info._boardAte=false; UI.handBack(); UI.ghost(-1); return; }
   if(aiming && e.pointerId!==aimId) return;
   const hand = UI.handoff();          // where the letter is, before the held tile is taken away
   aimStop();
@@ -11482,6 +11350,7 @@ window.S = ()=>S; window.Game=Game; window.UI=UI; window.Snd=Snd; window.P=P; wi
 if(Tele.isLocal()) setTimeout(()=>{ try{ Audit.run(); }catch(e){ console.warn("audit fell over:",e); } }, 0);
 Tele.boot();
 Alder._watch();   // the stage manager's eyes: grace preemption + the quiet-window ticker
+Info.wireTools(); // hold the breeze or the wish half a second to read it in the Field Guide
 Game._sink = (n,p)=>Tele.log(n,p,"funnel");   // level_start/win/fail, wake, purchase*, ad*, shop_open
 // what the wood SAID to them - scene changes and every announcement
 { const _sc=UI.scene.bind(UI); UI.scene=(id)=>{ if(id!==Tele.scene){ Tele.log("nav",{to:id}); Tele.scene=id; } return _sc(id); }; }
