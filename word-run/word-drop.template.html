@@ -921,6 +921,21 @@
      above the tray - measured - which reads as stuck to the dock rather than floating
      between the two. The board moving up made the gap 67 and the imbalance obvious;
      12 puts a 44px bubble in its middle. */
+  /* 🐾 THE ONE PLACE A FRIEND SPEAKS FROM. Pet lines used to ride the note system: the
+     FIRST fire of a power became a centre-stage card with a scrim and "tap to continue"
+     while the act played invisibly behind it, and every later fire sat in the board's
+     airspace - exactly where the word banners form, so the fire hid the word it caused.
+     The pill lives in the HOLD button's spot instead: a word made by a friend can never
+     be held, so during a pet act that slot is guaranteed empty. Nothing on the board is
+     ever covered, nothing ever waits for a tap, the newest line simply replaces the last. */
+  #petsaypill{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 12px);
+    z-index:69; display:flex; align-items:center; max-width:92vw;
+    background:#fffdf6; border:2px solid var(--accent,#7fa877); border-radius:999px;
+    padding:5px 16px; min-height:30px; font-size:12.5px; font-weight:800; letter-spacing:.2px;
+    color:var(--ink); box-shadow:0 6px 16px rgba(90,60,30,.35); animation:bannerin .2s;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
+  #petsaypill.fade{ opacity:0; transition:opacity .4s; }
+  #petsaypill img.toastimg{ height:1.2em; width:1.2em; vertical-align:-3px; }
   .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 12px);
     z-index:70; display:flex; align-items:center; justify-content:center;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:4px;
@@ -3345,13 +3360,37 @@ const EARLY=[ null,
    The steps are deliberately keyed to the growings at 50, 100 and 150: the wood asks for
    more right after your friends become more, so an upgrade is felt as relief rather than
    arriving into a level that was already comfortable. */
+/* ══ THE ASK BENDS TO THE PARTY ══
+   The original curve was arbitrary - the designer's own words - and it was tuned before
+   the fifty friends existed. This taper is SOLVED from measured capacity: 500+ headless
+   rounds of a band-resident party (what a player plausibly owns at each depth) against a
+   friendless control, on the same seeds. Three rules shaped the knots:
+     - the first sixty levels are untouched: they measured correct before pets and still do
+     - the ask never dives more than ~a fifth between knots - except entering the Deep
+       Dark, where it eases on purpose: no light, and no need of it
+     - the friendless control must stay UNDER water everywhere past A60 - if you can win
+       without friends, the friends make no sense. The taper floor is set by that rule,
+       not by kindness.
+   Knots are (adventure level, fraction of the old ask). */
+const TAPER_KNOTS = [[60,1.00],[80,0.62],[110,0.52],[140,0.70],[180,0.70],
+                     [210,0.47],[240,0.47],[270,0.46],[300,0.46]];
+function TAPER(A){
+  if(A<=60) return 1;
+  const K=TAPER_KNOTS;
+  if(A>=K[K.length-1][0]) return K[K.length-1][1];
+  for(let i=0;i<K.length-1;i++){
+    const [a0,s0]=K[i], [a1,s1]=K[i+1];
+    if(A>=a0 && A<=a1) return s0 + (s1-s0)*(A-a0)/(a1-a0);
+  }
+  return 1;
+}
 function TARGET(L){
   if(EARLY[L]) return EARLY[L][0];
   const tier = L>=150 ? 3 : L>=100 ? 2 : L>=50 ? 1 : 0;
   // gentle multipliers, because the L^0.75 term ALREADY compounds - the first attempt
   // stacked ×2.00 on top of it and asked 1025 at L300 against a modelled 625
   const base = 35 + 6*Math.pow(L-8, 0.75) * [1, 1.12, 1.28, 1.45][tier];
-  return Math.round(base*RHYTHM[(L-1)%5]/5)*5;   // always lands on a multiple of 5
+  return Math.round(base*TAPER(advOf(L))*RHYTHM[(L-1)%5]/5)*5;   // always lands on a multiple of 5
 }
 /* The budget has to grow with the target. Holding it at 20 forever while the target
    climbed was the real wall: a level-20 board produced 5-8 words in 20 drops and the
@@ -3790,10 +3829,10 @@ const GROVE = [
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word - <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
   {w:"bat",e:"🦇",z:"sky",ps:true,pn:"Read It Backwards",pi:"🔄",pd:"<b>every row reads both ways</b> - and a word that reads the <b>same</b> both ways pays double",fx:{t:"readsBoth"},f:"reads the bottom row backwards for fun"},
   {w:"heron",ps:true,e:"🦩",z:"sky",pn:"Stands Among Reeds",pi:"⏳",pd:"so still the reeds forget it is there: <b>words pass straight through reeds</b>",fx:{t:"reedPass"},f:"stands so still the marsh mistakes it for a reed"},
-  {w:"golem",wake:{on:"word5",n:1},echo:"obstacle",e:"🗿",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board",fx:{t:"crackAll"},f:"was a mountain once, and remembers how mountains break"},
+  {w:"golem",wake:{on:"obstacle",n:3},echo:"obstacle",e:"🗿",z:"sky",pn:"Boulder Buster",pi:"💪",pd:"<b>cracks every stone</b> on the board - and the wind stills while it stands",fx:{t:"crackAll"},f:"was a mountain once, and remembers how mountains break"},
   {w:"fly",wake:{on:"anyWord",n:3},echo:"vowel",e:"🪰",z:"sky",pn:"Comes Right Back",pi:"🍃",pd:"annoying, usefully: <b>re-offers the letter you just dropped</b> in your next slot",fx:{t:"flyReturn"},f:"you cannot get rid of it, and one day that saves you"},
-  {w:"ladybug",wake:{on:"anyWord",n:6},echo:"gold",e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"good luck lands on you: your <b>next word counts as a flourish</b>",fx:{t:"ladybugLuck"},f:"seven spots, and every one of them lucky"},
-  {w:"cricket",wake:{on:"cascade",n:2},echo:"cascade",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
+  {w:"ladybug",wake:{on:"anyWord",n:5},echo:"gold",e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"good luck lands on you: your <b>next word counts as a flourish</b>",fx:{t:"ladybugLuck"},f:"seven spots, and every one of them lucky"},
+  {w:"cricket",wake:{on:"cascade",n:1},echo:"cascade",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
   {w:"fox",wake:{on:"flourish",n:1},e:"🦊",z:"ground",pn:"Too Clever",pi:"✨",pd:"on a <b>flourish</b>, fetches the <b>letter the board wants most</b> into your next slot",fx:{t:"foxFetch"},f:"has already fetched what you were about to need"},
   {w:"frog",wake:{on:"word3",n:3},echo:"cascade",e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
@@ -3818,7 +3857,7 @@ const GROVE = [
   {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"The Shell's Law",pi:"🛡️",pd:"what you hold is home: <b>nothing may creep or hop beside a held word</b>",fx:{t:"turtleShell"},f:"carries its home, and lends you the roof"},
   {w:"beaver",e:"🦫",z:"ground",ps:true,pn:"The Dam",pi:"🪵",pd:"a <b>held</b> word is dammed - when its letters finally clear in a bigger word, <b>the dam breaks and pays</b>",fx:{t:"damBreak"},f:"holds the river back until it is worth letting go"},
   {w:"wyrm",wake:{on:"word4",n:2},echo:"tool",e:"🐍",z:"ground",pn:"Deepdelve",pi:"⛏️",pd:"arms a <b>free pluck</b> - take any letter off the board",fx:{t:"freePluck"},f:"has been under this wood longer than the wood has"},
-  {w:"lizard",wake:{on:"rare",n:2},echo:"gold",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
+  {w:"lizard",wake:{on:"rare",n:1},echo:"gold",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
   {w:"pony",wake:{on:"drop",n:15},echo:"cascade",e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
   {w:"lamb",wake:{on:"vowel",n:3},echo:"vowel",e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
   {w:"penguin",wake:{on:"obstacle",n:3},e:"🐧",z:"ground",pn:"The Belly-Slide",pi:"🐧",pd:"slides the ice clean, delighted: <b>every ice on the board thaws a layer</b>",fx:{t:"thawAll"},f:"the whole Snowline is its playground"},
@@ -3826,7 +3865,7 @@ const GROVE = [
   {w:"raccoon",e:"🦝",z:"ground",ps:true,pn:"Bin Raider",pi:"🗑️",pd:"trouble you clear pays <b>+2 amber</b> - and every 4th piece, it rummages out <b>a little treasure</b>",fx:{t:"binRaider"},f:"one wood's trash is this fellow's fortune"},
   {w:"phoenix",e:"🦅",z:"ground",ps:true,pn:"Born Again Golden",pi:"🌈",pd:"what the phoenix grants comes back <b>RAINBOW</b> - every <b>wished letter</b> pays its whole word as gold",fx:{t:"rainbowWish"},f:"everything it returns comes back brighter"},
   {w:"spider",wake:{on:"word4",n:2},echo:"mirror",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word in silk: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
-  {w:"bison",wake:{on:"obstacle",n:2},echo:"word4",e:"🦬",z:"ground",pn:"Stampede",pi:"📣",pd:"thunder itself: <b>charges the tallest column</b> and shakes its trouble loose",fx:{t:"smashCol"},f:"you hear it before you see it"},
+  {w:"bison",wake:{on:"obstacle",n:2},echo:"word4",e:"🦬",z:"ground",pn:"Stampede",pi:"📣",pd:"thunder itself: charges a column and <b>shakes every piece of trouble out of it</b> - the letters hold on",fx:{t:"stampede"},f:"you hear it before you see it"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
 /* ============ CALLINGS - how a creature notices you ============
@@ -5344,7 +5383,7 @@ const POWERS = {
         const ns=normals();
         if(!ns.length){ Game.addMoves(1); return; }
         const pick = Game.catFit(ns);
-        if(!pick){ Game.addMoves(1); UI.note("cat-nofit","🐾 nothing to pat into place, so the cat found you a spare move instead","once"); return; }
+        if(!pick){ Game.addMoves(1); UI.petSay("🐾 nothing to pat into place - the cat found you a spare move instead"); return; }
         Game.retype(pick.t, pick.L); UI.shards(pick.t.r, pick.t.c, "#ffd9a8");
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
         S.chain=1; await Game.resolve([pick.t]); return;
@@ -5357,7 +5396,7 @@ const POWERS = {
         // no word to dig up on this board - rather than nothing, the dog brings back a
         // star. Players saw their letter silently become ★ and had no idea why.
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
-          UI.sky((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up - so the dog fetched a <b>⭐ star</b> instead!<br><small>a star can be any letter you need</small>"); } return;
+          UI.petSay((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up - fetched a <b>⭐ star</b> instead"); } return;
   },
       // rainHelp lived here - the bee's old power, two helpful tiles a fire. It went with
       // the bee's rethink: at six fires a round it buried a small board, and burying the
@@ -5367,7 +5406,7 @@ const POWERS = {
         UI.piece(); UI.stardrift(); Game.handPop(); return;
   },
   async charm({ pet, m, fx }){ S.charm=(S.charm||0)+fx.n*m; // 🎼 Grace Notes
-        UI.say("charm-sing", (UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words":"word")+" scores DOUBLE 💖", 3);
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words score":"word scores")+" <b>DOUBLE</b> 💖");
         for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
           h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
           $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
@@ -5590,7 +5629,19 @@ const POWERS = {
   },
   async flatBonus({ m, fx }){S.flatB=(S.flatB||0)+fx.n*m; return;
   },
-  async chainBoost(){S.chainBoost=true; return;
+  async chainBoost({ pet }){S.chainBoost=true;
+        /* 🦗 THE CHIRP RESONATES - the cricket's note is the only thing in the wood that
+           crystal answers. Every crystal on the board cracks a step when it sings, which
+           is the Glimmer Seams' own trouble meeting its own friend. */
+        if(pet && pet.w==="cricket"){
+          const cr=Object.values(S.tiles).filter(t=>t.kind==="crystal");
+          for(const t of cr){ t.cracks=(t.cracks||0)+1;
+            if(t.cracks>=2){ UI.shards(t.r,t.c,"#bfe7f2"); Game.creditTile(t); removeTile(t); }
+            else { t.inner.classList.add("cracked"); UI.shards(t.r,t.c,"#e2f4fa"); } }
+          if(cr.length){ Snd.tone(1567,{dur:.2,type:"triangle",gain:.06,verb:true});
+            UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" sings - <b>the crystal answers</b>");
+            const fell=await Game.gravity(); await Game.resolve(fell||[]); } }
+        return;
   },
       // gilds the SHORTEST column, not the tallest. Gold on the tallest pile is the
       // hardest gold on the board to ever reach - measured earlier, a fox-gilded column
@@ -5671,6 +5722,24 @@ const POWERS = {
         for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ UI.shards(r,c,"#c5a3e0"); Game.creditTile(t); removeTile(t); } }
         Snd.collapse(6); return;
   },
+  /* 🦬 STAMPEDE - the column with the most TROUBLE loses all of it; the letters hold on
+     and tumble down through the gaps. smashCol before it flattened letters too, which the
+     sim caught as a friend that vandalised its own player: 8.6 acts a round, zero value. */
+  async stampede({ pet }){
+        let best=-1, bestN=0;
+        for(let c=0;c<COLS;c++){ let n=0;
+          for(let r=0;r<8;r++){ const t=S.board[r][c];
+            if(t && OBSTACLE_KINDS.includes(t.kind) && t.kind!=="crate") n++; }
+          if(n>bestN){ bestN=n; best=c; } }
+        if(best<0){ Game.addMoves(2); return; }
+        $("boardwrap").classList.add("shake"); setTimeout(()=>$("boardwrap").classList.remove("shake"),450);
+        for(let r=0;r<8;r++){ const t=S.board[r][best];
+          if(t && OBSTACLE_KINDS.includes(t.kind) && t.kind!=="crate"){
+            UI.shards(r,best,"#c5a3e0"); Game.creditTile(t); removeTile(t); } }
+        Snd.collapse(bestN); buzz(16);
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" stampedes - <b>"+bestN+" trouble shaken loose</b>");
+        const fell=await Game.gravity(); S.chain=1; await Game.resolve(fell||[]); return;
+  },
   async sweepTops(){ const picks=[];
         for(let c=0;c<COLS;c++){ for(let r=0;r<8;r++){ const t=S.board[r][c]; if(t){ if(t.kind==="normal"||t.kind==="gold"||t.kind==="wild") picks.push(t); break; } } }
         if(!picks.length){ Game.addMoves(2); return; }
@@ -5690,7 +5759,7 @@ const POWERS = {
         S.chain=1; await Game.resolve(added); return;
   },
   async freePluck({ pet }){ S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
-        UI.sky((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole - tap any letter to pluck it FREE"); return;
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole - <b>tap any letter to pluck it FREE</b>"); return;
   },
   async stoneGold(){ const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); return; }
@@ -5751,7 +5820,7 @@ const POWERS = {
       // 🦬 the herd calls ahead: the next three letters are all ones that fit
   async herdCall({ pet, m }){ S._helpNext=(S._helpNext||0)+3*m;
         if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
-        UI.say("herd-call", (UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd - the next letters are <b>chosen for you</b>", 3);
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd - the next letters are <b>chosen for you</b>");
         return;
   },
 
@@ -7460,8 +7529,14 @@ const Game = {
      And it is load-bearing, not garnish. Modelled with a fixed power budget, the target
      that holds a 50% win rate FLATLINES at 240 from L110 and never moves again for two
      hundred levels. Growth is what lets the wood keep asking for more. */
-  TIER_AT:[50,100,150],                 // three growings, and the wood is different after each
-  TIER_MUL:[1, 1.35, 1.82, 2.46],       // ×1.35 a tier - a step nobody will miss
+  /* FIVE GROWINGS NOW, NOT THREE. The measured wall: the ask grows x30 across the walk
+     and pets were the only thing meant to grow with it, yet their growth stopped at L150
+     while the ask kept climbing for 150 more levels. The two new growings land where the
+     no-pet gap was measured at x3.8-x4.0, and the steeper steps double-dip on purpose:
+     TIER_MUL divides wake counts too, so a grown friend acts OFTENER as well as BIGGER -
+     which is exactly the cadence the four-arm sim showed the late parties starving for. */
+  TIER_AT:[40,90,140,190,240],          // five growings, and the wood is different after each
+  TIER_MUL:[1, 1.45, 2.0, 2.7, 3.5, 4.4],
   petTier(){ let t=0; for(const L of Game.TIER_AT) if((P.level||1)>=L) t++; return t; },
   tierMul(){ return Game.TIER_MUL[Game.petTier()] || 1; },
   /* a grown friend does MORE and waits LESS. The waiting half matters most: it is the
@@ -9772,7 +9847,18 @@ const UI = {
      "brief" never blocks and never waits, so the banner rides alongside the board every
      time a friend goes out. The power is legible from what happens to the tiles; the
      banner only needs to say who did it. */
-  petSay(html){ if(html) UI.note(UI._noteKey(html), html, "brief"); },
+  /* pet speech NEVER touches the note system - no once-keys, no queue, no scrim, no
+     centre stage. One pill in the hold slot; the newest line replaces the last. */
+  petSay(html){
+    if(!html) return;
+    const host=$("dock"); if(!host){ return; }
+    let el=$("petsaypill");
+    if(!el){ el=document.createElement("div"); el.id="petsaypill"; host.appendChild(el); }
+    clearTimeout(el._h1); clearTimeout(el._h2);
+    el.classList.remove("fade"); el.innerHTML=html;
+    el._h1=setTimeout(()=>el.classList.add("fade"), 2600);
+    el._h2=setTimeout(()=>el.remove(), 3100);
+  },
   toast(m, hold){ if(m) UI.note(UI._noteKey(m), m, "once"); },
   skyClear(){ UI.noteClear(); },
   chipClear(){ UI.noteClear(); },
