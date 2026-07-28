@@ -1521,6 +1521,8 @@
 
   /* the naming word keeps its own line under the bar */
   #gs-name{ display:none; justify-content:center; }
+  #gs-name .gask{ font-style:normal; font-size:10px; font-weight:800; opacity:.85;
+    margin-left:6px; letter-spacing:.2px; }
   .gseg.gname{ gap:6px; font-size:13px; }
   .gseg.gname b{ font-size:15px; letter-spacing:2.5px; color:var(--gold-deep); }
 
@@ -5556,7 +5558,10 @@ const POWERS = {
   async goatEat({ pet, m, fx }){
         const junk=Object.values(S.tiles).filter(t=>OBSTACLE_KINDS.includes(t.kind) && t.kind!=="crate");
         if(!junk.length){ Game.addMoves(1); return; }
-        const t=junk[Math.floor(Math.random()*junk.length)];
+        // eat the tile the walk aimed at, so the gesture and the bite agree
+        const aimed=Game.petAim();
+        const t=(aimed && OBSTACLE_KINDS.includes(aimed.kind) && aimed.kind!=="crate")
+          ? aimed : junk[Math.floor(Math.random()*junk.length)];
         UI.shards(t.r,t.c,"#c8a96e");
         Game.creditTile(t); removeTile(t);
         const pay=Math.round((fx.n||5)*m); Game.amber(pay);
@@ -6619,7 +6624,17 @@ const Game = {
     // and still lose the round on points. Speaking it ends the round, once the silhouette
     // has had its reveal.
     if(S.guestNamed && !S.pendingReveal && !document.querySelector(".whosthat")){
-      Game.winLevel(); return; }
+      /* ══ THE MEETING ASKS TWO THINGS, ONCE ══ show it the thing it loves, and say its
+         name - one round, one story, no toll spread across rounds. The ask is counted by
+         this round's own sigs (a courtship performed BEFORE the meeting already opened
+         the door, so an early-pulled friend asks nothing twice). After two letdowns the
+         ask is WAIVED - the pity that replaced the old lifetime door: it likes you
+         regardless. */
+      const gw = S.tutorWord;
+      const askOk = !gw || Game.courted(gw) || (P.nameFails[gw]||0) >= 2;
+      if(askOk){ Game.winLevel(); return; }
+      UI.say("meet-ask-"+gw, "🎭 the name is spoken - now <b>show it the thing it loves</b>", 2);
+    }
     // THE CEREMONY CONTRACT IS THE NAME, AND ONLY THE NAME. It used to be "beat the level
     // AND speak the name", which meant a player could spell RACCOON and still lose on
     // points. Reaching the target does not close a naming round; speaking the name does,
@@ -7456,6 +7471,25 @@ const Game = {
        the same road and come home with different friends.
        No .slice() any more - a country holds at most five, and the gap rule below already
        makes them arrive one at a time. */
+    /* ══ THE FLOOR - the wood's own promise ══ every homed friend has an authored depth
+       (its HOME country entry + stagger). REACHING that depth calls it regardless of how
+       you played: nobody is ever late, nobody misses a friend for not knowing its ask.
+       The courtship below stays as the VALVE - do the thing it loves inside its own
+       country and it steps out early, "it heard you, and couldn't wait." canHear() caps
+       the valve to the friend's own country, so nothing is ever chased across the map.
+       The old lifetime-tally door is GONE: one guarantee, one hunt, both visible. */
+    if(gapOK) for(const w in HOME){
+      if(P.called[w] || P.grove[w] || !GROVE_BY_WORD[w]) continue;
+      const h=HOME[w], floor=h[0]*20+(h[1]||0);
+      if(plv >= floor){
+        P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; P.lastSummonL=plv;
+        P.annQ.push((UI.artTag(w,"toastimg")||GROVE_BY_WORD[w].e)
+          +" <b>steps out of "+(BIOME_NAMES[h[0]]||"the wood")+"</b> - it has been watching you walk"
+          +"<br><small>meet them next round</small>");
+        save();
+        break;   // one scheduled arrival at a time - same spirit as the gap rule
+      }
+    }
     const win=CALLING_ORDER.filter(w=>!P.called[w] && !P.grove[w] && CALLINGS[w].t!=="school"
                                       && Game.canHear(w));
     for(const w of win){
@@ -7475,8 +7509,10 @@ const Game = {
          ("clear 150 words") in a way a single round cannot express - so a friend answers to
          either. What changed is that the everyday way in is now something you can feel
          happening rather than a hidden lifetime tally. */
-      const have = Game.callProgress(w).have;
-      if(Game.courted(w) || have>=c.n){
+      /* courted-only now: the lifetime tally was the second system, and the FLOOR above
+         is a better guarantee than a hidden number - visible, authored, identical for
+         every player. The tally data stays for the Book's flavour, gates nothing. */
+      if(Game.courted(w)){
         P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; P.lastSummonL=plv;
         Game.amber(10);
         // NEVER announced mid-play - the player is busy playing. The summons waits
@@ -7794,11 +7830,17 @@ const Game = {
     t = t
       || (/stone|rock|crack|boulder/i.test(fx.t) && pick(ts.filter(x=>x.kind==="stone")))
       || (/ice|thaw|frost|melt/i.test(fx.t)     && pick(ts.filter(x=>x.kind==="ice")))
-      || pick(ts.filter(x=>x.kind==="normal"))
-      || pick(ts);
+      /* honest aims for the new single-target powers - the walk goes where the work is */
+      || (fx.t==="goatEat"  && pick(ts.filter(x=>OBSTACLE_KINDS.includes(x.kind) && x.kind!=="crate")))
+      || (fx.t==="boarRoot" && pick(ts.filter(x=>x.kind==="root")))
+      || (fx.t==="harePath" && (ts.find(x=>x.kind==="bramble")||ts.find(x=>x.kind==="branch")))
+      || null;
     S._petAim = t || null;
-    // an empty board still deserves a landing spot - stand on the floor, centre stage
-    return t ? {r:t.r,c:t.c} : {r:ROWS-1,c:Math.floor(COLS/2)};
+    /* NO MORE RANDOM STAND-INS. A power with no single target is board-wide or hand-bound,
+       and walking to a random letter faked a precision the act could not keep - the friend
+       walked one way while the change landed another (caught live by the designer). The
+       ruling: the CENTRE of the board. The friend addresses the whole stage. */
+    return t ? {r:t.r,c:t.c} : {r:Math.floor(ROWS/2),c:Math.floor(COLS/2)};
   },
   /* the tile the visit aimed at, if it is still on the board */
   petAim(){ return (S && S._petAim && S.tiles[S._petAim.id]) ? S._petAim : null; },
@@ -8854,7 +8896,13 @@ const UI = {
       const shown=full ? w.length : Math.min(w.length-1, Math.max(0,(P.nameFails[w]||0)-1));
       const nm=(w.slice(0,shown).toUpperCase()+"▁".repeat(w.length-shown)).split("").join(" ");
       // NOT into segs: a 156px word in a 115px counter row lost half of itself.
-      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+UI.silTag(g.w)+'</span> <b>'+nm+'</b></div>';
+      // the meeting's other half, live: what this friend loves, and how close the round is
+      let askBit="";
+      { const cg=Game.courtship(g);
+        if(cg && !((P.nameFails[g.w]||0)>=2)){
+          const have=Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0);
+          askBit=' <i class="gask">'+(have>=cg.n?"💚":have+"/"+cg.n)+" "+signNoun(cg.sign)+"</i>"; } }
+      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+UI.silTag(g.w)+'</span> <b>'+nm+'</b>'+askBit+'</div>';
     }
     gs.innerHTML=segs.join("");
     // a crown trial asks two things at once, so the centre carries three pods
@@ -10700,7 +10748,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260728085706",
+  ver:"20260728124151",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
