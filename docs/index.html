@@ -6,14 +6,18 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="%23f7ecd6" stroke="%23b3a685" stroke-width="3" transform="rotate(-4 32 32)"/><text x="32" y="44" font-family="Georgia,serif" font-size="34" font-weight="800" fill="%234a3b28" text-anchor="middle">H</text></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Alegreya:wght@500;700;800&family=Alegreya+SC:wght@700;800&display=swap" rel="stylesheet">
 <style>
   /* ================= DESIGN TOKENS - one system, everything derives from here ================= */
   :root{
     /* ===== "HUSHWOOD DUSK" - a storybook at the edge of evening. warm parchment,
        moss and ember, and the hush itself: a soft violet that marks quiet things. ===== */
     --font-story:"Fraunces", Georgia, "Times New Roman", serif;   /* the book's voice */
-    --font-ui:"Nunito", "Segoe UI", system-ui, sans-serif;        /* the friendly hand */
+    /* the UI hand is a STORYBOOK serif now - Alegreya reads like an old tale and stays
+       legible at 10px, which Nunito's rounded sans never even tried to be. Tiles keep
+       their own face untouched. */
+    --font-ui:"Alegreya", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --font-label:"Alegreya SC", "Alegreya", Georgia, serif;       /* small caps for labels */
     --bg0:#b9aa96;            /* worn table behind the page */
     --bg1:#ddd8e6;            /* app: dusk air (cool, so nothing reads as stark white) */
     --bg2:#f0e5d0;            /* app: warm parchment at the foot of the page */
@@ -939,6 +943,44 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
   #petsaypill.fade{ opacity:0; transition:opacity .4s; }
   #petsaypill img.toastimg{ height:1.2em; width:1.2em; vertical-align:-3px; }
+  /* ══ ALDER - one voice, three shapes ══
+     The ASIDE lives in the speaking band between board and dock: light parchment, two
+     lines max, never blocks, never waits. The PAGE is the boundary card: story beat on
+     top in the book's voice, the game beat below it in a gold strip - two readings of
+     every event, always together. The JOURNAL replays every page ever shown. */
+  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% + 10px);
+    z-index:69; display:flex; align-items:center; gap:9px; max-width:min(92%, 340px);
+    background:#fffdf6; border:2px solid var(--gold); border-radius:16px; padding:8px 13px;
+    box-shadow:0 4px 0 rgba(150,110,40,.25), 0 10px 22px rgba(90,60,30,.3);
+    opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease; }
+  #alder.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+  #alder .aface{ flex:none; width:28px; height:28px; border-radius:50%; overflow:hidden;
+    background:linear-gradient(150deg,#eef3e2,#d9e4c8); border:1px solid rgba(120,140,90,.4);
+    display:flex; align-items:center; justify-content:center; font-size:18px; }
+  #alder .aface img{ width:100%; height:100%; object-fit:cover; display:block; }
+  #alder .atxt{ font-family:var(--font-ui); font-size:12.5px; font-weight:700; line-height:1.3;
+    color:var(--ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  #ov-alder .card{ text-align:left; padding:20px 20px 16px; }
+  #ov-alder .ap-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  #ov-alder .ap-face{ width:44px; height:44px; border-radius:50%; overflow:hidden; flex:none;
+    background:linear-gradient(150deg,#eef3e2,#d9e4c8); border:1.5px solid rgba(120,140,90,.5);
+    display:flex; align-items:center; justify-content:center; font-size:26px; }
+  #ov-alder .ap-face img{ width:100%; height:100%; object-fit:cover; }
+  #ov-alder .ap-who{ font-family:var(--font-label); font-size:11px; letter-spacing:1.4px;
+    color:var(--dim); text-transform:uppercase; }
+  #ov-alder .ap-story{ font-family:var(--font-story); font-size:16.5px; font-weight:500;
+    line-height:1.45; color:var(--ink); margin-bottom:13px; }
+  #ov-alder .ap-game{ font-family:var(--font-ui); font-size:12.5px; font-weight:700; line-height:1.4;
+    color:#6b5322; background:linear-gradient(180deg,#fdf3d6,#f8e8bb); border:1.5px solid var(--gold);
+    border-radius:12px; padding:9px 12px; }
+  #ov-alder .ap-tap{ display:block; text-align:center; margin-top:12px;
+    font-family:var(--font-label); font-size:10.5px; letter-spacing:1.6px; color:var(--dim);
+    text-transform:uppercase; }
+  #ov-journal .card{ max-height:76vh; overflow-y:auto; text-align:left; }
+  #ov-journal .j-entry{ margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed rgba(120,95,60,.25); }
+  #ov-journal .j-story{ font-family:var(--font-story); font-size:14px; line-height:1.4; color:var(--ink); }
+  #ov-journal .j-game{ font-family:var(--font-ui); font-size:11.5px; font-weight:700; color:#6b5322;
+    margin-top:5px; background:#fdf3d6; border-radius:8px; padding:6px 9px; }
   .gracebubble{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 12px);
     z-index:70; display:flex; align-items:center; justify-content:center;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:4px;
@@ -972,7 +1014,10 @@
      padding pushes the board up and hands that space down to the dock. */
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1;
-    padding-bottom:34px; }
+    /* 56px, not 34: the speaking band. The hold pill and Alder's asides live between the
+       board and the dock, and at 34px even the pill overlapped the board's bottom edge
+       (designer, on device). A sentence needs room to stand. */
+    padding-bottom:56px; }
   /* THE BOARD IS THE NIGHT SKY OF THE WOOD - a twilight the letters float on.
      stars scattered, a soft moon aglow, a gentle horizon light. no soil, no wood. */
   #board{ touch-action:none; position:relative;
@@ -2857,6 +2902,7 @@
       <button class="charm-btn go" id="charm-plant" onclick="UI.charmPlant()">plant it</button>
       <div id="charm-msg"></div>
     </div>
+    <button class="menu-item" onclick="Alder.journalShow()">🌳 Alder's Journal <em>every page he has shown you</em></button>
     <button class="menu-item danger" id="menu-wipe" onclick="UI.wipeAll()"><span id="menu-wipe-i">🍂</span> Start the wood anew <em id="menu-wipe-lbl">wipes everything</em></button>
     <div id="menu-foot">Hushwood · a storybook of true names</div>
   </aside>
@@ -2894,7 +2940,7 @@
       <div id="modechip"></div>
     </div>
     <!-- one enclosure: breeze, the letter in hand, the queue, the wish, the Book -->
-    <div id="dock">
+    <div id="dock"><div id="alder"><span class="aface">🌳</span><span class="atxt"></span></div>
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <i class="dock-sep"></i>
       <div id="currentwrap"></div>
@@ -2965,6 +3011,23 @@
     </div>
   </div>
 
+  <!-- 🌳 ALDER'S PAGE - story beat above, game beat below, two readings of one event -->
+  <div class="overlay" id="ov-alder" onclick="Alder.pageClose()">
+    <div class="card" onclick="event.stopPropagation()">
+      <div class="ap-head"><span class="ap-face">🌳</span><span class="ap-who">Alder, Keeper of the Wood</span></div>
+      <div class="ap-story" id="ap-story"></div>
+      <div class="ap-game" id="ap-game"></div>
+      <span class="ap-tap" onclick="Alder.pageClose()">tap to walk on</span>
+    </div>
+  </div>
+  <!-- 🌳 ALDER'S JOURNAL - every page he has ever shown you, kept -->
+  <div class="overlay" id="ov-journal" onclick="Alder.journalHide()">
+    <div class="card" onclick="event.stopPropagation()">
+      <button class="cardx" onclick="Alder.journalHide()" aria-label="close">✕</button>
+      <div class="ap-head"><span class="ap-face">🌳</span><span class="ap-who">Alder's Journal</span></div>
+      <div id="j-list"></div>
+    </div>
+  </div>
   <!-- ============ OVERLAYS ============ -->
   <div class="overlay" id="ov-tut">
     <div class="ovart"></div>
@@ -4474,6 +4537,80 @@ function loadRun(){
     return true;
   }catch(e){ P.run=null; save(); return false; }
 }
+
+/* ══════════════ ALDER - the Keeper of the Wood, and the ONLY voice ══════════════
+   One content table, three shapes. The ASIDE: one line in the speaking band, never
+   blocks. The PAGE: a boundary card, story beat over game beat - two readings of every
+   event. The JOURNAL: every page kept, so a fast thumb loses nothing. All seven old
+   channels route here or die. */
+const ALDER_PAGES = {
+  /* seed entries - the full table is the story bible, written in the content pass */
+  hold:    { s:"Words like to linger a moment before they go. If you ask, one will stay.",
+             g:"🌱 When a word pauses, tap HOLD to keep its letters and build something bigger." },
+  breeze:  { s:"The wood lends a little wind to anyone who asks politely.",
+             g:"🍃 Tap the breeze, then two letters - they trade places. 3-letter words refill it (max 3)." },
+  wish:    { s:"Stars fall here sometimes. Catch one, and it becomes whatever letter you need.",
+             g:"🌟 Tap the star and pick any letter for your hand. 4-letter words earn one (max 3)." },
+  amber:   { s:"Amber drips from the old trees. The wood trades kindly for it.",
+             g:"🟠 Amber buys a fresh breeze or wish when yours run dry, and second chances when moves run out." },
+  swap:    { s:"Friends do not mind resting. They mind being forgotten.",
+             g:"🐾 Double-tap a friend's tile to swap them for another from the Book." },
+  meeting: { s:"When a creature likes you, it steps out of hiding - but it wants to see the thing it loves, first.",
+             g:"🎭 The strip shows what it wants. Do that in this round and it joins you. The score does not matter." },
+  current: { s:"This stream was calm once. The currents run strong now - careful, they will shake the board.",
+             g:"🌀 Currents drag a row of letters sideways every few drops. Mud and held words stay put." },
+};
+const Alder = { Q:[], on:false, _hideT:null, _pageCb:null,
+  aside(key, html, o){ o=o||{};
+    if(!html) return;
+    try{ P.said=P.said||{}; }catch(e){ return; }
+    if(o.once && P.said[key]) return;
+    if(o.once){ P.said[key]=1; save(); }
+    Alder.Q.push({ html, who:o.who||null });
+    if(Alder.Q.length>3) Alder.Q.splice(1, Alder.Q.length-3);   // never a backlog lecture
+    if(!Alder.on) Alder._next();
+  },
+  _next(){ const el=$("alder"); if(!el){ Alder.on=false; return; }
+    const q=Alder.Q;
+    if(!q.length){ Alder.on=false; el.classList.remove("on"); return; }
+    Alder.on=true;
+    const { html, who }=q.shift();
+    el.querySelector(".aface").innerHTML = who || "🌳";
+    el.querySelector(".atxt").innerHTML = html;
+    el.classList.add("on");
+    clearTimeout(Alder._hideT);
+    const words=String(html).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
+    Alder._hideT=setTimeout(()=>{ el.classList.remove("on");
+      setTimeout(()=>Alder._next(), 320); }, Math.min(6500, 1900+words*300));
+  },
+  page(key, o){ o=o||{};
+    const pg=ALDER_PAGES[key]; if(!pg) return false;
+    try{ P.said=P.said||{};
+      if(P.said["pg-"+key] && !o.again) return false;
+      P.said["pg-"+key]=1;
+      P.journal=P.journal||[]; if(!P.journal.includes(key)) P.journal.push(key);
+      save(); }catch(e){}
+    $("ap-story").innerHTML=pg.s;
+    $("ap-game").innerHTML=pg.g||"";
+    $("ap-game").style.display=pg.g?"block":"none";
+    Alder._pageCb=o.cb||null;
+    $("ov-alder").classList.add("active");
+    Snd.tone(523,{dur:.25,type:"sine",gain:.05,verb:true});
+    return true;
+  },
+  pageClose(){ $("ov-alder").classList.remove("active");
+    const cb=Alder._pageCb; Alder._pageCb=null; if(cb) cb(); },
+  tease(key, html){ Alder.aside("tz-"+key, html, {once:true}); },
+  journalShow(){ if(UI.menuToggle) UI.menuToggle(false);
+    const list=(P.journal||[]).map(k=>{ const p=ALDER_PAGES[k]; if(!p) return "";
+      return '<div class="j-entry"><div class="j-story">'+p.s+'</div>'
+        +(p.g?'<div class="j-game">'+p.g+'</div>':'')+'</div>'; }).join("");
+    $("j-list").innerHTML = list
+      || '<div class="j-story">Alder has not written anything here yet. Walk on - he will.</div>';
+    $("ov-journal").classList.add("active");
+  },
+  journalHide(){ $("ov-journal").classList.remove("active"); },
+};
 
 /* =================== STATE =================== */
 /* @module  round  -  S - everything true only while a round is being played */
@@ -10031,8 +10168,11 @@ const UI = {
      screen and its own timer. They all say the same thing through the same mouth now, and a
      call with no key of its own is keyed by its own words, so the same sentence never
      arrives twice. */
-  sky(html, ms){ if(html) UI.note(UI._noteKey(html), html, "once"); },
-  chip(html, ms){ if(html) UI.note(UI._noteKey(html), html, "once"); },
+  /* ══ EVERY LIGHT CHANNEL IS ALDER NOW ══ sky, chip, toast, say and petSay all route
+     into the one speaking band. The old note() machinery keeps only the boundary cards
+     until the content pass finishes moving them onto Alder's pages. */
+  sky(html, ms){ if(html) Alder.aside(UI._noteKey(html), html, {once:true}); },
+  chip(html, ms){ if(html) Alder.aside(UI._noteKey(html), html); },
   /* A FRIEND ACTING IS SOMETHING TO WATCH, NOT SOMETHING TO READ OVER.
      This used mode "once", and note() promotes the FIRST showing of any message to centre
      stage with a scrim and a tap-to-continue - so the very first time each friend acted,
@@ -10045,17 +10185,8 @@ const UI = {
      banner only needs to say who did it. */
   /* pet speech NEVER touches the note system - no once-keys, no queue, no scrim, no
      centre stage. One pill in the hold slot; the newest line replaces the last. */
-  petSay(html){
-    if(!html) return;
-    const host=$("dock"); if(!host){ return; }
-    let el=$("petsaypill");
-    if(!el){ el=document.createElement("div"); el.id="petsaypill"; host.appendChild(el); }
-    clearTimeout(el._h1); clearTimeout(el._h2);
-    el.classList.remove("fade"); el.innerHTML=html;
-    el._h1=setTimeout(()=>el.classList.add("fade"), 2600);
-    el._h2=setTimeout(()=>el.remove(), 3100);
-  },
-  toast(m, hold){ if(m) UI.note(UI._noteKey(m), m, "once"); },
+  petSay(html){ if(html) Alder.aside(UI._noteKey(html), html); },
+  toast(m, hold){ if(m) Alder.aside(UI._noteKey(m), m, {once:true}); },
   skyClear(){ UI.noteClear(); },
   chipClear(){ UI.noteClear(); },
   toastClear(){ UI.noteClear(); },
@@ -10302,10 +10433,8 @@ const UI = {
   },
   noteClear(){ UI.NOTEQ.length=0; UI._noteOn=false;
     [$("note"),$("note-scrim")].forEach(e=>{ if(e){ clearTimeout(e._h); e.onclick=null; e.classList.remove("on"); } }); },
-  say(key, msg, times){ // teach loudly, then trust the player: instructional messages
-    // show center-stage the first couple of times, then go quiet - glow/sound carries it.
-    // was: show it twice, then go quiet. The constraint now is once - assume it was read.
-    UI.note(key, msg, "once");
+  say(key, msg, times){ // Alder speaks it once, in the band, and never blocks the board
+    Alder.aside(key, msg, {once:true});
   },
   TIPS:{
     /* ══ A TOOL IS TAUGHT IN THREE BEATS ══ how you earn it, how you spend it, the one
@@ -10862,7 +10991,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260728174825",
+  ver:"20260728191902",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
