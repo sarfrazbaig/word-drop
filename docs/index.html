@@ -826,7 +826,10 @@
 
   /* ══ A STAT POD ══ a light card lifted off the shelf: a hard bottom edge for weight, a
      soft shadow beneath it for lift, and a white highlight along the top so it catches
-
+     the light. (The pod rules themselves were retired with the one-row strip redesign -
+     this comment's tail was chopped with them and its orphan `/*` then SWALLOWED the
+     three rules below until the next comment's close: the ceremony name strip rendered
+     display:none through an entire naming round. A comment must close, even a dying one.) */
   #gs-name.on{ display:flex; }
   .ingame-only{ display:none !important; }
   #menu-panel.ingame .ingame-only{ display:flex !important; }
@@ -3755,33 +3758,34 @@ const SIGN_ORDER = Object.keys(SIGNS).sort((a,b)=>SIGNS[a].order-SIGNS[b].order)
 
    Keystones are NOT here: they are gifts at doors, placed by KEYSTONE{}, and each hands you
    the friend for the country AHEAD so you arrive prepared rather than rewarded. */
+/* ══ THE MAP IS roster-v2's MAP ══ this table predated the final country sheet and the
+   two disagreed in play - the ant announced "it lives in The Bramblewood" while the sheet
+   homes it in the Spore Hollow, visible to any player who spells ANT (caught in the
+   replay). One truth now, synced to ds/roster-v2.md: the creature belongs to the land,
+   the keeper lives with its trouble. Keystones are NOT here - doors are gifts. */
 const HOME = {
-  // First Clearing - the crumb engine, and the two you begin with
-  cat:[0,0], dog:[0,0], mouse:[0,1], bee:[0,4], owl:[0,8], frog:[0,12], snail:[0,16],
-  // Bramblewood - the long word
-  hare:[1,1], ant:[1,6], moth:[1,11], fox:[1,16],
-  // Mosswood - food and kindness
-  deer:[2,1], pig:[2,5], wolf:[2,10], lamb:[2,15],
-  /* Spore Hollow. My draft had ladybug and cricket here and BOTH are keystones in the
-     shipped KEYSTONE table - a friend cannot be given at a door and also found in the wild,
-     so the audit refused it. Same for raccoon, lizard and turtle below. Five swaps. */
-  fly:[3,2], goat:[3,9], crow:[3,15],
-  // Listening Pond - two at once
-  swan:[4,2], duck:[4,8], fish:[4,15],
-  // Reedmarsh - patience
-  heron:[5,3], robin:[5,12],
-  // Running River - what you kept
-  seal:[6,3], crab:[6,12],
-  // Thunderfalls - loud
-  dove:[7,3], moose:[7,12],
-  // Undercave - backwards. The bat lives one country AFTER the spider who makes her work.
-  bat:[8,4], snake:[8,13],
-  // Deep Dark - mischief
-  skunk:[9,4], bison:[9,13],
-  /* the high country - one each, because by here the game is the party you have.
-     The goose landing in the Glimmer Seams is the happiest accident of the reshuffle: she
-     lays a golden egg and echoes gold, and the Seams are the country made of it. */
-  goose:[10,6], pony:[11,6], chick:[12,6], penguin:[13,6],
+  // First Clearing - the starters and the first-four engine, plus the small folk
+  cat:[0,0], dog:[0,0], bee:[0,4], robin:[0,8], mouse:[0,11], dove:[0,13], chick:[0,16],
+  // Bramblewood - thorn folk: the briar-born, the clever, the shine-lovers
+  fox:[1,1], hare:[1,5], moth:[1,10], crow:[1,15],
+  // Mosswood - soft ground, everything furred
+  snail:[2,2], lamb:[2,7], deer:[2,11], pony:[2,15],
+  // Spore Hollow - the drifting air
+  fly:[3,2], ant:[3,8], skunk:[3,14],
+  // Listening Pond - water birds and the rainbow trout
+  heron:[4,2], duck:[4,8], fish:[4,14],
+  // Reedmarsh - mud and tongue
+  pig:[5,3], frog:[5,10],
+  // Running River - nothing stays where you put it
+  crab:[6,3], moose:[6,11],
+  // Thunderfalls - the loud ones
+  wolf:[7,3], bison:[7,11],
+  // Undercave - the dark readers
+  bat:[8,4], snake:[8,12],
+  // Deep Dark - no light, and no need of it
+  owl:[9,4], seal:[9,12],
+  // the high country - one each, because by here the game is the party you have
+  swan:[10,6], goat:[11,6], goose:[12,6], penguin:[13,6],
 };
 /* how many live in each country, for the Book's map and for the audit that keeps this
    honest - a curve edited by hand drifts silently otherwise */
@@ -3817,7 +3821,7 @@ const GROVE = [
      friend to another would make the dog dead weight the moment the cat rests, and would
      teach "these two are a pair" - which is the authored-pair thinking we removed. */
   {w:"cat",wake:{on:"word3",n:2},echo:"word3",e:"🐱",z:"ground",pn:"Curious Paw",pi:"🐾",pd:"pats a letter on the board into <b>one that fits</b>",fx:{t:"pawPat"},f:"cannot leave a letter alone once it has noticed it"},
-  {w:"dog",wake:{on:"anyWord",n:3},echo:"word3",e:"🐶",z:"ground",pn:"Fetch!",pi:"🍀",pd:"fetches the letter you <b>just spent</b> right back to your next slot",fx:{t:"dogFetch"},f:"would fetch the moon if you threw it"},
+  {w:"dog",wake:{on:"anyWord",n:3},echo:"word3",e:"🐶",z:"ground",pn:"Fetch a Word",pi:"🍀",pd:"digs at the board and <b>unearths a longer word</b> for you",fx:{t:"weave"},f:"buries good words and digs them up for you"},
   // in the air
   {w:"bee",wake:{on:"word3",n:2},e:"🐝",z:"sky",pn:"Busy Buzz",pi:"🍯",pd:"buzzes a friend <b>closer to waking</b>",fx:{t:"buzz"},f:"hums the alphabet while she works"},
   {w:"moth",e:"🦋",z:"sky",ps:true,pn:"Drawn to the Light",pi:"🌙",pd:"circles the brightest tiles: <b>gilded and rainbow words pay extra</b>",fx:{t:"mothLight"},f:"cannot help itself around anything that shines"},
@@ -4147,6 +4151,18 @@ function slotsFor(L){
   const friends = Object.keys((typeof P!=="undefined" && P.metGrove) || {}).length;
   return Math.max(1, Math.min(seatsByLevel(L), friends, cap));
 }
+/* ══ ARRIVAL DATES, AUTHORED - the retention table ══ Friends arriving faster than seats
+   to hold them is how a collection devalues itself (the ten-level replay delivered four
+   friends against one seat, and the designer called it: "giving too many pets so early
+   and within short spans will kill the game retention"). Each of the first four arrives
+   ONE level before its seat opens - meet tonight, room for them tomorrow - and together
+   they are the build system's own tutorial: the cat makes a word, the dog digs one up
+   and the cat's word visibly charges him, the bee wakes whoever is closest, the robin
+   sings in the vowels that feed all three. Four friends, one hum. The subtle friends
+   (the mouse's nibble, the moth's shine-love) wait until a thinking player has been
+   earned. Friends beyond this table fall back to their HOME depth. */
+const FLOOR_AT = { dog:6, bee:9, robin:13, mouse:16, dove:18, chick:23,
+                   fox:26, hare:29, moth:34, crow:37 };
 const SLOT_MSG={
   2:{t:"Room for two! 🐾", b:"A second friend can come adventuring now. Each one stirs to its own sign, so two of them means two different things to watch for."},
   3:{t:"The pack grows! 🐾", b:"Three friends can join you now. Bring ones that answer to different signs and something is always about to happen."},
@@ -4451,7 +4467,7 @@ function loadRun(){
     if(S.tutorWord && !document.getElementById("namer")){
       const n=document.createElement("div"); n.id="namer"; n.className="sil";
       n.innerHTML=UI.silTag(S.tutorWord);   // the painted creature, cut to a silhouette by #namer.sil
-      n.title="someone is hiding here - spell its name";
+      n.title="someone is hiding here - show it the thing it loves";
       boardEl.appendChild(n);
     }
     UI.all(); UI.visitor();
@@ -5384,7 +5400,10 @@ const POWERS = {
   async pawPat({ normals }){
         const ns=normals();
         if(!ns.length){ Game.addMoves(1); return; }
-        const pick = Game.catFit(ns);
+        // the paw lands where the walk went - the aimed tile is tried first, so the
+        // gesture and the pat agree (same fix as the goat)
+        const aimed=Game.petAim();
+        const pick = (aimed && aimed.kind==="normal" && Game.catFit([aimed])) || Game.catFit(ns);
         if(!pick){ Game.addMoves(1); UI.petSay("🐾 nothing to pat into place - the cat found you a spare move instead"); return; }
         Game.retype(pick.t, pick.L); UI.shards(pick.t.r, pick.t.c, "#ffd9a8");
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
@@ -6009,6 +6028,17 @@ const Game = {
     if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
     if(S.tutorWord && P.level<=6){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
     FT.setup(level); // lessons 1-3 restage the board entirely; level 5 arms the shelf lesson
+    /* ══ ONE DUTY TRUTH ══ a friend met while the party was full sat benched FOREVER when
+       a seat later opened - the Book said on duty, the shelf said empty, the round agreed
+       with neither (caught in the ten-level replay). Every round start reconciles: open
+       seats fill from the bench, most recently met first, and the shelf says so. */
+    { const max=slotsFor(level); P.equip=(P.equip||[]).filter(w=>P.metGrove[w]);
+      if(P.equip.length<max){
+        const bench=Object.keys(P.metGrove).filter(w=>!P.equip.includes(w) && GROVE_BY_WORD[w])
+          .sort((a,b)=>(P.metGrove[b]||0)-(P.metGrove[a]||0));
+        while(P.equip.length<max && bench.length){ const w=bench.shift(); P.equip.push(w);
+          UI.petSay((UI.artTag(w,"toastimg")||GROVE_BY_WORD[w].e)+" <b>takes the open seat</b>"); }
+        save(); } }
     // 🎭 a naming level wears the ceremony: the board itself holds its breath
     boardEl.classList.toggle("ceremony", !!S.tutorWord);
     Snd.mode = S.tutorWord ? "ceremony" : "normal";   // the music leans in with it
@@ -6108,13 +6138,15 @@ const Game = {
        startLevel, so P.said["naming-intro"] is still unset at this point on the first round -
        which is precisely what makes it the right flag to test. */
     const taughtAlready = !!P.said["naming-intro"];
-    iv.innerHTML='<span class="sil">'+UI.silTag(tw)+'</span> someone is hiding here - spell <b>'+disp+'</b>'
+    { const _cg=Game.courtship(GROVE_BY_WORD[tw]);
+      iv.innerHTML='<span class="sil">'+UI.silTag(tw)+'</span> someone is hiding here - it loves <b style="white-space:nowrap">'
+        +(_cg ? _cg.n+" &times; "+signNoun(_cg.sign) : "words")+'</b>'
       + (taughtAlready
           ? '<small class="ivstake">🎭 '+(spg
-              ? 'the <b>name is all this round asks</b> - spell it and the round is yours, whatever else is on the board'
-              : 'the <b>name alone ends this round</b> - you do not have to reach the target')
+              ? '<b>show it the thing it loves</b> and it steps out - the target does not matter here'
+              : '<b>show it the thing it loves</b> and it will tell you its name - you do not have to reach the target')
             + '</small>'
-          : ''); }
+          : ''); } }
   // A SPECIAL ROUND IS NOT WON ON POINTS. Its win condition is the goal itself - melt every
   // ice, smash every stone - and the score target is scenery. The card showed the same big
   // "target" number as always, so a player could chase points on a round where points do not
@@ -6165,16 +6197,27 @@ const Game = {
     // THE BOOK TURNS A PAGE. Walking into a new country used to be silent - the palette
     // simply changed and nothing said why you were somewhere else. Every one of the
     // fifteen now opens with its chapter, once.
-    else if(level>PROLOGUE_END && level%BIOME_LEN===1 && !P.seenChapter[biomeOf(level)]){
-      const ch=chapterOf(level);
-      P.seenChapter[biomeOf(level)]=1; save();
-      $("un-burst").textContent=BIOMES[biomeOf(level)];
+    /* THE BORDER IS A MOMENT. This used to key on raw level while countries key on the
+       adventure count, so Chapter Two announced five levels early inside Chapter One and
+       every later chapter never announced at all (caught in the replay batch). It fires
+       at the true border now, and it says the three things a border should: what this
+       land is, what NEW trouble lives here, and who can be met - which is also the door
+       into the Book for the player who never opens it. */
+    else if(advOf(level)>1 && (advOf(level)-1)%BIOME_LEN===0 && !P.seenChapter[biomeOf(level)]){
+      const b=biomeOf(level), ch=chapterOf(level), A0=advOf(level);
+      P.seenChapter[b]=1; save();
+      const newTrouble = TROUBLE_KEYS.filter(k=>TROUBLE[k] && TROUBLE[k].at>=A0 && TROUBLE[k].at<A0+BIOME_LEN && !TROUBLE[k].todo);
+      const residents = Object.keys(HOME).filter(w=>HOME[w][0]===b && !P.grove[w]).length;
+      $("un-burst").textContent=BIOMES[b];
       $("un-title").textContent=ch.pre;
       $("un-body").innerHTML="<b>"+ch.name+"</b><br>"+ch.line
-        +"<br><small>a new country of the wood - its own trouble waits here</small>";
-      $("un-try").style.display="none";
+        +(newTrouble.length ? "<br><small>new trouble lives here: <b>"+newTrouble.join(", ")+"</b></small>" : "");
+      $("un-try").style.display="block";
+      $("un-try").innerHTML = residents
+        ? '🐾 <b>'+residents+' friend'+(residents>1?'s':'')+' live'+(residents>1?'':'s')+' in this country</b><br>the Book 📖 knows what each one loves'
+        : '🗝️ <b>a friend waits at this country\'s far door</b>';
       $("ov-unlock").classList.add("active"); Game.shown("unlock");
-      Game.track("chapter_open",{ b:biomeOf(level), L:level });
+      Game.track("chapter_open",{ b, L:level });
     }
     else
     if(tier>0 && !P.seenTier[tier] && Object.keys(P.metGrove).length){
@@ -6207,11 +6250,14 @@ const Game = {
     else if(S.tutorWord && !P.said["naming-intro"]){
       P.said["naming-intro"]=1; save();
       $("un-burst").textContent="🎭";
-      $("un-title").textContent="A naming round";
-      $("un-body").innerHTML="Someone is hiding in this round, and its <b>name</b> is the way to reach it."
-        + "<br><small>Spell the name and the round is yours - you do not have to reach the target.</small>";
+      $("un-title").textContent="A meeting";
+      $("un-body").innerHTML="Someone is hiding in this round - <b>show it the thing it loves</b> and it will step out and tell you its name."
+        + "<br><small>The strip counts it for you. You do not have to reach the target.</small>";
       $("un-try").style.display="block";
-      $("un-try").innerHTML='<b>this one answers to '+S.tutorWord.toUpperCase()+'</b><br>the board is already set close to it';
+      { const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
+        $("un-try").innerHTML='<b>this one loves '
+          +(cg ? cg.n+" &times; "+signNoun(cg.sign) : "words")
+          +'</b><br>guess its name early and it comes running - but the loving is enough'; }
       $("ov-unlock").classList.add("active"); Game.shown("unlock");
       Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true});
       Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
@@ -6329,21 +6375,21 @@ const Game = {
     // party breaking. Said twice, then the drifting 'z' on each seat carries it alone.
     if(S.tutorWord && UI.equipped().length)
       setTimeout(()=>UI.say("pets-doze",
-        "\uD83D\uDCA4 your friends are <b>asleep</b> for a naming<br>"
-        +"<small>they will not touch the board while you spell the name - they wake the moment it is spoken</small>", 2), 900);
+        "\uD83D\uDCA4 your friends are <b>asleep</b> for a meeting<br>"
+        +"<small>they will not touch the board while you court the newcomer - they wake the moment it joins</small>", 2), 900);
     // a goal type introduces itself ONCE, full-page, before its first round is played
     if(S.goal && S.goal.t!=="hush" && !P.seenTip["goal-"+S.goal.t])
       setTimeout(()=>UI.tileTip("goal-"+S.goal.t), 500);
-    // the mercy speaks once per pitied attempt: part of the name is glowing
+    // the pity speaks once: after two letdowns the ask is waived and the friend simply comes
     if(S.tutorWord && P.level>6 && (P.nameFails[S.tutorWord]||0)>=2)
       setTimeout(()=>UI.say("mercy-"+S.tutorWord+"-"+P.nameFails[S.tutorWord],
-        "🌿 the wood takes pity - <b>part of the name glows</b> above", 1), 900);
+        "🌿 it likes you regardless - <b>one more word and it steps out</b>", 1), 900);
     // the summoned creature waits in the corner of the board, a jiggling silhouette -
     // "who's that?" starts the moment the level does
     if(S.tutorWord && !$("namer")){
       const n=document.createElement("div"); n.id="namer"; n.className="sil";
       n.innerHTML=UI.silTag(S.tutorWord);   // the painted creature, cut to a silhouette by #namer.sil
-      n.title="someone is hiding here - spell its name";
+      n.title="someone is hiding here - show it the thing it loves";
       boardEl.appendChild(n);
     }
     // TEACH THE HOARDER, ONCE. The moment-of-need nudge only reaches a player in trouble; a
@@ -6386,7 +6432,10 @@ const Game = {
     Snd.init(); $("ov-end").classList.remove("active");
     const back=S.level; Game.startLevel(back);
   },
-  nextLevel(){ Snd.init(); $("ov-end").classList.remove("active"); Game.startLevel(P.level); },
+  nextLevel(){ Snd.init(); $("ov-end").classList.remove("active");
+    // the doorstep: whispers and achievements speak here, between rounds, never over one
+    if(P.annQ && P.annQ.length){ Game.showAnnounce(()=>Game.startLevel(P.level)); return; }
+    Game.startLevel(P.level); },
 
   /* ══ A LETTER OF THE NAME ══ the mercy that already existed for repeated failures,
      offered as a choice instead of a consolation. */
@@ -6624,16 +6673,41 @@ const Game = {
     // and still lose the round on points. Speaking it ends the round, once the silhouette
     // has had its reveal.
     if(S.guestNamed && !S.pendingReveal && !document.querySelector(".whosthat")){
-      /* ══ THE MEETING ASKS TWO THINGS, ONCE ══ show it the thing it loves, and say its
-         name - one round, one story, no toll spread across rounds. The ask is counted by
-         this round's own sigs (a courtship performed BEFORE the meeting already opened
-         the door, so an early-pulled friend asks nothing twice). After two letdowns the
-         ask is WAIVED - the pity that replaced the old lifetime door: it likes you
-         regardless. */
+      Game.winLevel(); return; }
+    /* ══ THE MEETING IS THE CHALLENGE, NOT A SPELLING TEST ══ (designer's ruling, proven
+       by play: the ask was done in eight moves and the round then died twice hunting
+       D-O-G.) Show the friend the thing it loves - counted by this round's own sigs -
+       and it steps out and TELLS you its name: the reveal is the wood's to speak, the
+       challenge is yours to meet. Spelling the name still works instantly (above) as the
+       hunter's shortcut, it just is not the toll. After two letdowns even the ask is
+       waived: it likes you regardless. */
+    if(S.tutorWord && !S.guestNamed && !S.pendingReveal && !document.querySelector(".whosthat")){
       const gw = S.tutorWord;
-      const askOk = !gw || Game.courted(gw) || (P.nameFails[gw]||0) >= 2;
-      if(askOk){ Game.winLevel(); return; }
-      UI.say("meet-ask-"+gw, "🎭 the name is spoken - now <b>show it the thing it loves</b>", 2);
+      if(Game.courted(gw) || (P.nameFails[gw]||0) >= 2){
+        const g = GROVE_BY_WORD[gw];
+        if(g && !P.grove[gw]){
+          P.grove[gw]=Date.now(); S.newGrove.push(gw);
+          delete P.nameFails[gw]; P.quietLvls=0;
+          Game.track("wake",{ w:gw, L:S.level, how:"challenge" });
+        }
+        /* THE SLOT IS FREED THE MOMENT THE MEETING ENDS. The old spelling path cleared
+           the summon; the challenge path did not, so the first met friend clogged the
+           queue and NO LATER FRIEND could ever be met (caught in the ten-level replay:
+           the mouse waited behind the dog forever). One meeting, one slot, released. */
+        if(P.summon===gw) P.summon=null;
+        P.summonQ=(P.summonQ||[]).filter(w=>w!==gw);
+        save();
+        S.guestNamed = true;
+        /* THE JOIN IS THE ROUND'S BIGGEST MOMENT - it bursts like a jackpot, not a
+           footnote. The friend steps out and SPEAKS; the wood celebrates. */
+        { const cb=document.createElement("div"); cb.className="chainburst";
+          cb.textContent=(g&&g.e||"🐾")+" "+gw.toUpperCase()+"!";
+          $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),1800);
+          UI.confetti && UI.confetti(); Snd.fanfare && Snd.fanfare(); buzz([30,50,30,90]); }
+        UI.petSay((UI.artTag(gw,"toastimg")||(g&&g.e)||"🐾")
+          +" steps out - <b>\""+gw.toUpperCase()+"\"</b>, it says. that is its name");
+        Game.winLevel(); return;
+      }
     }
     // THE CEREMONY CONTRACT IS THE NAME, AND ONLY THE NAME. It used to be "beat the level
     // AND speak the name", which meant a player could spell RACCOON and still lose on
@@ -6711,7 +6785,17 @@ const Game = {
     { const key=KEYSTONE[advOf(S.level)];
       if(key && GROVE_BY_WORD[key] && !P.grove[key]){
         P.grove[key]=Date.now(); S.newGrove.push(key);
-        delete P.nameFails[key]; P.quietLvls=0; save();
+        delete P.nameFails[key]; P.quietLvls=0;
+        /* THE DOOR IS THE COUNTRY'S BIGGEST GIFT and it was a silent grant inside the win
+           sequence - nobody ever SAW a keystone work (designer, before the batch). It
+           speaks now at the doorstep, ahead of the next country's chapter card, and the
+           meet ritual follows as its second beat. */
+        const kg=GROVE_BY_WORD[key];
+        P.annQ=P.annQ||[];
+        P.annQ.push("🗝️ <b>THE DOOR OPENS</b><br>"+(UI.artTag(key,"toastimg")||kg.e)
+          +" <b>"+key.toUpperCase()+"</b> was waiting for you - it joins you for the country ahead"
+          +"<br><small>+25 🟠 · meet them next round</small>");
+        save();
         Game.track("keystone",{w:key, L:S.level});
         Game.amber(25);
       } }
@@ -6766,10 +6850,11 @@ const Game = {
     Snd.levelUp(); UI.confetti(); buzz([50,50,120]);
     if(S.milestone) setTimeout(()=>UI.confetti(), 400);
     await wait(500);
-    // achievements get their own quiet beat FIRST - "something stirred…" - and only
-    // then the level-clear modal. Nothing announces over play, nothing overlaps.
-    if(P.annQ && P.annQ.length) Game.showAnnounce(()=>UI.endCard(true));
-    else UI.endCard(true);
+    /* THE WIN COMES FIRST. The whisper used to interpose between winning and the win
+       card - you beat the level and the wood spoke over your stars (caught twice in the
+       replay). Announcements now wait for the NEXT round's doorstep: nextLevel drains
+       them before the level card, which is a true boundary. */
+    UI.endCard(true);
   },
 
   failLevel(){
@@ -7480,7 +7565,7 @@ const Game = {
        The old lifetime-tally door is GONE: one guarantee, one hunt, both visible. */
     if(gapOK) for(const w in HOME){
       if(P.called[w] || P.grove[w] || !GROVE_BY_WORD[w]) continue;
-      const h=HOME[w], floor=h[0]*20+(h[1]||0);
+      const h=HOME[w], floor=(FLOOR_AT[w]!=null ? FLOOR_AT[w] : h[0]*20+(h[1]||0));
       if(plv >= floor){
         P.called[w]=1; P.summonQ.push(w); P.quietLvls=0; P.lastSummonL=plv;
         P.annQ.push((UI.artTag(w,"toastimg")||GROVE_BY_WORD[w].e)
@@ -7809,7 +7894,9 @@ const Game = {
      The aim is chosen ONCE here and stashed. Single-tile powers below use it rather than
      picking again, so what the player watches is what the friend does. */
   petTarget(fx){
-    const ts=Object.values(S.tiles);
+    /* never aim at a tile that is mid-clear - the cat was photographed standing on empty
+       sky where the ARK it aimed at had just dissolved (the replay's best frame) */
+    const ts=Object.values(S.tiles).filter(t=>!(t.inner && t.inner.classList.contains("lit")));
     const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
     const heights=()=>{ const h=[]; for(let c=0;c<COLS;c++){ let n=0;
       for(let r=0;r<ROWS;r++) if(S.board[r][c]) n++; h.push(n); } return h; };
@@ -8890,19 +8977,19 @@ const UI = {
       segs.push(seg(d2,   S.goal2.have, S.goal2.need, GOALS[S.goal2.t].s));
     }
     if(S.tutorWord){
-      const g=GROVE_BY_WORD[S.tutorWord], full=P.level<=6;
-      // mercy: each letdown past the first glows one more letter, never the last
-      const w=S.tutorWord;
-      const shown=full ? w.length : Math.min(w.length-1, Math.max(0,(P.nameFails[w]||0)-1));
-      const nm=(w.slice(0,shown).toUpperCase()+"▁".repeat(w.length-shown)).split("").join(" ");
-      // NOT into segs: a 156px word in a 115px counter row lost half of itself.
-      // the meeting's other half, live: what this friend loves, and how close the round is
-      let askBit="";
-      { const cg=Game.courtship(g);
-        if(cg && !((P.nameFails[g.w]||0)>=2)){
-          const have=Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0);
-          askBit=' <i class="gask">'+(have>=cg.n?"💚":have+"/"+cg.n)+" "+signNoun(cg.sign)+"</i>"; } }
-      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+UI.silTag(g.w)+'</span> <b>'+nm+'</b>'+askBit+'</div>';
+      const g=GROVE_BY_WORD[S.tutorWord];
+      /* THE STRIP LEADS WITH THE ASK. The name is the wood's to speak now, so the blanks
+         and the letter-glow mercy died with the spelling test - a strip that headlines
+         the one thing that no longer matters teaches the wrong game (caught in review,
+         loudly). The silhouette keeps the mystery; the counter IS the objective, and it
+         never goes blank: even a waived ask says what is happening. */
+      const cg=Game.courtship(g);
+      const waived=(P.nameFails[S.tutorWord]||0)>=2;
+      const have=cg ? Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0) : 0;
+      const askTxt = waived ? "it likes you regardless - one more word"
+        : cg ? ((have>=cg.n?"💚 ":"")+have+"/"+cg.n+" "+signNoun(cg.sign))
+        : "make words";
+      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+UI.silTag(g.w)+'</span> <i class="gask">'+askTxt+'</i></div>';
     }
     gs.innerHTML=segs.join("");
     // a crown trial asks two things at once, so the centre carries three pods
@@ -9114,7 +9201,7 @@ const UI = {
         +' gone to sleep under the big tree, proud of you - your words will wake it</small>'
       : won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>'+levelLabel(S.level)+' clear!'
-      : (S.tutorWord ? "A name went unspoken…"
+      : (S.tutorWord ? "It watched, and waited…"
          : (S.goal&&S.goal.t!=="hush") ? ((S.goal.have<S.goal.need
              ? GOALS[S.goal.t].i+" "+(S.goal.need-S.goal.have)
              : GOALS[S.goal2.t].i+" "+(S.goal2.need-S.goal2.have))+" remained…")
@@ -9149,7 +9236,7 @@ const UI = {
           : (P.summonQ||[]).find(w=>!P.grove[w]);
         const mile=UI.GROVE_MILES.find(mi=>found<mi.n);
         pull.innerHTML = stirring
-          ? '🌙 <b>a name is stirring</b><br><small>it hides in a round soon - listen for it</small>'
+          ? '🌙 <b>a friend is coming</b><br><small>next round it hides on the board - show it the thing it loves</small>'
           : found
             ? '🐾 <b>'+found+'</b> of '+GROVE.length+' names remembered'
               + (mile ? '<small>'+(mile.n-found)+' more until '+mile.i+' '+mile.t.toLowerCase()+'</small>'
@@ -9173,10 +9260,11 @@ const UI = {
 
       // the two that only exist while a name is going unspoken
       const guest = !won && S.tutorWord && !P.grove[S.tutorWord];
-      const lCost=Game.graceCost("letter"), fCost=Game.graceCost("friend");
+      const fCost=Game.graceCost("friend");
       const bl=$("btn-letter"), bf=$("btn-friend");
-      bl.style.display = (guest && (P.amber||0)>=lCost) ? "flex":"none";
-      bl.innerHTML = "🔤 lend me a letter · <b>"+lCost+"</b>🟠";
+      /* the letter-lending grace sold letters of a name nobody has to spell any more -
+         a dead purchase wearing help's clothes. Retired with the spelling test. */
+      bl.style.display = "none";
       bf.style.display = (guest && (P.amber||0)>=fCost) ? "flex":"none";
       bf.innerHTML = (guest?(UI.silTag(S.tutorWord)||GROVE_BY_WORD[S.tutorWord].e):"🐾")+" bring them anyway · <b>"+fCost+"</b>🟠"; }
     // 🎬 PLACEMENT 2: the win doubler - appears only after the win is already banked
@@ -9493,13 +9581,19 @@ const UI = {
              friend was two crumbs away. So: while it is listening, the card says the thing
              you can do RIGHT NOW; the lifetime calling stays for the friends whose country
              is still ahead, where it is the only progress that means anything yet. */
+          /* the lifetime-calling line is DEAD - its door was removed with the tally, and a
+             card that advertises "win 3 times in the Bramblewood" sells a grind that opens
+             nothing (caught in the replay's Book audit). Every hushed card now speaks the
+             ONE real system: the ask, and where the friend must be to hear it. */
           const court = Game.courtship(g);
           const canHear = Game.canHear(g.w);
+          const homeC = (typeof HOME!=="undefined" && HOME[g.w]) ? BIOME_NAMES[HOME[g.w][0]] : null;
           const callLine = P.called[g.w]
-            ? '<span class="gcall listening">💫 it is LISTENING…<br>its name comes soon</span>'
+            ? '<span class="gcall listening">💫 it is coming to meet you…<br>show it the thing it loves</span>'
             : (canHear && court)
-              ? '<span class="gcall">'+court.n+' &times; '+signNoun(court.sign)+' <b>in one round</b></span>'
-              : '<span class="gcall">'+ (c.c||"") +' <b>'+pr.have+'/'+pr.n+'</b></span>';
+              ? '<span class="gcall">loves '+court.n+' &times; '+signNoun(court.sign)+' <b>in one round</b></span>'
+              : '<span class="gcall">'+(homeC ? 'waits in <b>'+homeC+'</b>' : 'waits further on')
+                +(court ? '<br><small>loves '+court.n+' &times; '+signNoun(court.sign)+'</small>' : '')+'</span>';
           el.innerHTML='<span class="ge">'+(UI.artTag(g.w,"geimg")||g.e)+'</span><span class="mound"></span>'
             +(isNext?'<span class="nexttag">your next friend</span>':'')
             +'<span class="gn">a hushed friend</span>'
@@ -10141,7 +10235,14 @@ const UI = {
     try{ P.said = P.said || {}; }catch(e){ return; }
     const seen = (P.said[key]||0) > 0;
     if(seen && mode==="once") return;                      // said once, and once was enough
-    UI.NOTEQ.push({ key, html, mode, seen });
+    /* ══ THE ROUTER'S ONE LAW ══ while letters are falling or resolving, NOTHING covers
+       the board and NOTHING waits for a tap. Seven channels each patched separately never
+       stayed fixed - this is the single gate they all pass through now. A teach-note that
+       fires mid-round still appears and still marks itself said, but as the aside pill:
+       visible, auto-paced, never a scrim over live play. Boundaries (no round, round not
+       yet begun, round decided) keep the full card treatment. */
+    const live = S && !S.over && !S.won && (S.drops||0) > 0;
+    UI.NOTEQ.push({ key, html, mode, seen: seen || (live && mode==="once" ? false : seen), live });
     if(!UI._noteOn) UI._noteNext();
   },
   _noteNext(){
@@ -10152,8 +10253,8 @@ const UI = {
       UI._noteOn=true; setTimeout(UI._noteNext, 500); return;
     }
     UI._noteOn=true;
-    const { key, html, mode, seen } = q.shift();
-    const waits = !seen && mode!=="brief";
+    const { key, html, mode, seen, live } = q.shift();
+    const waits = !seen && mode!=="brief" && !live;   // the router's law: live rounds never wait
     let el=$("note"), scrim=$("note-scrim");
     const host=$("boardwrap")||$("app");
     if(!scrim){ scrim=document.createElement("div"); scrim.id="note-scrim"; host.appendChild(scrim); }
@@ -10748,7 +10849,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260728124151",
+  ver:"20260728141726",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
