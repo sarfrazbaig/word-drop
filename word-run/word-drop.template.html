@@ -6,7 +6,7 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="%23f7ecd6" stroke="%23b3a685" stroke-width="3" transform="rotate(-4 32 32)"/><text x="32" y="44" font-family="Georgia,serif" font-size="34" font-weight="800" fill="%234a3b28" text-anchor="middle">H</text></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Alegreya:wght@500;700;800&family=Alegreya+SC:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,750&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   /* ================= DESIGN TOKENS - one system, everything derives from here ================= */
   :root{
@@ -16,8 +16,12 @@
     /* the UI hand is a STORYBOOK serif now - Alegreya reads like an old tale and stays
        legible at 10px, which Nunito's rounded sans never even tried to be. Tiles keep
        their own face untouched. */
-    --font-ui:"Alegreya", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    --font-label:"Alegreya SC", "Alegreya", Georgia, serif;       /* small caps for labels */
+    /* THE STORYBOOK LIVES IN THE HEADINGS, NOT THE BODY. Alegreya-for-everything was
+       tried and pulled the same day: a serif at 12-14px is hard work for older eyes,
+       and a third of the players are older eyes (designer). Fraunces keeps the book's
+       voice where type is big enough to carry it; every small working line is Nunito. */
+    --font-ui:"Nunito", "Segoe UI", system-ui, sans-serif;        /* the friendly hand */
+    --font-label:"Nunito", "Segoe UI", system-ui, sans-serif;     /* labels ride the same hand */
     --bg0:#b9aa96;            /* worn table behind the page */
     --bg1:#ddd8e6;            /* app: dusk air (cool, so nothing reads as stark white) */
     --bg2:#f0e5d0;            /* app: warm parchment at the foot of the page */
@@ -882,10 +886,18 @@
     padding-left:2px; display:none; }
   #alder.clip .aup{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
   #alder.clip.more .amore{ display:none; }
-  #alder.exp{ height:auto; min-height:38px; border-radius:18px; align-items:flex-start;
-    padding:7px 12px 8px 6px; }
+  /* explicit width: an absolute box at left:50% shrink-fits to HALF the dock once its
+     text is allowed to wrap, and the unfold came out as a narrow tower (seen live) */
+  #alder.exp{ height:auto; min-height:38px; width:min(96%, 360px); border-radius:18px;
+    align-items:flex-start; padding:7px 12px 8px 6px; }
   #alder.exp .atxt{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.4; }
   #alder.exp .aface{ margin-top:1px; }
+  /* an unfolded pill can stand over the bottom tile row, and a drop is not the only
+     polite way out - the ✕ closes it on the spot (designer, on device) */
+  #alder .ax{ display:none; flex:none; width:22px; height:22px; border-radius:50%;
+    align-items:center; justify-content:center; font-size:11px; font-weight:900;
+    color:var(--dim); background:rgba(120,95,60,.14); margin-left:6px; cursor:pointer; }
+  #alder.exp .ax{ display:flex; }
   #ov-alder .card{ text-align:left; padding:20px 20px 16px; }
   #ov-alder .ap-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   #ov-alder .ap-face{ width:44px; height:44px; border-radius:50%; overflow:hidden; flex:none;
@@ -2863,7 +2875,7 @@
       <!-- Alder's aside rides the dock's top edge and grows UPWARD into the band. When
            space runs out it overlaps the dock's chrome, never the board - the harmless
            neighbour (a board-side anchor kept clipping letters by a few px on device). -->
-      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span></div>
+      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span><span class="ax" onclick="event.stopPropagation();Alder._dismiss()">✕</span></div>
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <i class="dock-sep"></i>
       <div id="currentwrap"></div>
@@ -4636,7 +4648,13 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     try{ P.said=P.said||{}; }catch(e){ return; }
     if(o.once && P.said[key]) return;
     const pri=o.pri||2;
-    const item={ key, chunks:String(html).split("|").map(s=>s.trim()).filter(Boolean),
+    /* THE PILL IS ONE SENTENCE, ALWAYS. Dozens of call sites still write two-storey
+       lines ("headline<br><small>detail</small>") from the old surfaces - flattened
+       here into one flowing sentence, so the collapsed pill can never stack lines.
+       If the flattened line runs long, the ▲ fold-out is the overflow, nothing else. */
+    const flat=String(html).replace(/<br\s*\/?>/gi, " ")
+      .replace(/<\/?small>/gi, " ").replace(/\s{2,}/g, " ");
+    const item={ key, chunks:flat.split("|").map(s=>s.trim()).filter(Boolean),
       idx:0, who:o.who||null, pri, once:!!o.once,
       drop:(typeof S!=="undefined" && S) ? S.drops : null };
     if(!item.chunks.length) return;
