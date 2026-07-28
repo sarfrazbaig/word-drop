@@ -948,18 +948,27 @@
      lines max, never blocks, never waits. The PAGE is the boundary card: story beat on
      top in the book's voice, the game beat below it in a gold strip - two readings of
      every event, always together. The JOURNAL replays every page ever shown. */
-  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% + 10px);
-    z-index:69; display:flex; align-items:center; gap:9px; max-width:min(92%, 340px);
-    background:#fffdf6; border:2px solid var(--gold); border-radius:16px; padding:8px 13px;
+  /* ONE LINE, ONE BREATH. The pill is a single slim block; a longer thought arrives as
+     a sequence of single lines, advanced by tap (or by an 8s patience timer, so an
+     ignored tail never parks). Designer's ruling: a tall box steals the board's air. */
+  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% - 6px);
+    z-index:69; display:flex; align-items:center; gap:8px; max-width:min(96%, 352px);
+    height:34px; overflow:hidden;
+    background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:3px 12px 3px 4px;
     box-shadow:0 4px 0 rgba(150,110,40,.25), 0 10px 22px rgba(90,60,30,.3);
     opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease; }
-  #alder.on{ opacity:1; transform:translateX(-50%) translateY(0); }
-  #alder .aface{ flex:none; width:28px; height:28px; border-radius:50%; overflow:hidden;
+  #alder.on{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  #alder .atxt img{ height:15px; width:auto; vertical-align:-3px; border-radius:4px; }
+  #alder .aface{ flex:none; width:26px; height:26px; border-radius:50%; overflow:hidden;
     background:linear-gradient(150deg,#eef3e2,#d9e4c8); border:1px solid rgba(120,140,90,.4);
-    display:flex; align-items:center; justify-content:center; font-size:18px; }
+    display:flex; align-items:center; justify-content:center; font-size:17px; }
   #alder .aface img{ width:100%; height:100%; object-fit:cover; display:block; }
-  #alder .atxt{ font-family:var(--font-ui); font-size:12.5px; font-weight:700; line-height:1.3;
-    color:var(--ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  #alder .atxt{ font-family:var(--font-ui); font-size:12.5px; font-weight:700; line-height:1.2;
+    color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #alder .amore{ flex:none; font-family:var(--font-label); font-size:9.5px; letter-spacing:1px;
+    color:var(--gold-deep,#8a6d1f); text-transform:uppercase; padding-left:2px; display:none; }
+  #alder.more .amore{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
+  @keyframes aldertap{ 0%,100%{ opacity:.55 } 50%{ opacity:1 } }
   #ov-alder .card{ text-align:left; padding:20px 20px 16px; }
   #ov-alder .ap-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   #ov-alder .ap-face{ width:44px; height:44px; border-radius:50%; overflow:hidden; flex:none;
@@ -1014,10 +1023,10 @@
      padding pushes the board up and hands that space down to the dock. */
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
     display:flex; align-items:center; justify-content:center; z-index:1;
-    /* 56px, not 34: the speaking band. The hold pill and Alder's asides live between the
+    /* 60px, not 34: the speaking band. The hold pill and Alder's asides live between the
        board and the dock, and at 34px even the pill overlapped the board's bottom edge
        (designer, on device). A sentence needs room to stand. */
-    padding-bottom:56px; }
+    padding-bottom:60px; }
   /* THE BOARD IS THE NIGHT SKY OF THE WOOD - a twilight the letters float on.
      stars scattered, a soft moon aglow, a gentle horizon light. no soil, no wood. */
   #board{ touch-action:none; position:relative;
@@ -1667,7 +1676,9 @@
      opposite thing in the same breath. */
   .petcompanion.away .pips{ opacity:0; transition:opacity .18s ease; }
   /* the bar IS the paw meter: its edges warm up as the pets get closer to acting */
-  #petbar{ margin-top:8px; margin-bottom:2px; }
+  /* margins traded top-for-bottom: the friends ride 4px higher so the speaking band
+     beneath their labels broadens without the dock moving an inch. */
+  #petbar{ margin-top:4px; margin-bottom:6px; }
   #petbar.on{ box-shadow:none; }
   #petbar.pulse{ animation:pawpulse .5s; }
   @keyframes pawpulse{ 40%{ transform:scale(1.03); } }
@@ -2940,7 +2951,11 @@
       <div id="modechip"></div>
     </div>
     <!-- one enclosure: breeze, the letter in hand, the queue, the wish, the Book -->
-    <div id="dock"><div id="alder"><span class="aface">🌳</span><span class="atxt"></span></div>
+    <div id="dock">
+      <!-- Alder's aside rides the dock's top edge and grows UPWARD into the band. When
+           space runs out it overlaps the dock's chrome, never the board - the harmless
+           neighbour (a board-side anchor kept clipping letters by a few px on device). -->
+      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="amore">tap ▸</span></div>
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <i class="dock-sep"></i>
       <div id="currentwrap"></div>
@@ -4560,28 +4575,112 @@ const ALDER_PAGES = {
   current: { s:"This stream was calm once. The currents run strong now - careful, they will shake the board.",
              g:"🌀 Currents drag a row of letters sideways every few drops. Mud and held words stay put." },
 };
-const Alder = { Q:[], on:false, _hideT:null, _pageCb:null,
+/* ══ THE STAGE MANAGER ══ one stage, two tenants, four priorities.
+   RULE ZERO: the grace bubble is a CONTROL, not a message - it owns the stage
+   absolutely. A showing pill swaps out the instant the bubble appears (a
+   MutationObserver on the dock, not a poll) and its content returns to the
+   front; speech resumes 400ms after the hold resolves.
+   P1 urgent reactions   - jump the queue (direct answers to a tap)
+   P2 event lines        - queue, but STALE-DROPPED if a newer drop happened
+                           first, and COALESCED to one line per drop
+   P3 teaching/foreshadow- never dropped, never queued: they wait in the POCKET
+                           for a QUIET window (stage free, no hold, no overlay,
+                           800ms since the last drop) and carry across rounds.
+                           Multi-line sequences (split on "|") are P3-only:
+                           tap ▸ advances, 8s advances anyway, interruption
+                           pauses and resumes at the unread line.
+   P4 flavor             - dropped freely if anyone else is waiting.
+   No tap is ever REQUIRED; the board is never locked; once-keys are marked
+   when a line is SHOWN, not when it is asked for. */
+const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
+  _lastDrops:-1, _lastDropAt:0,
   aside(key, html, o){ o=o||{};
     if(!html) return;
     try{ P.said=P.said||{}; }catch(e){ return; }
     if(o.once && P.said[key]) return;
-    if(o.once){ P.said[key]=1; save(); }
-    Alder.Q.push({ html, who:o.who||null });
-    if(Alder.Q.length>3) Alder.Q.splice(1, Alder.Q.length-3);   // never a backlog lecture
-    if(!Alder.on) Alder._next();
+    const pri=o.pri||2;
+    const item={ key, chunks:String(html).split("|").map(s=>s.trim()).filter(Boolean),
+      idx:0, who:o.who||null, pri, once:!!o.once,
+      drop:(typeof S!=="undefined" && S) ? S.drops : null };
+    if(!item.chunks.length) return;
+    if(pri===3){ if(!Alder.pocket.some(p=>p.key===key)) Alder.pocket.push(item); return; }
+    if(pri===4){ if(Alder.cur || Alder.Q.length) return; Alder.Q.push(item); }
+    else if(pri===1){ Alder.Q.unshift(item); }
+    else { // P2: coalesce - one event line per drop, the newest wins
+      Alder.Q=Alder.Q.filter(q=>!(q.pri===2 && q.drop===item.drop));
+      Alder.Q.push(item);
+    }
+    while(Alder.Q.length>2){ const i=Alder.Q.findIndex(q=>q.pri>=2);
+      Alder.Q.splice(i<0?Alder.Q.length-1:i,1); }
+    Alder._pump();
   },
-  _next(){ const el=$("alder"); if(!el){ Alder.on=false; return; }
-    const q=Alder.Q;
-    if(!q.length){ Alder.on=false; el.classList.remove("on"); return; }
-    Alder.on=true;
-    const { html, who }=q.shift();
-    el.querySelector(".aface").innerHTML = who || "🌳";
-    el.querySelector(".atxt").innerHTML = html;
+  _stageFree(){
+    return $("alder") && !document.querySelector(".gracebubble")
+      && !document.querySelector(".overlay.active"); },
+  _quiet(){
+    if(!Alder._stageFree() || Alder.cur || Alder.Q.length) return false;
+    if(typeof S==="undefined" || !S) return true;                 // the door is always quiet
+    if(S.over || S.won) return false;                             // the card owns the end
+    return !S.busy && (Date.now()-Alder._lastDropAt) > 800; },
+  _pump(){
+    if(Alder.cur || !Alder._stageFree()) return;
+    // stale-drop: an event line older than the latest drop narrates the past - skip it
+    while(Alder.Q.length){
+      const n=Alder.Q[0];
+      if(n.pri===2 && n.drop!=null && typeof S!=="undefined" && S && S.drops>n.drop){ Alder.Q.shift(); continue; }
+      break;
+    }
+    const item=Alder.Q.shift() || (Alder._quiet() ? Alder.pocket.shift() : null);
+    if(!item) return;
+    Alder._show(item);
+  },
+  _show(item){
+    const el=$("alder"); if(!el) return;
+    Alder.cur=item;
+    if(item.once && item.idx===0){ try{ P.said[item.key]=1; save(); }catch(e){} }
+    el.querySelector(".aface").innerHTML = item.who || "🌳";
+    el.querySelector(".atxt").innerHTML = item.chunks[item.idx];
+    el.classList.toggle("more", item.idx < item.chunks.length-1);
     el.classList.add("on");
     clearTimeout(Alder._hideT);
-    const words=String(html).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
-    Alder._hideT=setTimeout(()=>{ el.classList.remove("on");
-      setTimeout(()=>Alder._next(), 320); }, Math.min(6500, 1900+words*300));
+    const words=String(item.chunks[item.idx]).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
+    const ms = item.chunks.length>1 ? 8000 : Math.min(6500, 1900+words*300);
+    Alder._hideT=setTimeout(()=>Alder._advance(), ms);
+  },
+  _advance(){
+    const item=Alder.cur; if(!item){ Alder._pump(); return; }
+    if(item.idx < item.chunks.length-1){ item.idx++; Alder._show(item); return; }
+    Alder._dismiss();
+  },
+  _dismiss(){
+    const el=$("alder"); clearTimeout(Alder._hideT);
+    Alder.cur=null;
+    if(el) el.classList.remove("on","more");
+    setTimeout(()=>Alder._pump(), 320);
+  },
+  tap(){ if(Alder.cur) Alder._advance(); },
+  /* rule zero, mechanically: the dock observer preempts the pill the frame the
+     grace bubble lands, and hands the stage back 400ms after it goes */
+  _preempt(){
+    const item=Alder.cur; if(!item) return;
+    clearTimeout(Alder._hideT); Alder.cur=null;
+    const el=$("alder"); if(el) el.classList.remove("on","more");
+    if(item.pri===3){ Alder.pocket.unshift(item); }               // resumes at unread line
+    else Alder.Q.unshift(item);
+  },
+  _watch(){
+    const dock=$("dock"); if(!dock || Alder._mo) return;
+    Alder._mo=new MutationObserver(()=>{
+      if(document.querySelector(".gracebubble")){ if(Alder.cur) Alder._preempt(); }
+      else setTimeout(()=>Alder._pump(), 400);
+    });
+    Alder._mo.observe(dock, {childList:true});
+    // the quiet-window ticker: drains the pocket when the player is breathing
+    Alder._tick=setInterval(()=>{
+      if(typeof S!=="undefined" && S && S.drops!==Alder._lastDrops){
+        Alder._lastDrops=S.drops; Alder._lastDropAt=Date.now(); }
+      if(!Alder.cur) Alder._pump();
+    }, 600);
   },
   page(key, o){ o=o||{};
     const pg=ALDER_PAGES[key]; if(!pg) return false;
@@ -4600,7 +4699,7 @@ const Alder = { Q:[], on:false, _hideT:null, _pageCb:null,
   },
   pageClose(){ $("ov-alder").classList.remove("active");
     const cb=Alder._pageCb; Alder._pageCb=null; if(cb) cb(); },
-  tease(key, html){ Alder.aside("tz-"+key, html, {once:true}); },
+  tease(key, html){ Alder.aside("tz-"+key, html, {once:true, pri:3}); },
   journalShow(){ if(UI.menuToggle) UI.menuToggle(false);
     const list=(P.journal||[]).map(k=>{ const p=ALDER_PAGES[k]; if(!p) return "";
       return '<div class="j-entry"><div class="j-story">'+p.s+'</div>'
@@ -10171,8 +10270,8 @@ const UI = {
   /* ══ EVERY LIGHT CHANNEL IS ALDER NOW ══ sky, chip, toast, say and petSay all route
      into the one speaking band. The old note() machinery keeps only the boundary cards
      until the content pass finishes moving them onto Alder's pages. */
-  sky(html, ms){ if(html) Alder.aside(UI._noteKey(html), html, {once:true}); },
-  chip(html, ms){ if(html) Alder.aside(UI._noteKey(html), html); },
+  sky(html, ms){ if(html) Alder.aside(UI._noteKey(html), html, {once:true, pri:2}); },
+  chip(html, ms){ if(html) Alder.aside(UI._noteKey(html), html, {pri:1}); },   // a chip answers a tap - now
   /* A FRIEND ACTING IS SOMETHING TO WATCH, NOT SOMETHING TO READ OVER.
      This used mode "once", and note() promotes the FIRST showing of any message to centre
      stage with a scrim and a tap-to-continue - so the very first time each friend acted,
@@ -10433,8 +10532,8 @@ const UI = {
   },
   noteClear(){ UI.NOTEQ.length=0; UI._noteOn=false;
     [$("note"),$("note-scrim")].forEach(e=>{ if(e){ clearTimeout(e._h); e.onclick=null; e.classList.remove("on"); } }); },
-  say(key, msg, times){ // Alder speaks it once, in the band, and never blocks the board
-    Alder.aside(key, msg, {once:true});
+  say(key, msg, times){ // teaching goes to the POCKET: spoken once, in a quiet moment
+    Alder.aside(key, msg, {once:true, pri:3});
   },
   TIPS:{
     /* ══ A TOOL IS TAUGHT IN THREE BEATS ══ how you earn it, how you spend it, the one
@@ -11378,6 +11477,7 @@ window.S = ()=>S; window.Game=Game; window.UI=UI; window.Snd=Snd; window.P=P; wi
 // dev machines only - a player must never see the audit, and never pay for it either
 if(Tele.isLocal()) setTimeout(()=>{ try{ Audit.run(); }catch(e){ console.warn("audit fell over:",e); } }, 0);
 Tele.boot();
+Alder._watch();   // the stage manager's eyes: grace preemption + the quiet-window ticker
 Game._sink = (n,p)=>Tele.log(n,p,"funnel");   // level_start/win/fail, wake, purchase*, ad*, shop_open
 // what the wood SAID to them - scene changes and every announcement
 { const _sc=UI.scene.bind(UI); UI.scene=(id)=>{ if(id!==Tele.scene){ Tele.log("nav",{to:id}); Tele.scene=id; } return _sc(id); }; }
