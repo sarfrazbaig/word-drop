@@ -873,6 +873,19 @@
     color:var(--gold-deep,#8a6d1f); text-transform:uppercase; padding-left:2px; display:none; }
   #alder.more .amore{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
   @keyframes aldertap{ 0%,100%{ opacity:.55 } 50%{ opacity:1 } }
+  /* ══ THE FOLD ══ a line too long for one breath wears a ▲; the tap unfolds the pill
+     upward into a small card (bottom edge stays on its mark, so it grows over the
+     board's lower rim - it blocks nothing, and it holds NO timer once open: it leaves
+     on the reader's next drop instead). One affordance at a time: while the ▲ shows,
+     the tap-▸ hint stands down. */
+  #alder .aup{ flex:none; font-size:11px; color:var(--gold-deep,#8a6d1f);
+    padding-left:2px; display:none; }
+  #alder.clip .aup{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
+  #alder.clip.more .amore{ display:none; }
+  #alder.exp{ height:auto; min-height:38px; border-radius:18px; align-items:flex-start;
+    padding:7px 12px 8px 6px; }
+  #alder.exp .atxt{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.4; }
+  #alder.exp .aface{ margin-top:1px; }
   #ov-alder .card{ text-align:left; padding:20px 20px 16px; }
   #ov-alder .ap-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   #ov-alder .ap-face{ width:44px; height:44px; border-radius:50%; overflow:hidden; flex:none;
@@ -2850,7 +2863,7 @@
       <!-- Alder's aside rides the dock's top edge and grows UPWARD into the band. When
            space runs out it overlaps the dock's chrome, never the board - the harmless
            neighbour (a board-side anchor kept clipping letters by a few px on device). -->
-      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="amore">tap ▸</span></div>
+      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span></div>
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <i class="dock-sep"></i>
       <div id="currentwrap"></div>
@@ -4658,15 +4671,34 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     if(!item) return;
     Alder._show(item);
   },
+  /* ══ NO LINE IS EVER LOST ══ (designer, on device: a cut sentence is unreadable UX).
+     A line that overflows the pill keeps its single-line shape but wears a ▲ - tap it
+     and the pill unfolds upward into a little multi-line card. An unfolded pill has NO
+     timer: reading speed belongs to the reader. It leaves on the reader's next real
+     action instead - the ticker sees the drop and takes the pill with it. A clipped
+     line that was never unfolded also refuses to auto-advance (auto-dismissing an
+     unread tail would lose it for good) and leaves the same way.
+     Longer term the copy itself should be short - anything past ~40 characters was not
+     thought through (designer) - the ▲ is the guarantee, not the excuse. */
   _show(item){
     const el=$("alder"); if(!el) return;
-    Alder.cur=item;
+    Alder.cur=item; Alder._exp=false;
+    el.classList.remove("exp","clip");
     if(item.once && item.idx===0){ try{ P.said[item.key]=1; save(); }catch(e){} }
     el.querySelector(".aface").innerHTML = item.who || "🌳";
     el.querySelector(".atxt").innerHTML = item.chunks[item.idx];
     el.classList.toggle("more", item.idx < item.chunks.length-1);
     el.classList.add("on");
-    clearTimeout(Alder._hideT);
+    item._drop0 = (typeof S!=="undefined" && S) ? S.drops : null;
+    // overflow is read off the REAL element, once it is on stage
+    const t=el.querySelector(".atxt");
+    const clipped = t.scrollWidth > t.clientWidth+1;
+    el.classList.toggle("clip", clipped);
+    clearTimeout(Alder._hideT); Alder._hideT=null;
+    if(clipped){
+      try{ if(Tele.isLocal()) console.warn("[alder] clipped copy (shorten it):", item.chunks[item.idx]); }catch(e){}
+      return;                       // no timer - it waits for the ▲ tap or the next action
+    }
     const words=String(item.chunks[item.idx]).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
     const ms = item.chunks.length>1 ? 8000 : Math.min(6500, 1900+words*300);
     Alder._hideT=setTimeout(()=>Alder._advance(), ms);
@@ -4677,18 +4709,28 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     Alder._dismiss();
   },
   _dismiss(){
-    const el=$("alder"); clearTimeout(Alder._hideT);
+    const el=$("alder"); clearTimeout(Alder._hideT); Alder._exp=false;
     Alder.cur=null;
-    if(el) el.classList.remove("on","more");
+    if(el) el.classList.remove("on","more","exp","clip");
     setTimeout(()=>Alder._pump(), 320);
   },
-  tap(){ if(Alder.cur) Alder._advance(); },
+  /* the first tap on a clipped line UNFOLDS it - only after that do taps advance */
+  tap(){
+    if(!Alder.cur) return;
+    const el=$("alder");
+    if(el && el.classList.contains("clip") && !Alder._exp){
+      Alder._exp=true; el.classList.remove("clip"); el.classList.add("exp");
+      clearTimeout(Alder._hideT); Alder._hideT=null;   // unfolded = the reader's own time
+      return;
+    }
+    Alder._advance();
+  },
   /* rule zero, mechanically: the dock observer preempts the pill the frame the
      grace bubble lands, and hands the stage back 400ms after it goes */
   _preempt(){
     const item=Alder.cur; if(!item) return;
-    clearTimeout(Alder._hideT); Alder.cur=null;
-    const el=$("alder"); if(el) el.classList.remove("on","more");
+    clearTimeout(Alder._hideT); Alder.cur=null; Alder._exp=false;
+    const el=$("alder"); if(el) el.classList.remove("on","more","exp","clip");
     if(item.pri===3){ Alder.pocket.unshift(item); }               // resumes at unread line
     else Alder.Q.unshift(item);
   },
@@ -4699,10 +4741,15 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
       else setTimeout(()=>Alder._pump(), 400);
     });
     Alder._mo.observe(dock, {childList:true});
-    // the quiet-window ticker: drains the pocket when the player is breathing
+    // the quiet-window ticker: drains the pocket when the player is breathing - and an
+    // unfolded (or still-folded-but-clipped) line leaves on the reader's next drop
     Alder._tick=setInterval(()=>{
       if(typeof S!=="undefined" && S && S.drops!==Alder._lastDrops){
-        Alder._lastDrops=S.drops; Alder._lastDropAt=Date.now(); }
+        Alder._lastDrops=S.drops; Alder._lastDropAt=Date.now();
+        const el=$("alder"), c=Alder.cur;
+        if(c && c._drop0!=null && S.drops>c._drop0 && el &&
+           (el.classList.contains("exp") || el.classList.contains("clip"))) Alder._dismiss();
+      }
       if(!Alder.cur) Alder._pump();
     }, 600);
   },
@@ -9278,7 +9325,8 @@ const UI = {
                        : Math.min(100, 100*S.levelScore/S.target);
     const mist=document.getElementById("hushmist"); // every word thins the hush - visibly
     if(mist) mist.style.opacity=Math.max(0, 1-(pct/100)*1.25);
-  },  goalStrip(){ // every ask of the round, one segment each - built to hold SEVERAL
+  },
+  goalStrip(){ // every ask of the round, one segment each - built to hold SEVERAL
     const gs=$("gs-goals"); if(!gs || !S) return;
     const segs=[]; let nameSeg="";
     // ONE BUILDER for every ask. A long ratio steps its own type down rather than growing
@@ -10962,7 +11010,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260728232136",
+  ver:"20260728233735",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
