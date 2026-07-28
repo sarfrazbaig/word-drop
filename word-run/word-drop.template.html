@@ -1909,6 +1909,16 @@
   .tile.gold{ background:linear-gradient(150deg,#fff1b0,#ffd54f 45%,#f5a300);
     box-shadow:0 5px 0 #b47e00, 0 7px 12px rgba(120,80,0,.45), inset 0 2px 0 rgba(255,255,255,.95),
       inset 0 -5px 6px rgba(170,110,0,.45), 0 0 16px rgba(255,205,60,.6); }
+  /* 🌈 THE RAINBOW LETTER - the tile the wood itself NEVER deals; every rainbow on the
+     board is a friend's gift. One rainbow in a word pays the WHOLE word as gold, so its
+     worth grows with the word's length - which is exactly what the word-lengthening
+     friends manufacture. Thunderfalls always promised "a rainbow in it". */
+  .tile.rainbow{ background:linear-gradient(140deg,#ff9a9e 0%,#ffd54f 26%,#7de37d 50%,#6ec6ff 74%,#c69eff 100%);
+    box-shadow:0 5px 0 #7a5aa8, 0 7px 14px rgba(90,60,140,.45), inset 0 2px 0 rgba(255,255,255,.95),
+      inset 0 -5px 6px rgba(120,80,180,.35), 0 0 18px rgba(160,140,255,.65); }
+  .tile.rainbow small{ color:rgba(60,40,90,.75); }
+  .tile.rainbow::after{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:linear-gradient(110deg, transparent 30%, rgba(255,255,255,.9) 48%, transparent 62%); }
   .tile.gold::after{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     background:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.85) 48%, transparent 60%);
     background-size:250% 100%; animation:shimmer 2.4s linear infinite; }
@@ -3638,6 +3648,12 @@ const SIGNS = {
   obstacle:  { freq: 3,  order: 9, title:"🪨 they wake when the way clears", noun:"things cleared away" },
   crate:     { freq: 1.2,order:10, title:"🎁 they wake at an opened gift",   noun:"gifts opened" },
   cascade:   { freq: 2,  order:11, title:"💫 they wake on a tumble",         noun:"tumbles" },
+  /* ══ THE FLOURISH ══ every rare delight pooled into ONE sign a player can learn: a
+     five-letter word, a twin, a cascade word, a palindrome, a rainbow clearing. Separately
+     each is a lottery (palindrome 0.13, twin 0.6); pooled they land about once a round,
+     and a friend that loves flourishes fires on ANY of them - the rarer the shape, the
+     bigger its own bonus. One word to learn instead of five. */
+  flourish:  { freq: 0.85,order:11.5, title:"🎇 they live for a flourish",    noun:"flourishes" },
   rare:      { freq: 0.46,order:12, title:"💎 they wake at a rare letter",    noun:"rare letters" },
   /* THE FIRST SIGN THAT IS ABOUT THE WORD ITSELF rather than about the board. Everything
      above fires because something happened - a tile landed, a stone broke. This one fires
@@ -3766,11 +3782,11 @@ const GROVE = [
   {w:"moth",wake:{on:"word4",n:1},echo:"gold",e:"🦋",z:"sky",pn:"Dream Dust",pi:"🌙",pd:"your next letter becomes a <b>⭐ star that matches anything</b>",fx:{t:"wildHand"},f:"chases moonbeams between the letters"},
   {w:"owl",e:"🦉",z:"sky",ps:true,pn:"Far Sight",pi:"👁️",pd:"you can see <b>one extra upcoming letter</b>",fx:{t:"next2"},f:"reads two letters ahead, always"},
   {w:"crow",wake:{on:"rare",n:1},e:"🐦‍⬛",z:"sky",ps:true,pn:"Clever Beak",pi:"🧠",pd:"the deck <b>skips awkward letters</b> (Q·Z·X·J·V)",fx:{t:"skipJunk"},f:"hides the ugly letters where you'll never find them"},
-  {w:"dove",wake:{on:"vowel",n:4},echo:"anyWord",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
-  {w:"robin",wake:{on:"consonant",n:6},e:"🐦",z:"sky",ps:true,pn:"Morning Chorus",pi:"🎶",pd:"the deck deals <b>extra vowels</b>",fx:{t:"vowelDeck"},f:"wakes the vowels up every morning"},
+  {w:"dove",wake:{on:"flourish",n:1},echo:"anyWord",e:"🕊️",z:"sky",pn:"Sweet Song",pi:"💖",pd:"on a <b>flourish</b>, coos it back - your <b>next word scores ×2</b>",fx:{t:"charm",n:1},f:"coos your best words back, twice as sweet"},
+  {w:"robin",wake:{on:"anyWord",n:3},e:"🐦",z:"sky",pn:"Morning Chorus",pi:"🎶",pd:"sings the <b>vowel the board wants</b> into your next slot",fx:{t:"robinVowel"},f:"wakes the vowels up every morning"},
   {w:"duck",wake:{on:"anyWord",n:2},echo:"anyWord",e:"🦆",z:"sky",pn:"Second Wind",pi:"🪽",pd:"flutters in <b>+2 moves</b>",fx:{t:"moves",n:2},f:"paddles hard so your moves float easy"},
   {w:"swan",wake:{on:"word4",n:2},echo:"word4",e:"🦢",z:"sky",pn:"Swan's Grace",pi:"🩰",pd:"your two <b>oldest letters turn wild</b>",fx:{t:"wildOld",n:2},f:"turns old letters into something graceful"},
-  {w:"goose",wake:{on:"vowel",n:3},echo:"gold",e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
+  {w:"goose",wake:{on:"anyWord",n:4},echo:"gold",e:"🪿",z:"sky",pn:"Golden Egg",pi:"🥚",pd:"lays a <b>golden E</b> in your hand",fx:{t:"goldenEgg"},f:"guards her golden egg like a secret"},
   {w:"hawk",e:"🦅",z:"sky",ps:true,pn:"Keen Eye",pi:"🎯",pd:"spots where your letter finishes a word - <b>always</b>",fx:{t:"alwaysHint"},f:"sees the word before you drop a letter"},
   {w:"bat",e:"🦇",z:"sky",ps:true,pn:"Read It Backwards",pi:"🔄",pd:"<b>every row reads both ways</b> - and a word that reads the <b>same</b> both ways pays double",fx:{t:"readsBoth"},f:"reads the bottom row backwards for fun"},
   {w:"heron",ps:true,e:"🦩",z:"sky",pn:"Patient Hunt",pi:"⏳",pd:"<b>name the weather</b> and he finds you <b>+1 move</b>",fx:{t:"weatherWatch"},f:"stands so still that moves come to him"},
@@ -3779,37 +3795,37 @@ const GROVE = [
   {w:"ladybug",wake:{on:"anyWord",n:4},echo:"gold",e:"🐞",z:"sky",pn:"Lucky Spot",pi:"🍀",pd:"a tile on the board <b>turns into a ⭐ star</b>",fx:{t:"luckyTile"},f:"lands on a tile and leaves a star behind"},
   {w:"cricket",wake:{on:"cascade",n:2},echo:"cascade",e:"🦗",z:"sky",pn:"Night Chorus",pi:"🎻",pd:"your <b>next cascade chain counts double</b>",fx:{t:"chainBoost"},f:"plays one song and the whole cascade dances"},
   // on the ground
-  {w:"fox",wake:{on:"cascade",n:2},echo:"gold",e:"🦊",z:"ground",pn:"Gilded Trail",pi:"✨",pd:"<b>golds every letter</b> in the shortest pile",fx:{t:"goldCol"},f:"leaves a gilded trail wherever she climbs"},
+  {w:"fox",wake:{on:"flourish",n:1},e:"🦊",z:"ground",pn:"Too Clever",pi:"✨",pd:"on a <b>flourish</b>, fetches the <b>letter the board wants most</b> into your next slot",fx:{t:"foxFetch"},f:"has already fetched what you were about to need"},
   {w:"frog",wake:{on:"word3",n:3},echo:"cascade",e:"🐸",z:"ground",pn:"Leapfrog",pi:"🔀",pd:"<b>swaps two neighbouring columns</b> whole",fx:{t:"swapCols"},f:"leaps a whole column in one hop"},
   {w:"deer",ps:true,e:"🦌",z:"ground",pn:"Gentle Graze",pi:"🌿",pd:"spell her <b>something to eat</b> and it pays <b>+15</b>",fx:{t:"foodJoy"},f:"grazes the bottom row down to fresh grass"},
-  {w:"bear",wake:{on:"obstacle",n:2},echo:"obstacle",e:"🐻",z:"ground",pn:"Bear Hug",pi:"🤗",pd:"<b>smashes a 2×2 patch</b> in the middle",fx:{t:"smashPatch"},f:"hugs a little too hard, helpfully"},
+  {w:"bear",e:"🐻",z:"ground",ps:true,pn:"Not Your Fault",pi:"🤗",pd:"a <b>lost round is carried</b> - the bear shoulders it, then hibernates until <b>50 of your words</b> wake it",fx:{t:"bearCarry"},f:"would carry you the whole way home, and does"},
   {w:"wolf",wake:{on:"word3",n:4},echo:"consonant",e:"🐺",z:"ground",pn:"Night Howl",pi:"🌕",pd:"scares away <b>up to 3 awkward letters</b>",fx:{t:"eatWorst",n:3},f:"howls and the awkward letters scatter"},
   {w:"hare",wake:{on:"word4",n:1},e:"🐇",z:"ground",ps:true,pn:"Quickstep",pi:"💨",pd:"<b>4+ letter words refund the move</b>",fx:{t:"refund4"},f:"runs so fast the move comes right back"},
-  {w:"mouse",wake:{on:"word3",n:3},e:"🐭",z:"ground",ps:true,pn:"Crumb Collector",pi:"🧀",pd:"<b>3-letter words score +3</b>",fx:{t:"crumb"},f:"saves every crumb - they add up"},
-  {w:"pig",wake:{on:"obstacle",n:1},echo:"crate",e:"🐷",z:"ground",pn:"Truffle Dig",pi:"🎁",pd:"digs up a buried <b>gift crate</b>",fx:{t:"digCrate"},f:"can smell a gift crate a mile away"},
-  {w:"snail",wake:{on:"drop",n:3},e:"🐌",z:"ground",ps:true,pn:"Slow & Sure",pi:"🐌",pd:"every <b>6th drop is a free step</b>",fx:{t:"freeStep",n:6},f:"slow, sure, and never wastes a step"},
+  {w:"mouse",e:"🐭",z:"ground",ps:true,pn:"The Nibble",pi:"🧀",pd:"drop a <b>near-word</b> and the mouse nibbles the spare letter away - <b>it counts</b> (once a round)",fx:{t:"nibble"},f:"nibbles the extra letter off, every time"},
+  {w:"pig",e:"🐷",z:"ground",ps:true,pn:"The Wallow",pi:"🟤",pd:"mire is mud, and mud takes any shape - <b>mire joins your words as any letter</b>",fx:{t:"wallow"},f:"happiest exactly where the ground gives up"},
+  {w:"snail",e:"🐌",z:"ground",ps:true,pn:"What Waits, Ripens",pi:"🐌",pd:"camps on your <b>oldest letter</b>: it ripens to <b>gold</b> - left longer still, to <b>rainbow</b>",fx:{t:"ripen"},f:"slow, sure, and everything it sits on sweetens"},
   {w:"worm",wake:{on:"cascade",n:3},echo:"anyWord",e:"🪱",z:"ground",pn:"Aerate",pi:"🌱",pd:"churns the soil: <b>3 letters become fresh helpful ones</b>",fx:{t:"churn",n:3},f:"keeps the soil soft and the letters fresh"},
   {w:"ant",e:"🐜",z:"ground",ps:true,pn:"Tiny Planner",pi:"📐",pd:"the deck <b>leans extra helpful</b>",fx:{t:"helpDeck"},f:"plans your deck three drops ahead"},
   {w:"crab",wake:{on:"obstacle",n:1},echo:"word3",e:"🦀",z:"ground",pn:"Sidestep",pi:"↔️",pd:"<b>slides the bottom row</b> one step sideways",fx:{t:"slideRow"},f:"tidies the bottom row walking sideways"},
   {w:"fish",wake:{on:"gold",n:1},echo:"gold",e:"🐟",z:"ground",pn:"Shimmer School",pi:"🌊",pd:"<b>every copy of one letter</b> turns golden",fx:{t:"goldSchool"},f:"makes the whole school shimmer gold"},
   {w:"snake",wake:{on:"word3",n:3},echo:"word3",e:"🐍",z:"ground",pn:"Shed Skin",pi:"🐍",pd:"your current letter <b>transforms into the one you need most</b>",fx:{t:"bestHand"},f:"sheds the letter you don't need for the one you do"},
   {w:"chick",wake:{on:"word4",n:2},echo:"truename",e:"🐤",z:"ground",pn:"Copycat Peep",pi:"🐣",pd:"your next letter becomes a <b>twin of your current one</b>",fx:{t:"twinHand"},f:"peeps a perfect copy of what you're holding"},
-  {w:"goat",wake:{on:"word3",n:3},e:"🐐",z:"ground",ps:true,pn:"Kindred Call",pi:"🐾",pd:"<b>creature words score ×2</b>",fx:{t:"kindred"},f:"cheers loudest when friends spell friends"},
+  {w:"goat",wake:{on:"anyWord",n:5},e:"🐐",z:"ground",pn:"Eats Anything",pi:"🐐",pd:"eats <b>one piece of trouble</b> off the board and digests it into <b>amber</b>",fx:{t:"goatEat",n:5},f:"ice, stone, tin cans - all the same to a goat"},
   {w:"dragon",wake:{on:"obstacle",n:2},echo:"obstacle",e:"🐉",z:"ground",pn:"Dragonfire",pi:"🔥",pd:"<b>thaws every ice</b> on the board",fx:{t:"thawAll"},f:"sleeps under the mountain and dreams of warm water"},
   {w:"boar",wake:{on:"obstacle",n:2},echo:"cascade",e:"🐗",z:"ground",pn:"Bulldoze",pi:"💥",pd:"<b>smashes the tallest column</b> flat",fx:{t:"smashCol"},f:"flattens the tallest pile like it's nothing"},
   {w:"moose",wake:{on:"anyWord",n:3},echo:"word3",e:"🫎",z:"ground",pn:"Antler Sort",pi:"🌬️",pd:"the <b>top letter of every column</b> becomes one that fits",fx:{t:"antlerSort"},f:"shakes the treetops until the letters make sense"},
   {w:"seal",wake:{on:"word3",n:4},echo:"vowel",e:"🦭",z:"ground",pn:"Tide Pool",pi:"💦",pd:"the <b>two shortest columns</b> fill with vowels",fx:{t:"tidePool"},f:"splashes the shallow places full again"},
   {w:"turtle",e:"🐢",z:"ground",ps:true,pn:"Shell Shield",pi:"🛡️",pd:"the <b>first drop of every level is free</b>",fx:{t:"firstFree"},f:"carries your first step, every level, free"},
-  {w:"beaver",wake:{on:"anyWord",n:3},echo:"word3",e:"🦫",z:"ground",pn:"Dam Builder",pi:"🪵",pd:"fills the <b>3 lowest columns</b> with helpful letters",fx:{t:"damFill",n:3},f:"builds the low places up with good letters"},
+  {w:"beaver",e:"🦫",z:"ground",ps:true,pn:"The Dam",pi:"🪵",pd:"a <b>held</b> word is dammed - when its letters finally clear in a bigger word, <b>the dam breaks and pays</b>",fx:{t:"damBreak"},f:"holds the river back until it is worth letting go"},
   {w:"wyrm",wake:{on:"word4",n:2},echo:"tool",e:"🐍",z:"ground",pn:"Deepdelve",pi:"⛏️",pd:"arms a <b>free pluck</b> - take any letter off the board",fx:{t:"freePluck"},f:"has been under this wood longer than the wood has"},
   {w:"lizard",wake:{on:"rare",n:2},echo:"gold",e:"🦎",z:"ground",pn:"Sunbake",pi:"☀️",pd:"every <b>stone bakes into a golden letter</b>",fx:{t:"stoneGold"},f:"bakes stones into gold on sunny afternoons"},
   {w:"pony",wake:{on:"drop",n:15},echo:"cascade",e:"🐴",z:"ground",pn:"Gallop",pi:"🎠",pd:"the columns gallop into a <b>brand-new order</b>",fx:{t:"shuffleCols"},f:"gallops the columns into a brand-new day"},
   {w:"lamb",wake:{on:"vowel",n:3},echo:"vowel",e:"🐑",z:"ground",pn:"Soft Wool",pi:"☁️",pd:"<b>3 letters soften into vowels</b>",fx:{t:"vowelize",n:3},f:"softens hard letters into gentle vowels"},
   {w:"penguin",e:"🐧",z:"ground",ps:true,pn:"Daily Whisper",pi:"🐟",pd:"spots the <b>daily word's first letter</b> (see the Book)",fx:{t:"whisper"},f:"whispers the daily word's first secret"},
   {w:"skunk",wake:{on:"word3",n:4},echo:"word3",e:"🦨",z:"ground",pn:"Clear the Room",pi:"🦨",pd:"<b>every copy of the most awkward letter</b> vanishes",fx:{t:"clearRoom"},f:"clears the room - every last copy of it"},
-  {w:"raccoon",wake:{on:"obstacle",n:1},echo:"word3",e:"🦝",z:"ground",pn:"Rummage",pi:"🗑️",pd:"turns a stone, ice or junk letter <b>into a gift crate</b>",fx:{t:"junkToGift"},f:"turns junk into presents, somehow"},
-  {w:"phoenix",wake:{on:"word5",n:1},echo:"cascade",e:"🦅",z:"ground",pn:"Ember Hoard",pi:"🌟",pd:"drops an <b>ember that bursts</b> in a 3×3 blast",fx:{t:"acornBlast"},f:"keeps its treasure in the ashes, and always comes back for it"},
-  {w:"spider",wake:{on:"word4",n:1},echo:"mirror",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
+  {w:"raccoon",e:"🦝",z:"ground",ps:true,pn:"Bin Raider",pi:"🗑️",pd:"trouble you clear pays <b>+2 amber</b> - and every 4th piece, it rummages out <b>a little treasure</b>",fx:{t:"binRaider"},f:"one wood's trash is this fellow's fortune"},
+  {w:"phoenix",e:"🦅",z:"ground",ps:true,pn:"Born Again Golden",pi:"🌈",pd:"what the phoenix grants comes back <b>RAINBOW</b> - every <b>wished letter</b> pays its whole word as gold",fx:{t:"rainbowWish"},f:"everything it returns comes back brighter"},
+  {w:"spider",wake:{on:"word4",n:2},echo:"mirror",e:"🕷️",z:"ground",pn:"Web Wrap",pi:"🕸️",pd:"wraps your next word in silk: it scores <b>×2 AND refunds its move</b>",fx:{t:"webWrap"},f:"wraps a word so tight it pays double"},
   {w:"bison",wake:{on:"anyWord",n:3},echo:"word4",e:"🦬",z:"ground",pn:"Herd Call",pi:"📣",pd:"your <b>next three letters are chosen</b>, not drawn",fx:{t:"herdCall"},f:"calls the herd, and the good letters come"},
 ];
 const GROVE_BY_WORD = {}; GROVE.forEach(g=>GROVE_BY_WORD[g.w]=g);
@@ -5074,7 +5090,7 @@ function nearWord(s){
     }
   return null;
 }
-function cellsToPattern(cells){ return cells.map(t=>t.kind==="wild"?".":t.letter).join(""); }
+function cellsToPattern(cells){ return cells.map(t=>(t.kind==="wild"||t.kind==="mire")?".":t.letter).join(""); }
 function matchPattern(pat){
   if(!pat.includes(".")) return COMMON.has(pat) ? pat : null;
   const list = BY_LEN[pat.length]||[], re = new RegExp("^"+pat+"$");
@@ -5083,22 +5099,43 @@ function matchPattern(pat){
 }
 function scanLine(cellsLine){
   const found=[]; let seg=[];
+  /* 🐷 THE WALLOW - mud takes any shape. While the pig is on duty, a mire tile JOINS the
+     line as a letterless wild instead of cutting it, so words run straight through the
+     marsh - and the mire they borrow clears with them (credited in the scoring loop).
+     The thing that blocked the column becomes the letter the column needed. */
+  const wallow = typeof Game!=="undefined" && S && Game.hasPassive && Game.hasPassive("wallow");
+  /* 🐭 THE NIBBLE - a near-word loses its one spare letter and counts. Rationed to once a
+     round per nearWord()'s own rule; the licence is spent only when a nibbled word actually
+     CLEARS (see resolve), so the hint may show the play without consuming it. */
+  const nibble = typeof Game!=="undefined" && S && !S.mouseUsed && Game.hasPassive && Game.hasPassive("nibble");
   const flush=()=>{
     let pos=0;
     while(pos <= seg.length-MIN_LEN){
       let hit=null;
       for(let L=Math.min(seg.length-pos,8); L>=MIN_LEN; L--){
         const cells=seg.slice(pos,pos+L);
-        if(cells.every(t=>t.kind==="wild")) continue;
+        if(cells.every(t=>t.kind==="wild"||t.kind==="mire")) continue;
         const w=matchPattern(cellsToPattern(cells));
         if(w){ hit={cells,word:w}; break; }
+      }
+      if(!hit && nibble){
+        outer:
+        for(let L=Math.min(seg.length-pos,8); L>=MIN_LEN+1; L--){
+          const cells=seg.slice(pos,pos+L);
+          for(let k=0;k<cells.length;k++){
+            const rest=cells.filter((_,i)=>i!==k);
+            if(rest.every(t=>t.kind==="wild"||t.kind==="mire")) continue;
+            const w=matchPattern(cellsToPattern(rest));
+            if(w){ hit={cells, word:w, nibbled:cells[k]}; break outer; }
+          }
+        }
       }
       if(hit){ found.push(hit); pos += hit.cells.length; }
       else pos++;
     }
     seg=[];
   };
-  cellsLine.forEach(t=>{ if(t && !NONWORD.has(t.kind)) seg.push(t); else flush(); });
+  cellsLine.forEach(t=>{ if(t && (!NONWORD.has(t.kind) || (t.kind==="mire" && wallow))) seg.push(t); else flush(); });
   flush();
   return found;
 }
@@ -5297,6 +5334,39 @@ const POWERS = {
   },
   async goldenEgg({ boost }){{ S.cur={letter:"e",kind:"gold"}; if(boost) S.next={letter:"e",kind:"gold"};
         UI.piece(); Snd.gold(); Game.handPop(); return; }
+  },
+  /* 🐦 MORNING CHORUS - sings the vowel the BOARD wants. helpfulByLength() already knows
+     which letters finish words here; the robin picks the best vowel among them. */
+  async robinVowel({ pet }){
+        const best=helpfulByLength(); let pick=null;
+        for(const l of ["a","e","i","o","u"]) if(best[l] && (!pick || best[l]>best[pick])) pick=l;
+        pick = pick || "e";
+        S.next={letter:pick, kind:"normal"}; UI.piece(); Game.handPop();
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" sings <b>"+pick.toUpperCase()+"</b> into your next slot");
+        Snd.tone(1174,{dur:.12,type:"triangle",gain:.06,verb:true}); return;
+  },
+  /* 🦊 TOO CLEVER - the fox has already fetched the letter the board wants MOST, vowel or
+     not. The same oracle the wish reads, one slot ahead of you. */
+  async foxFetch({ pet }){
+        const best=helpfulByLength(); let pick=null;
+        for(const l in best) if(!pick || best[l]>best[pick]) pick=l;
+        if(!pick){ Game.addMoves(1); return; }
+        S.next={letter:pick, kind:"normal"}; UI.piece(); Game.handPop();
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" has already fetched <b>"+pick.toUpperCase()+"</b>");
+        Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); return;
+  },
+  /* 🐐 EATS ANYTHING - one piece of trouble, straight down, digested into amber. Never a
+     crate: gifts are not junk, even to a goat. */
+  async goatEat({ pet, m, fx }){
+        const junk=Object.values(S.tiles).filter(t=>OBSTACLE_KINDS.includes(t.kind) && t.kind!=="crate");
+        if(!junk.length){ Game.addMoves(1); return; }
+        const t=junk[Math.floor(Math.random()*junk.length)];
+        UI.shards(t.r,t.c,"#c8a96e");
+        Game.creditTile(t); removeTile(t);
+        const pay=Math.round((fx.n||5)*m); Game.amber(pay);
+        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" ate the "+t.kind+" - <b>+"+pay+" 🟠</b>");
+        Snd.tone(520,{dur:.12,type:"triangle",gain:.07}); buzz(12);
+        const fell=await Game.gravity(); await Game.resolve(fell||[]); return;
       /* 🦇 ECHO NUDGE. Reversing the whole bottom row could shred letters a player was
          deliberately assembling - a friend that undoes your plan is anti-magical, and at
          two and a half fires a round it would have happened most rounds. One letter slides
@@ -5567,6 +5637,15 @@ const POWERS = {
   async alwaysHint(C){ return POWERS.whisper(C); },
   async refund4(){ /* passive - petActives() filters these out before petAct */ },
   async crumb(){ /* passive - petActives() filters these out before petAct */ },
+  /* ══ THE FOURTEEN'S PASSIVES ══ each lives where its rule must be true, not here:
+     the scan, the scoring loop, the wood's tick, the wish, the fail state. */
+  async nibble(){ /* passive - the licence lives in scanLine() */ },
+  async wallow(){ /* passive - mire joins the line in scanLine() */ },
+  async ripen(){ /* passive - the snail ticks in woodTick() */ },
+  async damBreak(){ /* passive - pays in the scoring loop when a held word cashes */ },
+  async binRaider(){ /* passive - paid inside Game.credit() */ },
+  async rainbowWish(){ /* passive - the grant is recoloured in pickWish() */ },
+  async bearCarry(){ /* passive - the catch lives in failLevel() */ },
   /* THE TWO MEANING PASSIVES. Their tastes are the rarest in the game - something good to
      eat happens 0.03 times a round, the weather 0.05 - which is precisely why neither can
      be a wake condition: a friend that stirs once in thirty rounds is not a friend. As
@@ -6388,6 +6467,7 @@ const Game = {
     // level's 3★ stays earnable: clear with ~30% of your moves spare for gold.
     const mv=MOVES(S.level);
     S.stars = S.movesLeft>=Math.ceil(mv*0.30) ? 3 : S.movesLeft>=Math.ceil(mv*0.12) ? 2 : 1;
+    if(S.bearCarried) S.stars=1;   // 🐻 carried, not conquered - one star, warmly given
     // the cat's calling IS clearing level 3 - the achievement announces in the win
     // sequence, never over something the player is reading mid-game
     if(S.level===3 && !P.grove.cat && !P.called.cat){
@@ -6441,6 +6521,21 @@ const Game = {
   },
 
   failLevel(){
+    /* 🐻 NOT YOUR FAULT. If the bear is on duty and awake, the round is not lost - it is
+       CARRIED. The bear steps forward, shoulders it (cleared, one star), and hibernates:
+       fifty of your words hum it awake, and its seat stays warm for two rounds. No
+       threshold, no fine print - the cost is an empty seat, which is the same currency
+       the whole pipeline runs on. A ceremony is the one thing it cannot carry: a name
+       must be spoken, not shouldered. */
+    if(!S.tutorWord && !S.bearCarried && !P.bearRest && UI.equipped().some(g=>g&&g.w==="bear")){
+      Game.track("bear_carried",{ L:S.level, goal:S.goal?S.goal.t:"hush",
+        short:Math.max(0, S.target-S.levelScore) });
+      P.equip=(P.equip||[]).filter(w=>w!=="bear");
+      P.bearRest={ need:50, have:0, seatWarmUntil:(advOf(S.level)||0)+2 }; save();
+      S.bearCarried=true;
+      Game.winLevel();
+      return;
+    }
     Game.track("level_fail",{ L:S.level, goal:S.goal?S.goal.t:"hush", ceremony:S.tutorWord||"",
       why: S.movesLeft<=0 ? "out_of_moves" : "board_full",
       short: Math.max(0, S.target-S.levelScore), target:S.target, got:S.levelScore,
@@ -6814,6 +6909,9 @@ const Game = {
     Game.tallyEv("wish");
     const kind = S.cur ? S.cur.kind : "normal";
     S.cur={letter:l, kind};
+    // 🌈 BORN AGAIN GOLDEN - what the phoenix grants comes back rainbow. It outranks even
+    // a golden hand: the rainbow is the bigger promise, and only friends ever deal it.
+    if(Game.hasPassive("rainbowWish")) S.cur.kind="rainbow";
     Game.closeWish(); UI.wishPill(); UI.piece(); UI.hints(); UI.ghost(S.hoverCol);
     UI.stardrift(); // starlight drifts down as the wish arrives
     Snd.tone(1046,{dur:.16,type:"sine",gain:.07,verb:true}); Snd.tone(1568,{dur:.22,type:"sine",gain:.05,when:.1,verb:true});
@@ -6901,6 +6999,12 @@ const Game = {
     Game.sees("obstacle");
     if(kind==="crate") Game.sees("crate");
     Game.amber(2);
+    // 🦝 BIN RAIDER - trouble pays double while the raccoon is on duty, and every fourth
+    // piece it rummages a little treasure out of the junk
+    if(Game.hasPassive("binRaider")){ Game.amber(2);
+      S._racc=(S._racc||0)+1;
+      if(S._racc%4===0){ Game.amber(8);
+        UI.petSay((UI.artTag("raccoon","toastimg")||"🦝")+" rummaged out a little treasure - <b>+8 🟠</b>"); } }
     const g=OBSTACLE_GOAL[kind];
     if(g) Game.goalTick(g);
     return true;
@@ -7441,6 +7545,14 @@ const Game = {
   recordWord(word, points, chain, shape){
     shape = shape || {};
     FT.signal("wordCleared", word);
+    /* 🐻 your words hum the hibernating bear awake - the only clock is real play, so a
+       quick thrown round cannot cheese it and a long careful one is never punished. */
+    if(typeof P!=="undefined" && P.bearRest){
+      P.bearRest.have=(P.bearRest.have||0)+1;
+      if(P.bearRest.have>=P.bearRest.need){ P.bearRest=null; save();
+        P.annQ=P.annQ||[]; P.annQ.push((UI.artTag("bear","toastimg")||"🐻")
+          +" the bear wakes - rested, proud of you, <b>ready to be asked again</b>"); }
+    }
     /* THE ROUND REMEMBERS WHAT IT SAID. S.wordsMade was a count, so nothing could ask what
        came before - no echo, no "you said that already", no rhythm of any kind. */
     S.said = S.said || [];
@@ -7784,13 +7896,19 @@ const Game = {
     let gained=0;
     for(const w of words){
       S.lastAction=Date.now();               // long cascades are alive, not stuck
-      const len=w.cells.length;
+      // a nibbled word is judged by the WORD, not the cells - the spare letter is the
+      // mouse's snack, not part of the achievement
+      const len=(w.word||"").length || w.cells.length;
       let pts=0;
       const goldX = 3;                       // 🌊 River Gold: fox & fish gild deeper
       const wildV = 0;                   // 🌃 Night Flight: fallen stars are worth something
       const vowelB = 0;                 // 🌅 Dawn Chorus: vowels sing
-      w.cells.forEach(t=>{ let v = t.kind==="wild"?wildV:VAL[t.letter]; if(t.kind==="gold") v*=goldX;
-        if(t.kind!=="wild" && "aeiou".includes(t.letter)) v+=vowelB; pts+=v; });
+      // 🌈 ONE RAINBOW GILDS THE WHOLE WORD - every letter in it pays as gold, so a
+      // rainbow's worth grows with the word's length. Gold stays x3, never x9.
+      const rainbowIn = w.cells.some(t=>t.kind==="rainbow");
+      w.cells.forEach(t=>{ if(t===w.nibbled) return;
+        let v = t.kind==="wild"?wildV:(VAL[t.letter]||0); if(t.kind==="gold"||rainbowIn) v*=goldX;
+        if(t.kind!=="wild" && "aeiou".includes(t.letter||"")) v+=vowelB; pts+=v; });
       // 5+ letter words are JACKPOTS: rare, hard, and they should pay like it.
       // a good 6-letter word will often clear the whole level - that's the chase.
       const lenMult = len<=4 ? (1.3+0.7*(len-3)) : (len-3)*2; // 3→1.3, 4→2, 5→4, 6→6, 7→8, 8→10
@@ -7803,6 +7921,12 @@ const Game = {
       if(S.chainBoost && S.chain>=2){ pts*=2; S._chainBoostUsed=true; } // 🎻 Night Chorus: this cascade counts double
       if(S.flatB>0){ pts+=5; S.flatB--; }                          // 🍀 Lucky Spots: +5 a word
       if(len===3 && Game.hasPassive("crumb")) pts+=3;              // 🧀 Crumb Collector
+      // 🦫 THE DAM BREAKS - letters you HELD, finally cashed in a bigger word, pay their
+      // stored water. The hold's own rule guarantees "bigger": held tiles can only ever
+      // re-clear inside a longer word than the one they were kept as.
+      if(Game.hasPassive("damBreak") && w.cells.some(t=>t.heldWord)){
+        const dam=Math.round(12*Game.tierMul()); pts+=dam;
+        UI.petSay((UI.artTag("beaver","toastimg")||"🦫")+" the dam breaks - <b>+"+dam+"</b>"); }
       // 🦌 spell her something to eat, and 🦩 name the weather - the two meaning powers
       if(FOOD.has(w.word) && Game.hasPassive("foodJoy")) pts+=15;
       if(WEATHER.has(w.word) && Game.hasPassive("weatherWatch")) Game.addMoves(1);
@@ -7868,10 +7992,21 @@ const Game = {
       if(w.dir==="up") Game.tallyEv("upword");
       { const g=gateAt(S.level);
         if(g && g.small && w.cells.length<4) pts=0; }   // it still clears; it just does not pay
+      // 🐭 the licence is spent HERE, when a nibbled word actually clears - not in the scan
+      if(w.nibbled){ S.mouseUsed=true;
+        UI.petSay((UI.artTag("mouse","toastimg")||"🐭")+" nibbled the spare "
+          +((w.nibbled.letter||"").toUpperCase())+" - <b>"+w.word.toUpperCase()+"</b> counts!"); }
+      // 🐷 a word through the wallow clears the mire it borrowed - and the wood pays for it
+      w.cells.forEach(t=>{ if(t.kind==="mire") Game.credit("mire"); });
+      if(rainbowIn) Game.tallyEv("rainbow");
       Game.recordWord(w, pts, S.chain, {
         dir: w.dir, twin: !!twin,
         held: w.cells.some(t=>t.heldWord),          // you kept this one back before it bloomed
-        gilded: goldN>0 });
+        gilded: goldN>0, rainbow: rainbowIn });
+      /* ══ THE FLOURISH ══ word5+, a twin, a cascade word, a palindrome, a rainbow - any
+         rare delight raises the ONE pooled sign, so a friend that loves flourishes fires
+         on all of them and a player learns one word instead of five. */
+      if(len>=5 || twin || S.chain>=2 || isMirror(w.word) || rainbowIn) Game.sees("flourish");
       // THE announcement of this game - the word you made and what it paid - used to sit
       // for 700ms and vanish. Nobody could read it, and the bigger the word the more
       // there was to miss. It holds long enough to land now, longer for the big ones.
@@ -7905,6 +8040,30 @@ const Game = {
 
   async woodTick(){ // the wood's own small moves, once per drop
     if(!S || S.over || S.won) return;
+    /* 🐌 WHAT WAITS, RIPENS. The snail camps on your OLDEST letter - same age order
+       wildOld uses. Ten drops of patience turn it gold; ten more turn it RAINBOW, the
+       one tile the wood itself never deals. Patience squared. */
+    if(Game.hasPassive("ripen")){
+      const ts=Object.values(S.tiles).filter(t=>t.kind==="normal"
+        || ((t.kind==="gold"||t.kind==="rainbow") && t._snail));
+      if(ts.length){
+        ts.sort((a,b)=>a.id.localeCompare?a.id.localeCompare(b.id):(a.id-b.id));
+        const oldest=ts[0];
+        if(!S.snail || S.snail.id!==oldest.id) S.snail={id:oldest.id, ticks:0};
+        S.snail.ticks++;
+        const t=S.tiles[S.snail.id];
+        if(t && S.snail.ticks===10 && t.kind==="normal"){ t.kind="gold"; t._snail=true;
+          t.inner.className="tile gold thawpop"; t.inner.innerHTML=tileFace(t);
+          Snd.gold(); UI.shards(t.r,t.c,"#ffd54f");
+          UI.petSay((UI.artTag("snail","toastimg")||"🐌")+" what waits, ripens - <b>"
+            +(t.letter||"").toUpperCase()+"</b> turns gold");
+        } else if(t && S.snail.ticks===20 && t.kind==="gold" && t._snail){ t.kind="rainbow";
+          t.inner.className="tile rainbow thawpop"; t.inner.innerHTML=tileFace(t);
+          Snd.gold(); UI.shards(t.r,t.c,"#c69eff");
+          UI.petSay((UI.artTag("snail","toastimg")||"🐌")+" …and past gold into <b>RAINBOW</b>");
+        }
+      }
+    }
     // 🪵 a cut root left alone for 3 drops closes its wound
     for(const t of Object.values(S.tiles)){
       if(t.kind==="root" && t.cracks>=1 && S.drops-(t.cutDrop||0)>=3){
@@ -8554,7 +8713,11 @@ const UI = {
   endCard(won){
     UI.toastClear();   // the card gets a clean stage - no leftovers drifting across it
     // stars sit on their own line - inline they forced "Level 1 / clear!" to wrap mid-phrase
-    $("ev-title").innerHTML = won
+    $("ev-title").innerHTML = won && S.bearCarried
+      ? '<span class="evstars">⭐</span>Not your fault. '
+        +'The bear carried this one.<br><small>'+(UI.artTag("bear","toastimg")||"🐻")
+        +' gone to sleep under the big tree, proud of you - your words will wake it</small>'
+      : won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>'+levelLabel(S.level)+' clear!'
       : (S.tutorWord ? "A name went unspoken…"
          : (S.goal&&S.goal.t!=="hush") ? ((S.goal.have<S.goal.need
@@ -9113,11 +9276,22 @@ const UI = {
   nextSlotAt(){ const m=seatsByLevel(P.level); return m>=4?null : m===3?14 : m===2?10 : 7; },
   equipToggle(w){ // choose who comes adventuring with you (slots grow with your level)
     if(!P.metGrove[w]) return;
+    /* 🐻 the hibernating bear cannot be asked - and its seat stays WARM for two rounds
+       after it carried you, so letting the bear go is felt before the seat frees. */
+    if(P.bearRest && w==="bear"){
+      UI.chip((UI.artTag("bear","toastimg")||"🐻")+" still hibernating - <b>"
+        +Math.max(0,(P.bearRest.need-(P.bearRest.have||0)))+" words</b> of yours will wake it");
+      return;
+    }
     P.equip = P.equip||[];
     const max=slotsFor(P.level);
     const i=P.equip.indexOf(w);
     if(i>=0){ P.equip.splice(i,1); UI.chip((UI.artTag(w,"chipimg")||GROVE_BY_WORD[w].e)+" stays home for now"); }
     else {
+      if(P.bearRest && P.bearRest.seatWarmUntil > (advOf(P.level)||0) && P.equip.length>=max-1){
+        UI.chip("🐻 the bear's seat is still warm - give it a round or two");
+        return;
+      }
       if(P.equip.length>=max){ // never surprise-swap: the sheet's picker owns full-party trades
         const nxt=UI.nextSlotAt();
         UI.chip("all "+max+" seats are taken - pick who rests first 💤"+(nxt?"<br><small>another seat opens at level "+nxt+"</small>":""));
@@ -9590,7 +9764,11 @@ const UI = {
       setTimeout(()=>{ if(el.classList.contains("on")){ el.onclick=done; scrim.onclick=done; } }, 340);
       el._h=setTimeout(done, 14000);          // a message must never hang the game
     } else {
-      const words=String(html).replace(/<[^>]+>/g," ").trim().split(/s+/).length;
+      /* THE MISSING BACKSLASH. This read /s+/ and split on the LETTER s, not on whitespace,
+         so the word count was nonsense and the median message stood for 2.5 seconds instead
+         of the ~5 it was written for. A playtester: "instructions screen pe aa rahe hai, toh
+         padhne se pehle hi gayab ho ja raha hai. I read slow." He was reading the bug. */
+      const words=String(html).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
       el._h=setTimeout(done, Math.min(5400, 1700+words*260));
     }
   },
