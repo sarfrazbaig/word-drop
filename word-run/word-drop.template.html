@@ -6023,7 +6023,10 @@ const Game = {
     // was already drawn above, before the goal was chosen.
     S.tutorWord = (P.summon && !P.grove[P.summon]) ? P.summon
                 : (level===4 && !P.grove.cat) ? "cat" : null;   // school fallback, never missable
-    if(S.tutorWord) tutorPrefill(S.tutorWord); // set the board up so it's easy to spell
+    /* the board is no longer staged toward the NAME - that platter plus the spell-wake
+       was the whole old ceremony sneaking back. Prologue lessons keep their scripted
+       boards; a real meeting deals an honest deck and asks for the loving. */
+    if(S.tutorWord && P.level<=PROLOGUE_END) tutorPrefill(S.tutorWord);
     S.cur = makePiece(); S.next = makePiece();
     if(Game.hasPassive("next2")) S.next2 = makePiece(); // 👁 Far Sight from the first drop
     if(S.tutorWord && P.level<=6){ const l=S.tutorWord.slice(-1); S.cur={letter:l,kind:"normal"}; S.next={letter:l,kind:"normal"}; }
@@ -6257,7 +6260,7 @@ const Game = {
       { const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
         $("un-try").innerHTML='<b>this one loves '
           +(cg ? cg.n+" &times; "+signNoun(cg.sign) : "words")
-          +'</b><br>guess its name early and it comes running - but the loving is enough'; }
+          +'</b><br>it already knows its own name - what it wants is the loving'; }
       $("ov-unlock").classList.add("active"); Game.shown("unlock");
       Snd.tone(523,{dur:.3,type:"sine",gain:.06,verb:true});
       Snd.tone(784,{dur:.4,type:"sine",gain:.05,when:.2,verb:true});
@@ -6635,7 +6638,7 @@ const Game = {
     // the KEEPER: if every trace of the guest's anchor has been eaten by ordinary
     // clears, quietly stage a fresh one. It never rebuilds the player's progress -
     // only the foothold. The WORK stays theirs.
-    if(S.tutorWord && !S.over && !S.won && !tutorAlive()) tutorPrefill(S.tutorWord);
+    if(S.tutorWord && P.level<=PROLOGUE_END && !S.over && !S.won && !tutorAlive()) tutorPrefill(S.tutorWord);
     if(S._chainBoostUsed){ S.chainBoost=false; S._chainBoostUsed=false; } // 🎻 the doubled cascade has sung
     if(S.cascadeMax>=3) Game.cheer(2); // big cascades excite your pets
     if(Game.hasPassive("alwaysHint")) Game.petHint(false); // 🎯 Keen Eye: the hawk points, quietly, every time
@@ -8052,9 +8055,19 @@ const Game = {
         ? GROVE_BY_WORD[S.tutorWord] : null;
       if(guest) g = guest;
       if(g && !P.grove[g.w]){
-        // THE CALLING IS THE GATE. A name only wakes if the creature is listening -
-        // its calling met, or it is this round's ceremony guest.
-        const awake = !!guest || P.called[g.w];
+        /* THE ASK IS THE GATE, EVERYWHERE. Spelling the guest's name used to wake it on
+           the spot - and with the board pre-staged toward that name, the old ceremony
+           survived in practice: the designer spelled DOG on a served platter and the
+           round ended with the ask untouched (caught on the live deploy). A spelled name
+           during a meeting is now a warm moment, never a key: the friend answers, and
+           asks for the loving. The ask met (or the pity) is the only way in. */
+        const meetGated = S.tutorWord===g.w && !Game.courted(g.w) && (P.nameFails[g.w]||0)<2;
+        if(meetGated && !S._nameTeased){
+          S._nameTeased=true; Game.amber(3);
+          UI.petSay((UI.artTag(g.w,"toastimg")||g.e)
+            +" perks up at its own name! <b>+3 🟠</b> - now <b>show it the thing it loves</b>");
+        }
+        const awake = (!!guest || P.called[g.w]) && !meetGated;
         if(awake){
           P.grove[g.w]=Date.now();
           S.newGrove.push(g.w);
