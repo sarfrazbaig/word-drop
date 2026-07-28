@@ -7369,13 +7369,54 @@ const Game = {
     if(f >= 0.8) return 2;                     // most rounds - four-letter words, obstacles
     return 1;                                  // rare enough that once is the whole ask
   },
-  /* the two meaning passives ask for their meaning; every other passive asks for words,
-     since an always-on friend has no taste of its own to demonstrate */
-  COURT_PASSIVE: { deer:["food",1], heron:["weather",1] },
+  /* ══ FIFTY ASKS, AUTHORED - the courtship IS the creature ══
+     Derived asks collapsed: with the new roster, TWENTY-EIGHT friends asked the identical
+     "4 words in one round", which is not a courtship, it is a toll. Every ask below is
+     hand-set from the friend's own character, against the measured sign rates, so doing
+     the thing it loves is both the invitation and the cheapest tutorial for its power.
+     [sign, count] - counted by the round's own sigs, same meter as before.
+     Signs must exist in SIGNS; counts sized so an aware player lands them in one round. */
+  COURT: {
+    /* the First Clearing - small asks for small friends */
+    bee:["word3",4], mouse:["word3",5], robin:["anyWord",3], dove:["flourish",1],
+    chick:["vowel",6], worm:["cascade",1],
+    /* the Bramblewood */
+    fox:["flourish",1], hare:["obstacle",3], moth:["gold",1], crow:["gold",2],
+    raccoon:["crate",1],
+    /* the Mosswood */
+    snail:["drop",12], lamb:["vowel",8], deer:["food",1], pony:["drop",10],
+    boar:["obstacle",3],
+    /* the Spore Hollow */
+    fly:["doubled",1], ant:["word3",6], skunk:["doubled",2], ladybug:["anyWord",5],
+    /* the Listening Pond */
+    heron:["weather",1], duck:["vowel",7], fish:["gold",1], beaver:["held",1],
+    /* the Reedmarsh */
+    pig:["obstacle",4], frog:["cascade",1], spider:["word4",2],
+    /* the Running River */
+    crab:["word3",5], moose:["word4",2], bear:["held",2],
+    /* the Thunderfalls */
+    wolf:["anyWord",6], bison:["obstacle",4], hawk:["word4",2],
+    /* the Undercave */
+    bat:["mirror",1], snake:["word5",1], lizard:["rare",1],
+    /* the Deep Dark */
+    owl:["nested",1], seal:["word3",6], turtle:["held",2],
+    /* the Glimmer Seams */
+    swan:["word4",3], cricket:["cascade",2],
+    /* the Scree Slopes */
+    goat:["obstacle",5], dragon:["word4",3],
+    /* the Windward Ridge */
+    goose:["vowel",8], golem:["obstacle",5],
+    /* the Snowline */
+    penguin:["obstacle",4], wyrm:["word5",1],
+    /* the Frozen Crown */
+    phoenix:["flourish",2],
+    /* the starters' own asks, for completeness (both arrive by other doors) */
+    cat:["word3",3], dog:["anyWord",4],
+  },
   courtship(g){
-    const p = Game.COURT_PASSIVE[g.w];
-    if(p) return { sign:p[0], n:p[1] };
-    if(g.ps) return { sign:"anyWord", n:4 };
+    const a = Game.COURT[g.w];
+    if(a && SIGNS[a[0]]) return { sign:a[0], n:a[1] };
+    if(g.ps) return { sign:"anyWord", n:4 };            // an unlisted passive falls back
     const sign = g.wake && g.wake.on;
     return sign ? { sign, n:Game.courtNeed(g) } : null;
   },
