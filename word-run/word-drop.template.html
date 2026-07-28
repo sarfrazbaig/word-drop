@@ -447,7 +447,9 @@
     transform:translateX(-102%); transition:transform .3s cubic-bezier(.4,.1,.2,1);
     background:linear-gradient(180deg,#fbf5e6,#efe1c8); box-shadow:6px 0 28px rgba(30,25,55,.4);
     padding:calc(16px + env(safe-area-inset-top)) 16px 16px; display:flex; flex-direction:column; gap:9px;
-    border-right:1px solid rgba(150,120,70,.3); }
+    border-right:1px solid rgba(150,120,70,.3);
+    /* the panel outgrew short screens (Journal, charm, shop...) - it scrolls now */
+    overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   #menu-panel.on{ transform:translateX(0); }
   #menu-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
   #menu-head span{ font-family:var(--font-story); font-size:24px; font-weight:750; color:var(--ink); }
