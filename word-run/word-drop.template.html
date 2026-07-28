@@ -951,7 +951,11 @@
   /* ONE LINE, ONE BREATH. The pill is a single slim block; a longer thought arrives as
      a sequence of single lines, advanced by tap (or by an 8s patience timer, so an
      ignored tail never parks). Designer's ruling: a tall box steals the board's air. */
-  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% - 6px);
+  /* THE SAME SLOT AS THE GRACE BUBBLE, to the pixel. The two swap on one stage (rule zero),
+     so they must stand on one mark - 12px of air above the dock, floating in the band,
+     never touching the dock's edge. It shipped at calc(100% - 6px), which welded the pill
+     to the dock and sank its bottom 7px INTO the panel (designer caught it on device). */
+  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% + 12px);
     z-index:69; display:flex; align-items:center; gap:8px; max-width:min(96%, 352px);
     height:34px; overflow:hidden;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:3px 12px 3px 4px;
