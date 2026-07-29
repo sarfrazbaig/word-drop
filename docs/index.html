@@ -6775,7 +6775,11 @@ const Game = {
        in a quiet moment (P3 pocket) - so a new trouble is warned about the round before
        it appears, and its full page then opens on its own doorstep. The heads-up and the
        lesson are two different beats on two different days, the way a keeper would do it. */
-    { const nA=advOf(level)+1;
+    /* S.level, not `level` - this block lives in beginLevel, which has no such argument.
+       The bare name threw a ReferenceError that silently killed everything below it,
+       INCLUDING showPendingMeet - so no friend could ever be met or equipped again
+       (designer caught it live: "got CAT, it just kept saying arriving next round"). */
+    { const nA=advOf(S.level)+1;
       if(nA>1 && !S.guide){
         for(const k of TROUBLE_KEYS)
           if(TROUBLE[k].at===nA && !TROUBLE[k].todo && ALDER_PAGES[k] && ALDER_PAGES[k].f)
@@ -11030,7 +11034,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260728235112",
+  ver:"20260729073349",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
