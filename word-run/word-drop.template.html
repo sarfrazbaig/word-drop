@@ -7097,15 +7097,24 @@ const Game = {
         P.summonQ=(P.summonQ||[]).filter(w=>w!==gw);
         save();
         S.guestNamed = true;
-        /* THE JOIN IS THE ROUND'S BIGGEST MOMENT - it bursts like a jackpot, not a
-           footnote. The friend steps out and SPEAKS; the wood celebrates. */
+        if(!g){ Game.winLevel(); return; }   // an unknown guest can only be waved through
+        /* THE JOIN IS THE ROUND'S BIGGEST MOMENT, AND IT GETS THE FULL REVEAL - the same
+           whosthat ritual the spelled name gets (the ask-met path used to jump straight
+           to winLevel behind a two-second pill, so the reveal "sometimes happened,
+           sometimes did not" and the one line explaining it died under the win card -
+           designer, on device). This is the bought-friend path's proven shape: burst,
+           reveal, meet card - and closeMeet's checkEnd sees guestNamed and wins the
+           round on the way out. */
+        S.tutorWord = null;
         { const cb=document.createElement("div"); cb.className="chainburst";
-          cb.textContent=(g&&g.e||"🐾")+" "+gw.toUpperCase()+"!";
+          cb.textContent=(g.e||"🐾")+" "+gw.toUpperCase()+"!";
           $("boardwrap").appendChild(cb); setTimeout(()=>cb.remove(),1800);
           UI.confetti && UI.confetti(); Snd.fanfare && Snd.fanfare(); buzz([30,50,30,90]); }
-        UI.petSay((UI.artTag(gw,"toastimg")||(g&&g.e)||"🐾")
-          +" steps out - <b>\""+gw.toUpperCase()+"\"</b>, it says. that is its name");
-        Game.winLevel(); return;
+        S.pendingReveal = g;                 // the resolve tail cashes this the moment it settles
+        setTimeout(async ()=>{               // ...and if no resolve is coming, this does
+          if(S && S.pendingReveal===g && !document.querySelector(".whosthat")){
+            S.pendingReveal=null; await Game.reveal(g); } }, 600);
+        return;
       }
     }
     // THE CEREMONY CONTRACT IS THE NAME, AND ONLY THE NAME. It used to be "beat the level
