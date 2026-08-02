@@ -1279,12 +1279,14 @@
     box-shadow:0 6px 20px rgba(10,8,4,.24); }
   #app.bgart #dock::before{
     content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit;
+    /* --glass-haze is set per pane by alderTone: a white haze over dark countries, a dark
+       one over bright countries. Without it the glass only ever showed up against dark. */
     background:
       linear-gradient(var(--glass-boost,transparent), var(--glass-boost,transparent)),
-      linear-gradient(148deg,
+      var(--glass-haze, linear-gradient(148deg,
         rgba(255,255,255,.12) 0%,
         rgba(255,255,255,.06) 50%,
-        rgba(255,255,255,.09) 100%);
+        rgba(255,255,255,.09) 100%));
     -webkit-backdrop-filter:blur(9px) saturate(1.35) brightness(1.06);
     backdrop-filter:blur(9px) saturate(1.35) brightness(1.06); }
   /* the dock's labels read the ink measured for the DOCK's slice of the painting -
@@ -1607,12 +1609,14 @@
     /* the diagonal sheen streak is GONE - a fixed white slash pretending to be a
        reflection reads as fake precisely because it never moves and never answers the
        scene's own light. The pane's presence is carried by the blur and its edges. */
+    /* --glass-haze is set per pane by alderTone: a white haze over dark countries, a dark
+       one over bright countries. Without it the glass only ever showed up against dark. */
     background:
       linear-gradient(var(--glass-boost,transparent), var(--glass-boost,transparent)),
-      linear-gradient(148deg,
+      var(--glass-haze, linear-gradient(148deg,
         rgba(255,255,255,.12) 0%,
         rgba(255,255,255,.06) 50%,
-        rgba(255,255,255,.09) 100%);
+        rgba(255,255,255,.09) 100%));
     -webkit-backdrop-filter:blur(9px) saturate(1.35) brightness(1.06);
     backdrop-filter:blur(9px) saturate(1.35) brightness(1.06); }
   #topshell{ position:relative; width:100%; display:flex; align-items:stretch; z-index:2;
@@ -3850,10 +3854,36 @@ function alderTone(){
     return out;
   };
   const tokenSurface=over(stops[0], 0.68, [128,128,128]);   // pre-sample fallback
-  const surfFor=k=>{ const band=bands && bands[k];
-    return band ? over([255,255,255], ALDER_HAZE,
-                       band.map(v=>Math.min(255,Math.round(v*ALDER_LIFT))))
-                : tokenSurface; };
+  /* ══ THE HAZE TAKES THE POLARITY THAT SEPARATES IT ══
+     The glass was always a WHITE haze, so its presence depended entirely on the backdrop
+     being dark. Measured as relative lift, the same material read 378% against the violet
+     country and 15% against the opening - twenty-five times weaker in the first levels
+     than in the ones it was tuned on, which is why the early countries look washed out
+     while the board (which has a real frame) looks like the only solid object.
+     So the haze chooses its side the way the ink already does: white over a dark
+     backdrop, DARK over a bright one. The pane then separates from whatever is behind
+     it rather than only from darkness, and the ink follows the surface as it always has.
+     0.34 is the crossover - a backdrop lighter than that gets dark glass. */
+  const HAZE_FLIP=0.34;
+  /* A DARK PANE HAS TO COMMIT. At the light haze's own strength, black over a bright sky
+     still composites to something light - dark enough to look murky, not dark enough for
+     pale ink, so the pane ended up dark glass wearing black text. The dark haze therefore
+     DEEPENS until warm-white clears the 5.0 target against it, and the ink goes pale to
+     match. A pane that chooses to be dark should read as dark, not as dimmed. */
+  const paneGlass=k=>{
+    const band=bands && bands[k];
+    if(!band) return { surface:tokenSurface, dark:false, a:ALDER_HAZE };
+    const lit=band.map(v=>Math.min(255,Math.round(v*ALDER_LIFT)));
+    if(lum(lit) <= HAZE_FLIP)
+      return { surface:over([255,255,255], ALDER_HAZE, lit), dark:false, a:ALDER_HAZE };
+    for(const a of [0.34,0.44,0.54,0.64,0.72]){
+      const surface=over([0,0,0], a, lit);
+      if(ratio(hex(ALDER_LIGHT), surface) >= 5.0) return { surface, dark:true, a };
+    }
+    const a=0.72;
+    return { surface:over([0,0,0], a, lit), dark:true, a };
+  };
+  const surfFor=k=>paneGlass(k).surface;
   /* ══ ONE WASH FOR THE WHOLE TOP GROUP ══ per-pane boosts passed every measurement
      and immediately failed the eye: a pane wearing a 16% wash next to two wearing none
      reads as a DIFFERENT GLASS, and the seams announce it. So the three top panes share
@@ -3895,19 +3925,44 @@ function alderTone(){
                : over(uni.dir>0?[255,255,255]:[0,0,0], uni.b, s);
   const inkFor=s=>{ const rd0=ratio(hex(ALDER_DARK),s), rl0=ratio(hex(ALDER_LIGHT),s);
     return { ink: rd0>=rl0?ALDER_DARK:ALDER_LIGHT, r:+Math.max(rd0,rl0).toFixed(2) }; };
+  /* the three top panes share ONE haze polarity for the same reason they share one wash:
+     side by side, two panes of different glass read as a mistake. The shell's backdrop
+     decides, since it is the largest and the topmost. */
+  const topGlass = paneGlass("shell");
+  const topDark = topGlass.dark;
+  /* the gradient carries the SOLVED alpha, not a fixed one - paneGlass deepened it until
+     pale ink cleared 5.0, so the painted pane has to be that same depth or the measured
+     contrast describes a surface nobody is looking at. The 0.66/0.86 multipliers keep the
+     sweep's shape (denser at the top-left, thinner across) around whatever it solved to. */
+  const hazeCss = (d,a) => d
+    ? "linear-gradient(148deg, rgba(0,0,0,"+a.toFixed(2)+") 0%, rgba(0,0,0,"
+      +(a*0.66).toFixed(2)+") 50%, rgba(0,0,0,"+(a*0.86).toFixed(2)+") 100%)"
+    : "linear-gradient(148deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.06) 50%, rgba(255,255,255,.09) 100%)";
   const paneOut={};
   for(const p of [["topshell","shell",shS],["alder","alder",alS],["petbar","pets",null]]){
     const el=document.getElementById(p[0]); if(!el) continue;
-    const t = p[2] ? inkFor(washed(p[2])) : { ink:null };
+    /* ON DARK GLASS THE INK IS WHITE, FULL STOP. Left to the picker, a pane that was
+       merely dim still scored better with the dark ink - which is how the opening ended
+       up as dark glass wearing black text. The pane's own polarity decides its ink; the
+       measurement below is then a check on that decision, not a vote in it. */
+    let t = p[2] ? (topDark
+              ? { ink:ALDER_LIGHT, r:+ratio(hex(ALDER_LIGHT), washed(p[2])).toFixed(2) }
+              : inkFor(washed(p[2])))
+          : { ink:null };
     if(t.ink) el.style.setProperty("--alder-ink", t.ink);
     el.style.setProperty("--glass-boost", uniCss);
-    if(t.ink) paneOut[p[1]]={ ...t, boost:uniCss };
+    el.style.setProperty("--glass-haze", hazeCss(topDark, topGlass.a));
+    if(t.ink) paneOut[p[1]]={ ...t, boost:uniCss, darkGlass:topDark };
   }
   { const el=document.getElementById("dock");
-    if(el){ const t=pick(surfFor("dock"));
+    if(el){ const dg=paneGlass("dock");
+      const t = dg.dark
+        ? { ink:ALDER_LIGHT, r:+ratio(hex(ALDER_LIGHT), dg.surface).toFixed(2), boost:"transparent" }
+        : pick(dg.surface);
       el.style.setProperty("--alder-ink", t.ink);
       el.style.setProperty("--glass-boost", t.boost);
-      paneOut.dock=t; } }
+      el.style.setProperty("--glass-haze", hazeCss(dg.dark, dg.a));
+      paneOut.dock={ ...t, darkGlass:dg.dark }; } }
   /* app-level pick follows Alder's pane - anything outside the panes that reads the
      var gets the middle band's answer rather than an extreme */
   const mid=paneOut.alder||pick(tokenSurface);
@@ -12171,7 +12226,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802205350",
+  ver:"20260802211303",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
