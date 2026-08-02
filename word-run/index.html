@@ -3525,11 +3525,14 @@
       <div id="ev-pull"></div>
       <div class="buttons">
         <button class="btn-primary btn-gold" id="btn-moves" onclick="Game.extraMoves()">🪶 +5 moves</button>
-        <button class="btn-primary btn-gold" id="btn-double" style="display:none" onclick="Game.doubleThanks()">🎬 double the wood's thanks</button>
-        <div id="ev-blessed" style="display:none">🕯️ blessed - the wood's thanks came doubled</div>
+        <!-- these buttons SPEND something, so each says what it gives and what it costs.
+             "double the wood's thanks" and "bring them anyway" were both asking a player
+             to press a thing whose effect they could only find out by pressing it. -->
+        <button class="btn-primary btn-gold" id="btn-double" style="display:none" onclick="Game.doubleThanks()">🎬 Watch an ad, double this round's amber</button>
+        <div id="ev-blessed" style="display:none">🕯️ Blessed - this round's amber was doubled for you</div>
         <button class="btn-primary" id="btn-next" onclick="Game.nextLevel()">▶ Next level</button>
-        <button class="btn-primary btn-gold" id="btn-letter" style="display:none" onclick="Game.buyLetter()">🔤 lend me a letter</button>
-        <button class="btn-primary btn-gold" id="btn-friend" style="display:none" onclick="Game.buyFriend()">🐾 bring them anyway</button>
+        <button class="btn-primary btn-gold" id="btn-letter" style="display:none" onclick="Game.buyLetter()">🔤 Retry with an extra letter lit</button>
+        <button class="btn-primary btn-gold" id="btn-friend" style="display:none" onclick="Game.buyFriend()">🐾 Bring this friend home now</button>
         <button class="btn-primary btn-ghost" id="btn-retry" onclick="Game.retryLevel()">↻ Retry</button>
       </div>
       <div class="minirow">
@@ -10631,14 +10634,21 @@ const UI = {
         +' gone to sleep under the big tree, proud of you - your words will wake it</small>'
       : won
       ? '<span class="evstars">'+"⭐".repeat(S.stars||1)+'</span>'+levelLabel(S.level)+' clear!'
-      : (S.tutorWord ? "It watched, and waited…"
+      /* a meeting loss used to say "It watched, and waited…", which is a mood where the
+         player needs the reason. They ran out of moves before finishing the ask. */
+      : (S.tutorWord ? "Out of moves - it is still waiting"
          : (S.goal&&S.goal.t!=="hush") ? ((S.goal.have<S.goal.need
              ? GOALS[S.goal.t].i+" "+(S.goal.need-S.goal.have)
              : GOALS[S.goal2.t].i+" "+(S.goal2.need-S.goal2.have))+" remained…")
          : S.levelScore>=S.target*0.85 ? "So close…" : "Out of moves");
-    // a won card says just the score - "76 / 15" read like a broken fraction, and the
-    // title already says the target fell. A loss keeps the gap visible: "58 / 75".
-    $("ev-score").textContent = won ? S.levelScore : S.levelScore + " / " + S.target;
+    /* a won card says just the score - "76 / 15" read like a broken fraction, and the
+       title already says the target fell. A loss keeps the gap visible: "58 / 75".
+       BUT NOT ON A GOAL ROUND. There the score decides nothing, so printing "210 / 295"
+       tells the player they were 85 points short of a number that could not have saved
+       them - the same lie the gap line below was already fixed for. */
+    { const goalRound = !!(S.goal && S.goal.t && S.goal.t!=="hush");
+      $("ev-score").textContent = (won || goalRound || S.tutorWord)
+        ? S.levelScore : S.levelScore + " / " + S.target; }
     $("ev-word").textContent = S.bestWord||"-";
     // silent early discoveries stay silent here too - their reveal is the post-round-5
     // ritual, not a stray emoji on a win card the player can't ask questions of
@@ -10649,7 +10659,15 @@ const UI = {
       const eq=UI.equipped(), gap=S.target-S.levelScore;
       if(S.tutorWord){
         $("ev-grove").innerHTML = '<span class="sil" style="font-size:34px">'+UI.silTag(S.tutorWord)+'</span><br>'
-          + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">it waited all night… its name is still hiding here - <b>try again</b></span>';
+          /* "its name is still hiding here" describes a mechanic the game no longer has -
+             the ask is to SPEAK a kind of word, and the name arrives as the reward. Say
+             the ask, and say that a retry keeps whatever they already did. */
+          + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">'
+          + (()=>{ try{ const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
+                 return cg ? 'it is listening for <b>'+cg.n+' '+signNoun(cg.sign)+'</b> - try again'
+                           : 'try again';
+               }catch(e){ return 'try again'; } })()
+          + '</span>';
       } else {
       // the gap line must speak the round's OWN win condition: on a goal round
       // ("harvest the gold", "clear the brambles") points cannot win, so telling the
@@ -10706,12 +10724,15 @@ const UI = {
          a dead purchase wearing help's clothes. Retired with the spelling test. */
       bl.style.display = "none";
       bf.style.display = (guest && (P.amber||0)>=fCost) ? "flex":"none";
-      bf.innerHTML = (guest?(UI.silTag(S.tutorWord)||GROVE_BY_WORD[S.tutorWord].e):"🐾")+" bring them anyway · <b>"+fCost+"</b>🟠"; }
+      /* "bring them anyway" leaves a player guessing what they get for 90 amber. Say it:
+         the friend joins now, and the round counts as won. */
+      bf.innerHTML = (guest?(UI.silTag(S.tutorWord)||GROVE_BY_WORD[S.tutorWord].e):"🐾")
+        +" Bring them home now · <b>"+fCost+"</b>🟠"; }
     // 🎬 PLACEMENT 2: the win doubler - appears only after the win is already banked
     const dbl=$("btn-double");
     if(won && Ads.ready() && !Shop.blessed() && P.level>=8 && S._winAmber){
       dbl.style.display="flex"; dbl.disabled=false;
-      dbl.innerHTML="🎬 double the wood's thanks · +"+S._winAmber+"🟠";
+      dbl.innerHTML="🎬 Watch an ad for <b>+"+S._winAmber+"</b>🟠 more";
     } else dbl.style.display="none";
     $("ev-blessed").style.display = (won && Shop.blessed()) ? "block" : "none";
     $("ov-end").classList.add("active");
@@ -12094,7 +12115,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802203234",
+  ver:"20260802204152",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
