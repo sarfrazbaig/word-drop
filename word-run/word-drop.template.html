@@ -5445,6 +5445,14 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
        on screen. Writing into the element and reading its own scrollWidth cannot be wrong
        about itself. The original text is restored before returning, so nothing flashes. */
     const keep=t.innerHTML;
+    /* MEASURE IN THE STATE THE LINE WILL BE SHOWN IN. .atxt is flex:1 and "tap ▸" only
+       occupies width while the bar is on, so measuring a resting bar gave a wider box
+       than the message would actually get - the same line fitted or windowed depending
+       on what the bar happened to be doing when it was measured. Force the shown state
+       (with the hint present, the narrowest case) and restore afterwards. */
+    const hadOn=el.classList.contains("on"), hadMore=el.classList.contains("more");
+    el.classList.add("on","more");
+    const restore=()=>{ el.classList.toggle("on",hadOn); el.classList.toggle("more",hadMore); };
     const fits=s=>{ t.innerHTML=s; return t.scrollWidth<=t.clientWidth+0.5; };
     let head=html, rest=null;
     if(!fits(html)){
@@ -5470,7 +5478,7 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
       try{ if(Tele.isLocal()) console.warn("[alder] copy over budget"
         +(head?" (windowed tail)":" (WINDOW ONLY - shorten this)")+":", html); }catch(e){}
     }
-    t.innerHTML=keep;
+    t.innerHTML=keep; restore();
     return { head, rest };
   },
   _show(item){
@@ -7631,7 +7639,7 @@ const Game = {
     if(!P.amberTaught && P.level>=5 && (P.amber||0)>=45 && !S.guide && !S.tutorWord){
       P.amberTaught=1; save();
       setTimeout(()=>{ if(S && !S.busy && !S.over && !S.won && !$("ov-meet").classList.contains("active"))
-        UI.say("amber-teach","🟠 your amber isn't just for show - when a 🍃 breeze or 🌟 wish runs dry, <b>tap it</b> and amber buys a fresh one", 4); }, 1400);
+        UI.say("amber-teach","🟠 <b>tap an empty tool</b> - amber buys a refill", 4); }, 1400);
     }
     /* ══ THE FORESHADOW ══ Alder looks one level ahead and says so DURING this round,
        in a quiet moment (P3 pocket) - so a new trouble is warned about the round before
@@ -7821,7 +7829,7 @@ const Game = {
     // than tiles - nothing drops past it, so a seven-wide board quietly becomes six.
     if(S.board.some(row=>row[col] && row[col].kind==="reed")){
       Snd.reject(); buzz(50);
-      UI.say("reed-block","🌾 a <b>reed</b> stands in that column - clear it from the side",2);
+      UI.say("reed-block","🌾 <b>spell a word beside the reed</b> - twice - to bring it down",2);
       boardEl.classList.remove("shake"); void boardEl.offsetWidth; boardEl.classList.add("shake");
       setTimeout(()=>boardEl.classList.remove("shake"),420);
       return;
@@ -8302,7 +8310,7 @@ const Game = {
     // and they still count. They simply do not answer inside this round.
     { const g=gateAt(S.level);
       if(g && g.noTools){ Snd.reject(); buzz(40);
-        UI.say("gate-notools","🌿 this gate asks for <b>no tools</b> - your breezes are safe, they just do not answer here",3);
+        UI.say("gate-notools","🌿 <b>no tools in this round</b> - your breezes are kept, they just do not work here",3);
         return; } }
     Snd.init(); S.lastAction=Date.now();
     // during a lesson the breeze answers ONLY when the lesson says so. A curious tap
@@ -8415,7 +8423,7 @@ const Game = {
     if(!S || S.busy || S.over || S.won) return;
     { const g=gateAt(S.level);
       if(g && (g.noTools||g.noWish)){ Snd.reject(); buzz(40);
-        UI.say("gate-nowish","🌿 this gate asks for <b>no wishes</b> - your stars are safe, they just do not answer here",3);
+        UI.say("gate-nowish","🌿 <b>no wishes in this round</b> - your stars are kept, they just do not work here",3);
         return; } }
     Snd.init(); S.lastAction=Date.now();
     // A LESSON CAN NOW INVITE IT. Every lesson used to refuse the star flatly, which meant
@@ -8482,7 +8490,7 @@ const Game = {
     Game.closeWish();
     S.usingPluck=true;
     $("wishbtn").classList.add("armed");
-    UI.say("arm-pluck", "🍂 tap the tile you want plucked away");
+    UI.say("arm-pluck", "🍂 <b>tap a tile</b> to pull it off the board");
     Snd.tone(700,{dur:.12,type:"sine",gain:.06,verb:true});
     UI.ghost(-1);
   },
@@ -8648,16 +8656,15 @@ const Game = {
      Built from courtship() so it cannot drift from the rule again, and shared by the
      in-round nudge and the loss card. */
   meetAskLine(){
-    const fallback="🎭 the score does not end this round - keep spelling and it will step out";
+    const fallback="🎭 <b>keep spelling</b> - the score will not end this one";
     try{
       const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
       if((P.nameFails[S.tutorWord]||0)>=2)
-        return "🎭 the score does not end this round - <b>one more word</b> and it steps out";
+        return "🎭 <b>one more word</b> and it steps out - the score will not end this one";
       if(!cg) return fallback;
       const left=Math.max(0, cg.n-Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0));
       if(!left) return fallback;
-      return "🎭 the score does not end this round - it wants <b>"+left+" more "
-        +signNounN(cg.sign,left)+"</b>";
+      return "🎭 spell <b>"+left+" more "+signNounN(cg.sign,left)+"</b> - the score will not end this one";
     }catch(e){ return fallback; }
   },
   goalTell(){
@@ -9461,10 +9468,13 @@ const Game = {
             why = "it lives in <b>"+(BIOME_NAMES[home[0]]||"a country further on")+"</b>, too far to hear you";
           else {
             const ct = Game.courtship(g);
-            why = ct ? ct.n+" &times; "+signNoun(ct.sign)+" in one round"
+            why = ct ? "spell <b>"+ct.n+" "+signNounN(ct.sign,ct.n)+"</b> in one round and it will"
                      : c.c+" ("+pr.have+"/"+pr.n+")";
           }
-          UI.say("stir-"+g.w, "🌫️ <b>"+g.w.toUpperCase()+"</b> is a true name - but nothing answers yet.<br><small>"+why+"</small>", 2);
+          /* "is a true name - but nothing answers yet" is a riddle in the one moment a
+             player has done something clever and wants to know why it did not work. Say
+             that the creature exists and what stands between them and it. */
+          UI.say("stir-"+g.w, "🌫️ <b>"+g.w.toUpperCase()+"</b> is a creature's name, but it cannot join you yet.<br><small>"+why+"</small>", 2);
         }
       }
       const day=Math.floor(Date.now()/864e5);
@@ -9594,7 +9604,10 @@ const Game = {
         +(mustHold?'':'<i class="wb-clock" style="animation-duration:'+breath+'ms"></i>');
     boardEl.appendChild(banner);   // inside the board frame - cannot collide with HUD or pills
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
-    if(!S.guide) UI.say("grace", "a word pauses a breath - <b>tap anywhere</b> to keep its letters and grow them", 2);
+    /* ACTION FIRST. The bar shows the first clause and puts the rest in the window, so a
+       line written "here is the situation - here is what to do" lands with the situation
+       on screen and the instruction hidden. Every teaching line leads with the verb. */
+    if(!S.guide) UI.say("grace", "<b>tap anywhere</b> to keep these letters - then build a longer word from them", 2);
     if(Alder.cur) Alder._preempt();   // RULE ZERO by direct call - the breath owns the moment
     FT.signal("graceShown",{bubble:banner,words});
     let held=false;
@@ -9631,7 +9644,7 @@ const Game = {
       // the player was told they're normal letters, so they must look like it too.
       Game.tallyEv("hold");
       words.forEach(w=>w.cells.forEach(t=>{ if(S.tiles[t.id]) t.heldWord=w.word; }));
-      if(!S.guide) UI.say("hold-saved", "🌱 kept - these letters now only clear as part of a bigger word");
+      if(!S.guide) UI.say("hold-saved", "🌱 <b>kept</b> - build a longer word from these letters");
       Snd.tone(660,{dur:.14,type:"triangle",gain:.06,verb:true}); buzz(12);
       FT.signal("held");
       // the queued tile was drawn before this word existed and is blind to it -
@@ -10619,9 +10632,11 @@ const UI = {
         return;
       }
       const slots=slotsFor(P.level);
-      if(slot<slots) UI.say("seat-open", "🐾 an open seat - wake more friends to fill it!", 3);
+      /* "wake more friends" names no action. Meeting creatures is how seats fill, and the
+         Book is where you see who is close - so point at both. */
+      if(slot<slots) UI.say("seat-open", "🐾 <b>meet a creature</b> to fill this seat", 3);
       else if(slot < seatsByLevel(P.level))
-        UI.say("seat-ready", "🐾 this seat is ready - <b>wake another friend</b> to fill it", 3);
+        UI.say("seat-ready", "🐾 <b>meet another creature</b> - it can sit here", 3);
       else UI.chip("🔒 this seat unlocks at <b>level "+UI.SLOT_LV[slot]+"</b>");
       Snd.tone(520,{dur:.08,type:"triangle",gain:.05});
       return;
@@ -10659,7 +10674,7 @@ const UI = {
     UI._swapSlot=slot; UI._swapOut=eq[slot]?eq[slot].w:null;
     Snd.tone(760,{dur:.1,type:"sine",gain:.06,verb:true}); buzz(10);
     UI.groveShow();
-    UI.say("swap-pick","📖 pick a friend for this tile", 4);
+    UI.say("swap-pick","📖 <b>pick a friend</b> to sit in this seat", 4);
   },
   pillPop(id){
     const el=$(id); if(!el) return;      // some pills have retired from the stage
