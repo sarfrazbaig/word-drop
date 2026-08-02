@@ -938,33 +938,41 @@
   #alder .atxt{ font-family:var(--font-ui); font-size:14px; font-weight:700; line-height:1.2;
     /* --tile-ink, not --ink: the ground is cut from the country's own board tone now,
        so his words must be inked from the same country or they drift off it. */
-    color:var(--alder-ink, var(--tile-ink, var(--ink))); white-space:nowrap; overflow:hidden;
-    text-overflow:ellipsis; }
-  #alder .amore{ flex:none; font-family:var(--font-label); font-size:9.5px; letter-spacing:1px;
-    color:var(--gold-deep,#8a6d1f); text-transform:uppercase; padding-left:2px; display:none; }
-  #alder.more .amore{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
-  @keyframes aldertap{ 0%,100%{ opacity:.55 } 50%{ opacity:1 } }
-  /* ══ THE FOLD ══ a line too long for one breath wears a ▲; the tap unfolds the pill
-     upward into a small card (bottom edge stays on its mark, so it grows over the
-     board's lower rim - it blocks nothing, and it holds NO timer once open: it leaves
-     on the reader's next drop instead). One affordance at a time: while the ▲ shows,
-     the tap-▸ hint stands down. */
-  #alder .aup{ flex:none; font-size:11px; color:var(--gold-deep,#8a6d1f);
-    padding-left:2px; display:none; }
-  #alder.clip .aup{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
-  #alder.clip.more .amore{ display:none; }
-  /* explicit width: an absolute box at left:50% shrink-fits to HALF the dock once its
-     text is allowed to wrap, and the unfold came out as a narrow tower (seen live) */
-  #alder.exp{ height:auto; min-height:42px; width:100%; border-radius:0 0 16px 16px;
-    align-items:flex-start; padding:9px 14px 10px 9px; }
-  #alder.exp .atxt{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.4; }
-  #alder.exp .aface{ margin-top:1px; }
-  /* an unfolded pill can stand over the bottom tile row, and a drop is not the only
-     polite way out - the ✕ closes it on the spot (designer, on device) */
-  #alder .ax{ display:none; flex:none; width:22px; height:22px; border-radius:50%;
-    align-items:center; justify-content:center; font-size:11px; font-weight:900;
-    color:var(--dim); background:rgba(120,95,60,.14); margin-left:6px; cursor:pointer; }
-  #alder.exp .ax{ display:flex; }
+    color:var(--alder-ink, var(--tile-ink, var(--ink)));
+    /* flex:1 and min-width:0, or the line NEVER GROWS into the bar. At flex:0 1 auto it
+       sized itself to its content and shrank from there, so a 366px bar handed its words
+       181px - about 23 characters - and six of seven real messages overflowed. Nothing
+       was too long; the box was too small. Reclaiming this is worth ~120px, and it has
+       to happen before any copy budget means anything.
+       ellipsis stays as a LAST resort only: _fit() guarantees what lands here fits, so
+       if this ever engages it is a bug, not a design. */
+    flex:1 1 auto; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* THE ONE AFFORDANCE, AND IT HAS TO BE READABLE. It was 9.5px gold pulsing down to
+     .55 opacity on glass that can be near-black: rendering, measurably, and invisible.
+     It now takes the pane's own measured ink at 11px and does not fade - the same rule
+     the rest of the shell follows, that rank comes from size and weight and never from
+     dimming. It breathes by scale instead, which costs no legibility. */
+  #alder .amore{ flex:none; font-family:var(--font-label); font-size:11px; letter-spacing:.06em;
+    font-weight:900; color:var(--alder-ink, var(--gold-deep,#8a6d1f)); opacity:1;
+    text-transform:lowercase; padding-left:4px; display:none; white-space:nowrap; }
+  /* shown whenever the bar has anything to say, message or ask: the tap does the same
+     thing in both states (opens the window), so the affordance should not blink in and
+     out as messages come and go. It only animates when there is unread text waiting. */
+  #alder.on .amore{ display:block; }
+  #alder.more .amore{ animation:aldertap 2.2s ease-in-out infinite; }
+  @keyframes aldertap{ 0%,100%{ transform:translateX(0) } 50%{ transform:translateX(2px) } }
+  /* ══ THE FOLD IS GONE ══ a ▲ that unfolded the bar into a small card was the old
+     answer to copy that did not fit, and it was the wrong one: it made the overflow
+     the READER's problem, it grew a panel over the board mid-round, and it meant the
+     bar's own copy was allowed to be too long in the first place.
+     The rule now is fits-or-window. What the bar shows always fits, measured against
+     the real element before it is shown. Anything longer opens in Alder's window,
+     which already exists and is built to hold a paragraph. See Alder._fit(). */
+  /* ══ THE ✕ IS GONE ══ it was a second way out of a bar that already leaves by itself,
+     and pressing it emptied the bar - which reads as breaking something rather than
+     dismissing it. A message expires on its own or on your next drop; the only control
+     here is the tap, and the tap opens rather than closes. One gesture, one meaning. */
   #ov-alder .card{ text-align:left; padding:20px 20px 16px; }
   #ov-alder .ap-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   #ov-alder .ap-face{ width:44px; height:44px; border-radius:50%; overflow:hidden; flex:none;
@@ -3330,7 +3338,7 @@
     <!-- Alder speaks directly under the round's numbers now, and the party stands
          below him - the voice beside the facts it comments on, the friends nearest
          the board they play over. -->
-    <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span><span class="ax" onclick="event.stopPropagation();Alder._dismiss()">✕</span></div>
+    <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="amore">tap ▸</span></div>
     <div id="petbar">
       <span class="petcompanion" id="pet-0" onclick="UI.petTap(0)"></span>
       <span class="petcompanion" id="pet-1" onclick="UI.petTap(1)"></span>
@@ -5336,17 +5344,25 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     const flat=String(html).replace(/<br\s*\/?>/gi, " ")
       .replace(/<\/?small>/gi, " ").replace(/\s{2,}/g, " ");
     const item={ key, chunks:flat.split("|").map(s=>s.trim()).filter(Boolean),
-      idx:0, who:o.who||null, pri, once:!!o.once,
+      idx:0, who:o.who||null, pri, once:!!o.once, hold:!!o.hold,
       drop:(typeof S!=="undefined" && S) ? S.drops : null };
     if(!item.chunks.length) return;
     if(pri===3){ if(!Alder.pocket.some(p=>p.key===key)) Alder.pocket.push(item); return; }
     if(pri===4){ if(Alder.cur || Alder.Q.length) return; Alder.Q.push(item); }
     else if(pri===1){ Alder.Q.unshift(item); }
-    else { // P2: coalesce - one event line per drop, the newest wins
-      Alder.Q=Alder.Q.filter(q=>!(q.pri===2 && q.drop===item.drop));
+    else {
+      /* NO PER-DROP COALESCING. It existed because the round's ask was ALSO posted at
+         P2, so an event and the ask on one drop would have duplicated. The ask is the
+         bar's resting content now and never enters this queue, which leaves P2 to the
+         pets alone - and pets chain: one word can set off three of them. Coalescing
+         then meant the middle pet was deleted before it ever spoke. Measured live: a
+         dog, a bee and a skunk fired on one drop and the bee was never shown.
+         A player who does not see what their friend did cannot learn what it does. */
       Alder.Q.push(item);
     }
-    while(Alder.Q.length>2){ const i=Alder.Q.findIndex(q=>q.pri>=2);
+    /* 4, not 2 - a full chain is four pets at most, and the cap used to eat the tail of
+       exactly the chains worth watching. Still bounded, so a runaway cannot queue forever. */
+    while(Alder.Q.length>4){ const i=Alder.Q.findIndex(q=>q.pri>=2);
       Alder.Q.splice(i<0?Alder.Q.length-1:i,1); }
     Alder._pump();
   },
@@ -5382,39 +5398,88 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
       break;
     }
     const item=Alder.Q.shift() || (Alder._quiet() ? Alder.pocket.shift() : null);
-    if(!item) return;
+    if(!item){ Alder.rest(); return; }          // nothing waiting - the ask holds the bar
     Alder._show(item);
   },
-  /* ══ NO LINE IS EVER LOST ══ (designer, on device: a cut sentence is unreadable UX).
-     A line that overflows the pill keeps its single-line shape but wears a ▲ - tap it
-     and the pill unfolds upward into a little multi-line card. An unfolded pill has NO
-     timer: reading speed belongs to the reader. It leaves on the reader's next real
-     action instead - the ticker sees the drop and takes the pill with it. A clipped
-     line that was never unfolded also refuses to auto-advance (auto-dismissing an
-     unread tail would lose it for good) and leaves the same way.
-     Longer term the copy itself should be short - anything past ~40 characters was not
-     thought through (designer) - the ▲ is the guarantee, not the excuse. */
+  /* ══ FITS, OR IT BECOMES A WINDOW ══
+     The bar shows only copy that measurably fits. Nothing is ever cut, and there is no
+     fold-out: an inline expander made the overflow the reader's problem and let the copy
+     stay too long. What does not fit goes to Alder's window, which is built to hold a
+     paragraph and is one tap away from every message.
+     _fit() walks the line down through its own natural joints - " - " first, because
+     nearly every line in this game is written "headline - detail", then sentences, then
+     clauses - and takes the longest WHOLE piece that fits. It never trims mid-phrase and
+     never appends an ellipsis: a shortened line still reads as a finished thought.
+     When something was left behind, the bar wears "tap ▸" and the tap opens the window
+     with the full text. So the short form is a headline, not a truncation. */
+  _fit(html){
+    const el=$("alder"); if(!el) return { head:html, rest:null };
+    const t=el.querySelector(".atxt"); if(!t) return { head:html, rest:null };
+    /* MEASURED IN THE REAL NODE, not a copy of it. An off-tree probe styled from the same
+       computed font still disagreed - emoji resolve through a different fallback when the
+       span is not in the bar's own context - and a line that "fitted" in the probe clipped
+       on screen. Writing into the element and reading its own scrollWidth cannot be wrong
+       about itself. The original text is restored before returning, so nothing flashes. */
+    const keep=t.innerHTML;
+    const fits=s=>{ t.innerHTML=s; return t.scrollWidth<=t.clientWidth+0.5; };
+    let head=html, rest=null;
+    if(!fits(html)){
+      const joints=[/\s+-\s+/, /(?<=[.!?])\s+/, /,\s+/];
+      for(const j of joints){
+        const parts=String(html).split(j);
+        if(parts.length<2) continue;
+        // longest run of whole pieces that still fits
+        let take=0;
+        for(let n=1;n<parts.length;n++){
+          if(fits(parts.slice(0,n).join(" - "))) take=n; else break;
+        }
+        if(take){ head=parts.slice(0,take).join(" - "); rest=html; break; }
+      }
+      if(!fits(head)){
+        /* NO WORD-BOUNDARY FALLBACK. Trimming to whole words still produced "🦝 rummaged
+           out a little" - grammatically a fragment, and a fragment IS a truncation even
+           without an ellipsis. If the line has no joint short enough to stand alone, the
+           bar does not get a mangled version of it: the whole thing goes to the window
+           and the bar keeps whatever it was already showing. */
+        head=null; rest=html;
+      }
+      try{ if(Tele.isLocal()) console.warn("[alder] copy over budget"
+        +(head?" (windowed tail)":" (WINDOW ONLY - shorten this)")+":", html); }catch(e){}
+    }
+    t.innerHTML=keep;
+    return { head, rest };
+  },
   _show(item){
     const el=$("alder"); if(!el) return;
-    Alder.cur=item; Alder._exp=false;
-    el.classList.remove("exp","clip");
+    Alder.cur=item;
     if(item.once && item.idx===0){ try{ P.said[item.key]=1; save(); }catch(e){} }
     el.querySelector(".aface").innerHTML = item.who || Alder.roundFace();
-    el.querySelector(".atxt").innerHTML = item.chunks[item.idx];
-    el.classList.toggle("more", item.idx < item.chunks.length-1);
-    el.classList.add("on");
-    item._drop0 = (typeof S!=="undefined" && S) ? S.drops : null;
-    // overflow is read off the REAL element, once it is on stage
-    const t=el.querySelector(".atxt");
-    const clipped = t.scrollWidth > t.clientWidth+1;
-    el.classList.toggle("clip", clipped);
-    clearTimeout(Alder._hideT); Alder._hideT=null;
-    if(clipped){
-      try{ if(Tele.isLocal()) console.warn("[alder] clipped copy (shorten it):", item.chunks[item.idx]); }catch(e){}
-      return;                       // no timer - it waits for the ▲ tap or the next action
+    el.classList.add("on","msg");
+    const raw=item.chunks[item.idx];
+    /* measured against the REAL element, so it has to be on stage first - clientWidth of
+       a hidden box is zero and every line would "fit" */
+    const f=Alder._fit(raw);
+    if(f.head===null){
+      /* nothing of this line can stand alone in the bar. It is not shown badly - it is
+         shown properly, in the window, and the bar returns to rest behind it. */
+      el.classList.remove("on","msg","more");
+      el.querySelector(".atxt").innerHTML="";     // no stale line left behind the window
+      Alder.cur=null;
+      Alder.pageData({ s:raw, b:(item.who||Alder.roundFace()) },
+        { cb:()=>{ Alder.rest(); setTimeout(()=>Alder._pump(), 200); } });
+      return;
     }
-    const words=String(item.chunks[item.idx]).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
-    const ms = item.chunks.length>1 ? 8000 : Math.min(6500, 1900+words*300);
+    el.querySelector(".atxt").innerHTML = f.head;
+    item._full = f.rest;                      // null when the whole line is on the bar
+    el.classList.toggle("more", !!f.rest || item.idx < item.chunks.length-1);
+    item._drop0 = (typeof S!=="undefined" && S) ? S.drops : null;
+    clearTimeout(Alder._hideT); Alder._hideT=null;
+    const words=String(f.head).replace(/<[^>]+>/g," ").trim().split(/\s+/).length;
+    /* a held line keeps its 13s even when something is queued behind it - the queue is
+       almost always empty now, and a friend's news should not be cut short to make room */
+    const ms = item.hold ? 13000
+             : item.chunks.length>1 ? 8000
+             : Math.min(6500, 1900+words*300);
     Alder._hideT=setTimeout(()=>Alder._advance(), ms);
   },
   _advance(){
@@ -5422,29 +5487,77 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     if(item.idx < item.chunks.length-1){ item.idx++; Alder._show(item); return; }
     Alder._dismiss();
   },
-  _dismiss(){
-    const el=$("alder"); clearTimeout(Alder._hideT); Alder._exp=false;
-    Alder.cur=null;
-    if(el) el.classList.remove("on","more","exp","clip");
-    setTimeout(()=>Alder._pump(), 320);
+  /* ══ THE BAR HAS A RESTING STATE ══
+     It used to be a message surface and nothing else, so the moment a line expired - or
+     you read one in the window and closed it - the bar went blank and 42px of the screen
+     stopped meaning anything. That is what made it feel unfinished.
+     At rest it carries the ROUND'S OWN ASK. That is not news, so it is not queued and it
+     never expires; it is simply what this bar says when nobody is interrupting. Messages
+     borrow the bar and hand it back.
+     It also ends the collision the inventory turned up: the ask used to be posted as a
+     P2 message, competing with 35 pet-power call sites at the same priority, where P2
+     coalescing meant one of them died silently on any drop that did both. */
+  restLine(){
+    try{ if(typeof S!=="undefined" && S && S._toldGoal) return S._toldGoal; }catch(e){}
+    return "the wood is listening";
   },
-  /* the first tap on a clipped line UNFOLDS it - only after that do taps advance */
+  rest(){
+    const el=$("alder"); if(!el) return;
+    if(Alder.cur) return;                       // a message is speaking; it hands back later
+    const t=el.querySelector(".atxt"); if(!t) return;
+    const line=Alder.restLine();
+    const f=Alder._fit(line);
+    t.innerHTML = (f.head===null) ? "the wood is listening" : f.head;
+    el.querySelector(".aface").innerHTML = Alder.roundFace();
+    el.classList.add("on");
+    el.classList.remove("msg","more");
+  },
+  _dismiss(){
+    const el=$("alder"); clearTimeout(Alder._hideT);
+    Alder.cur=null;
+    if(el) el.classList.remove("more","msg");
+    /* only fall back to the ask when NOTHING is waiting. Resting unconditionally put a
+       320ms flash of the round's ask between every pair of queued messages - measured
+       live as message, rest, message - which reads as the bar glitching rather than as
+       two friends speaking in turn. With a queue behind it, go straight to the next. */
+    if(Alder.Q.length || (Alder._quiet() && Alder.pocket.length)){
+      setTimeout(()=>Alder._pump(), 240);
+    } else {
+      Alder.rest();                             // never blank - back to the ask
+      setTimeout(()=>Alder._pump(), 320);
+    }
+  },
+  /* A TAP ALWAYS OPENS SOMETHING, and never advances past unread words. If the line was
+     shortened, the window holds the whole of it. If it was not, the tap still opens the
+     window on the round's own terms, so the gesture means one thing everywhere. */
   tap(){
-    if(!Alder.cur) return;
-    const el=$("alder");
-    if(el && el.classList.contains("clip") && !Alder._exp){
-      Alder._exp=true; el.classList.remove("clip"); el.classList.add("exp");
-      clearTimeout(Alder._hideT); Alder._hideT=null;   // unfolded = the reader's own time
+    const item=Alder.cur;
+    const full = item && item._full;
+    if(full){
+      clearTimeout(Alder._hideT); Alder._hideT=null;
+      Alder.pageData({ s:full, b:(item.who||Alder.roundFace()) },
+        { cb:()=>Alder._advance() });
       return;
     }
-    Alder._advance();
+    if(item){ Alder._advance(); return; }
+    Alder.restWindow();
+  },
+  /* tapped at rest: the round's terms in full, which is the one thing a player may want
+     to re-read and the bar can only ever summarise */
+  restWindow(){
+    let s="";
+    try{
+      if(typeof S!=="undefined" && S && S._toldGoal) s="This round asks you to "+S._toldGoal+".";
+    }catch(e){}
+    if(!s) s="The wood is quiet. Spell what you can, and it will answer.";
+    Alder.pageData({ s, b:Alder.roundFace() });
   },
   /* rule zero, mechanically: the dock observer preempts the pill the frame the
      grace bubble lands, and hands the stage back 400ms after it goes */
   _preempt(){
     const item=Alder.cur; if(!item) return;
-    clearTimeout(Alder._hideT); Alder.cur=null; Alder._exp=false;
-    const el=$("alder"); if(el) el.classList.remove("on","more","exp","clip");
+    clearTimeout(Alder._hideT); Alder.cur=null;
+    const el=$("alder"); if(el) el.classList.remove("on","more","msg");
     if(item.pri===3){ Alder.pocket.unshift(item); }               // resumes at unread line
     else Alder.Q.unshift(item);
   },
@@ -5456,13 +5569,14 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     const dock=$("dock"); if(!dock || Alder._mo) return;
     Alder._mo=true; // retired: Game.grace calls _preempt()/_pump() itself
     // the quiet-window ticker: drains the pocket when the player is breathing - and an
-    // unfolded (or still-folded-but-clipped) line leaves on the reader's next drop
+    /* a SHORTENED line (one with more waiting in the window) holds no timer - reading
+       speed belongs to the reader - so the next drop is what carries it away. Lines that
+       fit whole still leave on their own timer. .exp/.clip are gone with the fold-out. */
     Alder._tick=setInterval(()=>{
       if(typeof S!=="undefined" && S && S.drops!==Alder._lastDrops){
         Alder._lastDrops=S.drops; Alder._lastDropAt=Date.now();
-        const el=$("alder"), c=Alder.cur;
-        if(c && c._drop0!=null && S.drops>c._drop0 && el &&
-           (el.classList.contains("exp") || el.classList.contains("clip"))) Alder._dismiss();
+        const c=Alder.cur;
+        if(c && c._drop0!=null && S.drops>c._drop0 && c._full) Alder._dismiss();
       }
       if(!Alder.cur) Alder._pump();
     }, 600);
@@ -6514,7 +6628,7 @@ const POWERS = {
         // gesture and the pat agree (same fix as the goat)
         const aimed=Game.petAim();
         const pick = (aimed && aimed.kind==="normal" && Game.catFit([aimed])) || Game.catFit(ns);
-        if(!pick){ Game.addMoves(1); UI.petSay("🐾 nothing to pat into place - the cat found you a spare move instead"); return; }
+        if(!pick){ Game.addMoves(1); UI.petEdge("🐾 nothing to pat into place - the cat found you a spare move instead"); return; }
         Game.retype(pick.t, pick.L); UI.shards(pick.t.r, pick.t.c, "#ffd9a8");
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); buzz(10);
         S.chain=1; await Game.resolve([pick.t]); return;
@@ -6527,7 +6641,7 @@ const POWERS = {
         // no word to dig up on this board - rather than nothing, the dog brings back a
         // star. Players saw their letter silently become ★ and had no idea why.
         if(!done && S.cur){ S.cur={letter:"★",kind:"wild"}; UI.piece(); UI.stardrift();
-          UI.petSay((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up - fetched a <b>⭐ star</b> instead"); } return;
+          UI.petEdge((UI.artTag("dog","toastimg")||"🐶")+" no word to dig up - fetched a <b>⭐ star</b> instead"); } return;
   },
       // rainHelp lived here - the bee's old power, two helpful tiles a fire. It went with
       // the bee's rethink: at six fires a round it buried a small board, and burying the
@@ -6537,7 +6651,7 @@ const POWERS = {
         UI.piece(); UI.stardrift(); Game.handPop(); return;
   },
   async charm({ pet, m, fx }){ S.charm=(S.charm||0)+fx.n*m; // 🎼 Grace Notes
-        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words score":"word scores")+" <b>DOUBLE</b> 💖");
+        UI.petEdge((UI.artTag(pet.w,"toastimg")||pet.e)+" sings! Your next "+(S.charm>1?S.charm+" words score":"word scores")+" <b>DOUBLE</b> 💖");
         for(let i=0;i<5;i++){ const h=document.createElement("div"); h.className="heart"; h.textContent="💖";
           h.style.left=(30+Math.random()*40)+"%"; h.style.top="40%"; h.style.animationDelay=(i*0.1)+"s";
           $("app").appendChild(h); setTimeout(()=>h.remove(),1300); }
@@ -6569,7 +6683,7 @@ const POWERS = {
         for(const l in best) if(!pick || best[l]>best[pick]) pick=l;
         if(!pick){ Game.addMoves(1); return; }
         S.next={letter:pick, kind:"normal"}; UI.piece(); Game.handPop();
-        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" has already fetched <b>"+pick.toUpperCase()+"</b>");
+        UI.petEdge((UI.artTag(pet.w,"toastimg")||pet.e)+" has already fetched <b>"+pick.toUpperCase()+"</b>");
         Snd.tone(880,{dur:.1,type:"triangle",gain:.06,verb:true}); return;
   },
   /* 🐶 FETCH - the letter you just spent comes right back to the next slot. Beside the
@@ -6893,7 +7007,7 @@ const POWERS = {
         S.chain=1; await Game.resolve(added); return;
   },
   async freePluck({ pet }){ S.freePluck=true; S.usingPluck=true; $("wishbtn").classList.add("armed");
-        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole - <b>tap any letter to pluck it FREE</b>"); return;
+        UI.petEdge((UI.artTag(pet.w,"toastimg")||pet.e)+" dug a hole - <b>tap any letter to pluck it FREE</b>"); return;
   },
   async stoneGold(){ const rocks=Object.values(S.tiles).filter(t=>t.kind==="stone");
         if(!rocks.length){ Game.addMoves(2); return; }
@@ -6954,7 +7068,7 @@ const POWERS = {
       // 🦬 the herd calls ahead: the next three letters are all ones that fit
   async herdCall({ pet, m }){ S._helpNext=(S._helpNext||0)+3*m;
         if(S.next && S.next.kind==="normal"){ S.next=makePiece(); UI.piece(); }
-        UI.petSay((UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd - the next letters are <b>chosen for you</b>");
+        UI.petEdge((UI.artTag(pet.w,"toastimg")||pet.e)+" calls the herd - the next letters are <b>chosen for you</b>");
         return;
   },
 
@@ -8502,11 +8616,15 @@ const Game = {
         }
       }catch(e){}
     }
-    if(!parts.length) return;                       // every ask met - the round is won
+    if(!parts.length){ S._toldGoal=null; try{ Alder.rest(); }catch(e){} return; }
     const line=parts.join(" and ");
     if(S._toldGoal===line) return;                  // nothing new to say
     S._toldGoal=line;
-    try{ Alder.aside("goaldetail", line, {pri:2}); }catch(e){}
+    /* NOT an aside any more. The ask is the bar's resting content, not a notification -
+       posting it as P2 put it in a queue with 35 pet-power call sites at the same
+       priority, where per-drop coalescing silently killed one or the other. It simply
+       becomes what the bar says whenever nothing is interrupting. */
+    try{ Alder.rest(); }catch(e){}
   },
 
   /* ---- 🐕 THE WATCHDOG - a shipped game may NEVER soft-lock ----
@@ -8552,7 +8670,23 @@ const Game = {
         boardEl.classList.remove("naming");
         S.lastAction=Date.now();
         UI.all();
-        UI.sky("🌿 that took a moment - the board is <b>ready again</b>.<br><small>nothing was lost - carry on</small>");
+        /* ══ IT STOPS AND ASKS, RATHER THAN MUTTERING ══
+           This fires when a resolution chain THREW and left the board locked. The old
+           line - "that took a moment" - handed the player the blame for a pause that was
+           the game's fault, and it slid past in a bar they might not even be looking at.
+           The recovery above already ran, so the board is safe BEFORE the card appears:
+           if anything goes wrong with the card itself, the player is still playing.
+           Then it stops the world and waits for a tap, because something did happen and
+           they deserve to be told, and Alder greets them back afterwards. */
+        /* "The wood held still for a moment" was atmosphere where a plain fact was
+           needed. A player reading it has to work out whether something broke, whether
+           they lost anything, and whether they did something wrong - three questions the
+           line raises and answers none of. Greet them and let them get on with it. */
+        Alder.pageData({ s:"Welcome back - your friends missed you.", b:"🌳" },
+          { cb:()=>{ try{
+              S.lastAction=Date.now();
+              UI.petEdge("🌳 your friends missed you!");
+            }catch(e){} } });
       }catch(e){}
     }, 5000);
   },
@@ -9613,10 +9747,10 @@ const Game = {
         UI.petSay((UI.artTag("mouse","toastimg")||"🐭")+" nibbled the spare "
           +((w.nibbled.letter||"").toUpperCase())+" - <b>"+w.word.toUpperCase()+"</b> counts!"); }
       if(w.skunked){ S.skunkUsed=true; Game.amber(3);
-        UI.petSay((UI.artTag("skunk","toastimg")||"🦨")+" the wood refuses <b>"+w.word.toUpperCase()
+        UI.petEdge((UI.artTag("skunk","toastimg")||"🦨")+" the wood refuses <b>"+w.word.toUpperCase()
           +"</b> - the skunk counts it anyway, giggling. <b>+3 🟠</b>"); }
       if(w.forgiven){ S.owlUsed=true;
-        UI.petSay((UI.artTag("owl","toastimg")||"🦉")+" knew you meant <b>"+w.word.toUpperCase()
+        UI.petEdge((UI.artTag("owl","toastimg")||"🦉")+" knew you meant <b>"+w.word.toUpperCase()
           +"</b> - the "+((w.forgiven.letter||"").toUpperCase())+" is forgiven"); }
       /* ══ GRATITUDE ══ spell an on-duty friend's own name, or its signature word, and it
          thanks you. Hidden until found; the Book remembers after; once per friend a round.
@@ -9726,7 +9860,7 @@ const Game = {
       if(UI.equipped().some(g=>g&&g.w==="frog")){
         const p=Object.values(S.tiles).find(t=>t.kind==="pest");
         if(p){ UI.shards(p.r,p.c,"#8fbf6a"); Game.creditTile(p); removeTile(p); Game.amber(3);
-          UI.petSay((UI.artTag("frog","toastimg")||"🐸")+" <i>slurp</i> - the pest never landed. <b>+3 🟠</b>");
+          UI.petEdge((UI.artTag("frog","toastimg")||"🐸")+" <i>slurp</i> - the pest never landed. <b>+3 🟠</b>");
           Snd.tone(700,{dur:.08,type:"triangle",gain:.06}); await Game.gravity(); }
       }
       for(const p of Object.values(S.tiles).filter(t=>t.kind==="pest")){
@@ -11273,7 +11407,41 @@ const UI = {
      banner only needs to say who did it. */
   /* pet speech NEVER touches the note system - no once-keys, no queue, no scrim, no
      centre stage. One pill in the hold slot; the newest line replaces the last. */
-  petSay(html){ if(html) Alder.aside(UI._noteKey(html), html); },
+  /* ══ THE FACE SAYS WHO IS SPEAKING ══ every one of these lines is written as
+     "<pet art> did a thing", so the speaker was already there - just buried in the
+     sentence, where it cost bar width and left the FACE showing the round's sign. A
+     dog's message wore an ice cube.
+     The portrait is lifted out of the front of the line and handed to Alder as `who`,
+     which the face already honours above roundFace(). Done here rather than at the 35
+     call sites: they all share this shape, and one of them would have been missed. */
+  /* ══ A PET DOING ITS JOB IS NOT NEWS ══
+     Every one of these fired AFTER the effect had already played on the board, so the
+     line narrated the past: the dog fetched, you watched it fetch, and a beat later the
+     bar said "fetches K right back" - by which time the bee was already doing something
+     else and the two were out of step. It also competed with the word forming in the
+     middle of the screen, which is the thing the player is actually watching.
+     So the routine announcement is gone. petSay() keeps its 26 call sites and simply
+     says nothing; the pet's work speaks for itself on the board.
+     petEdge() is what still speaks, and only for the cases the board CANNOT show:
+       - a power that could not do its job and did something else instead
+       - a no-op ("already fetched that")
+       - an invisible state change (your next words score double)
+       - anything that asks the player to act
+     If you cannot see it happen, Alder says it. If you can, he stays quiet. */
+  petSay(){ /* silent by design - see petEdge */ },
+  petEdge(html){
+    if(!html) return;
+    let who=null, txt=String(html);
+    const m=txt.match(/^\s*(<img[^>]*>|(?:\p{Extended_Pictographic}️?(?:‍\p{Extended_Pictographic}️?)*))\s*/u);
+    if(m){ who=m[1]; txt=txt.slice(m[0].length); }
+    /* hold:true - these get a GENEROUS 13s, not the 6.5s ceiling every other line uses.
+       They arrive at the end of a resolution the player was watching, so the first
+       seconds of any normal timer are spent while their eyes are still on the board and
+       the chain is still animating. By the time they look up, a short line has gone.
+       13s survives the resolution and still leaves a real read window. */
+    Alder.aside(UI._noteKey(html), txt || html,
+      Object.assign({hold:true}, who ? {who} : null));
+  },
   toast(m, hold){ if(m) Alder.aside(UI._noteKey(m), m, {once:true}); },
   skyClear(){ if(Alder.cur) Alder._dismiss(); },
   chipClear(){ if(Alder.cur) Alder._dismiss(); },
