@@ -4384,7 +4384,7 @@ const SIGNS = {
      over 552 drops a palindrome was available to spell exactly once. Anything waiting on
      this alone would wait forever, so it pays as a multiplier and wants a friend that
      manufactures the chance. */
-  mirror:    { freq: 0.13,order:22, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways" },
+  mirror:    { freq: 0.13,order:22, title:"🔄 they wake at a word that reads both ways", noun:"words that read both ways", noun1:"word that reads both ways" },
   tool:      { freq: 3,  order:13, title:"🌬️ they wake when you use a tool", noun:"tools used" },
   /* ══ THE SHAPE AND MEANING SIGNS ══
      Every freq below is MEASURED from real playtesters (673 words over 183 rounds, dev
@@ -4397,9 +4397,9 @@ const SIGNS = {
      rather than the 3.68 the unfiltered cut suggested */
   food:      { freq: 0.07,order:24, title:"🌰 they wake at something good to eat", noun:"good things to eat" },
   weather:   { freq: 0.11,order:25, title:"🌦️ they wake at the weather",          noun:"weathers named" },
-  nested:    { freq: 0.82,order:15, title:"🪆 they wake at a word inside a word", noun:"words hiding words" },
+  nested:    { freq: 0.82,order:15, title:"🪆 they wake at a word inside a word", noun:"words hiding words", noun1:"word hiding a word" },
   doubled:   { freq: 0.78,order:16, title:"👯 they wake at a doubled letter",     noun:"doubled letters" },
-  echo:      { freq: 0.42,order:17, title:"🔁 they wake when a word follows on",  noun:"words that follow on" },
+  echo:      { freq: 0.42,order:17, title:"🔁 they wake when a word follows on",  noun:"words that follow on", noun1:"word that follows on" },
   truename:  { freq: 0.37,order:18, title:"🐾 they wake at a friend's true name", noun:"true names spoken" },
   rising:    { freq: null,order:19, title:"🌱 they wake at a word read upward",   noun:"words read upward" },
   twin:      { freq: null,order:20, title:"👬 they wake at two words at once",    noun:"double words" },
@@ -4413,6 +4413,27 @@ const SIGNS = {
    a crash - but Hush.audit() shouts about it at boot so it never survives to a build. */
 const signTitle = s => (SIGNS[s] && SIGNS[s].title) || "🐾 friends";
 const signNoun  = (s, fb) => (SIGNS[s] && SIGNS[s].noun) || fb || "play";
+/* Every sign's noun is written plural ("words", "hard letters", "golden letters
+   cleared"), which reads as "1 more words" the moment a count reaches one. The head
+   noun is not always the last word - "golden letters cleared" and "tiles dropped" put a
+   participle after it - so singularise the LAST token that is itself a plural, which is
+   the head in every phrase in SIGNS. */
+function signNounN(s, n, fb){
+  const noun=signNoun(s, fb);
+  if(n!==1) return noun;
+  /* three phrases put their head noun FIRST and a plural later ("words that read both
+     ways"), so the rule below would singularise the wrong token. Those carry an explicit
+     singular as DATA rather than being guessed at - a grammar engine for three strings
+     is the wrong trade. */
+  if(SIGNS[s] && SIGNS[s].noun1) return SIGNS[s].noun1;
+  const parts=String(noun).split(" ");
+  for(let i=parts.length-1;i>=0;i--){
+    const w=parts[i];
+    if(/(ches|shes|sses|xes)$/i.test(w)){ parts[i]=w.slice(0,-2); return parts.join(" "); }
+    if(/[^s]s$/i.test(w)){ parts[i]=w.slice(0,-1); return parts.join(" "); }
+  }
+  return noun;
+}
 const SIGN_ORDER = Object.keys(SIGNS).sort((a,b)=>SIGNS[a].order-SIGNS[b].order);
 
 /* =================== WHERE A FRIEND LIVES =================== */
@@ -7967,11 +7988,11 @@ const Game = {
       // THE NAME STILL COMES FIRST: a guest in the round outranks any other ask, so a
       // thaw round with a creature in it can never be cleared by melting ice alone.
       if(S.goal.have>=S.goal.need && (!S.goal2 || S.goal2.have>=S.goal2.need)){
-        if(S.tutorWord){ UI.say("name-first","🎭 the target is not what ends this one - <b>speak the name</b> and it is yours", 2); }
+        if(S.tutorWord){ UI.say("name-first", Game.meetAskLine(), 2); }
         else { Game.winLevel(); return; }
       }
     } else if(S.levelScore >= S.target){
-      if(S.tutorWord){ UI.say("name-first","🎭 the target is not what ends this one - <b>speak the name</b> and it is yours", 2); }
+      if(S.tutorWord){ UI.say("name-first", Game.meetAskLine(), 2); }
       else { Game.winLevel(); return; }
     }
     if(S.movesLeft <= 0 || boardFull()){ Game.failLevel(); return; }
@@ -8619,6 +8640,26 @@ const Game = {
      rather than lingering as "0 stones", so the line shortens as you win.
      It speaks only when the words CHANGE. Called on every credit, it would otherwise
      re-queue the same sentence on every drop and crowd out every other thing he says. */
+  /* ══ ONE PLACE THAT KNOWS WHAT A MEETING ASKS ══
+     "speak the name and it is yours" was written for a spelling test the game no longer
+     runs. The real ask is N words of a kind, and the name is the REWARD - so a player
+     who hit the score target was being told to do something that does not exist, at the
+     exact moment they were trying to work out why the round had not ended.
+     Built from courtship() so it cannot drift from the rule again, and shared by the
+     in-round nudge and the loss card. */
+  meetAskLine(){
+    const fallback="🎭 the score does not end this round - keep spelling and it will step out";
+    try{
+      const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
+      if((P.nameFails[S.tutorWord]||0)>=2)
+        return "🎭 the score does not end this round - <b>one more word</b> and it steps out";
+      if(!cg) return fallback;
+      const left=Math.max(0, cg.n-Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0));
+      if(!left) return fallback;
+      return "🎭 the score does not end this round - it wants <b>"+left+" more "
+        +signNounN(cg.sign,left)+"</b>";
+    }catch(e){ return fallback; }
+  },
   goalTell(){
     if(!S) return;
     const parts=[];
@@ -8644,7 +8685,7 @@ const Game = {
         if(waived) parts.push("speak any word - it likes you");
         else if(cg){
           const left=Math.max(0, cg.n-Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0));
-          if(left) parts.push("speak "+left+" "+signNoun(cg.sign));
+          if(left) parts.push("speak "+left+" "+signNounN(cg.sign,left));
         }
       }catch(e){}
     }
@@ -10664,7 +10705,7 @@ const UI = {
              the ask, and say that a retry keeps whatever they already did. */
           + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">'
           + (()=>{ try{ const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
-                 return cg ? 'it is listening for <b>'+cg.n+' '+signNoun(cg.sign)+'</b> - try again'
+                 return cg ? 'it is listening for <b>'+cg.n+' '+signNounN(cg.sign,cg.n)+'</b> - try again'
                            : 'try again';
                }catch(e){ return 'try again'; } })()
           + '</span>';
@@ -12115,7 +12156,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802204152",
+  ver:"20260802204627",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
