@@ -1288,8 +1288,14 @@
         rgba(255,255,255,.12) 0%,
         rgba(255,255,255,.06) 50%,
         rgba(255,255,255,.09) 100%));
-    -webkit-backdrop-filter:blur(9px) saturate(1.35) brightness(1.06);
-    backdrop-filter:blur(9px) saturate(1.35) brightness(1.06); }
+    /* --glass-filter is set per pane by alderTone. Light glass SATURATES: pale frosted
+       glass catching the country's colour is the point of it. Dark glass DESATURATES,
+       because smoked glass does - and boosting saturation behind a dark pane is what
+       made the dock read as vivid green while the panes above it read as grey-blue.
+       Same haze, different backdrop: sky above, grass below. Pulling the colour out is
+       what lets four panes over four different parts of a painting look like one sheet. */
+    -webkit-backdrop-filter:var(--glass-filter, blur(9px) saturate(1.35) brightness(1.06));
+    backdrop-filter:var(--glass-filter, blur(9px) saturate(1.35) brightness(1.06)); }
   /* the dock's labels read the ink measured for the DOCK's slice of the painting -
      set on #dock by alderTone, inherited here */
   #app.bgart .slotlabel{ color:var(--alder-ink, #e8dfcf); }
@@ -1618,8 +1624,14 @@
         rgba(255,255,255,.12) 0%,
         rgba(255,255,255,.06) 50%,
         rgba(255,255,255,.09) 100%));
-    -webkit-backdrop-filter:blur(9px) saturate(1.35) brightness(1.06);
-    backdrop-filter:blur(9px) saturate(1.35) brightness(1.06); }
+    /* --glass-filter is set per pane by alderTone. Light glass SATURATES: pale frosted
+       glass catching the country's colour is the point of it. Dark glass DESATURATES,
+       because smoked glass does - and boosting saturation behind a dark pane is what
+       made the dock read as vivid green while the panes above it read as grey-blue.
+       Same haze, different backdrop: sky above, grass below. Pulling the colour out is
+       what lets four panes over four different parts of a painting look like one sheet. */
+    -webkit-backdrop-filter:var(--glass-filter, blur(9px) saturate(1.35) brightness(1.06));
+    backdrop-filter:var(--glass-filter, blur(9px) saturate(1.35) brightness(1.06)); }
   #topshell{ position:relative; width:100%; display:flex; align-items:stretch; z-index:2;
     /* overflow stays hidden: the menu well and the amber chip are flush to the ends and
        rely on it to take the pane's rounded corners. */
@@ -3955,6 +3967,14 @@ function alderTone(){
     ? "linear-gradient(148deg, rgba(0,0,0,"+a.toFixed(2)+") 0%, rgba(0,0,0,"
       +(a*0.66).toFixed(2)+") 50%, rgba(0,0,0,"+(a*0.86).toFixed(2)+") 100%)"
     : "linear-gradient(148deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.06) 50%, rgba(255,255,255,.09) 100%)";
+  /* ══ THE DOCK IS ALWAYS LIGHT GLASS ══
+     It was briefly given the top group's dark polarity so the whole screen would agree,
+     and that was wrong for a reason no measurement would have caught: the dock is the one
+     pane with OBJECTS in it. Wooden letter tiles, a green breeze, a star - all warm, all
+     lit, all drawn to sit on a pale surface. A dark slab fights every one of them, and no
+     amount of matching the panes above is worth the tray full of things that stop working.
+     The panes above hold text, which can flip polarity freely; this one holds furniture,
+     which cannot. So it keeps its light glass in every country. */
   const paneOut={};
   for(const p of [["topshell","shell",shS],["alder","alder",alS],["petbar","pets",null]]){
     const el=document.getElementById(p[0]); if(!el) continue;
@@ -3974,15 +3994,23 @@ function alderTone(){
     el.style.setProperty("--glass-haze", hazeCss(topDark, topGlass.a));
     if(t.ink) paneOut[p[1]]={ ...t, boost:uniCss, darkGlass:topDark };
   }
+  /* The dock keeps the pale glass it always had, in every country - see the note above.
+     Its INK is still measured against its own slice of the painting, because the ground
+     under it is not the sky above and the words on it have to answer to what is really
+     there. Everything else about it is left alone. */
   { const el=document.getElementById("dock");
-    if(el){ const dg=paneGlass("dock");
-      const t = dg.dark
-        ? { ink:ALDER_LIGHT, r:+ratio(hex(ALDER_LIGHT), dg.surface).toFixed(2), boost:"transparent" }
-        : pick(dg.surface);
+    if(el){
+      const band=bands && bands.dock;
+      const surface = band
+        ? over([255,255,255], ALDER_HAZE,
+               band.map(v=>Math.min(255,Math.round(v*ALDER_LIFT))))
+        : tokenSurface;
+      const t=pick(surface);
       el.style.setProperty("--alder-ink", t.ink);
       el.style.setProperty("--glass-boost", t.boost);
-      el.style.setProperty("--glass-haze", hazeCss(dg.dark, dg.a));
-      paneOut.dock={ ...t, darkGlass:dg.dark }; } }
+      el.style.removeProperty("--glass-haze");     // the default pale haze
+      el.style.removeProperty("--glass-filter");   // the default saturating filter
+      paneOut.dock={ ...t, darkGlass:false }; } }
   /* app-level pick follows Alder's pane - anything outside the panes that reads the
      var gets the middle band's answer rather than an extreme */
   const mid=paneOut.alder||pick(tokenSurface);
@@ -12260,7 +12288,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802212830",
+  ver:"20260802214259",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
