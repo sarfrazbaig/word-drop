@@ -1631,10 +1631,16 @@
     border-radius:0; border-right:1.5px solid var(--tile-edge); background:rgba(0,0,0,.07);
     display:flex; align-items:center; justify-content:center; font-size:20px;
     color:var(--tile-ink); opacity:1; margin:0; padding:0; text-shadow:none; }
-  #ts-mid{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; padding:0 11px; }
-  #topshell #amberchip{ flex:none; width:74px; border-radius:0; border:none;
-    border-left:1.5px solid var(--tile-edge); background:rgba(0,0,0,.05);
-    display:flex; align-items:center; justify-content:center; gap:4px; padding:0; }
+  #ts-mid{ flex:1; min-width:0; display:flex; align-items:center; gap:8px; padding:0 9px; }
+  /* THE PURSE IS A PILL, not a walled end-cell: it is a door out of the round, not one
+     of the round's facts, and the reference gives it its own rounded body so it stops
+     reading as a fourth compartment. It sits INSIDE the shell's padding now, which is
+     why the shell's own overflow has to stop clipping it. */
+  #topshell #amberchip{ flex:none; border-radius:999px; border:1px solid
+      color-mix(in srgb, var(--tile-edge) 60%, transparent);
+    background:rgba(0,0,0,.07); margin:0 7px 0 9px; align-self:center;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    padding:5px 9px; width:auto; }
   #topbar{ position:relative; width:100%; display:flex; align-items:center;
     justify-content:space-between; gap:8px; z-index:2; padding:0 2px; min-height:44px; }
   /* --frame2 alone is a surface tint, too light to carry a small glyph; deepened here so
@@ -1700,32 +1706,67 @@
 
   /* ══ ROW TWO ══ the ask, as a bar that fills. */
   /* inside the shell now: the ask sits beside the moves, divided by a hairline */
-  /* THREE COMPARTMENTS, not two. The level used to ride on top of the moves in one
-     stack, which made a 10px caption look like a hat on the round's loudest number.
-     It gets its own walled cell now, the moves take the next one, and the ask takes
-     the third - each divided by the same hairline the menu already uses. */
+  /* ══ LEVEL AND MOVES ARE CLUBBED ══ two stacks in ONE compartment with no rule
+     between them. They are both "where you are in this round", and separating them
+     spent 54px of the shell on a divider and two sets of padding - width the score
+     bar needed far more, and which now lets the bar carry its own label. One hairline
+     remains, after the pair, dividing what you HAVE from what you are CHASING. */
   #ts-mid #lvlbox{ flex:none; display:flex; align-items:center; justify-content:center;
-    min-width:44px; padding-right:10px;
-    border-right:1.5px solid color-mix(in srgb, var(--tile-edge) 55%, transparent); }
-  #ts-mid #movesbox{ flex:none; display:flex; flex-direction:column; align-items:center;
-    justify-content:center; min-width:52px; padding-right:10px;
-    border-right:1.5px solid color-mix(in srgb, var(--tile-edge) 55%, transparent); }
+    min-width:0; padding-right:12px; border-right:none; }
+  /* the centre column: score line, fill, moves line - one thought, read downward */
+  /* NO RULE between the level and the centre. Two survived the rebuild - one on #lvlcap
+     left over from the three-compartment layout, one added here - and they sat a few
+     pixels apart reading as a double line. The reference divides by SPACE. */
+  /* min-height:0 lets this column shrink to the shell instead of overflowing it by ~3px:
+     a flex child's default min-height is its content, so the three stacked rows were
+     pushing past the 58px shell rather than settling inside it. */
+  #ts-centre{ flex:1; min-width:0; min-height:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:2px; padding-left:13px;
+    border-left:none; overflow:hidden; }
+  #ts-mid #lvlbox #lvlcap{ border-right:none !important; padding-right:0 !important; }
+  #ts-centre #goalstrip{ width:100%; }
+  /* moves is a LINE now, not a compartment - it reads under the bar it explains */
+  /* center, not baseline: baseline alignment between a 12px word and a 16px numeral
+     reserves room for both fonts' descenders and made the row 20px tall to hold 16px
+     of ink, which is where the column's overflow was coming from. */
+  #ts-mid #movesbox{ flex:0 0 auto; display:flex; flex-direction:row; align-items:center;
+    justify-content:center; gap:5px; min-width:0; padding:0; border-right:none;
+    line-height:1; }
   /* 10px is the floor, and nothing here dims below full ink. 8px and 9px at half
      opacity were the two worst offenders on the whole screen. */
-  #ts-mid #movesbox .mv-lbl{ font-size:10px; font-weight:900; letter-spacing:.1em;
-    color:var(--tile-ink); opacity:1; text-transform:uppercase; order:3; }
-  #ts-mid #movesbox #movesbig{ font-size:26px; font-weight:900; line-height:1;
+  /* ══ THE SHELL RUNS ON TWO SIZES ══ it had eight - 10, 12, 13, 14, 16, 18, 20 and 26 -
+     which is why nothing in it looked related. Every compartment is now a LABEL over a
+     NUMBER, label 14 and number 12, and the only other size in the bar is the menu
+     glyph. Label on top and larger is the brief; see the note by --hud-num. */
+  #ts-mid #movesbox .mv-lbl{ font-size:var(--hud-lbl); font-weight:900; letter-spacing:.01em;
+    color:var(--tile-ink); opacity:1; text-transform:lowercase; order:1; line-height:1; }
+  #ts-mid #movesbox .mv-lbl::after{ content:":"; }
+  #ts-mid #movesbox #movesbig{ font-size:var(--hud-num); font-weight:900; line-height:1;
     color:var(--tile-ink); order:2; }
   /* THE SHELL SPEAKS ONE TYPE. The level ran 10px Fraunces at two weights beside a
      26px Nunito numeral - three voices in one bar. Now every compartment is the same
      shape: a 10px caps label over a Nunito numeral, and only the SIZE of the numeral
      carries rank (moves 26 as the hero, level 18, amber 16). */
-  #ts-mid #lvlbox #lvlcap{ color:var(--tile-ink); opacity:1; text-align:center; }
-  #ts-mid #lvlbox #lv-pre{ display:block; font-family:var(--font-ui);
-    font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase;
-    line-height:1.15; }
-  #ts-mid #lvlbox #h-level{ display:block; font-family:var(--font-ui);
-    font-size:18px; font-weight:900; line-height:1; }
+  /* label over number, the level's own stack - LEVEL small, 161 large */
+  /* ══ TWO SIZES, NUMBER-DOMINANT ══ the figure is larger than the word that names it.
+     Nothing else in the shell has a size of its own except the menu glyph.
+     12, NOT 10: 10px was the absolute floor from when these labels sat on an opaque
+     cream shell. On glass, small type loses - the backdrop is live artwork and the eye
+     gets less help from the edges of each letter - so the floor rises with the material.
+     The numbers hold at 16 so the hierarchy is unchanged; only the labels grow. */
+  #app{ --hud-lbl:12px; --hud-num:16px; }
+  #ts-mid #lvlbox #lvlcap{ color:var(--tile-ink); opacity:1; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  /* ══ NO CAPS ══ every label up here was set in tracked uppercase, which is the house
+     style of every mid-tier mobile game and the opposite of this one's voice. Alder says
+     "the ground remembers your step", lower case, unhurried. The labels say it that way
+     too. Tracking goes with the caps - letter-spacing exists to open up capitals, and on
+     lower case at 10px it just looks loose. */
+  #ts-mid #lvlbox #lv-pre{ order:1; font-family:var(--font-ui);
+    font-size:var(--hud-lbl); font-weight:900; letter-spacing:.01em;
+    text-transform:lowercase; line-height:1.1; }
+  #ts-mid #lvlbox #h-level{ order:2; font-family:var(--font-ui);
+    font-size:var(--hud-num); font-weight:900; line-height:1.05; }
   /* the CHILDREN carried their own cream colour from the old dark-pill topbar, so
      setting #lvlcap's colour did nothing - the visible glyphs are these two, and on
      the shell's light face cream was invisible. */
@@ -1735,7 +1776,10 @@
   #app.bgart #ts-mid #lvlcap #h-level{
     color:var(--tile-ink) !important; font-style:normal; text-shadow:none; opacity:1; }
   #topshell #amberchip b, #topshell #amberchip i{ color:var(--tile-ink); opacity:1; }
-  #topshell #amberchip b{ font-size:16px; font-weight:900; font-family:var(--font-ui); }
+  #topshell #amberchip b{ font-size:var(--hud-num); font-weight:900; font-family:var(--font-ui); }
+  #topshell #amberchip .coin-plus{ font-size:var(--hud-num); font-weight:900; }
+  /* matched to the bgart rule's specificity or it never lands - three IDs beat two */
+  #topshell #game-menu-btn, #app.bgart #topshell #game-menu-btn{ font-size:18px; }
   #goalstrip{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; padding:0; }
   #gs-goals{ display:flex; flex-direction:row; align-items:center; justify-content:center;
     gap:14px; min-width:0; width:100%; }
@@ -1767,6 +1811,49 @@
     border:1.5px solid color-mix(in srgb, var(--tile-face-edge, #fffaf0) 92%, transparent);
     box-shadow:0 1px 2px rgba(30,20,6,.35); }
   .gseg.metdone .gs-num{ background:#3f7a33; font-size:10px; }
+  /* the score's bar: a stack that takes the whole centre column */
+  .gseg.barseg{ display:flex; flex-direction:column; align-items:center; gap:2px;
+    flex:0 0 auto; min-width:0; width:100%; }
+  /* THE TARGET IS HALF THE FACT, so it stops being a footnote. It was inheriting the
+     10px label size beside a 16px score, which is why 295 was barely there - the pair
+     is one quantity and both halves are set at the numeral size. Rank is carried by
+     WEIGHT (900 against 600) rather than by size or by dimming: what you have is loud,
+     what you need is quiet, and both are legible at arm's length. */
+  /* line-height matches the NUMERAL, not the label: at line-height:1 the 12px label set
+     a 12px line box around a 16px figure, so the cap reported 5px of phantom overflow
+     while rendering perfectly. Nothing was ever clipped - the box was just lying. */
+  .gseg.barseg .gs-cap{ font-size:var(--hud-lbl); font-weight:900; letter-spacing:.01em;
+    text-transform:lowercase; line-height:var(--hud-num); white-space:nowrap;
+    display:inline-flex; align-items:baseline; gap:4px;
+    color:var(--alder-ink, #33240d); }
+  .gseg.barseg .gs-cap .gs-pair{ font-size:var(--hud-num); letter-spacing:0;
+    font-variant-numeric:tabular-nums; }
+  .gseg.barseg .gs-cap .gs-pair b{ font-weight:900; }
+  .gseg.barseg .gs-cap .gs-pair i{ font-style:normal; font-weight:600; }
+  /* a rule, not a trough - it holds no type now, so it needs no height.
+     THE TROUGH AND THE FILL BOTH COME FROM THE MEASURED INK, not from --frame1/--frame2:
+     those are the board frame's browns, and against glass that has flipped to a dark
+     country they vanished. Ink at 18% is the empty part, ink at full strength the filled
+     part, so the bar carries exactly the contrast the pane's text already passed. */
+  /* #app.bgart-scoped, because the painted-country rule that styles .gs-track carries an
+     ID and would otherwise win - and a stale --gs-fill gradient from an earlier pass was
+     still painting here too, in a brown that disappeared the moment the glass went dark. */
+  /* border:none is the point. A 1px rim on all four sides of a 6px track drew a closed
+     capsule, so the bar read as a solid rule and the fill inside it was invisible -
+     which is exactly why it looked decorative rather than functional. */
+  .gseg.barseg .gs-track,
+  #app.bgart .gseg.barseg .gs-track{ width:100%; height:7px; border-radius:999px;
+    /* flex:none, or the base .gs-track's flex:1 resolves to a ZERO-height track inside
+       this column - the bar was rendering perfectly at 0px tall, which is why the fill
+       measured correct and nothing was on screen */
+    flex:none;
+    overflow:hidden; box-shadow:none; border:none;
+    background:color-mix(in srgb, var(--alder-ink, #33240d) 22%, transparent); }
+  .gseg.barseg .gs-track i,
+  #app.bgart .gseg.barseg .gs-track i{ background:var(--alder-ink, #33240d);
+    background-image:none; border-radius:999px; }
+  .gseg.barseg.metdone .gs-track i,
+  #app.bgart .gseg.barseg.metdone .gs-track i{ background:#4e9a40; background-image:none; }
   /* ══ TEXT ON GLASS USES THE MEASURED INK ══
      --tile-ink is a mid-tone COLOURED ink, and it was fine while these panels were opaque.
      With the painting now showing through, it failed 4.5:1 in EIGHT of the fifteen
@@ -3221,15 +3308,21 @@
       <button id="game-menu-btn" onclick="UI.menuToggle()" aria-label="menu">☰</button>
       <div id="ts-mid">
         <div id="lvlbox">
-          <span id="lvlcap" onclick="UI.dbgTap()"><i id="lv-pre">LV</i> <b id="h-level">1</b></span>
+          <span id="lvlcap" onclick="UI.dbgTap()"><i id="lv-pre">LEVEL</i> <b id="h-level">1</b></span>
         </div>
-        <div id="movesbox">
-          <span class="mv-lbl">moves</span><span id="movesbig">15</span>
-        </div>
-        <!-- the round's ask, as a bar that fills. -->
-        <div id="goalstrip">
-          <div id="gs-goals"></div>
-          <div id="gs-name"></div>
+        <!-- ══ ONE CENTRE COLUMN ══ the round's progress reads top to bottom - what you
+             have scored, how far that is, and what it cost you - instead of three
+             compartments competing for width across the bar. The score line, the fill
+             and the moves line are one thought, and stacking them is what buys the bar
+             its length back. -->
+        <div id="ts-centre">
+          <div id="goalstrip">
+            <div id="gs-goals"></div>
+            <div id="gs-name"></div>
+          </div>
+          <div id="movesbox">
+            <span class="mv-lbl">moves</span><span id="movesbig">15</span>
+          </div>
         </div>
       </div>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops - the wood's small thanks. spent on lifelines, never on power"><i class="coin-i">🟠</i><b id="amber-n">0</b><i class="coin-plus">+</i></span>
@@ -3817,6 +3910,19 @@ function alderTone(){
      and handed to the basin as a solid to finish on. */
   const v=stops[0];
   app.style.setProperty("--vessel","rgb("+v.join(",")+")");
+  /* THE SCORE BAR'S FILL HAS TO CARRY ITS OWN TEXT. The fill was --frame2, the country's
+     mid-brown frame tone, and the cream count printed on it measured 2.67:1 at worst -
+     failing in thirteen of fifteen countries. It is the one surface here whose colour is
+     NOT the painting's, so it can simply be darkened until it works: the country's own
+     hue walked toward its shadow until cream clears 5.0. Keeps the country, loses the
+     illegibility. */
+  { const f2=hex(getComputedStyle(app).getPropertyValue("--frame2").trim())||[154,111,60];
+    const cream=[255,253,243]; let fill=f2;
+    for(const k of [0,.25,.45,.62,.75]){
+      fill=f2.map(c=>Math.round(c*(1-k)+30*k));
+      if(ratio(cream,fill)>=5.0) break;
+    }
+    app.style.setProperty("--gs-fill","rgb("+fill.join(",")+")"); }
   return { ink, ratio:+Math.max(rd,rl).toFixed(2), stops:stops.length,
            vessel:"rgb("+v.join(",")+")",
            darkWorst:+rd.toFixed(2), lightWorst:+rl.toFixed(2) };
@@ -4622,17 +4728,28 @@ const CALLING_ORDER=Object.keys(CALLINGS).filter(w=>!KEYSTONE_SET.has(w))
    The hush (points) is the baseline; obstacle goals make obstacles the WIN CONDITION,
    Candy-Crush style: melt every ice, smash every stone, or lose the round. Each type
    introduces itself SOLO at an authored level, then joins a slow rotation. */
+/* v/u/p are for the LINE ALDER SPEAKS: verb, singular unit, plural unit. The bar at the
+   top carries the aggregate ("cleared 1/5") and cannot say what the five are, so he
+   spells them out - "thaw 3 ice and break 2 stones" - and re-states it as they fall. */
 const GOALS={
   hush:   {i:"🎯", s:"points",  n:"still the hush"},
-  thaw:   {i:"🧊", s:"ice",     n:"melt every ice",    seed:"ice",   base:3},
-  boulder:{i:"🪨", s:"stone",   n:"smash every stone", seed:"stone", base:3},
-  harvest:{i:"✨", s:"gold",    n:"harvest the gold",  seed:"gold",  base:4},
-  unravel:{i:"🎁", s:"gifts",   n:"open every gift",   seed:"crate", base:2},
-  lift:   {i:"🌫️", s:"mist",    n:"lift the mist",     seed:"mist",  base:3},
+  thaw:   {i:"🧊", s:"ice",     n:"melt every ice",    seed:"ice",   base:3,
+           v:"thaw",    u:"ice",       p:"ice"},
+  boulder:{i:"🪨", s:"stone",   n:"smash every stone", seed:"stone", base:3,
+           v:"break",   u:"stone",     p:"stones"},
+  harvest:{i:"✨", s:"gold",    n:"harvest the gold",  seed:"gold",  base:4,
+           v:"harvest", u:"gold",      p:"gold"},
+  unravel:{i:"🎁", s:"gifts",   n:"open every gift",   seed:"crate", base:2,
+           v:"open",    u:"gift",      p:"gifts"},
+  lift:   {i:"🌫️", s:"mist",    n:"lift the mist",     seed:"mist",  base:3,
+           v:"lift",    u:"mist",      p:"mist"},
   // cut counts DEEDS, not pieces: seed a few tangles and the spread supplies the rest
-  cut:    {i:"🌿", s:"tangles", n:"cut the tangles",   seed:"bramble", base:5, fixedSeed:3, slowScale:50},
-  long:   {i:"🏔️", s:"long words", n:"speak long words",  base:3},
-  star:   {i:"⭐", s:"stars",   n:"walk the star course", seed:"wild", base:3},
+  cut:    {i:"🌿", s:"tangles", n:"cut the tangles",   seed:"bramble", base:5, fixedSeed:3, slowScale:50,
+           v:"cut",     u:"tangle",    p:"tangles"},
+  long:   {i:"🏔️", s:"long words", n:"speak long words",  base:3,
+           v:"speak",   u:"long word", p:"long words"},
+  star:   {i:"⭐", s:"stars",   n:"walk the star course", seed:"wild", base:3,
+           v:"walk",    u:"star",      p:"stars"},
   gauntlet:{i:"👑", s:"trial",  n:"the crown trial"},
 };
 /* WHICH ASK AN OBSTACLE ANSWERS TO. Frost is listed as a thaw because a frost destroyed
@@ -5233,6 +5350,21 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
       Alder.Q.splice(i<0?Alder.Q.length-1:i,1); }
     Alder._pump();
   },
+  /* ══ THE FACE READS THE ROUND ══ he is the keeper, so the tree is his ordinary self -
+     but when the round has an ask of its own he wears its sign, and the bar he speaks
+     from becomes the round's own surface rather than generic chrome. A pet speaking
+     through him still overrides this (item.who wins): the face says WHO is talking
+     first, and only falls back to WHAT KIND OF ROUND it is when that is Alder himself. */
+  roundFace(){
+    try{
+      if(typeof S==="undefined" || !S) return "🌳";
+      if(S.tutorWord) return "🎭";                       // someone is waiting to be met
+      const goals=[S.goal,S.goal2].filter(g=>g && g.t!=="hush");
+      if(goals.length>1) return "👑";                    // the crown trial asks two things
+      if(goals.length===1) return GOALS[goals[0].t] ? GOALS[goals[0].t].i : "📜";
+      return "🌳";
+    }catch(e){ return "🌳"; }
+  },
   _stageFree(){
     return $("alder") && !document.querySelector(".wordbanner.breath")
       && !document.querySelector(".overlay.active"); },
@@ -5267,7 +5399,7 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     Alder.cur=item; Alder._exp=false;
     el.classList.remove("exp","clip");
     if(item.once && item.idx===0){ try{ P.said[item.key]=1; save(); }catch(e){} }
-    el.querySelector(".aface").innerHTML = item.who || "🌳";
+    el.querySelector(".aface").innerHTML = item.who || Alder.roundFace();
     el.querySelector(".atxt").innerHTML = item.chunks[item.idx];
     el.classList.toggle("more", item.idx < item.chunks.length-1);
     el.classList.add("on");
@@ -7299,6 +7431,11 @@ const Game = {
     $("ov-intro").classList.remove("active");
     S.busy=false; S.lastAction=Date.now();
     Snd.init();
+    /* the round's list, said once as it opens - cleared first so a round that repeats
+       the same ask as the last one still gets spoken. Deferred behind the intro card so
+       it is not queued while an overlay owns the stage (Alder holds his tongue then). */
+    S._toldGoal=null;
+    setTimeout(()=>{ try{ Game.goalTell(); }catch(e){} }, 700);
     // (the old pre-school "generic coach hand" is gone: it lived on #boardwrap, which
     // level changes never wipe, so it could survive and DOUBLE with the lesson's own
     // hand. Lesson 1 teaches the drop now - nobody else needs a floating finger.)
@@ -8325,7 +8462,51 @@ const Game = {
       g.have=Math.min(g.need, g.have+1); hit=true;
       if(g.have>=g.need) Snd.tone(1046,{dur:.25,type:"sine",gain:.07,verb:true});
     }
-    if(hit) UI.hud();
+    if(hit){ UI.hud(); Game.goalTell(); }
+  },
+
+  /* ══ ALDER NAMES WHAT THE BAR COUNTS ══
+     The top bar says "cleared 1/5". It cannot say WHICH five, because a 7px track holds
+     a proportion and nothing else. So he holds the list, and re-states it each time one
+     falls: "thaw 3 ice and break 2 stones" becomes "thaw 2 ice and break 2 stones".
+     Only what REMAINS is spoken - a finished ask drops out of the sentence entirely
+     rather than lingering as "0 stones", so the line shortens as you win.
+     It speaks only when the words CHANGE. Called on every credit, it would otherwise
+     re-queue the same sentence on every drop and crowd out every other thing he says. */
+  goalTell(){
+    if(!S) return;
+    const parts=[];
+    /* THE PIECE ITSELF, NOT ITS NAME. "thaw 2 🧊" beats "thaw 2 ice" because the glyph
+       is the same thing the player is looking at on the board - no translation step
+       between the instruction and the target. It also keeps the line short, which
+       matters: his bar clips, and a two-ask sentence in words was the longest thing
+       he ever has to say. */
+    for(const g of [S.goal, S.goal2]){
+      if(!g || g.t==="hush") continue;
+      const left=Math.max(0, g.need-g.have);
+      if(!left) continue;
+      const G=GOALS[g.t]; if(!G || !G.v) continue;
+      parts.push(G.v+" "+left+" "+G.i);
+    }
+    /* the meeting ask lost its pod too, so it says itself here. It keeps WORDS rather
+       than a glyph: the ask is a kind of word to speak, and there is no emoji for
+       "something watery" that a player could act on. */
+    if(S.tutorWord){
+      try{
+        const cg=Game.courtship(GROVE_BY_WORD[S.tutorWord]);
+        const waived=(P.nameFails[S.tutorWord]||0)>=2;
+        if(waived) parts.push("speak any word - it likes you");
+        else if(cg){
+          const left=Math.max(0, cg.n-Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0));
+          if(left) parts.push("speak "+left+" "+signNoun(cg.sign));
+        }
+      }catch(e){}
+    }
+    if(!parts.length) return;                       // every ask met - the round is won
+    const line=parts.join(" and ");
+    if(S._toldGoal===line) return;                  // nothing new to say
+    S._toldGoal=line;
+    try{ Alder.aside("goaldetail", line, {pri:2}); }catch(e){}
   },
 
   /* ---- 🐕 THE WATCHDOG - a shipped game may NEVER soft-lock ----
@@ -9946,12 +10127,23 @@ const UI = {
     // play button for a while; this chip was still printing the raw number, so the
     // tutorial read LV 1 and the first round played unaided read LV 6.
     { const pro = S.level<=PROLOGUE_END;
-      const pre = $("lv-pre"); if(pre) pre.textContent = pro ? "PROLOGUE" : "LV";
+      const pre = $("lv-pre"); if(pre) pre.textContent = pro ? "prologue" : "level";
       $("h-level").textContent = pro ? S.level : (S.level-PROLOGUE_END); }
     const m=$("movesbig");
     m.textContent=S.movesLeft;
     const mp=$("movespill"); if(mp) mp.classList.toggle("low", S.movesLeft<=3 && !S.won);
     UI.goalStrip();
+    /* goalTick covers the obstacle asks, but a MEETING round has no goals to tick - its
+       progress lives in S.sigs, which nothing else notifies. Calling from here catches
+       every state change; goalTell itself is a string build and a compare, and returns
+       immediately unless the words actually changed. */
+    try{ Game.goalTell(); }catch(e){}
+    /* keep the face right while he is SILENT too - _show only runs when a line appears,
+       so without this the bar wore the previous round's sign until he next spoke.
+       A pet borrowing the bar (cur.who) keeps its own portrait. */
+    try{ const af=$("alder") && $("alder").querySelector(".aface");
+      if(af && !(Alder.cur && Alder.cur.who)) af.innerHTML=Alder.roundFace();
+    }catch(e){}
     const goalMode=S.goal && S.goal.t!=="hush";
     const pct=goalMode ? Math.min(100,100*S.goal.have/Math.max(1,S.goal.need))
                        : Math.min(100, 100*S.levelScore/S.target);
@@ -10000,34 +10192,53 @@ const UI = {
         +'<b class="gs-num" aria-hidden="true">'+(met ? "✓" : left)+'</b>'
         +'</div>';
     };
+    /* THE SCORE IS A LENGTH, NOT A COUNT. A collection ask answers "how many more" and
+       reads as a glyph plus a small number; the score answers "how far along", and a
+       ratio like 39/295 is a sum you have to do. The bar shows it without arithmetic.
+       Its count is drawn TWICE - dark for the bare track, cream clipped to exactly the
+       filled width - so neither copy is ever caught on the wrong ground as the fill
+       sweeps past it, and no single colour has to survive both. */
+    const bar=(met, have, need, label)=>{
+      label=label||"score";
+      const pct=Math.max(0, Math.min(1, have/Math.max(1,need)));
+      const shown=Math.min(have, need);
+      /* THE COUNT SITS ABOVE THE TRACK, NOT INSIDE IT. Printing it inside meant the
+         track had to be tall enough to hold type, and the two copies (dark, then cream
+         clipped to the fill) existed only because the fill kept sliding under the text.
+         Above the bar, one copy in the pane's measured ink is enough, and the track is
+         free to become the thin rule it should always have been. */
+      return '<div class="gseg barseg'+(met?" metdone":"")+'"'
+        +' role="img" aria-label="'+label+' '+shown+' of '+need+'">'
+        /* both figures, because the track is 7px and can carry no type of its own -
+           the bar shows the shape of the progress, the line states its terms */
+        +'<span class="gs-cap" aria-hidden="true">'+label
+        +'<span class="gs-pair"><b>'+shown+'</b><i>/'+need+'</i></span></span>'
+        +'<div class="gs-track"><i style="transform:scaleX('+pct+')"></i></div>'
+        +'</div>';
+    };
     const goalMode=S.goal && S.goal.t!=="hush";
     if(goalMode){
-      const done=S.goal.have>=S.goal.need;
-      segs.push(seg(done, S.goal.have, S.goal.need, GOALS[S.goal.t].i, GOALS[S.goal.t].s));
+      /* ══ ONE BAR, WHATEVER THE ROUND ASKS ══ a special round used to swap the bar out
+         for icon pods, so the top of the screen changed shape the moment you crossed
+         into a goal level. The bar stays; it just counts a different thing. Every ask
+         in the round is summed - three ice and two stones is five pieces - and the bar
+         reads "cleared 1/5". What the five ARE is Alder's job (Game.goalTell), because
+         a 7px track can hold a proportion but never a list. */
+      const gs2=[S.goal, S.goal2].filter(Boolean);
+      const have=gs2.reduce((a,g)=>a+Math.min(g.have,g.need),0);
+      const need=gs2.reduce((a,g)=>a+g.need,0);
+      segs.push(bar(have>=need, have, need, "cleared"));
     } else {
       const done=S.levelScore>=S.target;
-      // the one ask with no glyph of its own - the round's score gets the laurel
-      segs.push(seg(done, S.levelScore, S.target, "🏆", "score"));
+      segs.push(bar(done, S.levelScore, S.target));
     }
-    if(S.goal2){
-      const d2=S.goal2.have>=S.goal2.need;
-      segs.push(seg(d2,   S.goal2.have, S.goal2.need, GOALS[S.goal2.t].i, GOALS[S.goal2.t].s));
-    }
-    if(S.tutorWord){
-      const g=GROVE_BY_WORD[S.tutorWord];
-      /* THE ASK IS THE HEADLINE, NOT A FOOTNOTE. It used to render as a 10px grey line
-         tucked under the score bar - the one thing that DECIDES the round, dressed as
-         an afterthought while the score (which decides nothing here) wore the full pill
-         (designer, on device). The ask is a first-class track now: same size as the
-         score, its own colour, placed FIRST - and the score stands behind it, second. */
-      const cg=Game.courtship(g);
-      const waived=(P.nameFails[S.tutorWord]||0)>=2;
-      const have=cg ? Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0) : 0;
-      const need=cg ? cg.n : 1;
-      const lbl = waived ? "any 1 word - it likes you" : (cg ? signNoun(cg.sign) : "words");
-      segs.unshift(seg(have>=need, waived?0:have, waived?1:need, "🎭", lbl)
-        .replace('class="gseg','class="gseg askseg'));
-    }
+    /* goal2 gets NO pod of its own any more - it is already inside the bar's total, and
+       leaving this in printed the second ask twice: once as part of "cleared 1/5" and
+       again as a stray 🪨2 floating beside it. */
+    /* The meeting ask gets no pod either, for the same reason as goal2: Alder now speaks
+       every ask in the round, so a 🎭 floating beside the bar was the detail printed
+       twice. seg() is kept - nothing calls it today, but it is the only pod builder and
+       deleting it would take the icon+plate shape with it. */
     gs.innerHTML=segs.join("");
     /* A pod is now the width of its GLYPH, not of its digits, so every reachable round
        fits at full size and this loop should never step. It stays as the backstop for
