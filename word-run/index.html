@@ -1258,12 +1258,13 @@
      one ink that clears every painting. So it carries its own edge: a hairline dark halo
      drawn round the letterform, which gives it a guaranteed border no matter what is behind,
      and a soft shadow under that to lift it off the picture. */
-  #app.bgart .seatmark b{ color:rgba(255,251,242,.94);
-    text-shadow:0 1px 0 rgba(0,0,0,.62), 0 -1px 0 rgba(0,0,0,.5),
-      1px 0 0 rgba(0,0,0,.5), -1px 0 0 rgba(0,0,0,.5), 0 2px 9px rgba(0,0,0,.55); }
-  #app.bgart .seatmark i{ color:rgba(255,251,242,.9);
-    text-shadow:0 1px 0 rgba(0,0,0,.62), 0 -1px 0 rgba(0,0,0,.5),
-      1px 0 0 rgba(0,0,0,.5), -1px 0 0 rgba(0,0,0,.5), 0 2px 7px rgba(0,0,0,.5); }
+  /* THE HALO IS RETIRED. A four-way black outline plus a drop shadow was the right answer
+     when these marks sat directly on fifteen different paintings and no single ink could
+     clear them all. They sit on a glass pane now, whose ink is measured against that pane
+     - so the outline is solving a problem that no longer exists, and it was what made the
+     markers read as a different typeface from everything around them. */
+  #app.bgart .seatmark b, #app.bgart .seatmark i{
+    color:var(--alder-ink, rgba(255,251,242,.94)); text-shadow:none; }
 
   /* THE DOCK IS THE SAME GLASS AS THE TOP PANES - one material for every shelf the
      round owns, wearing the board's ring like the rest. The glass lives on a ::before
@@ -2182,10 +2183,15 @@
   .seatmark{ position:absolute; left:0; right:0; top:13px; bottom:0; z-index:3;
     font-family:var(--font-ui); pointer-events:none; }
   .seatmark b, .seatmark i{ position:absolute; left:0; right:0; text-align:center; }
+  /* the measured ink, at full strength, and the shell's own label size - these markers
+     are part of the HUD now, not decoration floating on a painting. --hud-lbl is the same
+     step "moves" and "score" use, so "LV 7" reads as a sibling of them. */
   .seatmark b{ top:42%; transform:translateY(-50%);
-    font-size:30px; font-weight:900; line-height:1; color:rgba(62,50,32,.72); }
-  .seatmark i{ bottom:7px; font-style:normal; font-size:10.5px; font-weight:900; letter-spacing:1px;
-    line-height:1; color:rgba(62,50,32,.8); }
+    font-size:30px; font-weight:900; line-height:1;
+    color:var(--alder-ink, rgba(62,50,32,.72)); }
+  .seatmark i{ bottom:7px; font-style:normal; font-size:var(--hud-lbl,12px); font-weight:900;
+    letter-spacing:.04em; line-height:1; text-transform:lowercase;
+    color:var(--alder-ink, rgba(62,50,32,.8)); }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
   /* the wake countdown is the most-read number on the shelf and it was 16px wide at 11px
      type - smaller than the seat labels beneath it. */
@@ -3876,9 +3882,13 @@ function alderTone(){
     const lit=band.map(v=>Math.min(255,Math.round(v*ALDER_LIFT)));
     if(lum(lit) <= HAZE_FLIP)
       return { surface:over([255,255,255], ALDER_HAZE, lit), dark:false, a:ALDER_HAZE };
-    for(const a of [0.34,0.44,0.54,0.64,0.72]){
+    /* 7.0, not the 5.0 floor the light panes use. A dark pane solved to exactly 5:1 is
+       legible but flat - the white sits ON the glass instead of shining THROUGH it. The
+       extra depth costs nothing (the backdrop is bright, so there is headroom) and it is
+       what makes the pane read as a pane rather than as a dimmed patch of sky. */
+    for(const a of [0.44,0.54,0.62,0.70,0.78]){
       const surface=over([0,0,0], a, lit);
-      if(ratio(hex(ALDER_LIGHT), surface) >= 5.0) return { surface, dark:true, a };
+      if(ratio(hex(ALDER_LIGHT), surface) >= 7.0) return { surface, dark:true, a };
     }
     const a=0.72;
     return { surface:over([0,0,0], a, lit), dark:true, a };
@@ -3945,10 +3955,13 @@ function alderTone(){
        merely dim still scored better with the dark ink - which is how the opening ended
        up as dark glass wearing black text. The pane's own polarity decides its ink; the
        measurement below is then a check on that decision, not a vote in it. */
+    /* the party pane has no text of its own, so it never got an ink - but the empty-seat
+       markers live on it and were left inheriting from the app. It takes the shell's ink:
+       same glass, same polarity, so a "?" and its "LV 7" match the numbers above them. */
     let t = p[2] ? (topDark
               ? { ink:ALDER_LIGHT, r:+ratio(hex(ALDER_LIGHT), washed(p[2])).toFixed(2) }
               : inkFor(washed(p[2])))
-          : { ink:null };
+          : { ink: (paneOut.shell && paneOut.shell.ink) || null };
     if(t.ink) el.style.setProperty("--alder-ink", t.ink);
     el.style.setProperty("--glass-boost", uniCss);
     el.style.setProperty("--glass-haze", hazeCss(topDark, topGlass.a));
@@ -12226,7 +12239,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802211303",
+  ver:"20260802211721",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
