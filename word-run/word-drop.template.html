@@ -27,7 +27,9 @@
     --bg2:#f0e5d0;            /* app: warm parchment at the foot of the page */
     --surface:rgba(101,78,48,.07);
     --surface-border:rgba(101,78,48,.16);
-    --ink:#3d3226; --dim:#7d6849;
+    /* --dim darkened one step (was #7d6849): 10-12px working text measured ~4.0-4.3:1
+       against parchment - under the 4.5:1 floor the older third of players needs. */
+    --ink:#3d3226; --dim:#6b573a;
     --accent:#6f9e63; --accent-deep:#4c7a46;
     --hush:#8b93c7; --hush-deep:#5d6494;   /* the colour of the quiet */
     --gold:#e8b64c; --gold-deep:#bd8619;
@@ -430,15 +432,17 @@
   #home-place{ position:static; text-align:center;
     display:flex; flex-direction:column; align-items:center; gap:1px;
     text-shadow:0 1px 2px rgba(0,0,0,.45); }
-  #home-place .ch-pre{ font:700 8.5px/1.2 var(--font-ui); letter-spacing:.22em;
+  /* plaque type lifted to the readability floor (was 8.5/10.5/9.5/9px - "CHAPTER TWO"
+     was the smallest text in the game, on its most-seen screen) */
+  #home-place .ch-pre{ font:700 10px/1.2 var(--font-ui); letter-spacing:.2em;
     color:#e7d9a6; text-transform:uppercase; }
   #home-place .ch-name{ font:600 17px/1.18 var(--font-story); color:#fffaec; letter-spacing:.4px; }
-  #home-place .ch-line{ font:italic 400 10.5px/1.25 var(--font-story); color:#ded7bd;
+  #home-place .ch-line{ font:italic 400 11.5px/1.25 var(--font-story); color:#e4ddc6;
     max-width:100%; text-wrap:balance; }
-  #home-prog .hp-line{ display:block; font:600 9.5px/1.3 var(--font-ui); letter-spacing:.06em;
+  #home-prog .hp-line{ display:block; font:600 10.5px/1.3 var(--font-ui); letter-spacing:.05em;
     color:#e4dcc0; text-transform:uppercase; }
-  #home-place .ch-page{ font:600 9px/1.2 var(--font-ui); letter-spacing:.13em;
-    color:#cfc6a8; text-transform:uppercase; margin-top:2px; }
+  #home-place .ch-page{ font:600 10px/1.2 var(--font-ui); letter-spacing:.12em;
+    color:#d6cdb0; text-transform:uppercase; margin-top:2px; }
   /* ===== the slide menu - a simple panel from the left ===== */
   #menu-scrim{ position:absolute; inset:0; z-index:200; background:rgba(40,35,62,.5); backdrop-filter:blur(2px);
     opacity:0; pointer-events:none; transition:opacity .28s; }
@@ -453,9 +457,13 @@
   #menu-panel.on{ transform:translateX(0); }
   #menu-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
   #menu-head span{ font-family:var(--font-story); font-size:24px; font-weight:750; color:var(--ink); }
-  #menu-close{ width:36px; height:36px; border-radius:50%; border:none; font-size:16px; color:var(--dim);
+  /* the visual stays 36px; an invisible halo brings the TAP TARGET to 44px (audit:
+     the two most-missed controls for older thumbs were exactly these) */
+  #menu-close{ position:relative; width:36px; height:36px; border-radius:50%; border:none; font-size:16px; color:var(--dim);
     background:rgba(101,78,48,.1); }
+  #menu-close::after{ content:""; position:absolute; inset:-5px; border-radius:50%; }
   #menu-close:active{ transform:scale(.92); }
+  #game-menu-btn::after{ content:""; position:absolute; inset:-6px -3px; }
   .menu-stat{ display:flex; align-items:center; justify-content:space-between; font-size:13px; color:var(--ink);
     background:rgba(101,78,48,.06); border:1px solid rgba(101,78,48,.14); border-radius:12px; padding:9px 13px; }
   .menu-stat b{ color:var(--gold-deep); font-size:15px; }
@@ -860,7 +868,11 @@
      centred in the speaking band, touching neither the board nor the dock. The bubble
      shipped 44px tall on a 12px anchor and its crown brushed the board's bottom edge
      (designer caught it on device) - both surfaces are cut to one shared geometry now. */
-  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(8px); bottom:calc(100% + 9px);
+  /* 🌳 INTERIM: the pill parks at the board's TOP edge (the band below the board is
+     gone - the board sits against the dock now). The breath banner and the pill share
+     that top mark but never the same moment: the pill defers during a breath (RULE
+     ZERO by direct call). Proper home comes with the Alder widget pass. */
+  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(-8px); top:8px;
     z-index:69; display:flex; align-items:center; gap:8px; max-width:min(96%, 360px);
     height:38px; overflow:hidden;
     background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:3px 12px 3px 4px;
@@ -967,11 +979,17 @@
      above it as below, and below is where the letter you are holding has to sit. The
      padding pushes the board up and hands that space down to the dock. */
   #boardwrap{ position:relative; flex:1; min-height:0; width:100%;
-    display:flex; align-items:center; justify-content:center; z-index:1;
-    /* 60px, not 34: the speaking band. The hold pill and Alder's asides live between the
-       board and the dock, and at 34px even the pill overlapped the board's bottom edge
-       (designer, on device). A sentence needs room to stand. */
-    padding-bottom:60px; }
+    /* flex-end, not center: with the band gone the board PINS to the dock and every
+       spare pixel surfaces above it - the future Alder widget's room */
+    display:flex; align-items:flex-end; justify-content:center; z-index:1;
+    /* the speaking band is GONE (2026-08-01): hold is tap-anywhere with its banner at
+       the board's top, and the pill parks up there too until the Alder widget pass.
+       36px of layout = ~20px VISIBLE margin (user's number). Two silent eaters were
+       found by measuring, not guessing: the board's painted rim draws ~5-7px outside
+       its own box, and the dock overlaps the wrap's bottom by ~9px - 12px and 18px
+       both rendered near-invisible because of them. The ~24px the band still gave up
+       has surfaced ABOVE the board for the Alder widget. */
+    padding-bottom:36px; }
   /* THE BOARD IS THE NIGHT SKY OF THE WOOD - a twilight the letters float on.
      stars scattered, a soft moon aglow, a gentle horizon light. no soil, no wood. */
   #board{ touch-action:none; position:relative;
@@ -1521,12 +1539,15 @@
   .gs-txt.onfill{ color:#fffdf3; text-shadow:0 1px 1px rgba(50,35,10,.4); }
   .gseg.metdone .gs-track i{ background:linear-gradient(90deg,#8fd07f,#5da44f); }
 
-  /* the naming word keeps its own line under the bar */
-  #gs-name{ display:none; justify-content:center; }
-  #gs-name .gask{ font-style:normal; font-size:10px; font-weight:800; opacity:.85;
-    margin-left:6px; letter-spacing:.2px; }
-  .gseg.gname{ gap:6px; font-size:13px; }
-  .gseg.gname b{ font-size:15px; letter-spacing:2.5px; color:var(--gold-deep); }
+  /* the tiny under-bar ask line is retired - the meeting ask is a full track now */
+  #gs-name{ display:none; }
+  /* THE MEETING'S OWN COLOUR. The ask track fills in the ceremony's violet-gold so it
+     never reads as a second score bar - it is the thing that decides this round. */
+  .gseg.askseg .gs-track{ background:rgba(122,95,170,.16);
+    box-shadow:inset 0 1px 2px rgba(80,55,130,.25); }
+  .gseg.askseg .gs-track i{ background:linear-gradient(90deg,#b79ae0,#8a63c9); }
+  .gseg.askseg .gs-txt{ color:color-mix(in srgb, #6f52ad 78%, #241640); }
+  .gseg.askseg.metdone .gs-track i{ background:linear-gradient(90deg,#8fd07f,#5da44f); }
 
   /* ══ THE DOCK ══ the four play controls span x80-x296 of a 347 panel; the gear and the
      Book take the empty 66px on its left and 51px on its right, absolutely placed so the
@@ -1919,7 +1940,9 @@
       inset 0 0 0 1.5px rgba(255,240,205,.55); }
   .tile::before{ content:""; position:absolute; top:3px; left:6%; right:38%; height:34%; border-radius:50%;
     background:linear-gradient(180deg, rgba(255,255,255,.6), transparent); pointer-events:none; } /* glossy top sheen */
-  .tile small{ position:absolute; bottom:2px; right:5px; font-size:10px; font-weight:800; color:rgba(120,80,25,.65); }
+  /* the value badge held only .65 alpha - measured ~3:1 on gold faces, invisible to the
+     older third. Full-strength ink; the size already sits on the 10px floor. */
+  .tile small{ position:absolute; bottom:2px; right:5px; font-size:10px; font-weight:800; color:rgba(106,74,28,.95); }
   /* ✨ GOLD - a treasure tile that shines */
   .tile.gold{ background:linear-gradient(150deg,#fff1b0,#ffd54f 45%,#f5a300);
     box-shadow:0 5px 0 #b47e00, 0 7px 12px rgba(120,80,0,.45), inset 0 2px 0 rgba(255,255,255,.95),
@@ -2061,6 +2084,20 @@
   /* 🐛 PEST - a restless little guest that trades seats with your letters */
   .tile.pest{ background:linear-gradient(148deg,#dfe9c0,#b8cc90 55%,#8ca75f); font-size:20px!important;
     box-shadow:0 5px 0 #55703a, 0 7px 12px rgba(40,60,20,.4), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -4px 6px rgba(70,95,40,.45); }
+  /* ═══ THE SEPARATION RIM (2026-08-01 biome sweep verdict) ═══
+     Contrast failure across the 15 countries is HUE-MATCH driven, not darkness driven:
+     green obstacles vanish in the green countries (Mosswood, Reedmarsh), brown in the
+     Undercave, grey/pale in Scree, Windward, Snowline. A single tuned darken fixes one
+     country and breaks another. So: every obstacle wears a rim in its OPPOSITE tone -
+     dark-bodied kinds get a cream line, pale-bodied kinds get a dark line - and the rim
+     guarantees separation on every painting without touching any kind's own face.
+     `outline` follows border-radius (including the blob radii) and costs no pseudo-
+     element, which bramble/root already spend on their art. */
+  .tile.bramble, .tile.root, .tile.shroud, .tile.mire, .tile.branch, .tile.pest, .tile.reed{
+    outline:2px solid rgba(250,243,225,.85); outline-offset:1px; }
+  .tile.stone, .tile.scree, .tile.mist, .tile.frost, .tile.ice, .tile.spore, .tile.crate{
+    outline:2px solid rgba(35,27,14,.55); outline-offset:1px; }
+
   .tile.thawpop{ animation:thawpop .55s; }
   @keyframes thawpop{ 40%{ transform:scale(1.18); filter:brightness(1.8) } }
   #iv-obstacles{ font-size:14px; color:var(--dim); letter-spacing:3px; }
@@ -2177,6 +2214,16 @@
   .wordbanner.done{ color:var(--ink); border-color:var(--accent); }
   .wordbanner.done .wb-pts{ background:color-mix(in srgb, var(--accent,#7dd87d) 42%, #f2fbef); }
   .wordbanner.fade{ transition:opacity .4s, transform .4s; opacity:0; transform:translateX(-50%) translateY(-16px); }
+  /* 🌱 the breath form: the banner arrives EARLY as the hold invitation, then the
+     resolve banner takes over as the payout. pointer-events stays none - the tap
+     lands anywhere on the screen, never on this. */
+  .wordbanner.breath{ font-size:19px; padding:7px 16px 9px; overflow:visible; }
+  .wordbanner.breath .wb-tap{ font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+    color:#2e6b4c; margin-left:10px; vertical-align:2px; }
+  .wordbanner.breath .wb-clock{ position:absolute; left:2px; right:2px; bottom:0; height:4px; border-radius:2px;
+    background:var(--gold); transform-origin:left; animation:breathdrain linear forwards; }
+  @keyframes breathdrain{ from{ transform:scaleX(1) } to{ transform:scaleX(0) } }
+  .wordbanner.breath.nohold{ font-size:15px; color:var(--dim); border-color:var(--surface-border); }
   @keyframes bannerin{ from{ transform:translateX(-50%) scale(.5); opacity:0 } }
   /* Announcements used to come and go faster than anyone could read them - DOUBLE WORD
      was on screen for nine tenths of a second. They hold now. Note the CSS duration is
@@ -2716,7 +2763,7 @@
          on the hill they were a second cast doing nothing. -->
     <div id="home-art"></div>
     <div id="home-content">
-      <button id="home-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰<span class="cnt" id="grove-badge">0</span></button>
+      <button id="home-menu-btn" onclick="UI.menuToggle()" aria-label="menu">☰<span class="cnt" id="grove-badge">0</span></button>
       <!-- THE WHOLE NAME IS PLAYED, NOT HALF OF IT. "HUSH" was cut from letter tiles and
            "wood" was set type with a 🌲 in front of it - two materials in one word, and the
            tree was the last emoji left on the door. Eight tiles in two rows says the same
@@ -2824,6 +2871,10 @@
          story again wants it from the start, which is what the wipe is for. -->
     <button class="menu-item" onclick="UI.tutReplay()"><span>❓</span> How to play</button>
     <button class="menu-item" id="menu-sound" onclick="Snd.toggle()"><span class="soundbtn">🔊</span> Sound <em id="menu-snd-state">on</em></button>
+    <!-- 🌱 the breath: how long a made word waits before it clears. Tap cycles 1-5s.
+         Fast players set 1s (the tap-to-hurry gesture it replaces is gone); slower
+         readers get up to 5s. Default 2s, the pace the game always had. -->
+    <button class="menu-item" id="menu-breath" onclick="UI.breathCycle()"><span>🌱</span> The breath <em id="menu-breath-state">2s · a word waits this long</em></button>
     <button class="menu-item" onclick="UI.charmToggle()"><span>🧿</span> Keeper's charm <em>save &amp; restore</em></button>
     <div id="charm-box">
       <p class="charm-note">your whole wood, pressed into one small charm. keep it somewhere safe - it replants everything if this device ever forgets you.</p>
@@ -2849,7 +2900,7 @@
     <div id="topbar">
       <div id="movesbox">
         <div id="movespill">
-          <button id="game-menu-btn" onclick="UI.menuToggle(true)" aria-label="menu">☰</button>
+          <button id="game-menu-btn" onclick="UI.menuToggle()" aria-label="menu">☰</button>
           <span id="lvlcap" onclick="UI.dbgTap()"><i id="lv-pre">LV</i> <b id="h-level">1</b></span>
           <span class="mv-lbl">Moves:</span><span id="movesbig">15</span>
         </div>
@@ -2871,13 +2922,17 @@
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
+      <!-- 🌳 INTERIM HOME (2026-08-01): the pill left the board-dock band so the board
+           could sit against the dock; it parks at the board's TOP edge until the
+           Alder widget (objectives + voice, top zone) is designed. Pet-power chips
+           ride this same element, so they moved with it. -->
+      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span><span class="ax" onclick="event.stopPropagation();Alder._dismiss()">✕</span></div>
     </div>
     <!-- one enclosure: breeze, the letter in hand, the queue, the wish, the Book -->
     <div id="dock">
       <!-- Alder's aside rides the dock's top edge and grows UPWARD into the band. When
            space runs out it overlaps the dock's chrome, never the board - the harmless
            neighbour (a board-side anchor kept clipping letters by a few px on device). -->
-      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span><span class="ax" onclick="event.stopPropagation();Alder._dismiss()">✕</span></div>
       <button class="toolbtn" id="breezepill" onclick="Game.armBreeze()">🍃<span class="cnt" id="breeze-cnt">0</span></button>
       <i class="dock-sep"></i>
       <div id="currentwrap"></div>
@@ -4503,7 +4558,7 @@ const ALDER_PAGES = {
   graduate:{ b:"🌿", s:"That is everything I can teach you standing still. The rest, the wood teaches walking.",
              g:"🟠 Take 60 amber for the road. Your kit: 🍃 a breeze trades two letters, 🌟 a wish becomes any letter, and the cat wakes on your words." },
   hold:    { s:"Words like to linger a moment before they go. If you ask, one will stay.",
-             g:"🌱 When a word pauses, tap HOLD to keep its letters on the board - then grow them into something longer." },
+             g:"🌱 When a word pauses, tap anywhere to keep its letters on the board - then grow them into something longer." },
   breeze:  { s:"The wood lends a little wind to anyone who asks politely.",
              g:"🍃 Tap the breeze, then two letters - they trade places. Every 3-letter word refills it (you can keep 3). A word the breeze itself makes earns nothing back." },
   wish:    { s:"Stars fall here, some nights. Catch one and it becomes whatever you were missing.",
@@ -4672,7 +4727,7 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     Alder._pump();
   },
   _stageFree(){
-    return $("alder") && !document.querySelector(".gracebubble")
+    return $("alder") && !document.querySelector(".wordbanner.breath")
       && !document.querySelector(".overlay.active"); },
   _quiet(){
     if(!Alder._stageFree() || Alder.cur || Alder.Q.length) return false;
@@ -4755,12 +4810,12 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     else Alder.Q.unshift(item);
   },
   _watch(){
+    /* the grace bubble left the dock (tap-anywhere hold, 2026-08-01): the breath now
+       preempts and resumes the pill by DIRECT calls from Game.grace - watching the
+       dock for a bubble that never comes would be dead machinery. The observer stays
+       retired rather than deleted so this note survives. */
     const dock=$("dock"); if(!dock || Alder._mo) return;
-    Alder._mo=new MutationObserver(()=>{
-      if(document.querySelector(".gracebubble")){ if(Alder.cur) Alder._preempt(); }
-      else setTimeout(()=>Alder._pump(), 400);
-    });
-    Alder._mo.observe(dock, {childList:true});
+    Alder._mo=true; // retired: Game.grace calls _preempt()/_pump() itself
     // the quiet-window ticker: drains the pocket when the player is breathing - and an
     // unfolded (or still-folded-but-clipped) line leaves on the reader's next drop
     Alder._tick=setInterval(()=>{
@@ -5253,8 +5308,8 @@ const FT = {
     FT.note("spell <b>TEN</b> one more time");
     const gr=await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("tap 🌱 <b>HOLD</b> - holding <b>keeps the letters</b> instead of clearing them");
-    const hb=gr.bubble.querySelector(".ghold"); if(hb) FT.ringEl(hb);
+    FT.note("🌱 <b>tap anywhere</b> - holding <b>keeps the letters</b> instead of clearing them");
+    FT.ringEl(gr.bubble);   // the ring lands on the breath banner - the invitation itself
     await FT.wait("held");
     g.mustHold=false;
     document.querySelectorAll(".ftue-ring").forEach(e=>e.remove());
@@ -7796,7 +7851,7 @@ const Game = {
         // one thing that could have rescued the player was disqualified by the thing that
         // trapped them. Tips no longer block anything, so they are no excuse to stay stuck.
         const surface = document.querySelector(".overlay.active")
-          || document.querySelector(".gracebubble")
+          || document.querySelector(".wordbanner.breath")
           || document.querySelector(".ftue-scrim");
         if(surface) return;
         console.warn("[hushwood] watchdog: releasing a stuck board");
@@ -8600,12 +8655,13 @@ const Game = {
     await wait(900);
   },
 
-  /* 🌱 THE GRACE - one rule for every word you make. This replaces TWO overlapping
-     systems (a bloom-pause that only tools got, and a sprout that only lone 3-letter
-     words got) that players could not tell apart. Now, dead simple: any word YOU
-     form - by drop or by tool - lights up and waits a breath. Tap 🌱 hold and the
-     board keeps it for you to build bigger. Do nothing and it blooms, points and
-     all. Tap the board and it blooms right now - patience is never taxed.
+  /* 🌱 THE GRACE - one rule for every word you make. Any word YOU form - by drop or
+     by tool - lights up and waits a breath (P.breathMs, the menu's 1-5s setting).
+     TAP ANYWHERE and the board keeps it for you to build bigger; do nothing and it
+     blooms, points and all. The invitation lives in the word banner at the board's
+     top («"EAT" · tap to hold» with the draining clock line). There is NO hurry
+     gesture anymore - it was the opposite verb on the same surface as holding;
+     speed lives in the breath setting now.
      Three things never pause, each because pausing would break a promise:
      cascades (they are the game paying you), an undiscovered true name (the
      creature must wake - held, CAT could become CATS and the cat never met),
@@ -8625,26 +8681,49 @@ const Game = {
       boardEl.appendChild(bx); return bx;
     });
     const noHold = !!(S.guide && S.guide.noHold);   // a lesson beat that must end in a bloom
-    const b=document.createElement("div"); b.className="gracebubble";
-    b.innerHTML=(noHold ? '<span class="gwait">🌸 clearing…</span>'
-                        : '<button class="ghold">🌱 HOLD</button>')+'<i class="gbar"></i>';
-    $("dock").appendChild(b);   // a pill above the tray - same place, every single time.
-    // the word itself is named by the glow on the board, not repeated down here.
+    /* 🌱 TAP-ANYWHERE HOLD (2026-08-01, the data-driven redesign). The bubble button
+       is gone: during the breath the WHOLE SCREEN is the hold surface. The export
+       showed fingers already live on the board in this window (264 board-taps inside
+       the old 2s pause) and that 21 of 31 players pressed the old button but never
+       adopted it - a 2-second race to a 92px capsule. The word banner at the board's
+       top carries the invitation; tapping anywhere keeps the word. Tap-to-hurry is
+       REMOVED with it: it was the opposite verb on the same surface, and speed now
+       belongs to the breath setting (menu, 1-5s) instead of a gesture. */
+    const mustHold = S.guide && S.guide.mustHold;   // lesson 3: waits for the tap itself
+    const breath = Math.max(1000, Math.min(5000, P.breathMs||2000));
+    const banner=document.createElement("div");
+    banner.className="wordbanner breath"+(noHold?" nohold":"");
+    banner.innerHTML = noHold ? '🌸 clearing…'
+      : '<b>'+words.map(w=>w.word.toUpperCase()).join(" · ")+'</b>'
+        +'<span class="wb-tap">'+(mustHold?'tap to keep it':'tap to hold')+'</span>'
+        +(mustHold?'':'<i class="wb-clock" style="animation-duration:'+breath+'ms"></i>');
+    boardEl.appendChild(banner);   // inside the board frame - cannot collide with HUD or pills
     Snd.tone(1046,{dur:.3,type:"sine",gain:.05,verb:true}); Snd.tone(1318,{dur:.4,type:"sine",gain:.04,when:.15,verb:true});
-    if(!S.guide) UI.say("grace", "a word pauses a breath, then clears on its own - tap 🌱 <b>HOLD</b> to keep its letters and grow them", 2);
-    FT.signal("graceShown",{bubble:b,words});
-    let held=false, skip=false;
-    { const hb=b.querySelector(".ghold"); if(hb) hb.onclick=e=>{ e.stopPropagation(); held=true; }; }
-    ["pointerdown","pointerup"].forEach(ev=>b.addEventListener(ev,e=>e.stopPropagation()));
-    const hurry=()=>{ skip=true; };
-    // lesson 3's teaching beat: the word waits for the 🌱 tap itself - no clock, no
-    // hurry, the countdown bar hidden. The only way forward is the thing being taught.
-    const mustHold = S.guide && S.guide.mustHold;
-    if(mustHold){ const bar=b.querySelector(".gbar"); if(bar) bar.style.display="none"; }
-    else boardEl.addEventListener("pointerdown", hurry);
-    for(let i=0; mustHold ? !held : (i<20 && !held && !skip); i++) await wait(100); // ~2s to decide - a tap anywhere hurries it
-    boardEl.removeEventListener("pointerdown", hurry);
-    b.remove();
+    if(!S.guide) UI.say("grace", "a word pauses a breath - <b>tap anywhere</b> to keep its letters and grow them", 2);
+    if(Alder.cur) Alder._preempt();   // RULE ZERO by direct call - the breath owns the moment
+    FT.signal("graceShown",{bubble:banner,words});
+    let held=false;
+    // the whole screen holds - except the controls that keep their own jobs.
+    // THE TAP IS SPENT BY THE HOLD: once it means "keep the word" it must never
+    // also mean "drop a tile" - the gesture is swallowed whole (down, up and click),
+    // exactly as the old bubble swallowed its own taps. Without this, holding on
+    // the board dropped the next letter with the same finger (caught by designer).
+    const EXEMPT="#game-menu-btn,#home-menu-btn,#breezepill,#wishbtn,#menu-panel,#menu-scrim,#ov-debug,.overlay.active";
+    const swallow=e=>{ e.stopPropagation(); e.preventDefault(); };
+    const breathTap=e=>{
+      if(noHold) return;
+      if(e.target && e.target.closest && e.target.closest(EXEMPT)) return;
+      held=true; swallow(e);
+      ["pointerup","click"].forEach(ev=>
+        document.addEventListener(ev, function once(x){ swallow(x);
+          document.removeEventListener(ev, once, true); }, true));
+    };
+    document.addEventListener("pointerdown", breathTap, true);
+    for(let i=0, n=Math.round(breath/100); mustHold ? !held : (i<n && !held); i++) await wait(100);
+    document.removeEventListener("pointerdown", breathTap, true);
+    if(!held && !noHold) Game.tallyEv("breathto");   // resolved untapped - the adoption instrument
+    banner.remove();
+    setTimeout(()=>Alder._pump(), 400);   // the wood may speak again
     boxes.forEach(bx=>bx.remove());
     cells.forEach(t=>t.inner.classList.remove("lit"));
     if(held){
@@ -9325,6 +9404,17 @@ const UI = {
     $("grove-badge").textContent=n;
     $("grove-badge").style.display = n ? "flex" : "none"; // a zero badge is noise, and at 10px "0" reads as "8"
   },
+  /* 🌱 the breath setting - how long a made word waits before it clears (1-5s).
+     One tap cycles; the value rides P and persists. Replaces tap-to-hurry. */
+  breathCycle(){ Snd.init();
+    const secs = Math.round((P.breathMs||2000)/1000);
+    P.breathMs = (secs>=5 ? 1 : secs+1)*1000; save();
+    UI.breathLabel();
+  },
+  breathLabel(){
+    const el=$("menu-breath-state");
+    if(el) el.textContent = Math.round((P.breathMs||2000)/1000)+"s · a word waits this long";
+  },
   menuToggle(open){ Snd.init();
     const on = open===undefined ? !$("menu-panel").classList.contains("on") : open;
     $("menu-panel").classList.toggle("on", on);
@@ -9332,6 +9422,7 @@ const UI = {
     $("menu-panel").classList.toggle("ingame", !!(S && !S.over && $("scene-game").classList.contains("active")));
     $("menu-scrim").classList.toggle("on", on);
     if(on){ $("hm-streak").textContent=P.streak||0;
+      UI.breathLabel();
       const q=dailyQuest();
       // the quest is a promise of a reward - show the goal, the progress, and the prize,
       // not a bare grey whisper that reads like placeholder text
@@ -9361,7 +9452,7 @@ const UI = {
   },
   goalStrip(){ // every ask of the round, one segment each - built to hold SEVERAL
     const gs=$("gs-goals"); if(!gs || !S) return;
-    const segs=[]; let nameSeg="";
+    const segs=[];
     // ONE BUILDER for every ask. A long ratio steps its own type down rather than growing
     // wide enough to shove the moves onto a second line - 625/625 at full size is wider
     // than the centre of the strip has to give.
@@ -9381,7 +9472,7 @@ const UI = {
       return '<div class="gseg'+(met?" metdone":"")+'">'
         +'<div class="gs-track"><i style="transform:scaleX('+pct+')"></i>'
         +'<span class="gs-txt">'+inner+'</span>'
-        +'<span class="gs-txt onfill" style="clip-path:inset(0 '+((1-pct)*100)+'% 0 0)">'+inner+'</span>'
+        +'<span class="gs-txt onfill" aria-hidden="true" style="clip-path:inset(0 '+((1-pct)*100)+'% 0 0)">'+inner+'</span>'
         +'</div></div>';
     };
     const goalMode=S.goal && S.goal.t!=="hush";
@@ -9398,24 +9489,29 @@ const UI = {
     }
     if(S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord];
-      /* THE STRIP LEADS WITH THE ASK. The name is the wood's to speak now, so the blanks
-         and the letter-glow mercy died with the spelling test - a strip that headlines
-         the one thing that no longer matters teaches the wrong game (caught in review,
-         loudly). The silhouette keeps the mystery; the counter IS the objective, and it
-         never goes blank: even a waived ask says what is happening. */
+      /* THE ASK IS THE HEADLINE, NOT A FOOTNOTE. It used to render as a 10px grey line
+         tucked under the score bar - the one thing that DECIDES the round, dressed as
+         an afterthought while the score (which decides nothing here) wore the full pill
+         (designer, on device). The ask is a first-class track now: same size as the
+         score, its own colour, placed FIRST - and the score stands behind it, second. */
       const cg=Game.courtship(g);
       const waived=(P.nameFails[S.tutorWord]||0)>=2;
       const have=cg ? Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0) : 0;
-      const askTxt = waived ? "it likes you regardless - one more word"
-        : cg ? ((have>=cg.n?"💚 ":"")+have+"/"+cg.n+" "+signNoun(cg.sign))
-        : "make words";
-      nameSeg='<div class="gseg gname">🎭 <span class="sil">'+UI.silTag(g.w)+'</span> <i class="gask">'+askTxt+'</i></div>';
+      const need=cg ? cg.n : 1;
+      const lbl = "🎭 " + (waived ? "any 1 word - it likes you" : (cg ? signNoun(cg.sign) : "words"));
+      segs.unshift(seg(have>=need, waived?0:have, waived?1:need, lbl)
+        .replace('class="gseg','class="gseg askseg'));
     }
     gs.innerHTML=segs.join("");
     // a crown trial asks two things at once, so the centre carries three pods
 
     const gn=$("gs-name");
-    if(gn){ gn.innerHTML=nameSeg; gn.classList.toggle("on", !!nameSeg); }
+    if(gn){ gn.innerHTML=""; gn.classList.remove("on"); }   // the footnote row is retired
+    /* THE BOARD RE-FITS WHEN THE STRIP CHANGES SHAPE. A meeting adds a second track and
+       the column below shifts - fitBoard() had already run against the old height, so
+       the scaled board overflowed its wrap upward and the friends' pips sat ON the
+       board's top edge (measured: -1px). One deferred refit closes the loop. */
+    requestAnimationFrame(()=>{ try{ fitBoard(); }catch(e){} });
   },
   miniTile(t, size, font){
     const el=document.createElement("div");
@@ -9643,12 +9739,22 @@ const UI = {
       if(S.tutorWord){
         $("ev-grove").innerHTML = '<span class="sil" style="font-size:34px">'+UI.silTag(S.tutorWord)+'</span><br>'
           + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">it waited all night… its name is still hiding here - <b>try again</b></span>';
-      } else
+      } else {
+      // the gap line must speak the round's OWN win condition: on a goal round
+      // ("harvest the gold", "clear the brambles") points cannot win, so telling the
+      // player how many points they were short is a lie wearing encouragement's clothes
+      const gl=S.goal, isGoal = !!(gl && gl.t && gl.t!=="hush");
+      const left = isGoal ? Math.max(1,(gl.need||0)-(gl.have||0)) : gap;
+      const gapLine = isGoal
+        ? (left<=2 ? "only <b>"+left+"</b> more to clear - you nearly had it!"
+                   : (eq.length? "your friends believe in you - " : "")+"<b>"+left+"</b> still to clear")
+        : (gap<=10 ? "only <b>"+gap+"</b> points to go - you nearly had it!"
+                   : (eq.length? "your friends believe in you - " : "")+"<b>"+gap+"</b> points to go");
       $("ev-grove").innerHTML = (eq.length?eq.map(g=>"<span>"+(UI.artTag(g.w,"evimg")||g.e)+"</span>").join(" ")+"<br>":"")
         + '<span style="font-size:12px;color:var(--dim);letter-spacing:normal">'
-        + (gap<=10 ? "only <b>"+gap+"</b> points to go - you nearly had it!"
-                   : (eq.length? "your friends believe in you - " : "")+"<b>"+gap+"</b> points to go")
+        + gapLine
         + '</span>';
+      }
     }
     // WHAT WAITS NEXT - the reason to tap "next level" instead of putting it down
     { const pull=$("ev-pull");
