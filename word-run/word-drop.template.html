@@ -3374,7 +3374,7 @@
         <button class="cardx" onclick="Game.closeBuy()" aria-label="close">✕</button>
         <div id="buy-icon">🍃</div>
         <div id="buy-title">Another breeze?</div>
-        <div id="buy-body">your breezes are spent - the wood will sell you one</div>
+        <div id="buy-body">you have no breezes left. A breeze swaps any two letters on the board.</div>
         <div id="buy-price"><b id="buy-cost">20</b> 🟠</div>
         <div id="buy-purse">you have <b id="buy-have">0</b> 🟠</div>
         <div class="buy-btns">
@@ -4996,7 +4996,7 @@ const Shop={
   },
   async buy(sku){
     const it=SHOP_ITEMS.find(x=>x.sku===sku); if(!it) return;
-    if(it.once && P.purchases[sku]){ UI.chip("🎒 already yours - the wood remembers"); return; }
+    if(it.once && P.purchases[sku]){ UI.chip("🎒 you already own this"); return; }
     Game.track("purchase_start",{sku});
     if(!Shop.provider){
       Game.track("purchase_unwired",{sku});
@@ -5497,9 +5497,18 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
      It also ends the collision the inventory turned up: the ask used to be posted as a
      P2 message, competing with 35 pet-power call sites at the same priority, where P2
      coalescing meant one of them died silently on any drop that did both. */
+  /* ══ THE RESTING LINE SAYS WHAT TO DO ══
+     It used to read "the wood is listening", which is atmosphere standing where an
+     instruction belongs. A player glancing at the bar wants one thing from it: what
+     finishes this round. In a goal round that is the ask; in an ordinary round it is
+     the score, so say the score. Never a mood, always a target. */
   restLine(){
-    try{ if(typeof S!=="undefined" && S && S._toldGoal) return S._toldGoal; }catch(e){}
-    return "the wood is listening";
+    try{
+      if(typeof S==="undefined" || !S) return "";
+      if(S._toldGoal) return S._toldGoal;
+      if(S.target) return "reach "+S.target+" points";
+    }catch(e){}
+    return "";
   },
   rest(){
     const el=$("alder"); if(!el) return;
@@ -5507,7 +5516,7 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
     const t=el.querySelector(".atxt"); if(!t) return;
     const line=Alder.restLine();
     const f=Alder._fit(line);
-    t.innerHTML = (f.head===null) ? "the wood is listening" : f.head;
+    t.innerHTML = (f.head===null) ? line : f.head;
     el.querySelector(".aface").innerHTML = Alder.roundFace();
     el.classList.add("on");
     el.classList.remove("msg","more");
@@ -5544,13 +5553,23 @@ const Alder = { Q:[], pocket:[], cur:null, _hideT:null, _pageCb:null,
   },
   /* tapped at rest: the round's terms in full, which is the one thing a player may want
      to re-read and the bar can only ever summarise */
+  /* tapped at rest: the round's terms in full, and MORE than the bar could show - the
+     bar states the ask, the window adds how you are doing against it. */
   restWindow(){
-    let s="";
+    let s="", g="";
     try{
-      if(typeof S!=="undefined" && S && S._toldGoal) s="This round asks you to "+S._toldGoal+".";
+      if(typeof S!=="undefined" && S){
+        if(S._toldGoal){
+          s="To finish this round: "+S._toldGoal+".";
+          g="Spell words next to a piece to clear it. Moves left: "+S.movesLeft+".";
+        } else if(S.target){
+          s="To finish this round, reach "+S.target+" points.";
+          g="You have "+(S.levelScore||0)+". Longer words score much more than short ones. Moves left: "+S.movesLeft+".";
+        }
+      }
     }catch(e){}
-    if(!s) s="The wood is quiet. Spell what you can, and it will answer.";
-    Alder.pageData({ s, b:Alder.roundFace() });
+    if(!s) s="Spell words to score. Clear the target and the round is yours.";
+    Alder.pageData({ s, g, b:Alder.roundFace() });
   },
   /* rule zero, mechanically: the dock observer preempts the pill the frame the
      grace bubble lands, and hands the stage back 400ms after it goes */
@@ -6010,7 +6029,13 @@ const FT = {
     FT.note("drop the <b>T</b> - spell <b>TEN</b>");
     const gr=await FT.wait("graceShown");
     FT.clearHand(); FT.clearNote();
-    FT.note("the word pauses… then <b>clears</b> by itself. tap the board to hurry it");
+    /* NOT "tap the board to hurry it". Tap-to-hurry was replaced by tap-anywhere-to-HOLD,
+       so that instruction now does the OPPOSITE of what it promises - and worse, this
+       beat waits on "wordCleared", which the tap it just asked for actively prevents.
+       A player who followed the tutorial's own instruction stalled the tutorial.
+       Lesson 3 is where the tap is taught, and it teaches it correctly. Here the word
+       simply clears on its own, so say that and ask for nothing. */
+    FT.note("the word waits a moment, then <b>clears by itself</b>");
     await FT.wait("wordCleared");
     FT.clearNote();
     await wait(900);                    // a clean breath - never two instructions at once
@@ -8198,10 +8223,14 @@ const Game = {
     UI._buyKind=kind;
     $("buy-icon").textContent   = kind==="swap" ? "🍃" : "🌟";
     $("buy-title").textContent  = kind==="swap" ? "Another breeze?" : "Another wish?";
+    /* SAY WHAT IT DOES, not who is selling it. "the wood will sell you one" tells a
+       player nothing they can act on at the moment they are deciding to spend. The
+       point of sale is the worst place in the game to be atmospheric: name the tool,
+       name what it does, and for the short-of-amber case say exactly how to get more. */
     $("buy-body").innerHTML     = poor
-      ? "you do not have enough amber for this yet - <b>win rounds</b> and it gathers"
-      : (kind==="swap" ? "your breezes are spent - the wood will sell you one"
-                       : "your wishes are spent - the wood will sell you one");
+      ? "you need <b>"+(cost-have)+" more</b> 🟠 - amber comes from clearing troubles and finishing rounds"
+      : (kind==="swap" ? "you have no breezes left. A breeze <b>swaps any two letters</b> on the board."
+                       : "you have no wishes left. A wish <b>turns your letter into any letter</b> you choose.");
     $("buy-cost").textContent   = cost;
     $("buy-have").textContent   = have;
     $("ov-buy").classList.toggle("poor", poor);
