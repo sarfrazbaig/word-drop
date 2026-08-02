@@ -2674,6 +2674,11 @@
     border-radius:14px; padding:11px 14px 9px; font-size:14px; font-weight:700; color:var(--ink); text-align:center;
     line-height:1.45; box-shadow:0 12px 34px rgba(20,14,44,.55); animation:bannerin .25s; }
   .ftue-callout small{ display:block; font-weight:600; font-size:12px; color:var(--dim); margin-top:2px; }
+  /* a beat has no target to point at - it is about the round, not about a widget - so it
+     centres on the stage rather than hanging off an arrow. Wider than a callout because
+     it carries a whole thought rather than a label. */
+  .ftue-callout.ftue-beat{ width:262px; left:50%; top:46%;
+    transform:translate(-50%,-50%); padding:15px 18px 11px; font-size:15px; }
   .ftue-callout .ftue-tap{ margin-top:7px; font-size:10px; letter-spacing:2px; color:var(--accent-deep);
     font-weight:800; animation:tapblink 1.4s infinite; }
   .ftue-arrow{ position:absolute; z-index:192; font-size:18px; color:#fffdf6; transform:translateX(-50%);
@@ -6048,6 +6053,35 @@ const FT = {
     h.style.top=Math.max(2, land*STEP - hh + 4)+"px";    // fingertip at the cell's lip
     FT._hand=h; },
   clearHand(){ if(FT._hand){ FT._hand.remove(); FT._hand=null; } },
+  /* ══ A BEAT IS READ, A NOTE IS GLANCED ══
+     Notes are live instructions ("drop the T") - they belong beside the thing you are
+     doing and they should vanish when you do it. But the lesson also used notes to
+     EXPLAIN what just happened ("that 4-letter word earned you a star"), and those were
+     posted a frame before the resolve that cleared them: the text appeared and was wiped
+     inside the same animation. Unreadable, and the player is left with a reward they
+     never learned they had.
+     A beat holds the stage. It dims the board, says one thing, and waits for a tap -
+     reading speed belongs to the reader. The safety timeout is generous rather than
+     absent so a lesson can never strand someone who put the phone down mid-beat. */
+  beat(html, safetyMs){
+    return new Promise(res=>{
+      FT.clearNote();
+      const app=$("app");
+      const scrim=FT.bit(document.createElement("div")); scrim.className="ftue-scrim";
+      const b=FT.bit(document.createElement("div")); b.className="ftue-callout ftue-beat";
+      b.innerHTML=html+'<div class="ftue-tap">TAP TO CONTINUE</div>';
+      app.appendChild(scrim); app.appendChild(b);
+      Snd.tone(880,{dur:.09,type:"sine",gain:.05,verb:true});
+      let done=false;
+      const finish=e=>{ if(done) return; done=true;
+        if(e) e.stopPropagation();
+        FT.lastDismiss=Date.now();          // the lift must not also spend a move
+        clearTimeout(t); scrim.remove(); b.remove(); res(); };
+      const t=setTimeout(finish, safetyMs||12000);
+      scrim.addEventListener("pointerdown",finish,{once:true});
+      b.addEventListener("pointerdown",finish,{once:true});
+    });
+  },
   ringCell(r,c){ const g=FT.bit(document.createElement("div")); g.className="ftue-ring";
     g.style.left=(c*STEP-4)+"px"; g.style.top=(r*STEP-4)+"px";
     g.style.width=(CELL+2)+"px"; g.style.height=(CELL+2)+"px";
@@ -6173,9 +6207,12 @@ const FT = {
     clearTimeout(helpT); FT.helpSwap=null;
     Game.track("lesson_swap",{ tries:FT.swapTries||0, helped:!!FT.swapHelped });
     document.querySelectorAll(".ftue-ring").forEach(e=>e.remove());
-    FT.clearNote(); FT.note("a 4-letter word - it will clear on its own. it also earned you a 🌟 <b>star</b>!");
-    await FT.wait("wordCleared");
+    /* AFTER the clear, not before it. This used to be posted while GLOW was still
+       resolving and wiped by the very event it was describing - the player earned their
+       first star and never found out. Let the word land, then say what it bought. */
     FT.clearNote();
+    await FT.wait("wordCleared");
+    await FT.beat("🌟 <b>GLOW</b> was four letters long<br><small>four-letter words earn you a <b>wish</b> - a star that becomes any letter you need</small>");
     P.said.grace=2; save();
     S.guide=null;
   },
@@ -6236,8 +6273,10 @@ const FT = {
       const c=rand(w.cells);
       c.letter=drawLetter(); c.inner.innerHTML=c.letter.toUpperCase()+"<small>"+VAL[c.letter]+"</small>";
     }
-    FT.note("the board is yours - clear "+S.target+" with drops, breezes, holds 🌿");
-    setTimeout(()=>FT.clearNote(), 4200);
+    /* the handoff is the single most important sentence in the prologue - it is the moment
+       the lesson stops driving and the player does. It was a 4.2-second note, which is a
+       glance, not a briefing. */
+    await FT.beat("🌿 <b>the board is yours</b><br><small>reach <b>"+S.target+"</b> points before your moves run out - drop letters, swap with a 🍃 breeze, and hold a word to grow it</small>");
     S.guide=null; // training wheels off - the purr waits for the WIN card, where it belongs
   },
   async lesson5(){ // the cat is awake - show where friends STAND, what wakes them, and the Book
@@ -12221,7 +12260,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802212153",
+  ver:"20260802212830",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
