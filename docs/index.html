@@ -2189,8 +2189,10 @@
   .seatmark b{ top:42%; transform:translateY(-50%);
     font-size:30px; font-weight:900; line-height:1;
     color:var(--alder-ink, rgba(62,50,32,.72)); }
-  .seatmark i{ bottom:7px; font-style:normal; font-size:var(--hud-lbl,12px); font-weight:900;
-    letter-spacing:.04em; line-height:1; text-transform:lowercase;
+  /* a step ABOVE the shell's label: this one sits on a busy pane under a big glyph and
+     has to be read at a glance, where "moves" has a numeral beside it doing half the work */
+  .seatmark i{ bottom:7px; font-style:normal; font-size:14px; font-weight:900;
+    letter-spacing:.03em; line-height:1; text-transform:lowercase;
     color:var(--alder-ink, rgba(62,50,32,.8)); }
   /* the countdown badge: the NEXT pet to act wears the words-to-go number */
   /* the wake countdown is the most-read number on the shelf and it was 16px wide at 11px
@@ -7979,7 +7981,10 @@ const Game = {
 
     // hints are onboarding only (levels 1-2): with real stakes, the game must not solve itself
     if(S.clearedThisDrop){ S.deadDrops=0; S.idleNudges=0; }
-    else { S.deadDrops++; if(S.deadDrops===2 && S.level<=2 && !S.guide) setTimeout(()=>UI.nudge(), 350); } // lessons coach themselves
+    /* deadDrops is still counted - the deck reads it to soften what it deals (see the
+       mercy checks) - but it no longer summons the hint rings. A dry spell changes what
+       arrives in your hand, not what the board tells you to do with it. */
+    else { S.deadDrops++; }
     S.drops++;
     // A DROP IS AN EVENT, and so is the letter itself. This is what keeps something
     // ticking even on a turn that spells nothing - the friend counting consonants took
@@ -11417,42 +11422,25 @@ const UI = {
     if(e && e.target.closest(".card")) return;
     $("m-stats").classList.remove("active");
   },
-  nudge(){
-    if(!S || S.busy || S.over || S.won || S.nudging) return;
-    S.nudging=true;
-    UI.hints();
-    setTimeout(()=>{
-      S.nudging=false;
-      document.querySelectorAll(".killcell").forEach(e=>{ e.style.opacity=0; setTimeout(()=>e.remove(),520); });
-      const ct=document.querySelector("#currentwrap .tile"); if(ct) ct.classList.remove("glint");
-      S.killers={};
-    }, 2400);
-  },
+  /* retired with the hint rings - kept as a no-op because the stuck-detector and the
+     dead-drop counter still call it, and a missing function there would throw inside a
+     timer nobody is watching. */
+  nudge(){ },
   hadKillers:false,
+  /* ══ THE GAME DOES NOT PLAY ITSELF ══
+     This scanned every column for a word your letter would finish and ringed the landing
+     cells in gold, unasked, whenever a player went quiet or dropped twice without
+     clearing. It is the single most powerful thing on the screen: once it fires there is
+     no puzzle left, only the ring to tap - and a player who has been shown the answer has
+     not solved anything, so the next round teaches them nothing either.
+     It is gone. The board stays silent and the player reads it themselves.
+     NOTE: Game.petHint (Bright Eyes) draws the same rings and STAYS - that is a power a
+     player chose to bring, spent a seat on, and asked for. Being handed the answer by a
+     friend you equipped is a reward; being handed it for hesitating is a correction. */
   hints(){
     S.killers={};
-    document.querySelectorAll(".killcell").forEach(e=>e.remove());
-    const piece = S.cur;
-    const scanning = S.nudging && !S.over && !S.won && !S.busy;
-    if(scanning){
-      for(let c=0;c<COLS;c++){
-        const w=wouldClear(piece,c);
-        if(w){
-          S.killers[c]=w;
-          let land=ROWS-1; while(land>=0 && S.board[land][c]) land--;
-          const m=document.createElement("div"); m.className="killcell";
-          m.style.width=CELL+"px"; m.style.height=CELL+"px";
-          m.style.left=(c*STEP)+"px"; m.style.top=(land*STEP)+"px";
-          boardEl.appendChild(m);
-        }
-      }
-    }
-    const n=Object.keys(S.killers).length;
-    if(n && !UI.hadKillers){
-      Snd.tone(1319,{dur:.14,type:"sine",gain:.05,verb:true});
-      Snd.tone(1760,{dur:.2,type:"sine",gain:.04,when:.09,verb:true});
-    }
-    UI.hadKillers = n>0;
+    document.querySelectorAll(".killcell,.droplabel").forEach(e=>e.remove());
+    UI.hadKillers=false;
   },
   shards(r,c,color){
     for(let i=0;i<6;i++){
@@ -12206,18 +12194,12 @@ boardEl.addEventListener("pointerup", e=>{
 document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
 
 /* (idle tile sparkle removed - playtesters read random shine as "drop your tile HERE".
-   only deliberate signals may light a tile: hints, word clears, and pet powers.) */
+   only deliberate signals may light a tile: word clears, and pet powers.) */
 
-/* stuck nudge - onboarding only: after level 2 the player is on their own */
-setInterval(()=>{
-  if(!S || S.level>2 || S.over || S.won || S.busy || S.nudging || S.idleNudges>=2) return;
-  if(!$("scene-game").classList.contains("active")) return;
-  if(Date.now()-S.lastAction > 8000){
-    S.idleNudges++;
-    S.lastAction = Date.now();
-    UI.nudge();
-  }
-}, 1000);
+/* THE STUCK NUDGE IS GONE. It watched for eight seconds of stillness and then ringed
+   every winning column in gold - so a player who paused to THINK was answered by being
+   shown the answer, which is the one response that guarantees they never work it out.
+   Thinking is not being stuck. The board waits as long as you like now. */
 
 /* ============ 📡 PLAYTEST TELEMETRY ============
    Records what each tester DOES and what the game SHOWED them, so a shared link
@@ -12239,7 +12221,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802211721",
+  ver:"20260802212153",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
