@@ -868,17 +868,67 @@
      centred in the speaking band, touching neither the board nor the dock. The bubble
      shipped 44px tall on a 12px anchor and its crown brushed the board's bottom edge
      (designer caught it on device) - both surfaces are cut to one shared geometry now. */
-  /* 🌳 INTERIM: the pill parks at the board's TOP edge (the band below the board is
-     gone - the board sits against the dock now). The breath banner and the pill share
-     that top mark but never the same moment: the pill defers during a breath (RULE
-     ZERO by direct call). Proper home comes with the Alder widget pass. */
-  #alder{ position:absolute; left:50%; transform:translateX(-50%) translateY(-8px); top:8px;
-    z-index:69; display:flex; align-items:center; gap:8px; max-width:min(96%, 360px);
-    height:38px; overflow:hidden;
-    background:#fffdf6; border:2px solid var(--gold); border-radius:999px; padding:3px 12px 3px 4px;
-    box-shadow:0 4px 0 rgba(150,110,40,.25), 0 10px 22px rgba(90,60,30,.3);
-    opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease; }
-  #alder.on{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  /* ══ ALDER IS THE GROUND ══ (2026-08-02)
+     He is the floor of the party's basin: full width, rounded only at the bottom,
+     seamless with the bowl above him. He is ALWAYS THERE - ground does not blink -
+     and only his words come and go, so the layout never shifts under the player.
+     He is also the quietest surface up here on purpose: the country's own light,
+     softly. Two faults this fixes, both measured: he used to be the same width and
+     radius as the shell (twins, read as a rhyme), and near-white on sky (the
+     brightest thing on screen while carrying the most ambient content). */
+  /* margin-top cancels the scene's own 8px row gap: the ground must touch the basin
+     with NO seam, or the two stop reading as one object (and the 8px it reclaims is
+     clearance the board's painted rim needs - it draws ~5px outside its own box). */
+  #alder{ position:relative; width:100%; height:42px; margin-top:-4px; margin-bottom:0;
+    z-index:69; display:flex; align-items:center; gap:9px; overflow:hidden;
+    padding:0 15px 0 9px; border-radius:16px;
+    /* 88%, not 52%: at half transparency the painting showed through behind every
+       letter, so his line had no predictable backdrop and read as a ghost. Ground is
+       opaque; it recedes by being LOW-CONTRAST-COLOURED, not by being see-through. */
+    /* --tile-face is a GRADIENT, and color-mix() with a gradient is invalid, so the
+       biome rule silently killed the whole declaration and the ground rendered with
+       NO background at all - his words were sitting straight on the painting.
+       --board-bg is the country's solid tone; blended toward cream it gives an opaque,
+       country-tinted surface that ink can actually be read on. */
+    /* THE SAME SURFACE AS THE HUD. --tile-face is the token the shell paints with, and
+       it is what turns green in the First Clearing, brown in the Undercave and violet
+       further on. The ground is cut from that same cloth so the two ends of the top
+       area are one material, not two that happen to agree.
+       The INK is not declared here - alderTone() measures it against this gradient's
+       own stops (see there). */
+    /* ══ ONE VESSEL, AND THE GROUND IS ITS TROUGH ══
+       Three things were making this bar shout, and none of them was its size:
+         1. a 1.5px --tile-edge outline, which is what turns a surface into an OBJECT;
+         2. a drop shadow, and a shadow reads as RAISED, and raised reads as important;
+         3. the basin above it is a 15% ghost while this was a fully painted slab, so
+            the value jump at the seam announced a second thing bolted underneath.
+       So: the outline drops to the basin's own weight and colour, and continues its
+       line rather than drawing a new one - the two are a single vessel with one
+       silhouette. The drop shadow is gone and an INSET one takes its place along the
+       top edge, so the ground reads as carved INTO the basin instead of sitting on it.
+       Recessed is quieter than raised at identical size, and it is also the truer
+       metaphor: ground is a thing you stand in.
+       The fill stays --tile-face and stays OPAQUE. Translucency would let the painting
+       decide his backdrop per country, and then alderTone()'s measurement would be
+       describing a colour that is not actually behind the words. */
+    /* SOLID --vessel, not the --tile-face gradient. The shelf above arrives at --vessel
+       and holds it; if the ground restarted the gradient here the sweep would re-draw
+       the join as a shading step. One surface means one colour across it.
+       No outline, for the same reason the shelf has none - see #petbar. */
+    background:none;
+    /* THE BOARD'S OWN FRAME, on every pane: the same cream ring backed by the same
+       dusk ring that rims the play area, so glass and board wear one jewellery.
+       Drawn INSET rather than outward like the board's - the panes sit 4px apart and
+       outward rings from neighbours would collide in the seam. */
+    /* the ring does NOT live here: an inset shadow on the pane paints BENEATH the
+       ::before glass, whose backdrop-filter then blurs its own frame away. The ring
+       rides an ::after overlay above the glass instead - see the shared rule. */
+    border:none;
+    box-shadow:0 6px 20px rgba(10,8,4,.24);
+    opacity:1; pointer-events:auto; transition:background .3s ease; }
+  /* the words are what appears and vanishes, not the ground */
+  #alder .atxt{ opacity:0; transition:opacity .28s ease; }
+  #alder.on .atxt{ opacity:1; }
   #alder .atxt img{ height:17px; width:auto; vertical-align:-3px; border-radius:4px; }
   #alder .aface{ flex:none; width:30px; height:30px; border-radius:50%; overflow:hidden;
     background:linear-gradient(150deg,#eef3e2,#d9e4c8); border:1px solid rgba(120,140,90,.4);
@@ -886,7 +936,10 @@
   #alder .aface img{ width:100%; height:100%; object-fit:cover; display:block; }
   /* 14px, not 12.5: the pill is read at arm's length on a phone (designer: too small) */
   #alder .atxt{ font-family:var(--font-ui); font-size:14px; font-weight:700; line-height:1.2;
-    color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    /* --tile-ink, not --ink: the ground is cut from the country's own board tone now,
+       so his words must be inked from the same country or they drift off it. */
+    color:var(--alder-ink, var(--tile-ink, var(--ink))); white-space:nowrap; overflow:hidden;
+    text-overflow:ellipsis; }
   #alder .amore{ flex:none; font-family:var(--font-label); font-size:9.5px; letter-spacing:1px;
     color:var(--gold-deep,#8a6d1f); text-transform:uppercase; padding-left:2px; display:none; }
   #alder.more .amore{ display:block; animation:aldertap 1.6s ease-in-out infinite; }
@@ -902,8 +955,8 @@
   #alder.clip.more .amore{ display:none; }
   /* explicit width: an absolute box at left:50% shrink-fits to HALF the dock once its
      text is allowed to wrap, and the unfold came out as a narrow tower (seen live) */
-  #alder.exp{ height:auto; min-height:38px; width:min(96%, 360px); border-radius:18px;
-    align-items:flex-start; padding:7px 12px 8px 6px; }
+  #alder.exp{ height:auto; min-height:42px; width:100%; border-radius:0 0 16px 16px;
+    align-items:flex-start; padding:9px 14px 10px 9px; }
   #alder.exp .atxt{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.4; }
   #alder.exp .aface{ margin-top:1px; }
   /* an unfolded pill can stand over the bottom tile row, and a drop is not the only
@@ -1152,7 +1205,15 @@
      one at the edge, so a white swan and a black penguin both hold against any country. */
   #app.bgart .petface{
     background:none !important; box-shadow:none !important;
-    border-radius:0; overflow:visible; }
+    border-radius:0; overflow:visible;
+    /* AND THE GLASS GOES WITH THE PORCELAIN. This block clears the dark badge's fill and
+       shadow but used to leave its backdrop-filter behind, so every seat kept applying a
+       square blur+desaturate to whatever sat behind it. Invisible while the backdrop was
+       flat; the moment the party bar became glass it drew a hard lighter RECTANGLE around
+       each animal - the pets looked like they had a box baked into their artwork when the
+       PNGs are in fact fully transparent (measured: 52.5% clear pixels, zero alpha along
+       every edge). A filter you forget to clear is still a filter. */
+    -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
   #app.bgart .petface::before{ display:none; }        /* no glaze without porcelain */
   /* ══ AN EMPTY SEAT IS AN EMPTY SEAT ══ whatever the reason. I drew a recess here first, on
      the theory that a friend out on the board should leave a visible hollow behind; it looked
@@ -1196,13 +1257,31 @@
     text-shadow:0 1px 0 rgba(0,0,0,.62), 0 -1px 0 rgba(0,0,0,.5),
       1px 0 0 rgba(0,0,0,.5), -1px 0 0 rgba(0,0,0,.5), 0 2px 7px rgba(0,0,0,.5); }
 
+  /* THE DOCK IS THE SAME GLASS AS THE TOP PANES - one material for every shelf the
+     round owns, wearing the board's ring like the rest. The glass lives on a ::before
+     backing layer for the same reason the top panes' does: the dock's children carry
+     their own filters and shadows, and a backdrop-filter on the pane itself would
+     re-sample around each of them (the pet-square bug, once was enough). */
   #app.bgart #dock{
-    background:rgba(28,26,34,.42);
-    backdrop-filter:blur(11px) saturate(.9);
-    border:1.5px solid rgba(255,255,255,.28);
-    box-shadow:0 6px 0 rgba(8,7,12,.6), 0 14px 28px rgba(0,0,0,.34),
-      inset 0 1.5px 0 rgba(255,255,255,.28); }
-  #app.bgart .slotlabel{ color:#e8dfcf; }
+    background:none;
+    /* the ring does NOT live here: an inset shadow on the pane paints BENEATH the
+       ::before glass, whose backdrop-filter then blurs its own frame away. The ring
+       rides an ::after overlay above the glass instead - see the shared rule. */
+    border:none;
+    box-shadow:0 6px 20px rgba(10,8,4,.24); }
+  #app.bgart #dock::before{
+    content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit;
+    background:
+      linear-gradient(var(--glass-boost,transparent), var(--glass-boost,transparent)),
+      linear-gradient(148deg,
+        rgba(255,255,255,.12) 0%,
+        rgba(255,255,255,.06) 50%,
+        rgba(255,255,255,.09) 100%);
+    -webkit-backdrop-filter:blur(9px) saturate(1.35) brightness(1.06);
+    backdrop-filter:blur(9px) saturate(1.35) brightness(1.06); }
+  /* the dock's labels read the ink measured for the DOCK's slice of the painting -
+     set on #dock by alderTone, inherited here */
+  #app.bgart .slotlabel{ color:var(--alder-ink, #e8dfcf); }
   #app.bgart #movespill{
     background:rgba(28,26,34,.42);
     backdrop-filter:blur(11px) saturate(.9);
@@ -1448,6 +1527,114 @@
   #topbar #amberchip b{ font-size:12px; color:var(--dim); }
   /* ══ ROW ONE ══ gear, the round, the purse. */
   /* the round to the left edge, the purse to the right */
+  /* ══ THE SHELL ══ one object cut from the country's own tile material, holding the
+     two doors in its ends and the round's live numbers in its loud middle. */
+  /* ══ ONE PANEL, THREE ROOMS ══
+     The nav, the party and Alder used to be three separate plates floating on the
+     painting, each with its own outline, its own shadow and its own gaps - and every
+     attempt to quiet one of them just added another pale band to the stack. They are
+     one object now: a single silhouette, rounded at the top and bottom of the WHOLE
+     thing, with the rooms marked by hairline rules instead of by air.
+     This room is the top of the unit, so it keeps the lit inner edge and the radius;
+     it gives up its own drop shadow, which now belongs to the panel's bottom.
+     Solid --vessel across all three, not --tile-face: a gradient restarted in each
+     room would step at every divider and the unit would come apart again. */
+  /* ══ GLASS ══ the three rooms are separate panes again, but made of one material and
+     spaced by a hairline gap rather than by air. --glass-a is the tint strength, and it
+     is NOT a taste value: below about .58 the composite over a near-black country drops
+     under 4.5:1 and the words stop being readable. See alderTone(), which measures the
+     tint against the country's actual painting rather than trusting this number.
+     -webkit- is not optional; without it the blur silently does nothing on iOS. */
+  /* THE GLASS LIVES ON A BACKING LAYER, NOT ON THE PANE ITSELF. Put backdrop-filter on
+     the pane and every child that carries its own filter (the pets all have drop-shadows)
+     forces the browser to re-sample the backdrop per compositing layer - which drew a
+     visible lighter rectangle around each animal. Painting the glass into a ::before
+     behind the content keeps the children out of the backdrop entirely.
+     The panes already make stacking contexts of their own (z-index 2/2/69), so z-index:-1
+     sits behind their content without escaping to the scene beneath. */
+  /* ══ THE PAINTING GOES BEHIND THE WHOLE SCENE, NOT JUST THE BOARD ══
+     Glass is a REFRACTION effect - it works by bending what is behind it. Measured, the
+     backdrop behind the top area was a single flat colour, the same one in all fifteen
+     countries, so every blur up here was compositing over nothing and costing GPU for it.
+     The country's own painting now runs full-bleed behind the scene; the board still
+     paints its own copy on top, so the board reads as a window onto the same place. */
+  #app.bgart #scene-game{ background:var(--bgart) center/cover no-repeat; }
+  /* ══ LIQUID GLASS ══ four things together, none of which works alone:
+       1. a heavy blur with saturation PUSHED UP - real glass concentrates colour, and a
+          plain blur without it reads as fog;
+       2. an off-axis tint gradient, denser at the top-left and thinning across, so the
+          sheet has a direction instead of being a flat wash;
+       3. a bright rim on all four inner edges - the specular catch that says "edge of a
+          solid transparent object" rather than "translucent rectangle";
+       4. a soft drop shadow, so it floats above the painting instead of being cut into it.
+     The tint floor is the constraint: below ~.55 the composite over the darkest country
+     drops under 4.5:1 for the ink. Measured against the real JPEGs, not assumed. */
+  /* ══ FROSTED, NOT TINTED ══
+     The difference is which layer wins. A tint at 64% is PAINT: the country's light
+     never arrives and the pane reads as a cream bar no matter what is behind it.
+     Frosted glass lets the backdrop's colour and light through and merely SCATTERS it,
+     so the pane takes on the cave's amber or the violet country's dusk by itself.
+     Four ingredients, and the grain is the one people miss:
+       - a heavy blur, so shapes dissolve but light survives;
+       - saturation pushed up, because scattering concentrates colour (a plain blur
+         reads as fog precisely because it does not);
+       - brightness lifted, which is what makes frost look lit from within;
+       - GRAIN. Real frost scatters light off irregularities. Without it a blur is just
+         a blur - this is the single thing that separates "frosted" from "out of focus".
+         Generated inline as SVG turbulence, so it costs no request and no file.
+     The white haze is deliberately thin (22%). It is there to soften, not to cover. */
+  /* ══ CLEAR GLASS, NOT FROST ══
+     Transparent glass is the OPPOSITE recipe from frosted. Frost dissolves the backdrop
+     (heavy blur, grain, milk); clear glass keeps the backdrop RECOGNIZABLE and shows you
+     the surface instead: a light blur only - enough to say "there is a pane here", not
+     enough to erase what is behind it - a near-zero haze, and the pane's presence carried
+     almost entirely by its EDGES and its sheen. The diagonal streak is the tell that a
+     polished surface sits in front of the scene; without it a light blur reads as the
+     painting being slightly out of focus rather than as glass. */
+  /* rings tried and removed - the board's frame copied onto the glass read as heavy
+     picture-frames stacked down the screen, not as one family. The panes are edgeless:
+     the blur and the drop shadow alone say where the glass ends. */
+  #topshell::before, #petbar::before, #alder::before{
+    content:""; position:absolute; inset:0; z-index:-1; border-radius:inherit;
+    /* the diagonal sheen streak is GONE - a fixed white slash pretending to be a
+       reflection reads as fake precisely because it never moves and never answers the
+       scene's own light. The pane's presence is carried by the blur and its edges. */
+    background:
+      linear-gradient(var(--glass-boost,transparent), var(--glass-boost,transparent)),
+      linear-gradient(148deg,
+        rgba(255,255,255,.12) 0%,
+        rgba(255,255,255,.06) 50%,
+        rgba(255,255,255,.09) 100%);
+    -webkit-backdrop-filter:blur(9px) saturate(1.35) brightness(1.06);
+    backdrop-filter:blur(9px) saturate(1.35) brightness(1.06); }
+  #topshell{ position:relative; width:100%; display:flex; align-items:stretch; z-index:2;
+    /* overflow stays hidden: the menu well and the amber chip are flush to the ends and
+       rely on it to take the pane's rounded corners. */
+    height:58px; border-radius:16px; overflow:hidden;
+    background:none;
+    /* THE BOARD'S OWN FRAME, on every pane: the same cream ring backed by the same
+       dusk ring that rims the play area, so glass and board wear one jewellery.
+       Drawn INSET rather than outward like the board's - the panes sit 4px apart and
+       outward rings from neighbours would collide in the seam. */
+    /* the ring does NOT live here: an inset shadow on the pane paints BENEATH the
+       ::before glass, whose backdrop-filter then blurs its own frame away. The ring
+       rides an ::after overlay above the glass instead - see the shared rule. */
+    border:none;
+    box-shadow:0 6px 20px rgba(10,8,4,.24); }
+  /* HIERARCHY BY SIZE AND WEIGHT, NEVER BY OPACITY. Dimming text is the one tool that
+     also destroys legibility, and a third of these players are older eyes. The doors
+     recede by their tinted wells and smaller glyphs; their INK stays full strength.
+     (The cream colour below came from #app.bgart, where the button used to sit on a
+     painting - on the shell's light face it was cream on cream, effectively invisible.) */
+  #topshell #game-menu-btn, #app.bgart #topshell #game-menu-btn{
+    flex:none; width:50px; height:auto; border:none; box-shadow:none;
+    border-radius:0; border-right:1.5px solid var(--tile-edge); background:rgba(0,0,0,.07);
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+    color:var(--tile-ink); opacity:1; margin:0; padding:0; text-shadow:none; }
+  #ts-mid{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; padding:0 11px; }
+  #topshell #amberchip{ flex:none; width:74px; border-radius:0; border:none;
+    border-left:1.5px solid var(--tile-edge); background:rgba(0,0,0,.05);
+    display:flex; align-items:center; justify-content:center; gap:4px; padding:0; }
   #topbar{ position:relative; width:100%; display:flex; align-items:center;
     justify-content:space-between; gap:8px; z-index:2; padding:0 2px; min-height:44px; }
   /* --frame2 alone is a surface tint, too light to carry a small glyph; deepened here so
@@ -1512,9 +1699,89 @@
     box-shadow:0 1px 2px rgba(30,80,30,.4); }
 
   /* ══ ROW TWO ══ the ask, as a bar that fills. */
-  #goalstrip{ width:100%; display:flex; flex-direction:column; gap:3px; padding:0 4px; }
-  #gs-goals{ display:flex; flex-direction:column; gap:4px; }
-  .gseg{ display:flex; align-items:center; gap:7px; }
+  /* inside the shell now: the ask sits beside the moves, divided by a hairline */
+  /* THREE COMPARTMENTS, not two. The level used to ride on top of the moves in one
+     stack, which made a 10px caption look like a hat on the round's loudest number.
+     It gets its own walled cell now, the moves take the next one, and the ask takes
+     the third - each divided by the same hairline the menu already uses. */
+  #ts-mid #lvlbox{ flex:none; display:flex; align-items:center; justify-content:center;
+    min-width:44px; padding-right:10px;
+    border-right:1.5px solid color-mix(in srgb, var(--tile-edge) 55%, transparent); }
+  #ts-mid #movesbox{ flex:none; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; min-width:52px; padding-right:10px;
+    border-right:1.5px solid color-mix(in srgb, var(--tile-edge) 55%, transparent); }
+  /* 10px is the floor, and nothing here dims below full ink. 8px and 9px at half
+     opacity were the two worst offenders on the whole screen. */
+  #ts-mid #movesbox .mv-lbl{ font-size:10px; font-weight:900; letter-spacing:.1em;
+    color:var(--tile-ink); opacity:1; text-transform:uppercase; order:3; }
+  #ts-mid #movesbox #movesbig{ font-size:26px; font-weight:900; line-height:1;
+    color:var(--tile-ink); order:2; }
+  /* THE SHELL SPEAKS ONE TYPE. The level ran 10px Fraunces at two weights beside a
+     26px Nunito numeral - three voices in one bar. Now every compartment is the same
+     shape: a 10px caps label over a Nunito numeral, and only the SIZE of the numeral
+     carries rank (moves 26 as the hero, level 18, amber 16). */
+  #ts-mid #lvlbox #lvlcap{ color:var(--tile-ink); opacity:1; text-align:center; }
+  #ts-mid #lvlbox #lv-pre{ display:block; font-family:var(--font-ui);
+    font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase;
+    line-height:1.15; }
+  #ts-mid #lvlbox #h-level{ display:block; font-family:var(--font-ui);
+    font-size:18px; font-weight:900; line-height:1; }
+  /* the CHILDREN carried their own cream colour from the old dark-pill topbar, so
+     setting #lvlcap's colour did nothing - the visible glyphs are these two, and on
+     the shell's light face cream was invisible. */
+  #ts-mid #lvlbox #lvlcap #lv-pre,
+  #ts-mid #lvlbox #lvlcap #h-level,
+  #app.bgart #ts-mid #lvlcap #lv-pre,
+  #app.bgart #ts-mid #lvlcap #h-level{
+    color:var(--tile-ink) !important; font-style:normal; text-shadow:none; opacity:1; }
+  #topshell #amberchip b, #topshell #amberchip i{ color:var(--tile-ink); opacity:1; }
+  #topshell #amberchip b{ font-size:16px; font-weight:900; font-family:var(--font-ui); }
+  #goalstrip{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; padding:0; }
+  #gs-goals{ display:flex; flex-direction:row; align-items:center; justify-content:center;
+    gap:14px; min-width:0; width:100%; }
+  /* the ask is a stacked label+number, built exactly like the moves beside it */
+  /* glyph and plate are SIBLINGS in a row, the plate tucked into the glyph's lower-right
+     by a negative margin. An absolutely-placed badge grew leftward across the glyph and
+     a 3-digit score remainder (256) swallowed it whole - Royal Match's own counts are
+     one or two digits, so the shape has to earn its width here rather than borrow it. */
+  .gseg{ display:flex; flex-direction:row; align-items:flex-end; justify-content:center;
+    min-width:0; }
+  /* the glyph IS the ask - full size, and the count hangs off its corner */
+  .gseg .gs-ico{ flex:none; font-size:var(--gs-ico-size, 26px); line-height:1;
+    filter:drop-shadow(0 1px 1.5px rgba(40,28,8,.35)); }
+  /* SAME SIZE AND WEIGHT AS THE MOVES - the two numbers are peers. The round almost
+     always asks one thing, and one ask holds the moves' exact 26px.
+     WHY A FITTED SIZE AND NOT A PER-COUNT ONE: the game's real ceiling is TWO asks
+     (a meeting round and a crown trial are mutually exclusive - see beginLevel), but
+     the two pairs are nothing alike in width. A crown trial shows two short counts
+     (0/4, 0/4) that fit at full size; a meeting round shows the score beside the ask
+     (0/295, 0/3) and does not. Late rounds widen the score further. So the size is
+     measured against what is actually on screen, not guessed from how many pods. */
+  /* the count plate: dark, hung off the glyph's lower-right, sized to its own digits */
+  .gseg .gs-num{ flex:none; margin-left:-9px; margin-bottom:-2px; z-index:2;
+    min-width:17px; height:17px; padding:0 4px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:900; line-height:1; letter-spacing:0;
+    font-variant-numeric:tabular-nums; color:#fff8ea;
+    background:color-mix(in srgb, var(--tile-ink) 88%, #000);
+    border:1.5px solid color-mix(in srgb, var(--tile-face-edge, #fffaf0) 92%, transparent);
+    box-shadow:0 1px 2px rgba(30,20,6,.35); }
+  .gseg.metdone .gs-num{ background:#3f7a33; font-size:10px; }
+  /* ══ TEXT ON GLASS USES THE MEASURED INK ══
+     --tile-ink is a mid-tone COLOURED ink, and it was fine while these panels were opaque.
+     With the painting now showing through, it failed 4.5:1 in EIGHT of the fifteen
+     countries - 3.61:1 at worst - because the composite behind it is only as light as the
+     artwork allows. Alder's line never failed, because his was the ink being measured.
+     So the whole panel adopts that same measured ink. The country still speaks through the
+     glass's tint; it just stops being asked to carry legibility as well.
+     (The goal count is exempt - it is cream on its own dark plate, not ink on glass.) */
+  #topshell #game-menu-btn, #app.bgart #topshell #game-menu-btn,
+  #ts-mid #lvlbox #lvlcap,
+  #ts-mid #lvlbox #lvlcap #lv-pre, #ts-mid #lvlbox #lvlcap #h-level,
+  #app.bgart #ts-mid #lvlcap #lv-pre, #app.bgart #ts-mid #lvlcap #h-level,
+  #ts-mid #movesbox .mv-lbl, #ts-mid #movesbox #movesbig,
+  #topshell #amberchip b, #topshell #amberchip i{
+    color:var(--alder-ink, var(--tile-ink)) !important; }
   /* the words live inside the track now - there is no icon beside it */
   .gs-track{ flex:1; position:relative; height:23px; border-radius:999px; min-width:0;
     background:rgba(150,125,85,.17); overflow:hidden;
@@ -1644,7 +1911,53 @@
   /* the bar IS the paw meter: its edges warm up as the pets get closer to acting */
   /* margins traded top-for-bottom: the friends ride 4px higher so the speaking band
      beneath their labels broadens without the dock moving an inch. */
-  #petbar{ margin-top:4px; margin-bottom:6px; }
+  /* ══ THE BASIN ══ the party stands in a shallow bowl; Alder's bar below is its floor,
+     and the two share one silhouette with no seam between them. The floor padding is
+     what keeps the charge pips off the ground line. */
+  /* 130, not 118: a live seat is 105px tall (art + label + pips) and the basin must
+     hold it PLUS its floor padding, or the pips spill through the ground line.
+     Measured, not guessed: 105 seat + 13 top + 12 floor = 130. */
+  /* ══ A SHELF THE PARTY STANDS ON, NOT A TIDE THEY STAND IN ══
+     The previous fade ran transparent-to-solid across the WHOLE bar, and measurement
+     said 73% of that ramp landed directly on the animals - the steepest part of it
+     running from their bellies to their feet. A density change that crosses figure
+     artwork always reads as weather, never as a container, and it stops at an
+     arbitrary height on their bodies because there is no surface there to stop at.
+     So the ramp moves off them entirely. Measured on device: the art ends at 78.3% of
+     the bar and the pips end at 91%. The edge therefore lives in the gap between -
+     transparent through the friends, solid by 85% - so the party stands ON the shelf
+     and their pips sit ON it too. A shelf is allowed a crisp edge; that is what makes
+     it read as a surface rather than as fog.
+     It arrives at --vessel, the exact shade the ground begins at (lifted out of the
+     --tile-face gradient by alderTone, since CSS cannot reach inside one), so the
+     shelf and Alder's bar are one continuous surface with nothing to read as a seam.
+     NO OUTLINE. The shell above is the framed object - it holds the numbers you act
+     on. This is scenery, and an outline here made the two read as twin plates with a
+     slot between them, neither leading. Un-framing it is what says which one matters. */
+  /* THE MIDDLE ROOM. No radius - it is the middle of a panel, not a plate. Its top rule
+     is the divider between the nav and the party; the sides continue the unit's
+     outline. margin-top cancels the scene's own 8px row gap plus the 2px it used to
+     hold, so the rooms touch. */
+  /* -4px against the scene's own 8px row gap leaves a 4px seam between panes - enough
+     to read as three sheets of glass, tight enough that they stay one assembly. */
+  /* the side padding is new: with the pane carrying a visible border and rounded corners,
+     the row ran flush to it - the dog's art crossed the left edge by 0.2px and the skunk
+     sat 1px inside the right, so both collided with the frame instead of standing in it. */
+  #petbar{ margin-top:-4px; margin-bottom:8px; height:125px !important;
+    padding-top:8px; padding-bottom:12px; padding-left:10px; padding-right:10px;
+    box-sizing:border-box;
+    border-radius:16px;
+    background:none !important;
+    /* THE BOARD'S OWN FRAME, on every pane: the same cream ring backed by the same
+       dusk ring that rims the play area, so glass and board wear one jewellery.
+       Drawn INSET rather than outward like the board's - the panes sit 4px apart and
+       outward rings from neighbours would collide in the seam. */
+    /* the ring does NOT live here: an inset shadow on the pane paints BENEATH the
+       ::before glass, whose backdrop-filter then blurs its own frame away. The ring
+       rides an ::after overlay above the glass instead - see the shared rule. */
+    border:none;
+    box-shadow:0 6px 20px rgba(10,8,4,.24); }
+  #app[class*="bio"] #petbar{ background:none !important; }
   #petbar.on{ box-shadow:none; }
   #petbar.pulse{ animation:pawpulse .5s; }
   @keyframes pawpulse{ 40%{ transform:scale(1.03); } }
@@ -2897,21 +3210,34 @@
          live behind the ⚙ with the rest of the menu. What stays is what you actually
          read while playing: what the round wants, how many moves are left, where you
          are, the book, and the amber. The strip this frees belongs to the friends. -->
-    <div id="topbar">
-      <div id="movesbox">
-        <div id="movespill">
-          <button id="game-menu-btn" onclick="UI.menuToggle()" aria-label="menu">☰</button>
+    <!-- ══ ONE SHELL, THREE ROOMS (2026-08-02) ══
+         It used to be three separate cards - a menu key, a moves pill, an amber chip -
+         the same size and material but each with a different internal logic. Same
+         clothes, different bodies: the eye read a toolbar of widgets rather than one
+         thing, and no spacing could fix a similarity problem. Now one container holds
+         them: the doors sit quietly in its ends behind hairlines that say "separately
+         tappable", and the round's two live numbers own the loud middle. -->
+    <div id="topshell">
+      <button id="game-menu-btn" onclick="UI.menuToggle()" aria-label="menu">☰</button>
+      <div id="ts-mid">
+        <div id="lvlbox">
           <span id="lvlcap" onclick="UI.dbgTap()"><i id="lv-pre">LV</i> <b id="h-level">1</b></span>
-          <span class="mv-lbl">Moves:</span><span id="movesbig">15</span>
+        </div>
+        <div id="movesbox">
+          <span class="mv-lbl">moves</span><span id="movesbig">15</span>
+        </div>
+        <!-- the round's ask, as a bar that fills. -->
+        <div id="goalstrip">
+          <div id="gs-goals"></div>
+          <div id="gs-name"></div>
         </div>
       </div>
       <span class="chip" id="amberchip" onclick="Shop.open()" title="amber drops - the wood's small thanks. spent on lifelines, never on power"><i class="coin-i">🟠</i><b id="amber-n">0</b><i class="coin-plus">+</i></span>
     </div>
-    <!-- the round's ask, as a bar that fills. -->
-    <div id="goalstrip">
-      <div id="gs-goals"></div>
-      <div id="gs-name"></div>
-    </div>
+    <!-- Alder speaks directly under the round's numbers now, and the party stands
+         below him - the voice beside the facts it comments on, the friends nearest
+         the board they play over. -->
+    <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span><span class="ax" onclick="event.stopPropagation();Alder._dismiss()">✕</span></div>
     <div id="petbar">
       <span class="petcompanion" id="pet-0" onclick="UI.petTap(0)"></span>
       <span class="petcompanion" id="pet-1" onclick="UI.petTap(1)"></span>
@@ -2922,11 +3248,6 @@
     <div id="boardwrap">
       <div id="board"><div id="modeaura"></div></div>
       <div id="modechip"></div>
-      <!-- 🌳 INTERIM HOME (2026-08-01): the pill left the board-dock band so the board
-           could sit against the dock; it parks at the board's TOP edge until the
-           Alder widget (objectives + voice, top zone) is designed. Pet-power chips
-           ride this same element, so they moved with it. -->
-      <div id="alder" onclick="Alder.tap()"><span class="aface">🌳</span><span class="atxt"></span><span class="aup">▲</span><span class="amore">tap ▸</span><span class="ax" onclick="event.stopPropagation();Alder._dismiss()">✕</span></div>
     </div>
     <!-- one enclosure: breeze, the letter in hand, the queue, the wish, the Book -->
     <div id="dock">
@@ -3344,6 +3665,191 @@ function warmBiome(b){
   });
 }
 function warmAhead(L){ const b=biomeOf(L); warmBiome(b); warmBiome(b+1); }
+/* ══ ALDER'S GROUND IS THE HUD'S OWN SURFACE, AND HIS INK IS MEASURED AGAINST IT ══
+   The bar paints with --tile-face, the same token as the top shell, so it turns green,
+   brown or violet with the country exactly as the HUD does. That is a CSS matter (see
+   #alder). What CSS cannot do is choose the ink, because --tile-face is a GRADIENT:
+   there is no single background colour to test against, and a mid-tone country can be
+   light at one end of the sweep and dark at the other.
+
+   So the ink is chosen HERE, against every stop of that gradient:
+     - pull the stops out of --tile-face
+     - for warm-near-black and warm-near-white, score the WORST contrast each achieves
+       across all of them
+     - take the winner
+
+   Worst-case, not average: a word must stay readable at the dark end of the sweep as
+   well as the light end, and an average would happily hide the ends.
+   Not #000/#fff - nothing else in this wood is a cold colour. */
+/* keep in step with the glass rule - the measurement is only honest if these are the
+   haze and brightness the panes actually composite with */
+const ALDER_DARK="#241c12", ALDER_LIGHT="#fff8ea", ALDER_HAZE=0.10, ALDER_LIFT=1.06;
+/* mean colour of each painting's top band (the region the panes cover), sampled once
+   per country and cached - the ink decision has to come from the REAL surface */
+const ALDER_BAND={};
+function alderTone(){
+  const app=document.getElementById("app"); if(!app) return null;
+  const hex=c=>{ c=(c||"").trim();
+    const m=c.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if(m){ let h=m[1]; if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+    const r=c.match(/[\d.]+/g); return r ? r.slice(0,3).map(Number) : null; };
+  const lum=v=>{ const [r,g,b]=v.map(x=>{ x/=255; return x<=.03928 ? x/12.92 : Math.pow((x+.055)/1.055,2.4); });
+    return .2126*r+.7152*g+.0722*b; };
+  const ratio=(a,b)=>{ const x=lum(a), y=lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); };
+  const face=getComputedStyle(app).getPropertyValue("--tile-face").trim();
+  const stops=(face.match(/#[0-9a-f]{3,6}\b|rgba?\([^)]*\)/gi)||[]).map(hex).filter(Boolean);
+  if(!stops.length) stops.push([255,253,246]);            // pre-biome fallback
+  /* THE PANES ARE CLEAR GLASS NOW, so the surface behind the words is the PAINTING -
+     a thin haze cannot rescue an ink the artwork fights. The token stops stopped
+     describing anything real the moment the tint went below ~50%, which is exactly
+     why the violet country rendered dark-on-dark: the picker was still reading light
+     tokens while the actual backdrop was near-black.
+     So the ink comes from the painting itself: the mean colour of the top band of the
+     country's own JPEG (sampled once, cached in ALDER_BAND by _sampleBand below),
+     composited through the same haze and brightness the CSS applies. Mean, not
+     worst-pixel: a 9px blur is live behind the text, and the band's blurred mean is
+     what the glyphs truly sit on. A country whose band mixes bright and dark can still
+     pinch either ink locally - that residual risk is accepted and measured, not hidden.
+     Until the sample lands (first frame, image cache miss) the token fallback below
+     keeps the old behaviour; _sampleBand re-runs alderTone the moment it resolves. */
+  /* ══ ONE COUNTRY, FOUR SURFACES, FOUR MEASUREMENTS ══
+     A single ink for the whole screen was the brown country's failure: the shell sits
+     over the painting's bright amber ceiling while the dock sits over its dark floor,
+     and any one ink must lose at one end or the other. Each pane is now measured
+     against ITS OWN slice of the painting (per-pane means cached by _sampleBand) and
+     carries its own ink and its own boost wash - custom properties are set on the pane
+     ELEMENT, so its text and its ::before resolve locally while everything outside the
+     panes still inherits the app-level pick.
+     THE BOOST ESCALATES until the pane actually passes: 0, 16, 30, then 45% wash in
+     the winning ink's own polarity. The loop exits on the first strength that clears
+     4.5:1, so no pane wears more wash than its slice of art demands - and the reported
+     ratio is re-measured after the wash, describing what is truly on screen. */
+  const over=(fg,a,bg)=>fg.map((v,i)=>Math.round(v*a + bg[i]*(1-a)));
+  const bio=(app.className.match(/\bbio(\d+)\b/)||[])[1];
+  const bands=(bio!=null && app.classList.contains("bgart")) ? ALDER_BAND[bio] : null;
+  if(!bands && bio!=null && app.classList.contains("bgart")) alderTone._sampleBand(bio);
+  const pick=(surface)=>{
+    let out=null;
+    for(const b of [0, .16, .30, .45]){
+      const rd0=ratio(hex(ALDER_DARK),  over([255,255,255], b, surface));
+      const rl0=ratio(hex(ALDER_LIGHT), over([0,0,0],       b, surface));
+      const useDark = rd0>=rl0;
+      out={ ink: useDark?ALDER_DARK:ALDER_LIGHT, r:+Math.max(rd0,rl0).toFixed(2),
+            boost: b===0 ? "transparent"
+                 : useDark ? "rgba(255,255,255,"+b+")" : "rgba(0,0,0,"+b+")" };
+      /* 5.0, not the 4.5 legal floor: a third of these players are older eyes, and a
+         pane that lands exactly ON the floor is a pane someone squints at. The next
+         boost step is cheap; the squint is not. */
+      if(out.r>=5.0) break;
+    }
+    return out;
+  };
+  const tokenSurface=over(stops[0], 0.68, [128,128,128]);   // pre-sample fallback
+  const surfFor=k=>{ const band=bands && bands[k];
+    return band ? over([255,255,255], ALDER_HAZE,
+                       band.map(v=>Math.min(255,Math.round(v*ALDER_LIFT))))
+                : tokenSurface; };
+  /* ══ ONE WASH FOR THE WHOLE TOP GROUP ══ per-pane boosts passed every measurement
+     and immediately failed the eye: a pane wearing a 16% wash next to two wearing none
+     reads as a DIFFERENT GLASS, and the seams announce it. So the three top panes share
+     one wash - the strongest any of them needs - and each pane's ink re-picks against
+     that washed surface. Same-polarity by construction when both need help; on the rare
+     country where shell and Alder would pull opposite ways, the stronger need wins and
+     the other pane's ink flips to whatever survives the shared wash (measured, so it
+     always lands >=5 or at the .45 ceiling). The dock is its own pane at the far end of
+     the screen - it keeps an independent wash, which no eye will compare across 500px. */
+  const needFor=s=>{ for(const b of [0,.16,.30,.45]){
+      const rd0=ratio(hex(ALDER_DARK),  over([255,255,255], b, s));
+      const rl0=ratio(hex(ALDER_LIGHT), over([0,0,0],       b, s));
+      if(Math.max(rd0,rl0)>=5.0) return { b, dir: rd0>=rl0 ? 1 : -1 };
+    } return { b:.45, dir: ratio(hex(ALDER_DARK),over([255,255,255],.45,s))
+                        >= ratio(hex(ALDER_LIGHT),over([0,0,0],.45,s)) ? 1 : -1 }; };
+  const shS=surfFor("shell"), alS=surfFor("alder");
+  const ns=needFor(shS), na=needFor(alS);
+  let uni = (ns.b===0) ? na : (na.b===0) ? ns
+            : (ns.dir===na.dir) ? { b:Math.max(ns.b,na.b), dir:ns.dir }
+            : (ns.b>=na.b ? ns : na);
+  /* and then ESCALATE: when the two panes pulled opposite polarities, the loser is
+     being washed the wrong way, and its best ink can land under target at the chosen
+     strength. Pushing the SAME wash harder fixes it - a strong wash in either
+     direction carries both surfaces toward one extreme, where one ink beats 5 on both.
+     Checked with each pane's best ink re-picked per step, so the loop stops at the
+     first strength where the whole group truly passes. */
+  { const w0=s=> uni.b===0 ? s : over(uni.dir>0?[255,255,255]:[0,0,0], uni.b, s);
+    const best=s=>Math.max(ratio(hex(ALDER_DARK),s), ratio(hex(ALDER_LIGHT),s));
+    for(const b of [uni.b, .16, .30, .45]){
+      if(b<uni.b) continue;
+      const t={ b, dir:uni.dir };
+      const w=s=> b===0 ? s : over(t.dir>0?[255,255,255]:[0,0,0], b, s);
+      if(best(w(shS))>=5.0 && best(w(alS))>=5.0){ uni=t; break; }
+      uni=t;
+    } }
+  const uniCss = uni.b===0 ? "transparent"
+               : uni.dir>0 ? "rgba(255,255,255,"+uni.b+")" : "rgba(0,0,0,"+uni.b+")";
+  const washed=s=> uni.b===0 ? s
+               : over(uni.dir>0?[255,255,255]:[0,0,0], uni.b, s);
+  const inkFor=s=>{ const rd0=ratio(hex(ALDER_DARK),s), rl0=ratio(hex(ALDER_LIGHT),s);
+    return { ink: rd0>=rl0?ALDER_DARK:ALDER_LIGHT, r:+Math.max(rd0,rl0).toFixed(2) }; };
+  const paneOut={};
+  for(const p of [["topshell","shell",shS],["alder","alder",alS],["petbar","pets",null]]){
+    const el=document.getElementById(p[0]); if(!el) continue;
+    const t = p[2] ? inkFor(washed(p[2])) : { ink:null };
+    if(t.ink) el.style.setProperty("--alder-ink", t.ink);
+    el.style.setProperty("--glass-boost", uniCss);
+    if(t.ink) paneOut[p[1]]={ ...t, boost:uniCss };
+  }
+  { const el=document.getElementById("dock");
+    if(el){ const t=pick(surfFor("dock"));
+      el.style.setProperty("--alder-ink", t.ink);
+      el.style.setProperty("--glass-boost", t.boost);
+      paneOut.dock=t; } }
+  /* app-level pick follows Alder's pane - anything outside the panes that reads the
+     var gets the middle band's answer rather than an extreme */
+  const mid=paneOut.alder||pick(tokenSurface);
+  const ink=mid.ink; const rd=mid.r, rl=mid.r;
+  app.style.setProperty("--glass-boost","transparent");
+  app.style.setProperty("--alder-ink", ink);
+  alderTone.panes=paneOut;
+  /* THE VESSEL'S FLOOR COLOUR. The basin has to arrive at exactly the shade the ground
+     STARTS at, or fading it in only moves the seam instead of closing it. --tile-face
+     is a gradient and CSS cannot reach inside one, so the light end is lifted out here
+     and handed to the basin as a solid to finish on. */
+  const v=stops[0];
+  app.style.setProperty("--vessel","rgb("+v.join(",")+")");
+  return { ink, ratio:+Math.max(rd,rl).toFixed(2), stops:stops.length,
+           vessel:"rgb("+v.join(",")+")",
+           darkWorst:+rd.toFixed(2), lightWorst:+rl.toFixed(2) };
+}
+/* sample a country's painting into PER-PANE means: the slice behind the shell, behind
+   Alder's bar, and behind the dock. The paint is laid cover-fit on a 396x800 stage, so
+   the same crop is reproduced here (scale to cover, centre the excess) before the rows
+   are read - stretching the whole image to the canvas would sample sky that the crop
+   actually threw away. 16 rows of 50 stage-px each: shell y40-98 = rows 0-1, Alder
+   y102-144 = rows 2, dock y730-800 = rows 14-15.
+   One in-flight guard per country so a slow decode never stacks reads. */
+alderTone._sampleBand=function(bio){
+  alderTone._busy=alderTone._busy||{};
+  if(alderTone._busy[bio] || ALDER_BAND[bio]) return;
+  alderTone._busy[bio]=1;
+  const im=new Image();
+  im.onload=()=>{ try{
+    const c=document.createElement("canvas"); c.width=8; c.height=16;
+    const x=c.getContext("2d"); x.imageSmoothingQuality="high";
+    const iw=im.naturalWidth, ih=im.naturalHeight;
+    const scale=Math.max(396/iw, 800/ih);
+    const sw=396/scale, sh=800/scale;
+    x.drawImage(im,(iw-sw)/2,(ih-sh)/2,sw,sh,0,0,8,16);
+    const mean=(r0,r1)=>{ const d=x.getImageData(0,r0,8,r1-r0+1).data;
+      let r=0,g=0,b=0,n=0;
+      for(let p=0;p<d.length;p+=4){ r+=d[p]; g+=d[p+1]; b+=d[p+2]; n++; }
+      return [Math.round(r/n),Math.round(g/n),Math.round(b/n)]; };
+    ALDER_BAND[bio]={ shell:mean(0,1), alder:mean(2,2), dock:mean(14,15) };
+    alderTone();   // re-pick with the real surfaces in hand
+  }catch(e){} delete alderTone._busy[bio]; };
+  im.onerror=()=>{ delete alderTone._busy[bio]; };
+  im.src="art/bg/bio"+bio+".jpg";
+};
 function applyBiome(L){
   const app=document.getElementById("app");
   // \d, not \d+, meant bio10 through bio14 were never STRIPPED - they piled up on the
@@ -3359,6 +3865,7 @@ function applyBiome(L){
      painting in art/bg/ - a country without one keeps the gradient sky and its scenery, so
      the two can coexist while the set is filled in. The CSS does the rest. */
   app.classList.toggle("bgart", BG_ART.has(b));
+  alderTone();   // the country is on the element now, so his ground can be measured
   // scenery lives UNDER the tiles: first child of the board, rebuilt with each place
   const old=document.getElementById("biodecor"); if(old) old.remove();
   const d=document.createElement("div"); d.id="biodecor";
@@ -9374,6 +9881,7 @@ const UI = {
     app.className = app.className.replace(/\bbio\d+\b/g,"").trim();
     app.classList.add("bio"+hb);
     app.classList.toggle("bgart", BG_ART.has(hb));
+    alderTone();   // cold boot reaches the door before any level - his bar needs a tone too
     $("play-lvl").textContent = P.level<=PROLOGUE_END ? "P"+P.level : "LV "+(P.level-PROLOGUE_END);
     const ring=Math.floor((P.level-1)/RING_LEN)+1;
     { const ch=chapterOf(P.level);
@@ -9465,27 +9973,45 @@ const UI = {
     // which looks like a bug rather than a triumph. The score still accumulates in full
     // underneath - stars and rewards read the real number - the bar just never claims
     // more than the round asked for.
-    const seg=(met, have, need, label)=>{
+    const seg=(met, have, need, icon, name)=>{
       const pct=Math.max(0, Math.min(1, have/Math.max(1,need)));
       const shown=Math.min(have, need);
-      const inner='<span class="gs-lbl">'+label+'</span><b>'+shown+'/'+need+'</b>';
-      return '<div class="gseg'+(met?" metdone":"")+'">'
-        +'<div class="gs-track"><i style="transform:scaleX('+pct+')"></i>'
-        +'<span class="gs-txt">'+inner+'</span>'
-        +'<span class="gs-txt onfill" aria-hidden="true" style="clip-path:inset(0 '+((1-pct)*100)+'% 0 0)">'+inner+'</span>'
-        +'</div></div>';
+      /* NO BAR. The ask reads as its own number now, in the moves' exact type, so the
+         shell carries three numerals of equal voice instead of two numerals and a
+         gauge. pct is still computed - metdone still marks a met ask - but the length
+         is no longer drawn. */
+      /* ICON + COUNT, NOT A WORD (the borrow from Royal Match / Toon Blast / Homescapes).
+         A word label costs ~40px per ask and three of them cannot share this cell at any
+         readable size - the labels, not the numerals, were what overflowed. A glyph costs
+         the width of the numeral it sits above, so three asks fit. */
+      /* THE ROYAL MATCH SHAPE. The ask is the ICON, at full size, and the count is a
+         small plate hung off its corner - not a numeral wearing the glyph as a hat.
+         The plate carries what is LEFT rather than have/need: a collection ask is
+         answered by "how many more", and one short number keeps the plate small
+         enough to hang off the glyph instead of displacing it. When the ask is met
+         the plate becomes a tick, so a finished ask reads without being counted.
+         The word is gone from the screen, so it has to survive in the label - a glyph
+         alone tells a screen reader nothing. */
+      const left=Math.max(0, need-shown);
+      return '<div class="gseg'+(met?" metdone":"")+'" data-pct="'+pct.toFixed(3)+'"'
+        +' role="img" aria-label="'+(met ? (name||"ask")+" complete"
+              : left+' more '+(name||"")+' needed, '+shown+' of '+need)+'">'
+        +'<span class="gs-ico" aria-hidden="true">'+icon+'</span>'
+        +'<b class="gs-num" aria-hidden="true">'+(met ? "✓" : left)+'</b>'
+        +'</div>';
     };
     const goalMode=S.goal && S.goal.t!=="hush";
     if(goalMode){
       const done=S.goal.have>=S.goal.need;
-      segs.push(seg(done, S.goal.have, S.goal.need, GOALS[S.goal.t].s));
+      segs.push(seg(done, S.goal.have, S.goal.need, GOALS[S.goal.t].i, GOALS[S.goal.t].s));
     } else {
       const done=S.levelScore>=S.target;
-      segs.push(seg(done, S.levelScore, S.target, "score"));
+      // the one ask with no glyph of its own - the round's score gets the laurel
+      segs.push(seg(done, S.levelScore, S.target, "🏆", "score"));
     }
     if(S.goal2){
       const d2=S.goal2.have>=S.goal2.need;
-      segs.push(seg(d2,   S.goal2.have, S.goal2.need, GOALS[S.goal2.t].s));
+      segs.push(seg(d2,   S.goal2.have, S.goal2.need, GOALS[S.goal2.t].i, GOALS[S.goal2.t].s));
     }
     if(S.tutorWord){
       const g=GROVE_BY_WORD[S.tutorWord];
@@ -9498,11 +10024,22 @@ const UI = {
       const waived=(P.nameFails[S.tutorWord]||0)>=2;
       const have=cg ? Math.min(cg.n,(S.sigs&&S.sigs[cg.sign])||0) : 0;
       const need=cg ? cg.n : 1;
-      const lbl = "🎭 " + (waived ? "any 1 word - it likes you" : (cg ? signNoun(cg.sign) : "words"));
-      segs.unshift(seg(have>=need, waived?0:have, waived?1:need, lbl)
+      const lbl = waived ? "any 1 word - it likes you" : (cg ? signNoun(cg.sign) : "words");
+      segs.unshift(seg(have>=need, waived?0:have, waived?1:need, "🎭", lbl)
         .replace('class="gseg','class="gseg askseg'));
     }
     gs.innerHTML=segs.join("");
+    /* A pod is now the width of its GLYPH, not of its digits, so every reachable round
+       fits at full size and this loop should never step. It stays as the backstop for
+       an ask count this build does not foresee - the glyph gives way, the plate does
+       not, because the plate is what you read. */
+    const st=$("goalstrip");
+    if(st && st.clientWidth>10){
+      for(const px of [26,22,19,16]){
+        gs.style.setProperty("--gs-ico-size", px+"px");
+        if(gs.scrollWidth <= st.clientWidth) break;
+      }
+    }
     // a crown trial asks two things at once, so the centre carries three pods
 
     const gn=$("gs-name");
@@ -11149,7 +11686,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260801232140",
+  ver:"20260802164055",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
