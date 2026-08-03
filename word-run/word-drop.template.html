@@ -12616,7 +12616,44 @@ const Tele = {
   said(surface, text, extra){
     this.log("said", Object.assign({ on:surface, txt:this.clip(text,180) }, extra||{}));
   },
+  /* ══ A VALUE THAT CANNOT BE WRITTEN DOWN MUST NOT COST US THE SESSION ══
+     Callers pass whatever describes the moment, and one day one of them passes a DOM node,
+     a circular object or a BigInt. JSON.stringify throws on all three, and the throw used
+     to land where it could destroy a whole batch. Encoding is now defensive at the source:
+     anything that will not survive the trip is replaced by a note saying what it was, so
+     the event still arrives and the offender is named rather than hidden. */
+  safe(o){
+    if(o==null) return {};
+    try{ JSON.stringify(o); return o; }catch(e){}
+    const out={};
+    for(const k in o){
+      try{ JSON.stringify(o[k]); out[k]=o[k]; }
+      catch(e){ out[k]="[unencodable "+(typeof o[k])+"]"; }
+    }
+    out._enc="repaired";
+    return out;
+  },
   log(n, props, kind){
+    /* ══ THE SEQUENCE NUMBER IS THE PROOF OF DELIVERY ══ q is handed out here and nowhere
+       else, so a gap in it means an event existed and did not arrive - which is exactly
+       how the seventeen missing levels announced themselves, as 14→16 and 41→44 in an
+       earlier run. That only works if a throw can never consume a number and then vanish.
+       If anything below fails, a minimal stand-in carrying the same q is stored instead,
+       so the gap becomes a visible, labelled failure rather than an absence. */
+    let e;
+    try{
+      e=this._build(n, props, kind);
+    }catch(err){
+      e={ t:Date.now(), sid:this.sid, pid:this.pid, run:this.run||1, who:"",
+          q:this.seq, n:"log_failed", k:"", c:{},
+          p:{ was:String(n), err:String((err&&err.message)||err) } };
+      e.id=this.sid+"-"+e.q;
+    }
+    this.buf.push(e);
+    this._persist();
+    if(this.buf.length>=25) this.flush();
+  },
+  _build(n, props, kind){
     const e={ t:Date.now(), sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(),
               q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
     /* ══ THE BOARD RIDES THE MOMENTS THAT CHANGE IT ══ not every event, or the payload is
@@ -12628,9 +12665,7 @@ const Tele = {
        id is unique per event; q is monotonic per session, which makes GAPS visible - the
        thing that would have shown last run was truncated instead of complete. */
     e.id = this.sid+"-"+e.q;
-    this.buf.push(e);
-    this._persist();
-    if(this.buf.length>=25) this.flush();
+    return e;   // storing and sending belong to log(), which guards them
   },
   SNAP:["level_start","level_win","level_fail","word_made","drop","tool_used","held",
         "obstacle_cleared","wake","dead_tap","stall","watchdog","said"],
@@ -12684,12 +12719,32 @@ const Tele = {
        every row carries its own sid/pid/who and can be filtered without unpacking anything.
        id is the primary key, and hush_ingest drops the ones it has already seen, so a
        retried batch arrives as only the events that are genuinely new. That is what makes
-       the retry in the catch block safe to run as often as it likes. */
-    const body=JSON.stringify({ rows: batch.map(e=>({
-      id:e.id, ts:new Date(e.t).toISOString(),
-      sid:e.sid, pid:e.pid, who:e.who, run:e.run||1,
-      lv:(e.c&&e.c.lv)||0, seq:e.q, n:e.n, k:e.k||"",
-      p:e.p||{}, c:e.c||{}, b:e.b||null })) });
+       the retry in the catch block safe to run as often as it likes.
+
+       ══ AND IT IS BUILT INSIDE A GUARD, BECAUSE THE SPLICE ABOVE ALREADY HAPPENED ══
+       This construction used to sit outside every try block, one line after the events had
+       been taken OUT of the queue. Anything that threw here - one unserialisable value in
+       one props object, one bad timestamp reaching toISOString - destroyed the whole batch
+       where it stood: not sent, not retried, and then _persist wrote the now-empty buffer
+       over the durable copy, so the disk forgot it too. Silent, total, unrecoverable, and
+       indistinguishable afterwards from a player who simply stopped.
+       A playtester walked seventeen levels into that hole. Nothing between the splice and
+       the retry may be unguarded again. */
+    let body;
+    try{
+      body=JSON.stringify({ rows: batch.map(e=>({
+        id:e.id, ts:new Date(e.t||Date.now()).toISOString(),
+        sid:e.sid, pid:e.pid, who:e.who, run:e.run||1,
+        lv:(e.c&&e.c.lv)||0, seq:e.q, n:e.n, k:e.k||"",
+        p:this.safe(e.p), c:this.safe(e.c), b:e.b||null })) });
+    }catch(err){
+      /* put them back and say so. A batch we cannot encode is a bug in what was logged,
+         not a reason to lose the session - the next flush re-tries with the same rows. */
+      this.buf.unshift(...batch); this._persist();
+      this.encFails=(this.encFails||0)+1;
+      try{ console.warn("telemetry could not encode a batch:", err); }catch(e){}
+      return;
+    }
 
     /* LOCAL PLAY FORKS HERE, and only here - the rows above are already built, so the
        local log is byte-identical to what the table would have stored. If the write fails
