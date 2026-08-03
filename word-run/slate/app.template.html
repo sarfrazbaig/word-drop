@@ -106,7 +106,7 @@
 
   /* ══ BOARD ══ the country's own painting, as the game hangs it ══ */
   #board{ height:852px; touch-action:none; cursor:pointer; margin-top:23px; border-radius:24px; overflow:hidden; position:relative;
-    background-image:url("../../art/bg/bio0.jpg"); background-size:cover; background-position:center 62%;
+    background-image:url("../art/bg/bio0.jpg"); background-size:cover; background-position:center 62%;
     box-shadow:0 8px 22px rgba(22,44,78,.16); }
   /* ══ A TILE IS A POSITION AND A FACE ══ the position moves, the face deforms. They are two
      elements because a squash is a transform and so is a fall, and one element cannot do
@@ -174,6 +174,8 @@
   .pill{ width:101px; height:101px; border-radius:50%; position:relative; flex:0 0 auto;
     display:grid; place-items:center; font-size:44px; box-shadow:0 3px 7px rgba(24,54,32,.18); }
   .pill.leaf{ background:#e1f3de; } .pill.star{ background:#ffdce5; }
+  .pill.won{ animation:won .42s; }
+  @keyframes won{ 0%{ transform:none } 40%{ transform:scale(1.18) } 100%{ transform:none } }
   .pill.armed{ box-shadow:0 0 0 5px #ffb323, 0 3px 7px rgba(24,54,32,.18); }
   .pill u{ position:absolute; top:-3px; right:-3px; width:38px; height:38px; border-radius:50%;
     display:grid; place-items:center; font-size:21px; font-weight:800; color:#fff; text-decoration:none; }
@@ -198,6 +200,102 @@
      One card shape does the intro, the clear, the loss and the reveal, because four
      differently-shaped cards is how a game starts feeling like four games. What changes is
      the crown at the top, the numbers, and the verb on the button. */
+
+  /* ══════════════════════════════════════════════════════════════════════════════════════
+     THE FEEL, ported from the game rather than approximated.
+
+     THE BOARD IS RESTLESS WHILE THE BREEZE IS ARMED. Every letter the wind can move sways,
+     each on its own offset so a field of grass does not all sway together - and the offsets
+     are NEGATIVE, so every tile is already mid-twitch on the first frame. A positive delay
+     makes a tile wait its turn and the whole mode looks like it is still loading.
+     What will not budge simply stops moving. The game's own note is worth keeping: fading
+     those out lost the board rather than explaining it, because what a player needs to see
+     is what is NOT moving.
+     ══════════════════════════════════════════════════════════════════════════════════════ */
+  #board.breezing .tile.swappable .face{
+    box-shadow:0 5px 0 var(--edge), 0 8px 12px rgba(20,40,70,.30),
+      0 0 0 1.5px rgba(150,205,240,.9), 0 0 12px rgba(116,180,221,.45);
+    animation:restless .34s ease-in-out infinite; }
+  #board.breezing .tile:not(.swappable) .face{ animation:none; }
+  @keyframes restless{
+    0%,100%{ transform:translate(-.4px,-2px) rotate(-1.1deg) }
+    50%    { transform:translate(.4px,-2.6px) rotate(1.1deg) } }
+  @media (prefers-reduced-motion:reduce){ #board.breezing .tile.swappable .face{ animation:none } }
+
+  /* the gust - a soft slow drift of light across the board, not a hard sweep */
+  .gustsweep{ position:absolute; inset:0; z-index:22; pointer-events:none;
+    border-radius:inherit; overflow:hidden; }
+  .gustsweep::before, .gustsweep::after{ content:""; position:absolute; top:0; bottom:0; width:60%;
+    background:radial-gradient(60% 120% at 50% 50%, rgba(255,255,255,.30), rgba(210,235,245,.14) 55%, transparent 75%);
+    filter:blur(3px); left:-60%; animation:driftgust 1.8s cubic-bezier(.3,.5,.5,.9) forwards; }
+  .gustsweep::after{ top:35%; animation-delay:.18s; animation-duration:2.1s; opacity:.7; }
+  @keyframes driftgust{ 0%{ left:-60%; opacity:0 } 15%{ opacity:1 } 85%{ opacity:1 } 100%{ left:105%; opacity:0 } }
+
+  /* the wish: silver starlight drifts down, so a letter changing in your hand is something
+     that HAPPENED rather than something you notice afterwards */
+  .starfall{ position:absolute; z-index:70; pointer-events:none; font-size:20px; color:#fff;
+    text-shadow:0 0 7px rgba(255,255,255,.9), 0 0 15px rgba(205,225,255,.75);
+    animation:starfalling linear forwards; }
+  @keyframes starfalling{ 0%{ transform:translateY(-20px) rotate(0); opacity:0 } 12%{ opacity:1 }
+    100%{ transform:translateY(var(--fall)) rotate(320deg); opacity:0 } }
+
+  /* THE BEAT. A word is COUNTED OUT - one letter lit at a time, the banner growing by a
+     character with each. It is the game's signature moment and the first pass replaced it
+     with a line of text. */
+  .tile.lit .face{ transform:scale(1.04); z-index:5;
+    box-shadow:0 5px 0 var(--edge), 0 0 14px rgba(255,179,35,.60); filter:brightness(1.10); }
+  .wordbox{ position:absolute; z-index:6; pointer-events:none; border-radius:15px;
+    border:3px solid #ffb323;
+    box-shadow:0 0 18px rgba(255,179,35,.45), inset 0 0 14px rgba(255,179,35,.16);
+    animation:wordboxin .22s ease-out; }
+  @keyframes wordboxin{ from{ opacity:0; transform:scale(.94) } to{ opacity:1; transform:scale(1) } }
+
+  /* ══ THE BANNER IS SIZED AGAINST THE TILE, NOT PICKED BY EYE ══ the game runs 22-28px type
+     on a 44px cell - between a half and two thirds the width of a letter it is announcing.
+     This board's letters are 94px, so a 26px banner read as a caption rather than as the
+     word: correct number, wrong board. Everything on it scales by the same 94/44, including
+     the padding, the rule and the tracking, or the box merely gets taller than its type. */
+  #wb{ position:absolute; left:50%; top:22px; transform:translateX(-50%); z-index:40;
+    pointer-events:none; display:none; white-space:nowrap; max-width:94%;
+    background:rgba(255,255,255,.96); border:5px solid #ffb323; border-radius:26px;
+    padding:14px 40px 17px; font-weight:900; letter-spacing:7px; color:#8a6212;
+    box-shadow:0 12px 30px rgba(20,40,70,.38); animation:wbin .2s; }
+  #wb.on{ display:block; }
+  @keyframes wbin{ from{ transform:translateX(-50%) scale(.5); opacity:0 } }
+  #wb .wb-pts{ font-style:normal; font-weight:900; letter-spacing:1px; font-size:.62em;
+    margin-left:20px; padding:5px 19px 7px; border-radius:999px; vertical-align:middle;
+    color:#2b4a20; background:#cfe9a8; }
+  #wb.done{ color:var(--ink); border-color:#7fd18a; }
+  /* the breath form: the SAME banner arrives early as the hold invitation, then the payout
+     takes it over - so the offer to keep a word lives ON the word */
+  #wb.breath{ letter-spacing:4px; padding:14px 36px 22px; overflow:visible; }
+  #wb .wb-tap{ font-size:.42em; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    color:#2e6b4c; margin-left:22px; vertical-align:4px; }
+  #wb .wb-clock{ position:absolute; left:5px; right:5px; bottom:0; height:8px; border-radius:4px;
+    background:#ffb323; transform-origin:left; animation:breathdrain linear forwards; }
+  @keyframes breathdrain{ from{ transform:scaleX(1) } to{ transform:scaleX(0) } }
+
+
+  /* the letter you have picked has to LOOK picked, or the second tap is a guess. This rule
+     and the refusal shake below were both written earlier and both silently failed to land,
+     because the patch that added them aimed at an anchor that was no longer in the file. */
+  /* NOTE THE SPECIFICITY. The armed-breeze rule above is #board.breezing .tile.swappable
+     .face - one id and four classes - and a picked tile is still a swappable one, so a
+     plain .tile.selswap rule loses to it and the selection does nothing but stop swaying.
+     The picked state has to be written at the same weight as the state it overrides. */
+  #board.breezing .tile.selswap .face,
+  .tile.selswap .face{
+    box-shadow:0 5px 0 #d1900f, 0 10px 16px rgba(20,40,70,.36),
+      0 0 0 3px #ffb323, 0 0 20px rgba(255,179,35,.75) !important;
+    transform:scale(1.07) !important; filter:brightness(1.08);
+    animation:none !important; }
+
+  /* a control that refuses must look like it refused - a dead tap is otherwise
+     indistinguishable from a missed one */
+  .deny{ animation:deny .38s; }
+  @keyframes deny{ 0%,100%{ transform:none } 20%{ transform:translateX(-5px) }
+    45%{ transform:translateX(5px) } 70%{ transform:translateX(-3px) } }
+
   #veil{ position:absolute; inset:0; background:rgba(8,16,32,.55); backdrop-filter:blur(3px);
     display:none; align-items:center; justify-content:center; z-index:40; }
   #veil.on{ display:flex; }
@@ -271,16 +369,17 @@
 
     <div class="panel" id="pets">
       <div class="seat tap" id="seat0">
-        <div class="mount"><img src="../../alternate_art/Cartoon_cat_face_portrait_202608032351.jpeg" alt=""></div>
+        <div class="mount"><img src="../alternate_art/Cartoon_cat_face_portrait_202608032351.jpeg" alt=""></div>
         <b>Snowpaw</b><span id="catstate">Active</span>
       </div>
-      <div class="seat tap"><div class="mount"><img src="../../alternate_art/Cartoon_dog_face_calico_202608032352.jpeg" alt=""></div><b>Calico</b><span>Active</span></div>
-      <div class="seat tap"><div class="mount"><img src="../../alternate_art/Cartoon_fox_face_portrait_202608032351.jpeg" alt=""></div><b>Ember</b><span>Active</span></div>
-      <div class="seat tap"><div class="mount"><img src="../../alternate_art/Cartoon_owl_face_expressive_eyes_202608032351.jpeg" alt=""></div><b>Bramble</b><span>Active</span></div>
+      <div class="seat tap"><div class="mount"><img src="../alternate_art/Cartoon_dog_face_calico_202608032352.jpeg" alt=""></div><b>Calico</b><span>Active</span></div>
+      <div class="seat tap"><div class="mount"><img src="../alternate_art/Cartoon_fox_face_portrait_202608032351.jpeg" alt=""></div><b>Ember</b><span>Active</span></div>
+      <div class="seat tap"><div class="mount"><img src="../alternate_art/Cartoon_owl_face_expressive_eyes_202608032351.jpeg" alt=""></div><b>Bramble</b><span>Active</span></div>
     </div>
 
     <div id="board">
           <div id="shout"></div>
+      <div id="wb"></div>
     </div>
 
     <div class="panel" id="dock">
@@ -323,10 +422,18 @@ const COLS=7, ROWS=8, TILE=94, GAPX=8, GAPY=8, PAD=21;
 const BOARD_H=852, BOARD_W=748;
 const VAL={a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10};
 const BAG="aaaaaaaeeeeeeeeeiiiiiioooooounnnnnrrrrrtttttllllssssdddgggbcmpfhvwykjxqz";
-const WORDS=new Set(("the and for are but not you all any can had her was one our out day get has him his how man new now old see two way who boy did its let put say she too use dad mom cat dog run sun fun bad bat bed big bit bus cap car cup cut dig dot ear eat egg end eye far fat few fit fix fly fox gap gas god got gun gut ham hat hit hot hut ice ill jam jar job joy key kid kit lap law lay leg lid lip log lot low map mat men met mix mud nap net nod nut oak odd off oil pan pat pay pen pet pie pig pin pit pot pup rat raw red rib rid rip rob rod rot row rub rug sad sat saw sea set sit six ski sky son sit tap tar tax tea ten tie tin tip toe ton top toy tub tug van vet war wax web wet wig win wit zip able acid aged also area army away baby back ball band bank base bath bear beat been beer bell belt bend best bike bill bird bite blow blue boat body boil bold bolt bond bone book boot bore born both bowl bulk burn bush busy cake call calm came camp card care case cash cast cave cell chat chef chip city clay clip club coal coat code cold come cook cool cope copy cord core cork corn cost crew crop cure dark data date dawn dear deep deer desk dial diet dirt dish disk dock does dome done door dose down draw drew drop drum dual duke dull dust duty each earn ease east easy edge exam exit face fact fade fail fair fall fame farm fast fate fear feed feel feet fell felt file fill film find fine fire firm fish five flag flat flew flow fold folk food foot ford form fort four free from fuel full fund gain game gate gave gear gene gift girl give glad glow goal goat gold golf gone good gray grew grey grid grip grow gulf hair half hall hand hang hard harm hate have head heal heap hear heat heel held hell help herb here hero hide high hill hint hire hold hole holy home hood hoop hope horn hose host hour huge hunt hurt icon idea idle inch into iron item jail jazz join joke jump jury just keen keep kept kick kind king kiss knee knew knot know lack lady laid lake lamb lamp land lane last late lawn lead leaf lean leap left lend lens less life lift like limb lime line link lion list live load loan lock loft logo lone long look loop lord lose loss lost loud love luck lung made mail main make male mall many mark mask mass mast mate math meal mean meat meet melt menu mere mesh mild mile milk mill mind mine mint miss mist mode mood moon more moss most move much must nail name navy near neat neck need nest news next nice nine node none noon norm nose note noun oath obey odds once only onto open oral over pace pack page paid pain pair pale palm park part pass past path peak pear peel peer pick pier pile pill pine pink pipe pity plan play plot plug plus poem poet pole poll pond pool poor pope pork port pose post pour pray prep prey pull pump pure push quit race rail rain rank rare rate read real reed reef rely rent rest rice rich ride ring riot rise risk road roar rock rode role roll roof room root rope rose rule rush rust safe said sail salt same sand sang save scan seal seat seed seek seem seen self sell send sent ship shoe shop shot show shut side sign silk sing sink site size skin skip slam slid slip slot slow snap snow soap sock soft soil sold sole solo some song soon sort soul soup sour span spin spot star stay stem step stop such suit sung sure swim take tale talk tall tank tape task team tear tech tell tend tent term test text than that them then they thin this thus tide tidy tile till time tiny tire toad told toll tone tool torn tour town trap tray tree trim trip true tube tune turn twin type unit upon urge used user vary vast very vice view vine visa void vote wage wait wake walk wall want ward warm wash wave weak wear weed week well went were west what when whip whom wide wife wild will wind wine wing wipe wire wise wish with wolf wood wool word wore work worm worn wrap yard yarn year your zero zone").split(" "));
+/* ══ THE GAME'S OWN DICTIONARY ══ 62,817 words, injected at build time from the same
+   list the shipping game uses. The prototype ran on a hand-typed three hundred, which was
+   enough to prove that a word could clear and nothing else. Every real question about this
+   game - is the deck fair, is a round winnable, does a four-letter word turn up often
+   enough to matter - is a question about the actual word list. */
+const COMMON=new Set("__COMMON__".split(" "));
+const WORDS=COMMON;
 
 let S={ lv:3, score:0, target:35, moves:19, amber:260, leaf:3, star:2, wordsMade:0, wordsNeed:5,
-        grid:[], cur:null, next:null, then:null, armed:null, busy:false };
+        grid:[], cur:null, next:null, then:null, armed:null, busy:false,
+        swapSel:null, wishedHand:false, noWishGrant:false, noBreezeGrant:false,
+        playerMove:false, breathMs:2000 };
 
 const $=id=>document.getElementById(id);
 const boardEl=$("board");
@@ -467,48 +574,128 @@ async function release(c, land, fromY){
     const below=S.grid[r][c];
     if(below) setTimeout(()=>anim(below.el._face, "jostle", 220), 30+d*28);
   }
-  S.grid[land][c]={ l:S.cur.l, el:t };
+  S.grid[land][c]={ l:S.cur.l, kind:S.cur.kind||"normal", el:t };
+  /* the letter that just landed was a wish's doing, so the word it makes grants no wish.
+     The flag is spent here, on the drop, not on the resolve - later words in the same round
+     pay normally. */
+  S.noWishGrant = !!S.wishedHand; S.wishedHand=false;
+  S.playerMove=true;                 // this word is yours, so it gets a breath
   S.moves--;
   advance(); $("cur").style.visibility=""; paint();
   await wait(110);
   await resolve();
+  S.noWishGrant=false;
   S.busy=false;
   if(S.moves<=0 && S.score<S.target){ S.busy=true; await wait(420); stageLost(); }
 }
 
 function advance(){ S.cur=S.next; S.next=S.then; S.then=piece(); $("cur").classList.remove("pop"); void $("cur").offsetWidth; $("cur").classList.add("pop"); }
 
-function scan(){
+/* ══ THE GAME'S OWN READING RULES ══ ported from src/50-words.js rather than reinvented.
+   Three things the placeholder had wrong, each of which changes what is winnable:
+
+     ROWS READ LEFT TO RIGHT ONLY. The prototype accepted a row backwards, which is a whole
+     extra class of word for free. In the game reading a row backwards is the BAT's doing -
+     a friend you have to have met and put on duty - and handing it out by default would
+     quietly delete that friend's reason to exist.
+
+     COLUMNS READ BOTH WAYS, always. Down, and up the way you stacked it.
+
+     LONGEST FIRST, FROM EACH POSITION, capped at eight. Scanning short-first would take CAT
+     out of CATCH and pay you three points for a five-point word.
+
+   Overlapping hits de-dupe by cell, so a palindrome read both ways is one word, paid once. */
+const MIN_LEN=3, MAX_LEN=8;
+function readLine(cells, map){
   const hits=[];
-  for(let r=0;r<ROWS;r++){
-    let run=[];
-    for(let c=0;c<=COLS;c++){
-      const cell=c<COLS?S.grid[r][c]:null;
-      if(cell) run.push({r,c});
-      else { collect(run,hits); run=[]; }
+  let seg=[], segAt=[];
+  const flush=()=>{
+    let pos=0;
+    while(pos <= seg.length-MIN_LEN){
+      let hit=null;
+      for(let L=Math.min(seg.length-pos, MAX_LEN); L>=MIN_LEN; L--){
+        const w=seg.slice(pos,pos+L).join("");
+        if(WORDS.has(w)){ hit={ word:w, at:segAt.slice(pos,pos+L) }; break; }
+      }
+      if(hit){ hits.push(hit); pos+=hit.at.length; } else pos++;
     }
-  }
-  for(let c=0;c<COLS;c++){
-    let run=[];
-    for(let r=0;r<=ROWS;r++){
-      const cell=r<ROWS?S.grid[r][c]:null;
-      if(cell) run.push({r,c});
-      else { collect(run,hits); run=[]; }
-    }
+    seg=[]; segAt=[];
+  };
+  for(let k=0;k<=cells.length;k++){
+    const cell = k<cells.length ? cells[k] : null;
+    if(cell){ seg.push(cell.l); segAt.push(map(k)); }
+    else flush();
   }
   return hits;
 }
-function collect(run,hits){
-  if(run.length<3) return;
-  for(let len=Math.min(run.length,7); len>=3; len--){
-    for(let i=0;i+len<=run.length;i++){
-      const seg=run.slice(i,i+len);
-      const fwd=seg.map(p=>S.grid[p.r][p.c].l).join("");
-      const bwd=[...fwd].reverse().join("");
-      if(WORDS.has(fwd)) { hits.push({w:fwd,seg}); return; }
-      if(WORDS.has(bwd)) { hits.push({w:bwd,seg}); return; }
-    }
+function scan(){
+  const hits=[], seen=new Set();
+  const push=h=>{
+    const key=h.at.map(p=>p.r+","+p.c).sort().join("|");
+    if(seen.has(key)) return; seen.add(key); hits.push({ w:h.word, seg:h.at });
+  };
+  for(let r=0;r<ROWS;r++)
+    readLine(S.grid[r], c=>({r,c})).forEach(push);                       // left to right only
+  for(let c=0;c<COLS;c++){
+    const col=[]; for(let r=0;r<ROWS;r++) col.push(S.grid[r][c]);
+    readLine(col, r=>({r,c})).forEach(push);                             // down
+    readLine([...col].reverse(), r=>({ r:ROWS-1-r, c })).forEach(push);  // and up
   }
+  return hits;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════
+   THE BREATH - the beat this build was missing entirely, which is why there was never time
+   to hold a word.
+
+   The game's order is not "make word, score word". It is:
+
+     the tool finishes what it is doing        gust drifts, tiles trade places
+     every letter of the word lights AT ONCE   with one box drawn round the whole run
+     the word waits                            "tap to hold", on a draining clock
+     -> tapped:  the letters stay on the board and the word is SPENT, never scored
+     -> ignored: everything unlights, and only THEN does the beat count it out
+
+   Two rules keep it from becoming a nuisance. It happens on the FIRST word only - a cascade
+   is already a reward and does not stop to ask. And it is skipped when it would be cruel or
+   pointless: out of moves, or the word is a friend's name you have been hunting.
+
+   The held word is spent against those exact tiles, so a cascade jostling them later cannot
+   re-clear the same word - a tester once saved WIT for WITH, made BOX nearby, and watched
+   both pop. */
+async function breath(hits, cells){
+  const ms = S.breathMs || 2000;
+  cells.forEach(p=>S.grid[p.r][p.c].el.classList.add("lit"));
+  const boxes = hits.map(h=>wordBox(h.seg));
+  const clearBanner = breathBanner(hits.map(h=>h.w).join(" · "), ms);
+
+  let held=false;
+  /* the WHOLE SCREEN is the hold surface during the breath, minus the few controls that
+     keep their own jobs. e.target is not always an element - a tap can be reported against
+     the document itself - and calling closest() on that throws INSIDE the handler, which
+     silently loses the hold rather than erroring anywhere visible. */
+  const EXEMPT="#leaf,#star,#burger,#pouch,#veil,#picker,#sheet";
+  const grab = e=>{
+    const el = e.target && e.target.closest ? e.target.closest(EXEMPT) : null;
+    if(el) return;
+    held=true; e.stopPropagation(); e.preventDefault();
+  };
+  document.addEventListener("pointerdown", grab, true);
+  for(let i=0, n=Math.round(ms/100); i<n && !held; i++) await wait(100);
+  document.removeEventListener("pointerdown", grab, true);
+
+  clearBanner();
+  boxes.forEach(b=>b && b.remove());
+  cells.forEach(p=>{ const c=S.grid[p.r][p.c]; if(c) c.el.classList.remove("lit"); });
+
+  if(held){
+    /* the letters stay, but as spent material - each remembers the word it was held as, so
+       that exact word can never resolve from those exact tiles again */
+    hits.forEach(h=>h.seg.forEach(p=>{ const c=S.grid[p.r][p.c]; if(c) c.heldWord=h.w; }));
+    shout("kept - build something longer from these");
+    await wait(900); hideShout();
+  }
+  return held;
 }
 
 async function resolve(){
@@ -519,24 +706,116 @@ async function resolve(){
     chain++;
     const seen=new Set(); const cells=[];
     hits.forEach(h=>h.seg.forEach(p=>{ const k=p.r+","+p.c; if(!seen.has(k)){seen.add(k); cells.push(p);} }));
+    /* a word already spent as a hold may not resolve again from the same tiles */
+    const live=hits.filter(h=>!h.seg.every(p=>{ const c=S.grid[p.r][p.c]; return c && c.heldWord===h.w; }));
+    if(!live.length) break;
+    if(live.length!==hits.length){ hits.length=0; hits.push(...live);
+      cells.length=0; const s2=new Set();
+      hits.forEach(h=>h.seg.forEach(p=>{ const k=p.r+","+p.c; if(!s2.has(k)){ s2.add(k); cells.push(p); } })); }
+
+    /* THE BREATH, first word only. Out of moves is urgent - there is nothing to build
+       towards - so it does not stop to ask. */
+    if(chain===1 && S.playerMove && S.moves>0){
+      if(await breath(hits, cells)) { S.playerMove=false; return; }
+    }
+
     const best=hits[0].w;
     let pts=0; cells.forEach(p=>pts+=(VAL[S.grid[p.r][p.c].l]||1));
     pts*=chain;
-    cells.forEach(p=>S.grid[p.r][p.c].el.classList.add("win"));
-    shout(best.toUpperCase()+"  +"+pts+(chain>1?"  x"+chain:""));
+    /* ══ WHAT A WORD BUYS ══ three letters buy the wind, four or more earn a star, and only
+       ever on the FIRST word of a resolution - a cascade is already its own reward. A tool
+       never pays for itself, so the flags set when a tool was used suppress its own kind.
+       A refusal at the cap is SAID: a player at three breezes who makes the word that buys
+       one watched nothing happen and reported, reasonably, that the game paid a friend and
+       not them. */
+    let capSaid="";
+    if(chain===1){
+      const full=t=>t>=TOOL_CAP;
+      if(best.length>=4){
+        if(S.noWishGrant){ /* the wish paid for this word already */ }
+        else if(full(S.star)) capSaid="wishes are full - spend one and the next long word earns another";
+        else { S.star++; pop("star"); }
+      } else if(best.length===3){
+        if(S.noBreezeGrant){ /* the breeze paid for this word already */ }
+        else if(full(S.leaf)) capSaid="breezes are full - spend one and the next 3-letter word buys another";
+        else { S.leaf++; pop("leaf"); }
+      }
+    }
+    /* THE BEAT. One letter at a time - light the tile, grow the banner by a character,
+       165ms, again. The whole word arrives as a rhythm rather than as a result, and the
+       banner is where the hold offer lives, so the two share one surface on purpose. */
+    /* no box here: the breath already drew one round this word and took it away again.
+       A cascade never gets a breath, so it never gets a box - which is the difference you
+       can see between a word you made and a word the board made for you. */
+    await beat(best, cells, pts, chain);
     S.score+=pts; S.wordsMade++;
     paint();
-    await wait(520);
+    await wait(240);
     cells.forEach(p=>{ const cell=S.grid[p.r][p.c]; cell.el.classList.add("gone");
       setTimeout(()=>cell.el.remove(),240); S.grid[p.r][p.c]=null; });
     await wait(240);
     gravity();
     await wait(300);
+    /* the cap refusal waits for the word to finish speaking. Said at the same moment it was
+       overwritten by "CAT +5" a frame later, which is the same silence it was written to
+       fix - the player still sees nothing and still concludes the game skipped them. */
+    if(capSaid){ shout(capSaid); await wait(1500); }
   }
+  S.playerMove=false;
   if(chain) hideShout();
   if(S.score>=S.target){ S.busy=true; await wait(420); stageWon(); }
 }
 
+/* one frame around the whole word, drawn over the run's bounding box however long it is -
+   a word is one thing, so it gets one frame rather than a cage round every letter */
+function wordBox(cells){
+  if(!cells.length) return null;
+  const rs=cells.map(p=>p.r), cs=cells.map(p=>p.c);
+  const r0=Math.min(...rs), r1=Math.max(...rs), c0=Math.min(...cs), c1=Math.max(...cs);
+  const b=document.createElement("div"); b.className="wordbox";
+  b.style.left=(colX(c0)-5)+"px"; b.style.top=(rowY(r0)-5)+"px";
+  b.style.width=(colX(c1)-colX(c0)+TILE+10)+"px";
+  b.style.height=(rowY(r1)-rowY(r0)+TILE+10)+"px";
+  boardEl.appendChild(b);
+  return b;
+}
+async function beat(word, cells, pts, chain){
+  const wb=$("wb");
+  wb.className="on"; wb.textContent="";
+  wb.style.fontSize=(Math.min(16+word.length*2, 28)*(TILE/44)).toFixed(0)+"px";
+  for(let i=0;i<word.length;i++){
+    const p=cells[i]; if(p && S.grid[p.r][p.c]) S.grid[p.r][p.c].el.classList.add("lit");
+    wb.textContent=word.slice(0,i+1).toUpperCase();
+    await wait(165);
+  }
+  wb.innerHTML='<b>'+word.toUpperCase()+'</b><i class="wb-pts">+'+pts+(chain>1?" ×"+chain:"")+'</i>';
+  wb.classList.add("done");
+  await wait(430);
+  wb.classList.remove("on","done");
+  cells.forEach(p=>{ const cell=S.grid[p.r][p.c]; if(cell) cell.el.classList.remove("lit"); });
+}
+/* the breath: the word waits, and the offer to KEEP it lives on the word itself */
+function breathBanner(word, ms){
+  const wb=$("wb");
+  wb.className="on breath";
+  wb.style.fontSize=(Math.min(16+word.length*2, 28)*(TILE/44)).toFixed(0)+"px";
+  wb.innerHTML='<b>'+word.toUpperCase()+'</b><span class="wb-tap">tap to hold</span>'
+    +'<i class="wb-clock" style="animation-duration:'+ms+'ms"></i>';
+  return ()=>wb.classList.remove("on","breath");
+}
+function gust(){ const g=document.createElement("div"); g.className="gustsweep";
+  boardEl.appendChild(g); setTimeout(()=>g.remove(), 2200); }
+function starfall(){
+  for(let i=0;i<14;i++){
+    const p=document.createElement("div"); p.className="starfall";
+    p.textContent=["★","✦","✧"][i%3];
+    p.style.left=(Math.random()*100)+"%"; p.style.top="0";
+    p.style.setProperty("--fall",(boardEl.clientHeight*0.85+Math.random()*30)+"px");
+    p.style.animationDuration=(1.1+Math.random()*0.7)+"s";
+    p.style.animationDelay=(Math.random()*0.4)+"s";
+    boardEl.appendChild(p); setTimeout(()=>p.remove(),2200);
+  }
+}
 function gravity(){
   for(let c=0;c<COLS;c++){
     let write=ROWS-1;
@@ -587,39 +866,129 @@ $("seat0").onclick=()=>{ const on=$("seat0").classList.toggle("lit");
   sheet("Calico", on ? "Taken off duty. A friend on the bench keeps its progress but stops acting." : "Back on duty. The cat pats a letter into one that fits when it wakes."); };
 document.querySelectorAll(".seat.locked").forEach(s=>s.onclick=()=>sheet("locked","This seat opens later. In the game a friend arrives one level before the chair does, so there is always somebody waiting for it."));
 
-$("leaf").onclick=()=>{
-  if(S.leaf<=0) return shout("no breezes left");
-  S.armed = S.armed==="pluck" ? null : "pluck";
-  $("leaf").classList.toggle("armed", S.armed==="pluck");
-  shout(S.armed ? "tap a letter to lift it" : "");
-  if(!S.armed) hideShout();
-};
-boardEl.addEventListener("click", e=>{
-  if(S.armed!=="pluck") return;
-  const t=e.target.closest(".tile"); if(!t) return;
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    if(S.grid[r][c] && S.grid[r][c].el===t){
-      S.grid[r][c].el.classList.add("gone");
-      setTimeout(()=>t.remove(),240);
-      S.grid[r][c]=null; S.leaf--; S.armed=null;
-      $("leaf").classList.remove("armed"); hideShout();
-      gravity(); paint(); setTimeout(resolve,320);
-      return;
-    }
-  }
-}, true);
+/* ══════════════════════════════════════════════════════════════════════════════════════
+   THE TWO TOOLS, ported from src/62-game-tools.js rather than invented.
 
+   The prototype had both wrong, and wrong in the direction that quietly changes the game:
+
+     THE BREEZE IS A SWAP, NOT A PLUCK. It lifts nothing off the board. You arm it, choose
+     two letters, and a gust carries them past each other. Plucking a tile out is a
+     different tool entirely (the mole's), and giving that power to the breeze would have
+     made half the board's difficulty optional.
+
+     THE WISH RESHAPES THE LETTER ALREADY IN YOUR HAND. It does not deal you a new one. That
+     is why it can refuse: a hand holding an acorn or a star has nothing to reshape, and no
+     wish is spent learning that.
+
+   Neither swaps an obstacle. NONWORD is the game's own list of what will not budge - stone
+   does not move, ice is frozen solid - and it is here in full even though stage one has no
+   obstacles on the board yet, so that stage two does not have to remember to add it.
+
+   A TOOL NEVER PAYS FOR ITSELF. A word made by a breeze grants no breeze and a word made by
+   a wish grants no wish, or either becomes a perpetual motion machine. The OTHER tool still
+   pays, so a breeze spent into a four-letter word is a real trade.
+   ══════════════════════════════════════════════════════════════════════════════════════ */
+const NONWORD=new Set(["bomb","stone","crate","ice","frost","mist","bramble","root","shroud",
+  "pest","branch","spore","reed","mire","crystal","scree"]);
+const TOOL_CAP=3;
+
+function canSwap(cell){ return !!cell && !NONWORD.has(cell.kind||"normal"); }
+
+function markSwappable(on){
+  boardEl.classList.toggle("breezing", !!on);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const cell=S.grid[r][c]; if(!cell) continue;
+    const ok = !!on && canSwap(cell);
+    cell.el.classList.toggle("swappable", ok);
+    /* NEGATIVE delays, so every tile is already mid-sway on the first frame. A positive one
+       makes each wait its turn and the mode looks like it is still loading. */
+    if(ok) cell.el._face.style.animationDelay = "-" + (((c*5 + r*3) % 9) * 0.038).toFixed(3) + "s";
+  }
+}
+function disarmBreeze(){
+  S.armed=null; S.swapSel=null;
+  $("leaf").classList.remove("armed");
+  markSwappable(false);
+  document.querySelectorAll(".tile.selswap").forEach(t=>t.classList.remove("selswap"));
+  hideShout();
+}
+$("leaf").onclick=()=>{
+  if(S.busy){ deny("leaf"); return shout("the board is still settling"); }
+  if(S.armed==="breeze"){ disarmBreeze(); return; }
+  if(S.leaf<=0){ deny("leaf"); return shout("no breezes left"); }
+  S.armed="breeze"; S.swapSel=null;
+  $("leaf").classList.add("armed");
+  markSwappable(true);
+  shout("choose two letters to trade places");
+};
 $("star").onclick=()=>{
-  if(S.star<=0) return shout("no wishes left");
+  if(S.busy){ deny("star"); return shout("the board is still settling"); }
+  if(S.armed==="breeze") disarmBreeze();
+  if(S.star<=0){ deny("star"); return shout("no wishes left"); }
+  /* a wish reshapes a letter - a hand with nothing to reshape refuses, and costs nothing */
+  if(S.cur && S.cur.kind==="wild"){ deny("star"); return shout("that star is already every letter"); }
+  if(S.cur && S.cur.kind==="bomb"){ deny("star"); return shout("the acorn is already what it wants to be"); }
   const g=$("pickgrid"); g.innerHTML="";
   "abcdefghijklmnopqrstuvwxyz".split("").forEach(l=>{
     const d=document.createElement("div"); d.textContent=l.toUpperCase();
-    d.onclick=()=>{ S.cur={l}; S.star--; $("picker").classList.remove("on"); paint(); };
+    d.onclick=()=>{
+      S.cur={ l, kind:"normal" };
+      S.wishedHand=true;               // this letter is a wish's doing - see the grants below
+      S.star--; $("picker").classList.remove("on"); paint(); starfall();
+      $("cur").classList.remove("pop"); void $("cur").offsetWidth; $("cur").classList.add("pop");
+    };
     g.appendChild(d);
   });
   $("picker").classList.add("on");
 };
 $("picker").onclick=e=>{ if(e.target.id==="picker") $("picker").classList.remove("on"); };
+
+function pop(id){ const el=$(id); if(!el) return;
+  el.classList.remove("won"); void el.offsetWidth; el.classList.add("won");
+  setTimeout(()=>el.classList.remove("won"),420); }
+function deny(id){ const el=$(id); if(!el) return;
+  el.classList.remove("deny"); void el.offsetWidth; el.classList.add("deny");
+  setTimeout(()=>el.classList.remove("deny"),380); }
+
+/* the board answers the armed breeze: first tap selects, same tap deselects, second swaps */
+boardEl.addEventListener("click", async e=>{
+  if(S.armed!=="breeze" || S.busy) return;
+  const el=e.target.closest(".tile"); if(!el) return;
+  let hit=null;
+  for(let r=0;r<ROWS && !hit;r++) for(let c=0;c<COLS;c++)
+    if(S.grid[r][c] && S.grid[r][c].el===el){ hit={r,c,cell:S.grid[r][c]}; break; }
+  if(!hit) return;
+  if(!canSwap(hit.cell)){ deny("leaf"); shout("that one will not budge"); return; }
+
+  if(!S.swapSel){ S.swapSel=hit; el.classList.add("selswap"); return; }
+  if(S.swapSel.cell===hit.cell){ el.classList.remove("selswap"); S.swapSel=null; return; }
+
+  const a=S.swapSel, b=hit;
+  a.cell.el.classList.remove("selswap");
+  S.busy=true; S.armed=null; S.swapSel=null;
+  $("leaf").classList.remove("armed"); markSwappable(false); hideShout();
+
+  gust();
+  const ax=colX(a.c), ay=rowY(a.r), bx=colX(b.c), by=rowY(b.r);
+  [a,b].forEach(x=>{ x.cell.el.style.transition="left .30s cubic-bezier(.4,.1,.3,1), top .30s cubic-bezier(.4,.1,.3,1)"; });
+  a.cell.el.style.left=bx+"px"; a.cell.el.style.top=by+"px";
+  b.cell.el.style.left=ax+"px"; b.cell.el.style.top=ay+"px";
+  await wait(330);
+  [a,b].forEach(x=>{ x.cell.el.style.transition=""; });
+  S.grid[a.r][a.c]=b.cell; S.grid[b.r][b.c]=a.cell;
+  anim(a.cell.el._face,"jostle",220); anim(b.cell.el._face,"jostle",220);
+  S.leaf--; paint();
+
+  /* the gust drifts for 1.8s and the word must not start under it - the whole complaint
+     was that the wind and the resolution happened on top of each other. The swap lands,
+     the air settles, and only then does the board start reading. */
+  await wait(520);
+  S.noBreezeGrant=true;                 // this word is the breeze's doing - it pays no breeze
+  S.playerMove=true;                    // a tool's word is still yours - it gets a breath
+  await resolve();
+  S.noBreezeGrant=false;
+  S.busy=false;
+}, true);
 
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
@@ -657,7 +1026,7 @@ function card(o){
   $("stars").style.display=o.stars==null?"none":"flex";
   if(o.stars!=null) [...$("stars").children].forEach((el,i)=>el.classList.toggle("off", i>=o.stars));
   $("cmeet").style.display=o.face?"block":"none";
-  if(o.face) $("cmeetimg").src="../../alternate_art/"+o.face;
+  if(o.face) $("cmeetimg").src="../alternate_art/"+o.face;
   $("cbtn").textContent=o.btn||"continue";
   $("cbtn").onclick=()=>{ hideCard(); if(o.go) o.go(); };
   $("calt").textContent=o.alt||"";
@@ -746,7 +1115,7 @@ const rgb2hsl=(r,g,b)=>{ r/=255;g/=255;b/=255;
   return [h*360, sa, l]; };
 async function setCountry(n){
   bio=(n+15)%15;
-  const url="../../art/bg/bio"+bio+".jpg";
+  const url="../art/bg/bio"+bio+".jpg";
   const img=new Image(); img.src=url;
   try{ await img.decode(); }catch(e){}
   boardEl.style.backgroundImage='url("'+url+'")';

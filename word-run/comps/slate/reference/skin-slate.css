@@ -1,0 +1,164 @@
+/* ═══════════════════════════════════════════════════════════════════════════════════════
+   SKIN: SLATE  -  stage one of the port. The round screen only.
+
+   Everything is gated behind `#app.skin-slate`, so the warm build is untouched and one tap
+   in the toolbox switches between them. A direction you cannot put next to the thing it
+   replaces cannot be judged.
+
+   THE BOARD IS NOT RE-LAID OUT, and that is the whole reason this is a small change. The
+   comp draws 94px letters with an 8px gutter on an 854px artboard; the game runs CELL 44 /
+   GAP 4 on a 396px stage. 94 x (396/854) = 43.6. The designer had, without knowing it, drawn
+   the game's own grid at 2.16x. So stage one changes MATERIAL and PANELS, not geometry.
+
+   The palette is not written here. Every country derives its own from the sky of its
+   painting - see slate.js - and lands on these variables:
+
+     --sl-pane   the HUD card            --sl-ink    the letter on a tile
+     --sl-pane2  the friends shelf       --sl-edge   the slab's thickness
+     --sl-line   dividers, empty track   --sl-dock   the tray
+     --sl-slot   an empty seat           --sl-page   the ground everything sits on
+
+   NOT IN THIS STAGE, deliberately: every ceremony, the Book, home, the menu, the shop, the
+   effects, the teaching layer. Obstacles still work; they just all look plain until stage
+   two gives the twenty-two kinds their own designs.
+   ═══════════════════════════════════════════════════════════════════════════════════════ */
+
+#app.skin-slate{
+  --sl-pane:#2a4063; --sl-pane2:#3e577d; --sl-line:#475777; --sl-slot:#566c8d;
+  --sl-page:#dfeafb; --sl-ink:#3e5170; --sl-edge:#c3cfdf; --sl-dock:#bcd6b9;
+  --sl-dockink:#4e6b52; --sl-amber:#ffb323; --sl-accent:#a1c3ec; --sl-dim:#a9bcd8;
+  --sl-face:#fdfbf7; --sl-r:20px;
+  background:var(--sl-page);
+}
+/* the countries live INSIDE the board in this direction; the chrome wears their colour
+   instead of hanging their painting behind it */
+#app.skin-slate #bgart, #app.skin-slate #bgtint{ display:none !important; }
+#app.skin-slate.bgart{ background:var(--sl-page); }
+
+/* ══ THE HUD ══ topshell and the ask row read as ONE card with a hairline across it, so
+   they are squared where they meet and rounded where they do not. */
+#app.skin-slate #topshell{
+  background:var(--sl-pane) !important; border:0 !important; box-shadow:none !important;
+  border-radius:var(--sl-r) var(--sl-r) 0 0 !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  padding:9px 12px 7px;
+}
+#app.skin-slate #alder{
+  background:var(--sl-pane) !important; border:0 !important; box-shadow:none !important;
+  border-radius:0 0 var(--sl-r) var(--sl-r) !important;
+  border-top:1px solid var(--sl-line) !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  margin-top:0 !important; padding:7px 12px;
+}
+#app.skin-slate #topshell *, #app.skin-slate #alder *{ color:#fff; }
+#app.skin-slate #game-menu-btn{
+  background:none !important; border:0 !important; box-shadow:none !important;
+  color:var(--sl-accent) !important; font-size:19px; }
+#app.skin-slate #lvlcap #lv-pre{
+  color:var(--sl-dim) !important; font-size:9px; letter-spacing:.14em; font-weight:800; }
+#app.skin-slate #lvlcap #h-level{ color:#fff !important; font-size:20px; font-weight:900; }
+#app.skin-slate #movesbox{ background:none !important; border:0 !important; box-shadow:none !important; }
+#app.skin-slate #movesbox .mv-lbl, #app.skin-slate #movesbig{
+  color:var(--sl-dim) !important; font-weight:700; }
+
+/* the score: figure above a thin full-width track */
+#app.skin-slate .gseg.barseg{ background:none !important; border:0 !important; box-shadow:none !important; }
+#app.skin-slate .gs-cap{ color:#fff !important; font-size:13px; font-weight:800; }
+#app.skin-slate .gs-pair b{ color:#fff !important; }
+#app.skin-slate .gs-pair i{ color:var(--sl-dim) !important; font-style:normal; }
+#app.skin-slate .gs-track{ background:var(--sl-line) !important; height:6px; border-radius:99px; }
+#app.skin-slate .gs-track i{ background:var(--sl-amber) !important; background-image:none !important;
+  border-radius:99px; }
+#app.skin-slate .gseg.metdone .gs-track i{ background:#7fd18a !important; }
+/* the collection pods keep their glyph but lose the glass */
+#app.skin-slate .gseg{ background:none !important; border:0 !important; box-shadow:none !important; }
+#app.skin-slate .gs-num{ color:#fff !important; }
+
+/* the pouch: a pill inside the card rather than a chip floating on it */
+#app.skin-slate #amberchip{
+  background:rgba(255,255,255,.10) !important; border:0 !important; box-shadow:none !important;
+  border-radius:99px !important; color:#fff !important; font-weight:800; padding:5px 10px; }
+
+/* the ask row - the goal, stated. Alder's voice is NOT ported; this line is the round's
+   own ask, which is the job he was invented to do when there was nowhere to put it. */
+#app.skin-slate #alder .aface{
+  background:rgba(255,179,35,.14) !important; border:2px solid var(--sl-amber) !important;
+  border-radius:99px !important; box-shadow:none !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+#app.skin-slate #alder .atxt{ color:#fff !important; font-weight:750; }
+#app.skin-slate #alder .amore{ color:var(--sl-accent) !important; font-weight:800; }
+
+/* ══ THE FRIENDS SHELF ══ a step lighter than the HUD, portraits as coins ══ */
+#app.skin-slate #petbar{
+  background:var(--sl-pane2) !important; border:0 !important; box-shadow:none !important;
+  border-radius:var(--sl-r) !important; padding:8px 8px 6px;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+#app.skin-slate .petcompanion{ background:none !important; border:0 !important; box-shadow:none !important; }
+/* an empty seat is a filled disc, not a hole in the panel */
+#app.skin-slate .slotopen .petface, #app.skin-slate .slotlocked .petface{
+  background:var(--sl-slot) !important; border:0 !important; border-radius:99px !important;
+  box-shadow:none !important; color:#c3d6f0 !important; font-weight:900;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+/* a friend who is here is a medallion. The portraits carry their own frame, so a card
+   around them would be a second one. */
+#app.skin-slate .has .petface{
+  background:transparent !important; border:0 !important; border-radius:50% !important;
+  box-shadow:0 2px 7px rgba(12,28,54,.34) !important; overflow:hidden;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+#app.skin-slate .has .petface::after{ display:none !important; }
+#app.skin-slate .petcompanion .petimg{ border-radius:50%; }
+#app.skin-slate .petcompanion small, #app.skin-slate .slotlv{
+  color:#c3d6f0 !important; font-weight:800; }
+/* the charge pips are a ring problem now, not a row problem - stage two redesigns them.
+   Until then they read as quiet dots rather than fighting the circular portrait. */
+#app.skin-slate .pips i{ background:var(--sl-accent) !important; opacity:.45; }
+#app.skin-slate .pips i.on, #app.skin-slate .pips.ready i{ background:var(--sl-amber) !important; opacity:1; }
+
+/* ══ THE BOARD ══ the painting, in a pale frame ══ */
+#app.skin-slate #board{
+  border-radius:var(--sl-r) !important;
+  border:5px solid var(--sl-page) !important;
+  box-shadow:0 5px 16px rgba(22,44,78,.20) !important; }
+
+/* ══ THE LETTER ══ a slab, not a card.
+   The warm tile is carved wood: a grain texture over a per-country gradient, a gloss sheen
+   and five stacked insets. This is a printed slab - one flat face, a hard un-blurred bottom
+   edge that IS its thickness, a lit top rim and a shaded base. The game's 5px edge on a 44px
+   cell is what makes a column read as stacked rather than as counters left near each other,
+   so that ratio is kept exactly. */
+#app.skin-slate .tile{
+  background:var(--sl-face) !important;
+  color:var(--sl-ink) !important;
+  border-radius:7px;
+  text-shadow:0 1px 0 rgba(255,255,255,.9) !important;
+  box-shadow:
+    0 5px 0 var(--sl-edge),
+    0 7px 8px rgba(20,40,70,.28),
+    inset 0 2px 0 rgba(255,255,255,.95),
+    inset 0 -4px 5px rgba(126,146,176,.28),
+    inset 0 0 0 1px rgba(255,255,255,.55) !important; }
+#app.skin-slate .tile::before{
+  top:2px; left:7%; right:34%; height:32%;
+  background:linear-gradient(180deg, rgba(255,255,255,.72), transparent) !important; }
+#app.skin-slate .tile small{
+  color:#8296b0 !important; font-weight:800; text-shadow:0 1px 0 rgba(255,255,255,.8) !important; }
+#app.skin-slate #currentwrap .tile{
+  box-shadow:0 6px 0 var(--sl-edge), 0 10px 14px rgba(20,40,70,.26),
+    inset 0 2px 0 rgba(255,255,255,.95), inset 0 -4px 5px rgba(126,146,176,.28) !important; }
+#app.skin-slate #nextwrap .tile{ opacity:1; }
+
+/* ══ THE DOCK ══ the country's tray ══ */
+#app.skin-slate #dock{
+  background:var(--sl-dock) !important; border:0 !important; box-shadow:none !important;
+  border-radius:var(--sl-r) !important; padding:7px 10px;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+#app.skin-slate #dock .dock-sep{ background:rgba(30,55,38,.18) !important; }
+#app.skin-slate #dock .slotlabel{ color:var(--sl-dockink) !important; font-weight:900; letter-spacing:.12em; }
+/* the tools keep their own colours on every country - a thing you reach for without looking
+   should not change colour when you walk into a new one */
+#app.skin-slate #breezepill{ background:#e1f3de !important; border:0 !important;
+  box-shadow:0 2px 5px rgba(30,60,40,.18) !important; }
+#app.skin-slate #wishbtn{ background:#ffdce5 !important; border:0 !important;
+  box-shadow:0 2px 5px rgba(80,40,60,.18) !important; }
+#app.skin-slate #breezepill .cnt{ background:#3f9e57 !important; color:#fff !important; }
+#app.skin-slate #wishbtn .cnt{ background:#ef6f8e !important; color:#fff !important; }

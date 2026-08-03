@@ -189,6 +189,23 @@ const dropOut = assembled.split("__COMMON__").join(common.join(" "))
   console.log(`Parsed ${checked} inline script${checked===1?"":"s"} - the build runs`);
 }
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
+
+/* ══ THE SLATE APP IS A SECOND TARGET ══ it is becoming the game, so it gets the same
+   dictionary from the same source rather than a copy that can drift. Nothing else is shared
+   yet: the logic modules move across one at a time, each on its own approval. */
+{
+  const slateSrc = path.join(__dirname, "slate", "app.template.html");
+  if (fs.existsSync(slateSrc)) {
+    let slate = fs.readFileSync(slateSrc, "utf8");
+    if (!slate.includes("__COMMON__")) {
+      console.error("!! BUILD REFUSED - slate/app.template.html has no __COMMON__ to fill");
+      process.exit(1);
+    }
+    slate = slate.split("__COMMON__").join(common.join(" "));
+    fs.writeFileSync(path.join(__dirname, "slate", "index.html"), slate);
+    console.log("Built slate/index.html - " + common.length + " words");
+  }
+}
 fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game - it owns the root
 const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on main
 if (!fs.existsSync(docs)) fs.mkdirSync(docs);
