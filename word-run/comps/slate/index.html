@@ -1,76 +1,68 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Slate - rebuild</title>
+<title>Slate - working prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 
 <!-- ═══════════════════════════════════════════════════════════════════════════════════════
-     SLATE - a rebuild of the designer's comp, from nothing.
+     SLATE - the designer's comp, built as a working screen.
 
-     Not a reskin of the game. Every element here is new markup: none of the shipping
-     ids, classes or components are involved, and nothing does anything. It exists to
-     answer one question - what does this direction actually look like, built.
+     New markup end to end: none of the game's ids, classes or components are involved. What
+     IS carried over is the behaviour, because a still picture cannot answer the questions a
+     direction has to answer. Does a white card still read against the painting once it is
+     sitting in a stack of eight? Does a 20px gutter survive a column filling up? You cannot
+     see that in a mockup, only in something you can drop a letter into.
 
-     Everything is drawn at the comp's own scale (854px wide artboard) and the whole thing
-     is scaled to fit the viewport, so the numbers below are the measured numbers rather
-     than a translation of them. They were read off the image with a canvas scan - panel
-     edges, tile runs, disc diameters - not estimated by eye.
+     So the physics are the game's physics: a letter falls to the lowest empty cell of the
+     column you tap, lands on what is already there, and the column refuses when it is full.
+     Words clear across a row or up and down a column, everything above collapses into the
+     gap, and a cascade can set off another one.
 
-       shell        812 wide, 32 padding        panels   radius 24
-       HUD panel    y 66,   h 307               pet      y 396,  h 259
-       board        y 678,  h 852               dock     y 1558, h 228
-       tile         84x84, pitch 104            rows     pitch 112
-       locked disc  d 74, pitch 175             current  126x126
+     Geometry is the comp's, measured off the image rather than estimated:
+       shell 812 wide, padding 32        panels radius 24
+       HUD   y 66,   h 307               pets   y 396,  h 259
+       board y 678,  h 852               dock   y 1558, h 228
+       tile  84x84, pitch 104            rows   pitch 112
+       disc  d 74, pitch 175             current tile 126x126
 
-     The board painting is the comp's own pixels, positioned by offset, so that part is
-     exact rather than approximated. The cat is the portrait the designer supplied.
+     THE ONE CHANGE I MADE ON PURPOSE: the comp shows the letters floating at the top of the
+     board. Dropped letters fall, so they are anchored to the FLOOR here and grow upward -
+     otherwise the board reads as a title card rather than a place a tile is going to land.
      ═══════════════════════════════════════════════════════════════════════════════════════ -->
 
 <style>
-  *{ box-sizing:border-box; margin:0; padding:0; }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body{ height:100%; background:#1e1e1e; font-family:Nunito,system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased; overflow:hidden; }
-
-  /* the artboard is fixed at the comp's size and scaled to whatever it is being read on.
-     Centring is done by the transform itself rather than by the layout: a scaled element
-     still occupies its UNSCALED box, so letting flow or grid centre it puts the visible
-     result somewhere the maths does not predict. */
+    -webkit-font-smoothing:antialiased; overflow:hidden; user-select:none; }
   #fit{ position:fixed; left:0; top:0; width:854px; height:1842px; transform-origin:0 0; }
 
-  #shell{
-    position:absolute; left:21px; top:31px; width:812px; height:1781px;
-    background:#dfeafb; border-radius:44px; padding:35px 32px;
-    display:flex; flex-direction:column;
-  }
-
+  #shell{ position:absolute; left:21px; top:31px; width:812px; height:1781px;
+    background:#dfeafb; border-radius:44px; padding:35px 32px; display:flex; flex-direction:column; }
   .panel{ border-radius:24px; }
+  .tap{ cursor:pointer; transition:transform .09s ease; }
+  .tap:active{ transform:scale(.94); }
 
-  /* ══ HUD ══ level, score, moves, pouch - then a hairline, then the round's ask ══ */
+  /* ══ HUD ══ */
   #hud{ background:#2a4063; height:307px; padding:22px 26px 0; display:flex; flex-direction:column; }
   #hudtop{ display:flex; align-items:flex-start; gap:18px; }
-
   #burger{ width:38px; padding-top:14px; display:flex; flex-direction:column; gap:7px; flex:0 0 auto; }
   #burger i{ display:block; height:5px; border-radius:3px; background:#a1c3ec; }
-
   #lvl{ flex:0 0 auto; padding-top:6px; }
   #lvl b{ display:block; font-size:20px; font-weight:800; color:#a9bcd8; letter-spacing:.06em; line-height:1.1; }
   #lvl span{ display:block; font-size:36px; font-weight:900; color:#fff; line-height:1.05; }
-
   #centre{ flex:1; text-align:center; padding-top:8px; }
-  #score{ font-size:29px; font-weight:800; color:#fff; letter-spacing:.005em; }
-  #track{ width:245px; height:16px; border-radius:99px; background:#475777; margin:14px auto 0; }
+  #score{ font-size:29px; font-weight:800; color:#fff; }
+  #track{ width:245px; height:16px; border-radius:99px; background:#475777; margin:14px auto 0; overflow:hidden; }
+  #fill{ height:100%; width:0; background:#ffb323; border-radius:99px; transition:width .45s cubic-bezier(.2,.7,.3,1); }
   #moves{ font-size:22px; font-weight:700; color:#a9bcd8; margin-top:13px; }
-
   #pouch{ flex:0 0 auto; margin-top:8px; display:flex; align-items:center; gap:11px;
     background:#3c5070; border-radius:99px; padding:13px 22px; }
   #pouch em{ width:24px; height:24px; border-radius:50%; background:#ffb323; display:block; }
   #pouch b{ font-size:27px; font-weight:800; color:#fff; }
   #pouch i{ font-size:25px; font-weight:700; color:#c3d6f0; font-style:normal; }
-
   #rule{ height:1px; background:#475777; margin:26px -26px 0; }
-
   #ask{ flex:1; display:flex; align-items:center; gap:18px; }
   #badge{ width:150px; height:88px; border-radius:99px; flex:0 0 auto;
     border:3px solid #ffb323; background:rgba(255,179,35,.10);
@@ -86,9 +78,9 @@
   #asktext p{ font-size:26px; font-weight:800; color:#fff; }
   #asktext u{ font-size:25px; font-weight:800; color:#a1c3ec; text-decoration:none; }
 
-  /* ══ THE FRIENDS SHELF ══ */
+  /* ══ FRIENDS ══ */
   #pets{ background:#3e577d; height:259px; margin-top:23px; padding:34px 30px 0;
-    display:flex; align-items:flex-start; gap:0; justify-content:space-between; }
+    display:flex; align-items:flex-start; justify-content:space-between; }
   .seat{ width:150px; text-align:center; }
   .mount{ width:110px; height:116px; margin:0 auto; background:#fff; border-radius:14px;
     padding:6px; box-shadow:0 3px 9px rgba(10,26,50,.30); }
@@ -98,46 +90,70 @@
   .seat b{ display:block; margin-top:15px; font-size:22px; font-weight:800; color:#fff; }
   .seat span{ display:block; margin-top:5px; font-size:20px; font-weight:700; color:#a9bcd8; }
   .seat.locked b{ margin-top:22px; }
+  .seat.lit .mount{ box-shadow:0 0 0 4px #ffb323, 0 3px 9px rgba(10,26,50,.30); }
 
-  /* ══ THE BOARD ══ the comp's own painting, placed by offset ══ */
+  /* ══ BOARD ══ the country's own painting, as the game hangs it ══ */
   #board{ height:852px; margin-top:23px; border-radius:24px; overflow:hidden; position:relative;
-    background-image:url("../../alternate_art/Screenshot%202026-08-03%20at%2019.48.19.png");
-    background-position:-55px -678px; background-repeat:no-repeat;
+    background-image:url("../../art/bg/bio0.jpg"); background-size:cover; background-position:center 62%;
     box-shadow:0 8px 22px rgba(22,44,78,.16); }
-  #grid{ position:absolute; left:21px; top:33px; }
-  .row{ display:flex; gap:20px; margin-bottom:28px; }
-  .row.short{ justify-content:center; padding-right:2px; }
-  .tile{ width:84px; height:84px; border-radius:13px; background:#fdfbf7; position:relative;
+  #cols{ position:absolute; inset:0; display:flex; gap:20px; padding:21px; }
+  .colhit{ flex:1; border-radius:14px; cursor:pointer; }
+  .colhit.hover{ background:rgba(255,255,255,.13); }
+  .colhit.no{ cursor:not-allowed; }
+  .tile{ position:absolute; width:84px; height:84px; border-radius:13px; background:#fdfbf7;
     display:grid; place-items:center; font-size:43px; font-weight:900; color:#445872;
     box-shadow:0 3px 0 rgba(28,48,80,.13), 0 5px 11px rgba(20,40,70,.17); }
   .tile s{ position:absolute; right:9px; bottom:4px; font-size:17px; font-weight:800;
     color:#8b9bb3; text-decoration:none; }
+  .tile.fall{ transition:top .26s cubic-bezier(.35,.85,.4,1); }
+  .tile.settle{ animation:settle .22s ease-out; }
+  @keyframes settle{ 0%{ transform:scaleY(.86) translateY(6px);} 60%{ transform:scaleY(1.05);} 100%{ transform:none;} }
+  .tile.win{ background:#ffe6ac; color:#7a5a10; box-shadow:0 0 0 4px #ffb323, 0 5px 11px rgba(20,40,70,.2); }
+  .tile.gone{ transition:transform .22s ease-in, opacity .22s ease-in; transform:scale(.4); opacity:0; }
+  #shout{ position:absolute; left:0; right:0; top:26px; text-align:center; pointer-events:none;
+    font-size:38px; font-weight:900; color:#fff; text-shadow:0 3px 12px rgba(12,28,54,.7);
+    opacity:0; transition:opacity .2s; letter-spacing:.02em; }
+  #shout.on{ opacity:1; }
 
-  /* ══ THE DOCK ══ */
-  #dock{ background:#bcd6b9; height:228px; margin-top:28px; border-radius:24px;
-    display:flex; align-items:center; padding:0 38px; gap:0; }
+  /* ══ DOCK ══ */
+  #dock{ background:#bcd6b9; height:228px; margin-top:28px; display:flex; align-items:center; padding:0 38px; }
   .pill{ width:101px; height:101px; border-radius:50%; position:relative; flex:0 0 auto;
-    display:grid; place-items:center; font-size:44px;
-    box-shadow:0 3px 7px rgba(24,54,32,.18); }
-  .pill.leaf{ background:#e1f3de; }
-  .pill.star{ background:#ffdce5; }
+    display:grid; place-items:center; font-size:44px; box-shadow:0 3px 7px rgba(24,54,32,.18); }
+  .pill.leaf{ background:#e1f3de; } .pill.star{ background:#ffdce5; }
+  .pill.armed{ box-shadow:0 0 0 5px #ffb323, 0 3px 7px rgba(24,54,32,.18); }
   .pill u{ position:absolute; top:-3px; right:-3px; width:38px; height:38px; border-radius:50%;
     display:grid; place-items:center; font-size:21px; font-weight:800; color:#fff; text-decoration:none; }
-  .pill.leaf u{ background:#4e8c46; }
-  .pill.star u{ background:#ef6f8e; }
-
+  .pill.leaf u{ background:#4e8c46; } .pill.star u{ background:#ef6f8e; }
+  .pill.out{ opacity:.45; }
   #cur{ width:126px; height:126px; border-radius:18px; background:#fdfbf7; margin-left:44px;
     position:relative; display:grid; place-items:center; font-size:62px; font-weight:900; color:#445872;
     box-shadow:0 4px 0 rgba(28,48,80,.13), 0 8px 15px rgba(20,40,70,.16); }
-  #cur s{ position:absolute; right:12px; bottom:6px; font-size:21px; font-weight:800;
-    color:#8b9bb3; text-decoration:none; }
-
+  #cur s{ position:absolute; right:12px; bottom:6px; font-size:21px; font-weight:800; color:#8b9bb3; text-decoration:none; }
+  #cur.pop{ animation:pop .2s ease-out; }
+  @keyframes pop{ 0%{ transform:scale(.8) translateY(-10px);} 100%{ transform:none;} }
   #queue{ display:flex; gap:30px; margin-left:48px; }
   .slot{ text-align:center; }
   .slot i{ display:block; font-size:21px; font-weight:900; letter-spacing:.13em; color:#4e6b52;
     font-style:normal; margin-bottom:9px; }
-  .slot .tile{ width:74px; height:74px; font-size:36px; border-radius:12px; }
+  .slot .tile{ position:static; width:74px; height:74px; font-size:36px; border-radius:12px; }
   #spacer{ flex:1; }
+
+  /* ══ small overlays, so a control that is tapped actually does something ══ */
+  #sheet{ position:absolute; left:32px; right:32px; bottom:32px; background:#2a4063; border-radius:24px;
+    padding:30px 34px; color:#fff; transform:translateY(140%); transition:transform .3s cubic-bezier(.2,.8,.3,1); }
+  #sheet.on{ transform:none; }
+  #sheet h3{ font-size:30px; font-weight:900; margin-bottom:12px; }
+  #sheet p{ font-size:23px; font-weight:700; color:#a9bcd8; line-height:1.45; }
+  #sheet button{ margin-top:22px; font:inherit; font-size:24px; font-weight:800; color:#2a4063;
+    background:#a1c3ec; border:0; border-radius:99px; padding:14px 34px; cursor:pointer; }
+  #picker{ position:absolute; inset:0; background:rgba(20,34,58,.72); display:none;
+    align-items:center; justify-content:center; }
+  #picker.on{ display:flex; }
+  #pickcard{ background:#dfeafb; border-radius:28px; padding:34px; width:640px; }
+  #pickcard h3{ font-size:30px; font-weight:900; color:#2a4063; text-align:center; margin-bottom:24px; }
+  #pickgrid{ display:grid; grid-template-columns:repeat(6,1fr); gap:14px; }
+  #pickgrid div{ height:80px; border-radius:13px; background:#fdfbf7; display:grid; place-items:center;
+    font-size:36px; font-weight:900; color:#445872; cursor:pointer; }
 </style>
 
 <div id="fit">
@@ -145,74 +161,267 @@
 
     <div class="panel" id="hud">
       <div id="hudtop">
-        <div id="burger"><i></i><i></i><i></i></div>
-        <div id="lvl"><b>LEVEL</b><span>3</span></div>
+        <div id="burger" class="tap"><i></i><i></i><i></i></div>
+        <div id="lvl"><b>LEVEL</b><span id="lvnum">3</span></div>
         <div id="centre">
-          <div id="score">Score: 0/35</div>
-          <div id="track"></div>
-          <div id="moves">Moves: 19</div>
+          <div id="score">Score: <span id="sc">0</span>/<span id="tg">35</span></div>
+          <div id="track"><div id="fill"></div></div>
+          <div id="moves">Moves: <span id="mv">19</span></div>
         </div>
-        <div id="pouch"><em></em><b>260</b><i>+</i></div>
+        <div id="pouch" class="tap"><em></em><b id="amber">260</b><i>+</i></div>
       </div>
       <div id="rule"></div>
       <div id="ask">
-        <div id="badge"><span class="ring"></span><b>5/5</b></div>
-        <div id="asktext"><span class="ring"></span><p>reach 35 points</p><u>tap ▸</u></div>
+        <div id="badge" class="tap"><span class="ring"></span><b id="words">0/5</b></div>
+        <div id="asktext" class="tap"><span class="ring"></span><p>reach <span id="tg2">35</span> points</p><u>tap &#9656;</u></div>
       </div>
     </div>
 
     <div class="panel" id="pets">
-      <div class="seat">
+      <div class="seat tap" id="seat0">
         <div class="mount"><img src="../../alternate_art/CatImage.png" alt=""></div>
-        <b>Calico</b><span>Active</span>
+        <b>Calico</b><span id="catstate">Active</span>
       </div>
-      <div class="seat locked"><div class="disc">?</div><b>Lv 7</b><span>Locked</span></div>
-      <div class="seat locked"><div class="disc">?</div><b>Lv 10</b><span>Locked</span></div>
-      <div class="seat locked"><div class="disc">?</div><b>Lv 14</b><span>Locked</span></div>
+      <div class="seat locked tap"><div class="disc">?</div><b>Lv 7</b><span>Locked</span></div>
+      <div class="seat locked tap"><div class="disc">?</div><b>Lv 10</b><span>Locked</span></div>
+      <div class="seat locked tap"><div class="disc">?</div><b>Lv 14</b><span>Locked</span></div>
     </div>
 
     <div id="board">
-      <div id="grid">
-        <div class="row short">
-          <div class="tile">R<s>1</s></div><div class="tile">E<s>1</s></div>
-          <div class="tile">F<s>4</s></div><div class="tile">C<s>3</s></div>
-        </div>
-        <div class="row">
-          <div class="tile">R<s>1</s></div><div class="tile">E<s>1</s></div><div class="tile">B<s>3</s></div>
-          <div class="tile">E<s>1</s></div><div class="tile">U<s>1</s></div><div class="tile">W<s>4</s></div>
-          <div class="tile">T<s>1</s></div>
-        </div>
-        <div class="row">
-          <div class="tile">C<s>3</s></div><div class="tile">W<s>4</s></div><div class="tile">S<s>1</s></div>
-          <div class="tile">H<s>4</s></div><div class="tile">U<s>1</s></div><div class="tile">L<s>1</s></div>
-          <div class="tile">I<s>1</s></div>
-        </div>
-      </div>
+      <div id="cols"></div>
+      <div id="shout"></div>
     </div>
 
     <div class="panel" id="dock">
-      <div class="pill leaf">🌿<u>3</u></div>
+      <div class="pill leaf tap" id="leaf">&#127807;<u id="leafn">3</u></div>
       <div id="cur">D<s>2</s></div>
       <div id="queue">
-        <div class="slot"><i>NEXT</i><div class="tile">B</div></div>
-        <div class="slot"><i>THEN</i><div class="tile">?</div></div>
+        <div class="slot"><i>NEXT</i><div class="tile" id="nx">B</div></div>
+        <div class="slot"><i>THEN</i><div class="tile" id="th">?</div></div>
       </div>
       <div id="spacer"></div>
-      <div class="pill star">⭐<u>2</u></div>
+      <div class="pill star tap" id="star">&#11088;<u id="starn">2</u></div>
     </div>
+
+    <div id="sheet"><h3 id="sh-t"></h3><p id="sh-b"></p><button onclick="closeSheet()">got it</button></div>
+    <div id="picker"><div id="pickcard"><h3>wish for a letter</h3><div id="pickgrid"></div></div></div>
 
   </div>
 </div>
 
 <script>
-  // the artboard is a fixed 854x1842; scale it to whatever it is being read on, and do the
-  // centring in the same transform so the visible result is exactly where the maths says
-  const fit = () => {
-    const s = Math.min(innerWidth / 854, innerHeight / 1842);
-    const x = (innerWidth  - 854  * s) / 2;
-    const y = (innerHeight - 1842 * s) / 2;
-    document.getElementById("fit").style.transform =
-      "translate(" + x + "px," + y + "px) scale(" + s + ")";
-  };
-  addEventListener("resize", fit); fit();
+const COLS=7, ROWS=7, TILE=84, GAPX=20, GAPY=28, PAD=21;
+const BOARD_H=852, BOARD_W=748;
+const VAL={a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10};
+const BAG="aaaaaaaeeeeeeeeeiiiiiioooooounnnnnrrrrrtttttllllssssdddgggbcmpfhvwykjxqz";
+const WORDS=new Set(("the and for are but not you all any can had her was one our out day get has him his how man new now old see two way who boy did its let put say she too use dad mom cat dog run sun fun bad bat bed big bit bus cap car cup cut dig dot ear eat egg end eye far fat few fit fix fly fox gap gas god got gun gut ham hat hit hot hut ice ill jam jar job joy key kid kit lap law lay leg lid lip log lot low map mat men met mix mud nap net nod nut oak odd off oil pan pat pay pen pet pie pig pin pit pot pup rat raw red rib rid rip rob rod rot row rub rug sad sat saw sea set sit six ski sky son sit tap tar tax tea ten tie tin tip toe ton top toy tub tug van vet war wax web wet wig win wit zip able acid aged also area army away baby back ball band bank base bath bear beat been beer bell belt bend best bike bill bird bite blow blue boat body boil bold bolt bond bone book boot bore born both bowl bulk burn bush busy cake call calm came camp card care case cash cast cave cell chat chef chip city clay clip club coal coat code cold come cook cool cope copy cord core cork corn cost crew crop cure dark data date dawn dear deep deer desk dial diet dirt dish disk dock does dome done door dose down draw drew drop drum dual duke dull dust duty each earn ease east easy edge exam exit face fact fade fail fair fall fame farm fast fate fear feed feel feet fell felt file fill film find fine fire firm fish five flag flat flew flow fold folk food foot ford form fort four free from fuel full fund gain game gate gave gear gene gift girl give glad glow goal goat gold golf gone good gray grew grey grid grip grow gulf hair half hall hand hang hard harm hate have head heal heap hear heat heel held hell help herb here hero hide high hill hint hire hold hole holy home hood hoop hope horn hose host hour huge hunt hurt icon idea idle inch into iron item jail jazz join joke jump jury just keen keep kept kick kind king kiss knee knew knot know lack lady laid lake lamb lamp land lane last late lawn lead leaf lean leap left lend lens less life lift like limb lime line link lion list live load loan lock loft logo lone long look loop lord lose loss lost loud love luck lung made mail main make male mall many mark mask mass mast mate math meal mean meat meet melt menu mere mesh mild mile milk mill mind mine mint miss mist mode mood moon more moss most move much must nail name navy near neat neck need nest news next nice nine node none noon norm nose note noun oath obey odds once only onto open oral over pace pack page paid pain pair pale palm park part pass past path peak pear peel peer pick pier pile pill pine pink pipe pity plan play plot plug plus poem poet pole poll pond pool poor pope pork port pose post pour pray prep prey pull pump pure push quit race rail rain rank rare rate read real reed reef rely rent rest rice rich ride ring riot rise risk road roar rock rode role roll roof room root rope rose rule rush rust safe said sail salt same sand sang save scan seal seat seed seek seem seen self sell send sent ship shoe shop shot show shut side sign silk sing sink site size skin skip slam slid slip slot slow snap snow soap sock soft soil sold sole solo some song soon sort soul soup sour span spin spot star stay stem step stop such suit sung sure swim take tale talk tall tank tape task team tear tech tell tend tent term test text than that them then they thin this thus tide tidy tile till time tiny tire toad told toll tone tool torn tour town trap tray tree trim trip true tube tune turn twin type unit upon urge used user vary vast very vice view vine visa void vote wage wait wake walk wall want ward warm wash wave weak wear weed week well went were west what when whip whom wide wife wild will wind wine wing wipe wire wise wish with wolf wood wool word wore work worm worn wrap yard yarn year your zero zone").split(" "));
+
+let S={ lv:3, score:0, target:35, moves:19, amber:260, leaf:3, star:2, wordsMade:0, wordsNeed:5,
+        grid:[], cur:null, next:null, then:null, armed:null, busy:false };
+
+const $=id=>document.getElementById(id);
+const boardEl=$("board");
+const colX = c => PAD + c*(TILE+GAPX);
+const rowY = r => BOARD_H - PAD - (ROWS-r)*TILE - (ROWS-1-r)*GAPY;
+const pick = () => BAG[Math.floor(Math.random()*BAG.length)];
+const piece = () => ({ l:pick() });
+
+function makeTile(letter, col, row, fromTop){
+  const d=document.createElement("div");
+  d.className="tile fall";
+  d.innerHTML=letter.toUpperCase()+'<s>'+(VAL[letter]||1)+'</s>';
+  d.style.left=colX(col)+"px";
+  d.style.top=(fromTop ? -110 : rowY(row))+"px";
+  boardEl.appendChild(d);
+  return d;
+}
+
+function buildCols(){
+  const wrap=$("cols"); wrap.innerHTML="";
+  for(let c=0;c<COLS;c++){
+    const h=document.createElement("div");
+    h.className="colhit"; h.dataset.c=c;
+    h.onpointerenter=()=>{ if(!S.busy && !S.armed) h.classList.add("hover"); };
+    h.onpointerleave=()=>h.classList.remove("hover");
+    h.onclick=()=>drop(c);
+    wrap.appendChild(h);
+  }
+}
+
+function firstEmpty(c){ for(let r=ROWS-1;r>=0;r--) if(!S.grid[r][c]) return r; return -1; }
+
+async function drop(c){
+  if(S.busy) return;
+  if(S.armed==="pluck") return;
+  const r=firstEmpty(c);
+  if(r<0){ shout("that column is full"); return; }
+  S.busy=true;
+  const t=makeTile(S.cur.l, c, r, true);
+  requestAnimationFrame(()=>{ t.style.top=rowY(r)+"px"; });
+  await wait(270);
+  t.classList.add("settle");
+  S.grid[r][c]={ l:S.cur.l, el:t };
+  S.moves--;
+  advance();
+  paint();
+  await wait(120);
+  await resolve();
+  S.busy=false;
+  if(S.moves<=0 && S.score<S.target) sheet("out of moves","Nineteen moves gone and the hush is still here. In the real game this is where the round offers you a way back.");
+}
+
+function advance(){ S.cur=S.next; S.next=S.then; S.then=piece(); $("cur").classList.remove("pop"); void $("cur").offsetWidth; $("cur").classList.add("pop"); }
+
+function scan(){
+  const hits=[];
+  for(let r=0;r<ROWS;r++){
+    let run=[];
+    for(let c=0;c<=COLS;c++){
+      const cell=c<COLS?S.grid[r][c]:null;
+      if(cell) run.push({r,c});
+      else { collect(run,hits); run=[]; }
+    }
+  }
+  for(let c=0;c<COLS;c++){
+    let run=[];
+    for(let r=0;r<=ROWS;r++){
+      const cell=r<ROWS?S.grid[r][c]:null;
+      if(cell) run.push({r,c});
+      else { collect(run,hits); run=[]; }
+    }
+  }
+  return hits;
+}
+function collect(run,hits){
+  if(run.length<3) return;
+  for(let len=Math.min(run.length,7); len>=3; len--){
+    for(let i=0;i+len<=run.length;i++){
+      const seg=run.slice(i,i+len);
+      const fwd=seg.map(p=>S.grid[p.r][p.c].l).join("");
+      const bwd=[...fwd].reverse().join("");
+      if(WORDS.has(fwd)) { hits.push({w:fwd,seg}); return; }
+      if(WORDS.has(bwd)) { hits.push({w:bwd,seg}); return; }
+    }
+  }
+}
+
+async function resolve(){
+  let chain=0;
+  while(true){
+    const hits=scan();
+    if(!hits.length) break;
+    chain++;
+    const seen=new Set(); const cells=[];
+    hits.forEach(h=>h.seg.forEach(p=>{ const k=p.r+","+p.c; if(!seen.has(k)){seen.add(k); cells.push(p);} }));
+    const best=hits[0].w;
+    let pts=0; cells.forEach(p=>pts+=(VAL[S.grid[p.r][p.c].l]||1));
+    pts*=chain;
+    cells.forEach(p=>S.grid[p.r][p.c].el.classList.add("win"));
+    shout(best.toUpperCase()+"  +"+pts+(chain>1?"  x"+chain:""));
+    S.score+=pts; S.wordsMade++;
+    paint();
+    await wait(520);
+    cells.forEach(p=>{ const cell=S.grid[p.r][p.c]; cell.el.classList.add("gone");
+      setTimeout(()=>cell.el.remove(),240); S.grid[p.r][p.c]=null; });
+    await wait(240);
+    gravity();
+    await wait(300);
+  }
+  if(chain) hideShout();
+  if(S.score>=S.target) sheet("round cleared","Thirty-five points, and the hush thins. The real game hands you a friend about here.");
+}
+
+function gravity(){
+  for(let c=0;c<COLS;c++){
+    let write=ROWS-1;
+    for(let r=ROWS-1;r>=0;r--){
+      if(S.grid[r][c]){
+        if(write!==r){ S.grid[write][c]=S.grid[r][c]; S.grid[r][c]=null;
+          S.grid[write][c].el.style.top=rowY(write)+"px"; }
+        write--;
+      }
+    }
+  }
+}
+
+function shout(t){ const s=$("shout"); s.textContent=t; s.classList.add("on"); }
+function hideShout(){ $("shout").classList.remove("on"); }
+
+function paint(){
+  $("sc").textContent=S.score; $("tg").textContent=S.target; $("tg2").textContent=S.target;
+  $("mv").textContent=Math.max(0,S.moves); $("lvnum").textContent=S.lv;
+  $("amber").textContent=S.amber; $("leafn").textContent=S.leaf; $("starn").textContent=S.star;
+  $("words").textContent=S.wordsMade+"/"+S.wordsNeed;
+  $("fill").style.width=Math.min(100, 100*S.score/S.target)+"%";
+  $("cur").innerHTML=S.cur.l.toUpperCase()+'<s>'+(VAL[S.cur.l]||1)+'</s>';
+  $("nx").textContent=S.next.l.toUpperCase();
+  $("th").textContent=S.then.l.toUpperCase();
+  $("leaf").classList.toggle("out", S.leaf<=0);
+  $("star").classList.toggle("out", S.star<=0);
+}
+
+/* ── the controls, all live ── */
+function sheet(t,b){ $("sh-t").textContent=t; $("sh-b").textContent=b; $("sheet").classList.add("on"); }
+function closeSheet(){ $("sheet").classList.remove("on"); }
+
+$("burger").onclick=()=>sheet("the wood","Menu, book of names, settings. Nothing behind it in this prototype - it is here so the panel is a real control rather than a drawing of one.");
+$("pouch").onclick=()=>{ S.amber+=10; paint(); sheet("amber","Ten more. In the game amber buys comfort - a breeze, a wish, a way past a name you cannot spell - and never power."); };
+$("badge").onclick=()=>sheet("this round","Five words to still the hush. The badge counts what you have made, the line beside it says what the round is asking for.");
+$("asktext").onclick=()=>sheet("reach "+S.target+" points","Every word thins the hush. Longer words pay more, and a word made by a cascade pays double.");
+$("seat0").onclick=()=>{ const on=$("seat0").classList.toggle("lit");
+  $("catstate").textContent = on ? "Watching" : "Active";
+  sheet("Calico", on ? "Taken off duty. A friend on the bench keeps its progress but stops acting." : "Back on duty. The cat pats a letter into one that fits when it wakes."); };
+document.querySelectorAll(".seat.locked").forEach(s=>s.onclick=()=>sheet("locked","This seat opens later. In the game a friend arrives one level before the chair does, so there is always somebody waiting for it."));
+
+$("leaf").onclick=()=>{
+  if(S.leaf<=0) return shout("no breezes left");
+  S.armed = S.armed==="pluck" ? null : "pluck";
+  $("leaf").classList.toggle("armed", S.armed==="pluck");
+  shout(S.armed ? "tap a letter to lift it" : "");
+  if(!S.armed) hideShout();
+};
+boardEl.addEventListener("click", e=>{
+  if(S.armed!=="pluck") return;
+  const t=e.target.closest(".tile"); if(!t) return;
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    if(S.grid[r][c] && S.grid[r][c].el===t){
+      S.grid[r][c].el.classList.add("gone");
+      setTimeout(()=>t.remove(),240);
+      S.grid[r][c]=null; S.leaf--; S.armed=null;
+      $("leaf").classList.remove("armed"); hideShout();
+      gravity(); paint(); setTimeout(resolve,320);
+      return;
+    }
+  }
+}, true);
+
+$("star").onclick=()=>{
+  if(S.star<=0) return shout("no wishes left");
+  const g=$("pickgrid"); g.innerHTML="";
+  "abcdefghijklmnopqrstuvwxyz".split("").forEach(l=>{
+    const d=document.createElement("div"); d.textContent=l.toUpperCase();
+    d.onclick=()=>{ S.cur={l}; S.star--; $("picker").classList.remove("on"); paint(); };
+    g.appendChild(d);
+  });
+  $("picker").classList.add("on");
+};
+$("picker").onclick=e=>{ if(e.target.id==="picker") $("picker").classList.remove("on"); };
+
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ── open on a board that already has a floor, the way a round in progress looks ── */
+function start(){
+  S.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  buildCols();
+  const seed=[["c","w","s","h","u","l","i"],["r","e","b","e","u","w","t"]];
+  seed.forEach((row,i)=>{ const r=ROWS-1-i;
+    row.forEach((l,c)=>{ const t=makeTile(l,c,r,false); S.grid[r][c]={l,el:t}; }); });
+  S.cur=piece(); S.next=piece(); S.then=piece();
+  paint();
+}
+start();
+
+const fit=()=>{ const s=Math.min(innerWidth/854, innerHeight/1842);
+  $("fit").style.transform="translate("+((innerWidth-854*s)/2)+"px,"+((innerHeight-1842*s)/2)+"px) scale("+s+")"; };
+addEventListener("resize", fit); fit();
 </script>
