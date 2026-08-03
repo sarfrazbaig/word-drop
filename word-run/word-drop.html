@@ -7984,6 +7984,11 @@ const Game = {
     UI.ghost(-1);
     if(!P.coach){ P.coach=true; save(); const h=document.querySelector(".coach"); if(h) h.remove(); }
     let land=ROWS-1; while(land>=0 && S.board[land][col]) land--;
+    /* the board BEFORE the letter lands, plus where it is going. Paired with the
+       word_made / settle events that follow, this is what makes a level replayable:
+       what was on screen, what the player chose, and what it did. */
+    try{ Tele.log("drop",{ col, row:land, letter:(S.cur&&S.cur.letter||"").toUpperCase(),
+      kind:(S.cur&&S.cur.kind)||"normal", by:hand?"hand":"tap" }); }catch(e){}
     const piece=S.cur; S.cur=S.next;
     if(Game.hasPassive("next2")){ S.next=S.next2||makePiece(); S.next2=makePiece(); } // 👁 Far Sight: the queue runs deeper
     else { S.next=makePiece(); S.next2=null; }
@@ -12276,7 +12281,33 @@ document.addEventListener("pointerdown", ()=>Snd.init(), {once:true});
    Errors, screen changes, and the whole win/fail/wake/purchase/ad funnel flow in too.
    Endpoint-agnostic: paste your collector URL below (see playtest-telemetry-setup.md).
    With no URL it stays LOCAL-only - safe to ship, nothing leaves the device. */
-const TELE_URL = "https://script.google.com/macros/s/AKfycbxSN56xueipcmRDE-3UAGPpcTbfoJS9CUBdr9kawLfDwc5CNbhmz3BiljWfmxlYdtdy/exec";   // ← paste your Google-Sheet / Supabase / worker URL here to collect
+/* ══ THE COLLECTOR IS A TABLE NOW, NOT A SPREADSHEET ══
+   Apps Script was the wrong shape for this. It appends rows to a sheet, so a board
+   snapshot had to be flattened into columns, the header drifted out of step with what
+   was written (the file said seq,event,kind while the cells held runid,seq,event), and
+   reading it back meant a human downloading a CSV and pasting it into a chat.
+   Postgres takes the event as it is. p, c and b are jsonb, so a board snapshot goes in
+   whole and comes back queryable: "every message shown in the run that passed level 15"
+   is one request with a filter, not an export.
+   The key below is the PUBLISHABLE key. It is designed to sit in client code, and the
+   table's policies allow exactly two things through it: insert and select. No update, no
+   delete. A tampered client can add noise to the table; it cannot alter or destroy what
+   is already there.
+   The key rides the QUERY STRING, not a header, because sendBeacon - the only send that
+   survives a page being closed - cannot set headers. Measured against the live project:
+   header auth and query auth both answer 201. */
+const TELE_KEY = "sb_publishable_ir1iGWaLvgfibNH38cQ-hQ_VdGyqBx8";
+/* ══ WHY AN RPC AND NOT THE TABLE ══ Posting straight at the table is all-or-nothing:
+   measured against this project, a batch holding ONE id that had already landed answers
+   409 and every other event in that batch is thrown away with it. PostgREST will forgive
+   the duplicate, but only for a Prefer:resolution=ignore-duplicates header - and the
+   pagehide beacon, which carries the last events of every session and is the one send we
+   can least afford to lose, cannot set headers at all.
+   So the duplicate rule moves into the database, where it applies no matter how the row
+   arrived. hush_ingest is INSERT ... ON CONFLICT DO NOTHING: a resent batch quietly
+   collapses to the events that are actually new, and the retry loop can run as often as
+   it likes without ever costing us a row. */
+const TELE_URL = TELE_KEY && "https://rcaxrwjxehdmfihuyrvu.supabase.co/rest/v1/rpc/hush_ingest?apikey="+TELE_KEY;
 const Tele = {
   buf:[], sid:"", pid:"", seq:0, t0:0, recent:[], scene:"",
   /* ══ WHICH BUILD SAID THIS ══ two fields, both on EVERY batch, because a playtest is
@@ -12288,7 +12319,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260802214259",
+  ver:"20260803035958",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
@@ -12340,6 +12371,7 @@ const Tele = {
       src:(e.filename||"").split("/").pop(), line:e.lineno, col:e.colno }));
     window.addEventListener("unhandledrejection", e=>this.log("promise_reject",{ msg:String(e&&e.reason).slice(0,180) }));
     this._watchOverlays();
+    this._restore();                 // finish sending whatever the last session could not
     setInterval(()=>this.flush(), 8000);
     document.addEventListener("visibilitychange", ()=>{ if(document.hidden){ this.log("app_hide",{ dt:Date.now()-this.t0 }); this.flush(true); } });
     window.addEventListener("pagehide", ()=>{ this.log("session_end",{ dt:Date.now()-this.t0, seq:this.seq }); this.flush(true); });
@@ -12353,12 +12385,73 @@ const Tele = {
     const ms = this.t0 ? Date.now()-this.t0 : 0;   // rides the context column the sheet already writes
     return { sc, ov, lv, mv, g:guide, goal, ms };
   },
-  log(n, props, kind){
-    const e={ t:Date.now(), sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(), q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
-    this.buf.push(e);
-    try{ const K="worddrop_ev1"; const q=JSON.parse(localStorage.getItem(K)||"[]"); q.push({t:e.t,n,p:props||{}}); while(q.length>500)q.shift(); localStorage.setItem(K,JSON.stringify(q)); }catch(_){}
-    if(this.buf.length>=18) this.flush();
+  /* ══ THE BOARD, AS THE PLAYER IS SEEING IT ══
+     A log of actions tells you what somebody DID. It cannot tell you whether the thing
+     they did was reasonable, because it never says what was in front of them. "Stuck for
+     30 seconds at level 5" is unanswerable without the board; with it, the question is
+     usually answered on sight.
+     Two parallel grids, one row per board row, because they compress well and both are
+     readable at a glance in a spreadsheet cell:
+       letters  "..CAT.."   the face of each tile, '.' for empty
+       kinds    "..nnn.."   what each tile IS - see KINDMAP
+     Plus the pieces in hand, the asks, and the counters. About 180 bytes for a full
+     board, which is cheaper than the tap stream it replaces. */
+  KINDMAP:{ normal:"n", gold:"g", ice:"i", frost:"f", stone:"s", crate:"c", mist:"m",
+            bramble:"b", root:"r", reed:"d", mire:"q", spore:"p", pest:"x", shroud:"h",
+            branch:"y", scree:"e", current:"u", crystal:"l", wild:"*", bomb:"o",
+            rainbow:"w", friend:"F" },
+  board(){
+    try{
+      if(typeof S==="undefined" || !S || !S.board) return null;
+      const L=[], K=[], held=[];
+      for(let r=0;r<ROWS;r++){
+        let lr="", kr="";
+        for(let c=0;c<COLS;c++){
+          const t=S.board[r] && S.board[r][c];
+          if(!t){ lr+="."; kr+="."; continue; }
+          lr += (t.letter||"?").toUpperCase();
+          kr += (this.KINDMAP[t.kind] || "?");
+          if(t.heldWord) held.push(r+","+c);
+        }
+        L.push(lr); K.push(kr);
+      }
+      const pc=p=>p ? ((p.letter||"").toUpperCase()+":"+(p.kind||"normal")) : null;
+      const o={ letters:L, kinds:K };
+      if(held.length) o.held=held;
+      o.hand={ cur:pc(S.cur), next:pc(S.next) };
+      o.count={ mv:S.movesLeft, score:S.levelScore, target:S.target, drops:S.drops||0 };
+      if(S.goal && S.goal.t!=="hush") o.goal={ t:S.goal.t, have:S.goal.have, need:S.goal.need };
+      if(S.goal2) o.goal2={ t:S.goal2.t, have:S.goal2.have, need:S.goal2.need };
+      if(S.tutorWord) o.meeting=S.tutorWord;
+      try{ o.pow={ breeze:P.pow.swap||0, wish:P.pow.wild||0, amber:P.amber||0 }; }catch(e){}
+      try{ o.party=UI.equipped().map(g=>g.w); }catch(e){}
+      return o;
+    }catch(e){ return null; }
   },
+  /* ══ WHAT THE GAME SAID, AND ON WHICH SURFACE ══
+     Every line the player could have read, tagged with where it appeared, so a session
+     can be replayed as a conversation rather than reconstructed from guesses. */
+  said(surface, text, extra){
+    this.log("said", Object.assign({ on:surface, txt:this.clip(text,180) }, extra||{}));
+  },
+  log(n, props, kind){
+    const e={ t:Date.now(), sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(),
+              q:++this.seq, n, k:kind||"", p:props||{}, c:this.ctx() };
+    /* ══ THE BOARD RIDES THE MOMENTS THAT CHANGE IT ══ not every event, or the payload is
+       mostly duplicate grids. These are the ones where "what did it look like" is the
+       question you will actually ask. */
+    if(Tele.SNAP.indexOf(n)>=0){ const b=this.board(); if(b) e.b=b; }
+    /* ══ A STABLE ID, SO A RETRY IS NOT A NEW ROW ══ the old sender had none, so every
+       resend duplicated rows and there was no way to tell a duplicate from a real repeat.
+       id is unique per event; q is monotonic per session, which makes GAPS visible - the
+       thing that would have shown last run was truncated instead of complete. */
+    e.id = this.sid+"-"+e.q;
+    this.buf.push(e);
+    this._persist();
+    if(this.buf.length>=25) this.flush();
+  },
+  SNAP:["level_start","level_win","level_fail","word_made","drop","tool_used","held",
+        "obstacle_cleared","wake","dead_tap","stall","watchdog","said"],
   _tap(e){
     const hit=e.target.closest("button,[onclick],.tile,.gcard,.menu-item,.shoprow,.charm-btn,.toolbtn,.iconbtn,.chip,a,textarea,input");
     // THE BOARD IS NOT DEAD SPACE. Dropping a letter is handled by a pointerup listener
@@ -12404,8 +12497,17 @@ const Tele = {
   async flush(beacon){
     if(!this.buf.length || !this.on) return;
     const batch=this.buf.splice(0, this.buf.length);
-    const body=JSON.stringify({ sid:this.sid, pid:this.pid, run:this.run||1, who:this.who(),
-      wave:this.wave, ver:this.ver, events:batch });
+    /* ══ ONE EVENT, ONE ROW ══ The sheet wanted an envelope with the session named once
+       and the events nested inside it. A table wants each event to stand on its own, so
+       every row carries its own sid/pid/who and can be filtered without unpacking anything.
+       id is the primary key, and hush_ingest drops the ones it has already seen, so a
+       retried batch arrives as only the events that are genuinely new. That is what makes
+       the retry in the catch block safe to run as often as it likes. */
+    const body=JSON.stringify({ rows: batch.map(e=>({
+      id:e.id, ts:new Date(e.t).toISOString(),
+      sid:e.sid, pid:e.pid, who:e.who, run:e.run||1,
+      lv:(e.c&&e.c.lv)||0, seq:e.q, n:e.n, k:e.k||"",
+      p:e.p||{}, c:e.c||{}, b:e.b||null })) });
     /* ══ A SEND THAT CANNOT FAIL CANNOT BE RETRIED ══
        This used mode:"no-cors", which makes every response opaque: a 404, a 500 and a
        deployment that has been archived all resolve exactly like success. So the catch below
@@ -12421,17 +12523,58 @@ const Tele = {
        nothing we were reading before. */
     try{
       if(beacon && navigator.sendBeacon){
-        if(!navigator.sendBeacon(TELE_URL, body)) this.buf.unshift(...batch);
+        /* PostgREST reads the body as JSON only if the Blob says so. A beacon cannot set
+           headers, so the type on the Blob is the only place left to say it - send it as
+           text/plain and the insert is rejected on a page that is already gone. */
+        const blob=new Blob([body],{type:"application/json"});
+        if(!navigator.sendBeacon(TELE_URL, blob)) { this.buf.unshift(...batch); this._persist(); }
         return;
       }
       const res = await fetch(TELE_URL,{ method:"POST", keepalive:true,
-        headers:{"Content-Type":"text/plain;charset=utf-8"}, body });
+        headers:{"Content-Type":"application/json"}, body });
       if(!res.ok) throw new Error("collector answered "+res.status);
+      this._persist();                      // sent - shrink the durable copy too
     }catch(e){
-      // keep them for the next flush, but never let a dead collector eat the tab
+      /* ══ NEVER DROP THE OLDEST, AND NEVER DROP SILENTLY ══
+         This used to splice from the FRONT once the queue passed 600 - discarding the
+         earliest events and keeping the newest. A run that hit a bad patch came back
+         looking like a complete, shorter session: unbroken, believable and wrong. That
+         is how a level-20 run was filed as a clean level-9 run.
+         Now the head is sacred. Overflow sheds the least informative events from the
+         MIDDLE, and leaves a data_loss marker so the gap is visible in the data instead
+         of pretending to be the end of the session. */
       this.buf.unshift(...batch);
-      if(this.buf.length > 600) this.buf.splice(0, this.buf.length-600);
+      const CAP=1200;
+      if(this.buf.length > CAP){
+        const keep=n=>["session_start","level_start","level_win","level_fail","wake",
+                       "said","error","watchdog","data_loss"].indexOf(n)>=0;
+        const before=this.buf.length;
+        let i=1;
+        while(this.buf.length>CAP && i<this.buf.length-1){
+          if(!keep(this.buf[i].n)) this.buf.splice(i,1); else i++;
+        }
+        if(this.buf.length>CAP) this.buf.splice(1, this.buf.length-CAP);   // last resort
+        const lost=before-this.buf.length;
+        if(lost) this.buf.splice(1,0,{ t:Date.now(), sid:this.sid, pid:this.pid,
+          run:this.run||1, who:this.who(), q:++this.seq, n:"data_loss", k:"",
+          p:{ dropped:lost, reason:"queue over "+CAP+" - collector unreachable" },
+          c:this.ctx(), id:this.sid+"-loss-"+this.seq });
+      }
+      this._persist();
     }
+  },
+  /* ══ THE QUEUE SURVIVES THE APP CLOSING ══ it lived only in memory, so a reload, a
+     crash, or swiping the tab away took every unsent event with it. It is mirrored to
+     localStorage on every log and re-loaded at boot, so the next launch finishes the
+     last session's sending. */
+  _persist(){
+    try{ localStorage.setItem("hush_tq", JSON.stringify(this.buf.slice(-1200))); }catch(e){}
+  },
+  _restore(){
+    try{
+      const q=JSON.parse(localStorage.getItem("hush_tq")||"[]");
+      if(q.length){ this.buf.unshift(...q); this.log("resumed_queue",{ n:q.length }); }
+    }catch(e){}
   },
   /* A NAME IS NOT OPTIONAL HERE. These testers are all friends of the owner, and feedback
      that cannot be traced to a person is feedback nobody can follow up on - "somebody got
@@ -12678,10 +12821,30 @@ Tele.boot();
 Alder._watch();   // the stage manager's eyes: grace preemption + the quiet-window ticker
 Info.wireTools(); // hold the breeze or the wish half a second to read it in the Field Guide
 Game._sink = (n,p)=>Tele.log(n,p,"funnel");   // level_start/win/fail, wake, purchase*, ad*, shop_open
-// what the wood SAID to them - scene changes and every announcement
+/* ══ EVERY WORD THE PLAYER COULD HAVE READ, AND WHERE IT APPEARED ══
+   Wrapped at the surface rather than the call site, so a line added anywhere in the game
+   is captured without anybody remembering to log it. `on` names the surface, which is
+   what turns a list of strings back into a session you can read in order:
+     bar    - Alder's bar, the running commentary
+     window - his blocking card
+     note   - a live tutorial instruction
+     beat   - a tutorial card that waits for a tap
+     toast  - the transient banner
+   Paired with the board snapshot each one carries, this answers "what was on screen when
+   they got stuck" without guessing. */
+const _plain=h=>Tele.clip(String(h||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim(),180);
 { const _sc=UI.scene.bind(UI); UI.scene=(id)=>{ if(id!==Tele.scene){ Tele.log("nav",{to:id}); Tele.scene=id; } return _sc(id); }; }
-{ const _ts=UI.toast.bind(UI); UI.toast=(m,h)=>{ Tele.log("say",{txt:Tele.clip((m||"").replace(/<[^>]+>/g," ").trim()),hold:h||""}); return _ts(m,h); }; }
-{ const _nt=FT.note.bind(FT); FT.note=(h)=>{ Tele.log("lesson_note",{txt:Tele.clip((h||"").replace(/<[^>]+>/g," ").trim())}); return _nt(h); }; }
+{ const _ts=UI.toast.bind(UI); UI.toast=(m,h)=>{ Tele.said("toast",_plain(m),{hold:h||""}); return _ts(m,h); }; }
+{ const _nt=FT.note.bind(FT); FT.note=(h)=>{ Tele.said("note",_plain(h)); return _nt(h); }; }
+{ const _bt=FT.beat.bind(FT); FT.beat=(h,ms)=>{ Tele.said("beat",_plain(h)); return _bt(h,ms); }; }
+{ const _sh=Alder._show.bind(Alder);
+  Alder._show=(item)=>{ const r=_sh(item);
+    try{ const t=document.querySelector("#alder .atxt");
+      Tele.said("bar", _plain(t&&t.innerHTML), { key:item&&item.key, pri:item&&item.pri,
+        windowed: !!(item&&item._full) }); }catch(e){}
+    return r; }; }
+{ const _ps=Alder._pageShow.bind(Alder);
+  Alder._pageShow=(s,g,b,cb)=>{ Tele.said("window", _plain(s)+(g?" | "+_plain(g):"")); return _ps(s,g,b,cb); }; }
 // a one-time, honest notice - testers should know their taps are recorded
 if(Tele.on && !P.teleSeen){ setTimeout(()=>{ const o=$("ov-tele"); if(o){ o.classList.add("active"); } }, 600); }
 // installable + offline: register the service worker (silent, non-blocking)
