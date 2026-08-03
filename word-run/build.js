@@ -91,7 +91,17 @@ const CRUDE = new Set(("ass arse anal anus boob boobs butt clit cock cum dick di
 const dropTemplate = fs.readFileSync(path.join(__dirname, "word-drop.template.html"), "utf8");
 // every grove creature must stay spellable no matter how the frequency lists shift -
 // pull their names straight out of the template so the two can never drift apart.
-const grove = [...dropTemplate.matchAll(/\{w:"([a-z]+)"/g)].map(m => m[1]);
+/* read from src/, not the template: the roster moved out of the shell when the game was
+   split into modules, so matching the template found nothing and every creature name lost
+   its protection in the dictionary filter. */
+const SRC_DIR = path.join(__dirname, "src");
+const SRC_JS = fs.readdirSync(SRC_DIR).filter(f => f.endsWith(".js")).sort();
+const scriptBody = SRC_JS.map(f => fs.readFileSync(path.join(SRC_DIR, f), "utf8")).join("");
+if (SRC_JS.length < 16) {
+  console.error("!! BUILD REFUSED - expected at least 16 src/*.js modules, found " + SRC_JS.length);
+  process.exit(1);
+}
+const grove = [...scriptBody.matchAll(/\{w:"([a-z]+)"/g)].map(m => m[1]);
 // four-letter offenders: proper nouns and transliterations that ENABLE happens to hold
 // lowercase. A cozy game celebrating "WYNN" or "RHEA" reads as a broken dictionary.
 // Deliberately short and conservative - a wrongly-blocked word is the worse failure,
@@ -123,8 +133,32 @@ if (MUST.length) { console.warn("!! missing expected words:", MUST.join(" ")); c
 // telemetry needs the same value, and it has to exist before the game HTML is written. A
 // second Date.now() here would drift by a millisecond and give the two a different id.
 const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
-const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "))
-                            .split("__TELEBUILD__").join(stamp);
+/* ══ THE GAME IS ASSEMBLED FROM src/, NOT AUTHORED AS ONE FILE ══ it was 13,400 lines in a
+   single document: fourteen perfectly readable modules glued together with no boundary any
+   tool could see. Nobody can hold that, and an agent editing a fragment of it cannot see the
+   five lines around its own edit - which is how a statement ended up between an `if` and its
+   `else` and blanked the whole game.
+   The pieces live in src/ and are stitched here. The output is byte-for-byte what it was
+   before the split, which is the only reason this refactor is safe to do at all: if the
+   bytes match, nothing changed. */
+const stitch = (file) => fs.readFileSync(path.join(SRC_DIR, file), "utf8");
+/* ASSEMBLE FIRST, SUBSTITUTE SECOND. __COMMON__ and __TELEBUILD__ live INSIDE the modules
+   now, so replacing them on the bare template shell silently found nothing and shipped a game
+   with no dictionary - 866 KB where 1364 KB was expected. The document is put together, then
+   the placeholders are filled, and each substitution is asserted to have actually happened. */
+const assembled = dropTemplate.split("__STYLE__").join(stitch("style.css"))
+                              .split("__SCRIPT__").join(scriptBody);
+for (const token of ["__STYLE__", "__SCRIPT__", "__COMMON__", "__TELEBUILD__"]) {
+  const present = (token === "__STYLE__" || token === "__SCRIPT__")
+    ? !assembled.includes(token)                  // these must be GONE after assembly
+    : assembled.includes(token);                  // these must still be THERE to fill
+  if (!present) {
+    console.error("!! BUILD REFUSED - placeholder " + token + " is not where it should be");
+    process.exit(1);
+  }
+}
+const dropOut = assembled.split("__COMMON__").join(common.join(" "))
+                         .split("__TELEBUILD__").join(stamp);
 /* ══ A BUILD THAT DOES NOT PARSE MUST NOT SHIP ══ the template is one enormous inline
    script, so a single stray token anywhere in it makes the WHOLE game a blank page - no
    Game, no P, no error the player would ever see reported. It has happened: an edit put a
