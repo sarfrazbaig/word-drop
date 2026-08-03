@@ -55,7 +55,9 @@
   #centre{ flex:1; text-align:center; padding-top:8px; }
   #score{ font-size:29px; font-weight:800; color:#fff; }
   #track{ width:245px; height:16px; border-radius:99px; background:#475777; margin:14px auto 0; overflow:hidden; }
-  #fill{ height:100%; width:0; background:#ffb323; border-radius:99px; transition:width .45s cubic-bezier(.2,.7,.3,1); }
+  #fill{ height:100%; width:100%; background:#ffb323; border-radius:99px;
+    transform:scaleX(0); transform-origin:left center;
+    transition:transform .45s cubic-bezier(.2,.7,.3,1); }
   #moves{ font-size:22px; font-weight:700; color:#a9bcd8; margin-top:13px; }
   #pouch{ flex:0 0 auto; margin-top:8px; display:flex; align-items:center; gap:11px;
     background:#3c5070; border-radius:99px; padding:13px 22px; }
@@ -352,7 +354,7 @@ function paint(){
   $("mv").textContent=Math.max(0,S.moves); $("lvnum").textContent=S.lv;
   $("amber").textContent=S.amber; $("leafn").textContent=S.leaf; $("starn").textContent=S.star;
   $("words").textContent=S.wordsMade+"/"+S.wordsNeed;
-  $("fill").style.width=Math.min(100, 100*S.score/S.target)+"%";
+  $("fill").style.transform="scaleX("+Math.min(1, S.score/S.target).toFixed(4)+")";
   $("cur").innerHTML=S.cur.l.toUpperCase()+'<s>'+(VAL[S.cur.l]||1)+'</s>';
   $("nx").textContent=S.next.l.toUpperCase();
   $("th").textContent=S.then.l.toUpperCase();
