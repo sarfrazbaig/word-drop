@@ -4896,7 +4896,51 @@ const OBSTACLE_GOAL={ ice:"thaw", frost:"thaw", stone:"boulder", crate:"unravel"
 /* derived from the habitat table, so a trouble starts crediting the round the moment its
    behaviour lands - one place to add a trouble, not two */
 const OBSTACLE_KINDS=TROUBLE_KEYS.concat("crate");
+/* ══ A ROUND MAY ONLY ASK FOR TROUBLE THAT LIVES HERE ══
+   The schedule below and the habitat table in TROUBLE both describe when an obstacle may
+   appear, and they were authored separately, so they drifted: "melt every ice" was asked at
+   A15, in the First Clearing, when ice debuts at A262 in the two snow countries. seedGoal
+   converts tiles with no check at all, so the round simply manufactured ice that cannot
+   exist. Twenty-four levels were doing this - thaw, boulder, lift and cut.
+   The schedule is no longer trusted on its own. Every goal it names is now checked against
+   the habitat table, which becomes the single source of truth for where a trouble can be,
+   and an illegal ask falls back rather than conjuring the obstacle.
+   GOAL_LAG holds the intent that was already written in the comment below and never
+   enforced: meet the trouble first, be asked about it a few levels later. */
+const GOAL_LAG=3;
+function goalLegalAt(gt, A){
+  const G=GOALS[gt]; if(!G || !G.seed) return true;   // hush, long: no trouble to place
+  const tr=TROUBLE[G.seed]; if(!tr) return true;      // gold and wild are not troubles
+  if(A <= tr.at + GOAL_LAG) return false;             // the trouble has not been met yet
+  if(!tr.homes) return true;
+  const biome=Math.floor((A-1)/BIOME_LEN);
+  return tr.homes.some(([lo,hi])=>biome>=lo && biome<=hi);
+}
+/* what this country CAN be asked, in a stable order - so a fallback is never random */
+function legalGoalsAt(A){
+  return ["thaw","boulder","unravel","harvest","lift","cut","long","star"]
+    .filter(gt=>GOALS[gt] && goalLegalAt(gt,A));
+}
+/* ══ THE CROWN TRIAL'S TWO ASKS, IN ONE PLACE ══ this lived inline in beginLevel, and when
+   the audit grew a check for it the audit had to RE-IMPLEMENT the choice to test it. That
+   is the same disease being audited: two pieces of code describing one rule. The trial and
+   its auditor now call this, so they cannot disagree about what a crown round asks. */
+function gauntletPair(A){
+  const pool=legalGoalsAt(A).filter(g=>GOALS[g] && GOALS[g].seed);
+  if(!pool.length) return [];
+  const gi=Math.floor(A/13);
+  return pool.length>=2 ? [pool[gi%pool.length], pool[(gi+1)%pool.length]] : [pool[0]];
+}
 function goalFor(L){
+  const want=goalPlan(L), A=advOf(L);
+  if(want==="gauntlet" || want==="hush") return want;
+  if(goalLegalAt(want, A)) return want;
+  /* the round still wants to ASK something - fall back to what this country can honestly
+     offer, keyed off the level so it stays stable across replays of the same round */
+  const legal=legalGoalsAt(A);
+  return legal.length ? legal[A % legal.length] : "hush";
+}
+function goalPlan(L){
   L = advOf(L);   // the rounds below are the player's, not the raw counter's
   // authored solo introductions, then one obstacle-goal level per 5-beat cycle.
   // every new goal debuts a few levels after its obstacle does - meet the trouble
@@ -7492,8 +7536,14 @@ const Game = {
     if(!(P.summon && !P.grove[P.summon]) && !(level===4 && !P.grove.cat)){
       const gt=goalFor(level);
       if(gt==="gauntlet"){ // 👑 two asks at once, each cut down to size
-        const gp=["thaw","boulder","harvest","unravel"], gi=Math.floor(level/13);
-        S.goal=seedGoal(gp[gi%4],4); S.goal2=seedGoal(gp[(gi+1)%4],4);
+        /* the crown trial drew from a fixed four - thaw and boulder among them - so it
+           conjured ice and stone in whatever country it landed in, exactly like the
+           schedule did. It now draws from what this country can legally be asked.
+           gi also read the RAW counter while goalFor reads the adventure level: two units
+           in one system, five apart. Both read the adventure level now. */
+        const gp=gauntletPair(advOf(level));
+        if(gp[0]) S.goal =seedGoal(gp[0],4);
+        if(gp[1]) S.goal2=seedGoal(gp[1],4);
       } else if(gt!=="hush"){
         S.goal=seedGoal(gt);
       }
@@ -12040,6 +12090,7 @@ const UI = {
         + '</div>'
         + '<div class="dbggroup">danger</div><div id="dbg-rows">'
         + '<button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑️ wipe save</button>'
+        + '<button class="charm-btn" id="dbg-new" onclick="UI.dbgNewTester()">🆕 new playtester</button>'
         + B("UI.dbgRelock()","🔒 lock the toolbox")
         + '</div>';
     }
@@ -12181,6 +12232,35 @@ const UI = {
       localStorage.removeItem("worddrop_ev1");
       if(keepName||keepSeen) localStorage.setItem("worddrop_v3", JSON.stringify({teleName:keepName, teleSeen:keepSeen}));
     }catch(e){}
+    location.reload();
+  },
+
+  /* ══ BECOME SOMEBODY ELSE ══ dbgWipe above deliberately KEEPS the identity - it clears the
+     save and bumps the run so a device's second attempt can still be tied to its first, which
+     is right for "let me replay this". It is the wrong tool for the other job: there was no
+     way to sit down as a genuinely NEW playtester, because hush_pid, the run counter, the
+     tester's name and the tutorial-seen mark all live outside the save file precisely so a
+     wipe cannot reach them. Wiping the game therefore produced the same person starting over,
+     never a stranger arriving - and a first-run experience can only be judged by a stranger.
+     This clears the identity too, so the next boot has no pid, no run history, no name and no
+     memory of the lessons: the welcome card asks who you are again, and everything after it is
+     a true first session.
+     The collected LOG is deliberately not cleared. Wiping who you are should not destroy the
+     research already gathered, and every row carries its own sid and pid, so the old tester and
+     the new one stay cleanly separable in the data. */
+  dbgNewTester(){
+    if(!UI._dbgNewArmed){ UI._dbgNewArmed=true;
+      $("dbg-new").textContent="⚠️ erases your identity - tap again"; return; }
+    try{
+      // close the old tester's book BEFORE the name goes, or the last session lands anonymous
+      Game.track("tester_retired",{ L:P.level, friends:Object.keys(P.grove||{}).length,
+        run:Tele.run||1, was:Tele.who()||"(unnamed)", from:"toolbox" });
+      Tele.flush(true);
+    }catch(e){}
+    ["worddrop_v3","worddrop_v2","worddrop_ev1","worddrop_sv",   // the save and its mirror
+     "hush_pid","hush_run","hush_tq",                            // who you are, and the outbox
+     "hushwood_taught"                                           // so the lessons play again
+    ].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
     location.reload();
   },
 
@@ -12381,15 +12461,42 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260803043723",
+  ver:"20260803053658",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
+  /* ══ LOCAL PLAY IS RECORDED, BUT NEVER SENT ══
+     The collector holds real players. A developer replaying a level forty times, or an
+     agent driving the board from a console, is not a player, and letting that reach the
+     table poisons every number computed from it - which is precisely how a set of probe
+     rows ended up sitting next to a genuine session.
+     So localhost keeps recording, in exactly the row shape Postgres uses, into a local
+     ring instead of the network. Same fields, same ids, same board snapshots; it can be
+     read back, diffed and analysed identically, and nothing leaves the machine.
+     hush_tele_force is gone deliberately: a switch that lets local play reach the live
+     table is a switch that will eventually be left on. */
   isLocal(){ const h=location.hostname||"";
-    try{ if(localStorage.getItem("hush_tele_force")==="1") return false; }catch(e){}
     return location.protocol==="file:" || !h || h==="localhost" || h==="127.0.0.1"
       || h==="[::1]" || h==="0.0.0.0" || h.endsWith(".local"); },
-  get on(){ return !!TELE_URL && !this.isLocal(); },
+  get on(){ return !!TELE_URL || this.isLocal(); },   // local records; only the SINK differs
+  LOCAL_KEY:"hush_playlog", LOCAL_CAP:8000,
+  /* the local sink. Same rows the RPC would have received, appended and capped. */
+  _toLocal(rows){
+    try{
+      const prev=JSON.parse(localStorage.getItem(this.LOCAL_KEY)||"[]");
+      const all=prev.concat(rows);
+      localStorage.setItem(this.LOCAL_KEY, JSON.stringify(all.slice(-this.LOCAL_CAP)));
+      return true;
+    }catch(e){ return false; }
+  },
+  /* what the playtest reads out. Returns NDJSON - one row per line, the shape the table
+     stores - so a run can be written straight to a file and queried the same way. */
+  dumpLocal(){
+    try{ return JSON.parse(localStorage.getItem(this.LOCAL_KEY)||"[]")
+      .map(r=>JSON.stringify(r)).join("\n"); }catch(e){ return ""; }
+  },
+  clearLocal(){ try{ localStorage.removeItem(this.LOCAL_KEY); }catch(e){} },
+  localCount(){ try{ return JSON.parse(localStorage.getItem(this.LOCAL_KEY)||"[]").length; }catch(e){ return 0; } },
   /* the run number, read once and cached. Lives beside hush_pid so a save wipe cannot reach it. */
   loadRun(){
     try{ const r=parseInt(localStorage.getItem("hush_run")||"1",10);
@@ -12583,6 +12690,15 @@ const Tele = {
       sid:e.sid, pid:e.pid, who:e.who, run:e.run||1,
       lv:(e.c&&e.c.lv)||0, seq:e.q, n:e.n, k:e.k||"",
       p:e.p||{}, c:e.c||{}, b:e.b||null })) });
+
+    /* LOCAL PLAY FORKS HERE, and only here - the rows above are already built, so the
+       local log is byte-identical to what the table would have stored. If the write fails
+       the batch goes back in the queue exactly as a failed POST would. */
+    if(this.isLocal()){
+      const rows=JSON.parse(body).rows;
+      if(!this._toLocal(rows)){ this.buf.unshift(...batch); this._persist(); }
+      return;
+    }
     /* ══ A SEND THAT CANNOT FAIL CANNOT BE RETRIED ══
        This used mode:"no-cors", which makes every response opaque: a 404, a 500 and a
        deployment that has been archived all resolve exactly like success. So the catch below
@@ -12851,6 +12967,84 @@ const Audit = {
       }
     }
 
+    /* ══════════════════════════════════════════════════════════════════════════════
+       THE DRIFT CHECKS. Everything above asks "is this table complete?". These ask the
+       question that actually broke the game: "do two tables that describe the SAME rule
+       still agree?" A tester met ice in the First Clearing - 247 levels and 13 countries
+       before the habitat table says ice can exist - because the obstacle schedule and the
+       goal schedule were authored separately and nothing ever compared them. Neither was
+       wrong on its own, which is exactly why nothing caught it.
+       ══════════════════════════════════════════════════════════════════════════════ */
+
+    /* ── 1. NO ROUND MAY ASK FOR A TROUBLE THAT CANNOT BE HERE ──
+       seedGoal writes t.kind straight onto a tile with no debut or habitat check, while
+       the random spread gates itself properly. One rule, two enforcers, one asleep. */
+    if(typeof goalFor==="function" && typeof GOALS!=="undefined" && typeof TROUBLE!=="undefined"){
+      const bad={};   // collapse a whole schedule into one line per goal, not 40 lines
+      for(let A=1; A<=RING_LEN; A++){
+        const L=A+PROLOGUE_END;                       // goalFor takes the raw counter
+        const names=[];
+        try{
+          const g=goalFor(L);
+          if(g==="gauntlet"){ gauntletPair(A).forEach(x=>names.push(x)); }   // ask the trial itself
+          else if(g) names.push(g);
+        }catch(e){ continue; }
+        const biome=Math.floor((A-1)/BIOME_LEN);
+        for(const gt of names){
+          const G=GOALS[gt]; if(!G||!G.seed) continue;
+          const tr=TROUBLE[G.seed]; if(!tr) continue;   // gold and wild are not troubles
+          const early = A <= tr.at;
+          const away  = tr.homes && !tr.homes.some(([lo,hi])=>biome>=lo && biome<=hi);
+          if(early||away){
+            const k=gt+"|"+G.seed;
+            (bad[k]=bad[k]||{n:0,first:A,seed:G.seed,gt:gt,at:tr.at,homes:tr.homes,biome:biome}).n++;
+          }
+        }
+      }
+      Object.values(bad).forEach(b=>{
+        err.push('🧊 "'+b.gt+'" seeds '+b.seed+' on '+b.n+' level'+(b.n>1?'s':'')
+          +', first at A'+b.first+' (country '+b.biome+') - but '+b.seed
+          +' debuts at A'+b.at+' in countries '+JSON.stringify(b.homes));
+      });
+    }
+
+    /* ── 2. A VALVE THAT CANNOT OPEN IS NOT A VALVE ──
+       Courtship is sold to the player as "do what it loves and it comes early". If a
+       friend's guaranteed floor is BELOW its courtship minimum, the guarantee always wins
+       and the hunt can never once pay out. Ten friends were in that state. */
+    if(typeof FLOOR_AT!=="undefined" && typeof CALL_MINL!=="undefined"){
+      const dead=[];
+      for(const w in FLOOR_AT){
+        const floor=FLOOR_AT[w], min=CALL_MINL[w];
+        if(min!=null && floor<=min) dead.push(w+' (floor A'+floor+' vs calling A'+min+')');
+      }
+      if(dead.length) warn.push('🎣 courtship can never fire for '+dead.length+' friend'
+        +(dead.length>1?'s':'')+' - the floor arrives first every time: '+dead.join(', '));
+    }
+
+    /* ── 3. A GIFT AT A DOOR NEEDS A DOOR ── keystones are handed over for clearing a
+       gate, so a keystone on a level with no gate is a friend nobody can ever be given. */
+    if(typeof KEYSTONE!=="undefined" && typeof GATE!=="undefined")
+      Object.keys(KEYSTONE).forEach(lv=>{
+        if(!GATE[lv]) err.push('🗝️ '+KEYSTONE[lv]+' is given at A'+lv+', which has no gate to clear');
+      });
+
+    /* ── 4. A COUNTRY MUST NOT HOLD MORE FRIENDS THAN IT HAS CHAIRS ──
+       This is the pet bombardment as arithmetic rather than as a feeling: seven friends
+       live in the First Clearing and it never offers more than four seats, so three of
+       them arrive with nowhere to sit. Counted WITH the starters, unlike HOME_CURVE
+       above, because a chair does not care that the cat was free. */
+    if(typeof seatsByLevel==="function" && typeof HOME!=="undefined"){
+      const per={};
+      for(const w in HOME) per[HOME[w][0]]=(per[HOME[w][0]]||0)+1;
+      Object.keys(per).forEach(c=>{
+        const last=(Number(c)+1)*BIOME_LEN;              // chairs by the end of that country
+        const chairs=seatsByLevel(last+PROLOGUE_END);
+        if(per[c]>chairs) warn.push('🪑 '+(BIOME_NAMES[c]||('country '+c))+' homes '+per[c]
+          +' friends but offers '+chairs+' seat'+(chairs>1?'s':'')+' by its end');
+      });
+    }
+
     const out={ err, warn, note, ok: !err.length };
     if(loud!==false){
       const tag='%c🔎 Hushwood audit';
@@ -12892,7 +13086,25 @@ window.Hush = {
 // and the handbook's console recipes are written against them
 window.S = ()=>S; window.Game=Game; window.UI=UI; window.Snd=Snd; window.P=P; window.Tele=Tele;
 // dev machines only - a player must never see the audit, and never pay for it either
-if(Tele.isLocal()) setTimeout(()=>{ try{ Audit.run(); }catch(e){ console.warn("audit fell over:",e); } }, 0);
+/* ══ THE AUDIT RUNS EVERYWHERE NOW, NOT JUST ON MY MACHINE ══
+   It used to run on localhost only, so its findings existed exactly where nobody was
+   playing. The drift checks it just grew - a goal seeding an obstacle that cannot be in
+   this country, a courtship valve the floor always beats - describe things a PLAYER meets,
+   so the report has to travel with the player. Loud in console when local, one telemetry
+   row when not: a build that ships disagreeing with itself says so in the data on its
+   first boot, instead of waiting for someone to notice ice in the First Clearing. */
+setTimeout(()=>{
+  try{
+    const local=Tele.isLocal();
+    const r=Audit.run(local);
+    if(!local && (r.err.length || r.warn.length))
+      Tele.log("audit", { ok:r.ok, nerr:r.err.length, nwarn:r.warn.length,
+                          err:r.err.slice(0,12), warn:r.warn.slice(0,8) });
+  }catch(e){
+    console.warn("audit fell over:",e);
+    try{ Tele.log("audit_crashed",{ err:String((e&&e.message)||e) }); }catch(_){}
+  }
+}, 0);
 Tele.boot();
 Alder._watch();   // the stage manager's eyes: grace preemption + the quiet-window ticker
 Info.wireTools(); // hold the breeze or the wish half a second to read it in the Field Guide
