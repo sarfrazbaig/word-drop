@@ -36,16 +36,18 @@
   *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body{ height:100%; background:#1e1e1e; font-family:Nunito,system-ui,sans-serif;
     -webkit-font-smoothing:antialiased; overflow:hidden; user-select:none; }
+  :root{ --pane:#2a4063; --pane2:#3e577d; --line:#475777; --pouch:#3c5070; --slot:#566c8d; --page:#dfeafb;
+    --ink:#3e5170; --edge:#c3cfdf; --dock:#bcd6b9; --dockink:#4e6b52; }
   #fit{ position:fixed; left:0; top:0; width:854px; height:1842px; transform-origin:0 0; }
 
   #shell{ position:absolute; left:21px; top:31px; width:812px; height:1781px;
-    background:#dfeafb; border-radius:44px; padding:35px 32px; display:flex; flex-direction:column; }
+    background:var(--page); border-radius:44px; padding:35px 32px; display:flex; flex-direction:column; }
   .panel{ border-radius:24px; }
   .tap{ cursor:pointer; transition:transform .09s ease; }
   .tap:active{ transform:scale(.94); }
 
   /* ══ HUD ══ */
-  #hud{ background:#2a4063; height:307px; padding:22px 26px 0; display:flex; flex-direction:column; }
+  #hud{ background:var(--pane);  height:307px; padding:22px 26px 0; display:flex; flex-direction:column; }
   #hudtop{ display:flex; align-items:flex-start; gap:18px; }
   #burger{ width:38px; padding-top:14px; display:flex; flex-direction:column; gap:7px; flex:0 0 auto; }
   #burger i{ display:block; height:5px; border-radius:3px; background:#a1c3ec; }
@@ -54,17 +56,17 @@
   #lvl span{ display:block; font-size:36px; font-weight:900; color:#fff; line-height:1.05; }
   #centre{ flex:1; text-align:center; padding-top:8px; }
   #score{ font-size:29px; font-weight:800; color:#fff; }
-  #track{ width:245px; height:16px; border-radius:99px; background:#475777; margin:14px auto 0; overflow:hidden; }
+  #track{ width:245px; height:16px; border-radius:99px; background:var(--line); margin:14px auto 0; overflow:hidden; }
   #fill{ height:100%; width:100%; background:#ffb323; border-radius:99px;
     transform:scaleX(0); transform-origin:left center;
     transition:transform .45s cubic-bezier(.2,.7,.3,1); }
   #moves{ font-size:22px; font-weight:700; color:#a9bcd8; margin-top:13px; }
   #pouch{ flex:0 0 auto; margin-top:8px; display:flex; align-items:center; gap:11px;
-    background:#3c5070; border-radius:99px; padding:13px 22px; }
+    background:var(--pouch); border-radius:99px; padding:13px 22px; }
   #pouch em{ width:24px; height:24px; border-radius:50%; background:#ffb323; display:block; }
   #pouch b{ font-size:27px; font-weight:800; color:#fff; }
   #pouch i{ font-size:25px; font-weight:700; color:#c3d6f0; font-style:normal; }
-  #rule{ height:1px; background:#475777; margin:26px -26px 0; }
+  #rule{ height:1px; background:var(--line); margin:26px -26px 0; }
   #ask{ flex:1; display:flex; align-items:center; gap:18px; }
   #badge{ width:150px; height:88px; border-radius:99px; flex:0 0 auto;
     border:3px solid #ffb323; background:rgba(255,179,35,.10);
@@ -81,13 +83,21 @@
   #asktext u{ font-size:25px; font-weight:800; color:#a1c3ec; text-decoration:none; }
 
   /* ══ FRIENDS ══ */
-  #pets{ background:#3e577d; height:259px; margin-top:23px; padding:34px 30px 0;
+  #pets{ background:var(--pane2);  height:259px; margin-top:23px; padding:34px 30px 0;
     display:flex; align-items:flex-start; justify-content:space-between; }
   .seat{ width:150px; text-align:center; }
-  .mount{ width:110px; height:116px; margin:0 auto; background:#fff; border-radius:14px;
-    padding:6px; box-shadow:0 3px 9px rgba(10,26,50,.30); }
-  .mount img{ width:100%; height:100%; object-fit:cover; border-radius:9px; display:block; }
-  .disc{ width:74px; height:74px; margin:21px auto 0; border-radius:50%; background:#566c8d;
+  /* the portraits arrive with their own gold ring and pastel field baked into the JPEG, so a
+     white card around them is a SECOND frame - and at shelf size that card was eating a fifth
+     of the face. The medallion is the mount. #pets.boxed restores the comp's card if the two
+     ever need comparing again. */
+  .mount{ width:116px; height:116px; margin:0 auto; border-radius:50%; overflow:hidden;
+    background:none; padding:0; box-shadow:0 3px 10px rgba(10,26,50,.32); }
+  .mount img{ width:100%; height:100%; object-fit:cover; display:block;
+    border-radius:50%; transform:scale(1.03); }
+  #pets.boxed .mount{ width:110px; height:116px; background:#fff; border-radius:14px;
+    padding:6px; overflow:visible; }
+  #pets.boxed .mount img{ border-radius:9px; transform:none; }
+  .disc{ width:74px; height:74px; margin:21px auto 0; border-radius:50%; background:var(--slot);
     display:grid; place-items:center; font-size:38px; font-weight:900; color:#c3d6f0; }
   .seat b{ display:block; margin-top:15px; font-size:22px; font-weight:800; color:#fff; }
   .seat span{ display:block; margin-top:5px; font-size:20px; font-weight:700; color:#a9bcd8; }
@@ -101,12 +111,31 @@
   /* ══ A TILE IS A POSITION AND A FACE ══ the position moves, the face deforms. They are two
      elements because a squash is a transform and so is a fall, and one element cannot do
      both without the landing cancelling the arrival. The game splits them for this reason. */
-  .tile{ position:absolute; width:84px; height:84px; }
-  .face{ width:100%; height:100%; border-radius:13px; background:#fdfbf7; position:relative;
-    display:grid; place-items:center; font-size:43px; font-weight:900; color:#445872;
-    box-shadow:0 3px 0 rgba(28,48,80,.13), 0 5px 11px rgba(20,40,70,.17); }
-  .face s{ position:absolute; right:9px; bottom:4px; font-size:17px; font-weight:800;
-    color:#8b9bb3; text-decoration:none; }
+  .tile{ position:absolute; width:94px; height:94px; }
+  /* ══ A TILE IS A SLAB, NOT A CARD ══ the comp draws a flat rectangle and it reads as a
+     sticker lying on the painting. What gives the game's letters their weight is not colour,
+     it is FOUR shadows doing separate jobs: a hard un-blurred bottom edge that IS the
+     thickness, a soft drop beneath it for the ground, a bright inset along the top where the
+     light lands, and a darker inset at the base where the slab turns away from it.
+     The game runs a 5px edge on a 44px cell. At 94px that is 10 - and because the gutter is
+     8, the edge laps 2px over the tile below, which is what makes a column read as stacked
+     rather than as counters left near each other. */
+  .face{ width:100%; height:100%; border-radius:15px; background:#fdfbf7; position:relative;
+    display:grid; place-items:center; font-size:49px; font-weight:900; color:var(--ink);
+    overflow:hidden;
+    text-shadow:0 2px 0 rgba(255,255,255,.9), 0 -1px 0 rgba(96,116,146,.30);
+    box-shadow:
+      0 10px 0 var(--edge),
+      0 15px 16px rgba(20,40,70,.30),
+      inset 0 4px 0 rgba(255,255,255,.95),
+      inset 0 -9px 10px rgba(126,146,176,.30),
+      inset 0 0 0 2px rgba(255,255,255,.55); }
+  /* the sheen across the top third, so the face is lit rather than merely pale */
+  .face::before{ content:""; position:absolute; top:3px; left:7%; right:34%; height:32%;
+    border-radius:50%; pointer-events:none;
+    background:linear-gradient(180deg, rgba(255,255,255,.75), transparent); }
+  .face s{ position:absolute; right:11px; bottom:7px; font-size:19px; font-weight:800;
+    color:#8296b0; text-decoration:none; text-shadow:0 1px 0 rgba(255,255,255,.8); }
   .tile.fall{ transition:top .26s cubic-bezier(.35,.85,.4,1); }   /* the collapse after a clear */
   .tile.ghost .face{ background:rgba(253,251,247,.30); color:rgba(68,88,114,.55); box-shadow:none;
     outline:3px dashed rgba(253,251,247,.75); outline-offset:-3px; }
@@ -131,7 +160,7 @@
     box-shadow:0 0 0 4px #ffb323, 0 5px 11px rgba(20,40,70,.2); }
   .tile.gone .face{ transition:transform .22s ease-in, opacity .22s ease-in;
     transform:scale(.4); opacity:0; }
-  .dust{ position:absolute; width:84px; height:16px; pointer-events:none; border-radius:50%;
+  .dust{ position:absolute; width:94px; height:16px; pointer-events:none; border-radius:50%;
     background:radial-gradient(closest-side, rgba(255,255,255,.85), rgba(255,255,255,0));
     animation:dust .42s ease-out forwards; }
   @keyframes dust{ 0%{ transform:scale(.5); opacity:.9; } 100%{ transform:scale(1.9); opacity:0; } }
@@ -141,7 +170,7 @@
   #shout.on{ opacity:1; }
 
   /* ══ DOCK ══ */
-  #dock{ background:#bcd6b9; height:228px; margin-top:28px; display:flex; align-items:center; padding:0 38px; }
+  #dock{ background:var(--dock); height:228px; margin-top:28px; display:flex; align-items:center; padding:0 38px; }
   .pill{ width:101px; height:101px; border-radius:50%; position:relative; flex:0 0 auto;
     display:grid; place-items:center; font-size:44px; box-shadow:0 3px 7px rgba(24,54,32,.18); }
   .pill.leaf{ background:#e1f3de; } .pill.star{ background:#ffdce5; }
@@ -151,18 +180,55 @@
   .pill.leaf u{ background:#4e8c46; } .pill.star u{ background:#ef6f8e; }
   .pill.out{ opacity:.45; }
   #cur{ width:126px; height:126px; border-radius:18px; background:#fdfbf7; margin-left:44px;
-    position:relative; display:grid; place-items:center; font-size:62px; font-weight:900; color:#445872;
+    position:relative; display:grid; place-items:center; font-size:62px; font-weight:900; color:var(--ink);
     box-shadow:0 4px 0 rgba(28,48,80,.13), 0 8px 15px rgba(20,40,70,.16); }
   #cur s{ position:absolute; right:12px; bottom:6px; font-size:21px; font-weight:800; color:#8b9bb3; text-decoration:none; }
   #cur.pop{ animation:pop .2s ease-out; }
   @keyframes pop{ 0%{ transform:scale(.8) translateY(-10px);} 100%{ transform:none;} }
   #queue{ display:flex; gap:30px; margin-left:48px; }
   .slot{ text-align:center; }
-  .slot i{ display:block; font-size:21px; font-weight:900; letter-spacing:.13em; color:#4e6b52;
+  .slot i{ display:block; font-size:21px; font-weight:900; letter-spacing:.13em; color:var(--dockink);
     font-style:normal; margin-bottom:9px; }
   .slot .tile{ position:static; width:74px; height:74px; }
   .slot .face{ font-size:36px; border-radius:12px; }
   #spacer{ flex:1; }
+
+
+  /* ══ THE CEREMONIES ══ the game's cards, in the country's own colours.
+     One card shape does the intro, the clear, the loss and the reveal, because four
+     differently-shaped cards is how a game starts feeling like four games. What changes is
+     the crown at the top, the numbers, and the verb on the button. */
+  #veil{ position:absolute; inset:0; background:rgba(8,16,32,.55); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:40; }
+  #veil.on{ display:flex; }
+  #card{ width:660px; background:var(--pane); border-radius:34px; padding:44px 46px 38px;
+    text-align:center; box-shadow:0 26px 60px rgba(6,14,30,.45);
+    transform:translateY(24px) scale(.97); opacity:0; transition:.3s cubic-bezier(.2,.8,.3,1); }
+  #veil.on #card{ transform:none; opacity:1; }
+  #crown{ font-size:56px; line-height:1; margin-bottom:6px; }
+  #ctry{ font-size:23px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    color:#ffb323; margin-bottom:10px; }
+  #ctitle{ font-size:40px; font-weight:900; color:#fff; line-height:1.15; }
+  #csub{ font-size:24px; font-weight:700; color:#a9bcd8; margin-top:12px; line-height:1.45; }
+  #cnums{ display:flex; justify-content:center; gap:56px; margin:30px 0 6px; }
+  #cnums div b{ display:block; font-size:21px; font-weight:800; letter-spacing:.1em;
+    text-transform:uppercase; color:#a9bcd8; }
+  #cnums div span{ display:block; font-size:48px; font-weight:900; color:#fff; margin-top:4px; }
+  #stars{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; }
+  #stars i{ width:52px; height:52px; border-radius:50%; border:5px solid #ffb323;
+    display:grid; place-items:center; font-style:normal; }
+  #stars i::after{ content:""; width:18px; height:18px; border-radius:50%; background:#ffb323; }
+  #stars i.off{ border-color:var(--slot); }
+  #stars i.off::after{ background:var(--slot); }
+  #cbtn{ margin-top:26px; font:inherit; font-size:27px; font-weight:900; color:#2b2011;
+    background:#ffb323; border:0; border-radius:99px; padding:19px 46px; cursor:pointer;
+    box-shadow:0 5px 0 #d1900f; }
+  #cbtn:active{ transform:translateY(3px); box-shadow:0 2px 0 #d1900f; }
+  #calt{ display:block; margin:16px auto 0; background:none; border:0; font:inherit;
+    font-size:22px; font-weight:800; color:#a1c3ec; cursor:pointer; }
+  #cmeet{ width:150px; height:150px; margin:0 auto 14px; border-radius:50%; overflow:hidden;
+    box-shadow:0 0 0 5px #ffb323, 0 10px 26px rgba(6,14,30,.5); display:none; }
+  #cmeet img{ width:100%; height:100%; object-fit:cover; display:block; }
 
   /* ══ small overlays, so a control that is tapped actually does something ══ */
   #sheet{ position:absolute; left:32px; right:32px; bottom:32px; background:#2a4063; border-radius:24px;
@@ -188,7 +254,7 @@
     <div class="panel" id="hud">
       <div id="hudtop">
         <div id="burger" class="tap"><i></i><i></i><i></i></div>
-        <div id="lvl"><b>LEVEL</b><span id="lvnum">3</span></div>
+        <div id="lvl" class="tap"><b>LEVEL</b><span id="lvnum">3</span></div>
         <div id="centre">
           <div id="score">Score: <span id="sc">0</span>/<span id="tg">35</span></div>
           <div id="track"><div id="fill"></div></div>
@@ -199,18 +265,18 @@
       <div id="rule"></div>
       <div id="ask">
         <div id="badge" class="tap"><span class="ring"></span><b id="words">0/5</b></div>
-        <div id="asktext" class="tap"><span class="ring"></span><p>reach <span id="tg2">35</span> points</p><u>tap &#9656;</u></div>
+        <div id="asktext" class="tap"><span class="ring"></span><p>reach 35 points</p><u>tap &#9656;</u></div>
       </div>
     </div>
 
     <div class="panel" id="pets">
       <div class="seat tap" id="seat0">
-        <div class="mount"><img src="../../alternate_art/CatImage.png" alt=""></div>
-        <b>Calico</b><span id="catstate">Active</span>
+        <div class="mount"><img src="../../alternate_art/Cartoon_cat_face_portrait_202608032351.jpeg" alt=""></div>
+        <b>Snowpaw</b><span id="catstate">Active</span>
       </div>
-      <div class="seat locked tap"><div class="disc">?</div><b>Lv 7</b><span>Locked</span></div>
-      <div class="seat locked tap"><div class="disc">?</div><b>Lv 10</b><span>Locked</span></div>
-      <div class="seat locked tap"><div class="disc">?</div><b>Lv 14</b><span>Locked</span></div>
+      <div class="seat tap"><div class="mount"><img src="../../alternate_art/Cartoon_dog_face_calico_202608032352.jpeg" alt=""></div><b>Calico</b><span>Active</span></div>
+      <div class="seat tap"><div class="mount"><img src="../../alternate_art/Cartoon_fox_face_portrait_202608032351.jpeg" alt=""></div><b>Ember</b><span>Active</span></div>
+      <div class="seat tap"><div class="mount"><img src="../../alternate_art/Cartoon_owl_face_expressive_eyes_202608032351.jpeg" alt=""></div><b>Bramble</b><span>Active</span></div>
     </div>
 
     <div id="board">
@@ -228,6 +294,18 @@
       <div class="pill star tap" id="star">&#11088;<u id="starn">2</u></div>
     </div>
 
+    <div id="veil"><div id="card">
+      <div id="cmeet"><img id="cmeetimg" src="" alt=""></div>
+      <div id="crown"></div>
+      <div id="ctry"></div>
+      <div id="ctitle"></div>
+      <div id="stars" style="display:none"><i></i><i></i><i></i></div>
+      <div id="cnums"></div>
+      <div id="csub"></div>
+      <button id="cbtn"></button>
+      <button id="calt"></button>
+    </div></div>
+    <div id="country" style="position:absolute;left:0;right:0;top:-1px;text-align:center;font-size:19px;font-weight:800;color:#9fb6d6;letter-spacing:.08em"></div>
     <div id="sheet"><h3 id="sh-t"></h3><p id="sh-b"></p><button onclick="closeSheet()">got it</button></div>
     <div id="picker"><div id="pickcard"><h3>wish for a letter</h3><div id="pickgrid"></div></div></div>
 
@@ -235,7 +313,13 @@
 </div>
 
 <script>
-const COLS=7, ROWS=7, TILE=84, GAPX=20, GAPY=28, PAD=21;
+/* THE GUTTER WAS THE PROBLEM, NOT THE TILE. The comp draws 84px letters with a 20px gap -
+   a gutter almost a quarter the width of the thing it separates, so the board reads as
+   scattered counters rather than a stack. The game runs CELL 44 / GAP 4, a ratio of .091,
+   and that tightness is what makes a column look like one object.
+   94 and 8 lands at .085 across the comp's own 706px of inner board - and it is the size
+   at which EIGHT rows fit, which is the game's board exactly. */
+const COLS=7, ROWS=8, TILE=94, GAPX=8, GAPY=8, PAD=21;
 const BOARD_H=852, BOARD_W=748;
 const VAL={a:1,b:3,c:3,d:2,e:1,f:4,g:2,h:4,i:1,j:8,k:5,l:1,m:3,n:1,o:1,p:3,q:10,r:1,s:1,t:1,u:1,v:4,w:4,x:8,y:4,z:10};
 const BAG="aaaaaaaeeeeeeeeeiiiiiioooooounnnnnrrrrrtttttllllssssdddgggbcmpfhvwykjxqz";
@@ -260,6 +344,8 @@ function makeTile(letter, col, row, fromTop){
   d.appendChild(f);
   d.style.left=colX(col)+"px";
   d.style.top=(fromTop ? -110 : rowY(row))+"px";
+  /* a slab's edge overhangs what is under it, so the HIGHER tile has to paint later */
+  d.style.zIndex=String(ROWS-row);
   boardEl.appendChild(d);
   d._face=f;
   return d;
@@ -387,7 +473,7 @@ async function release(c, land, fromY){
   await wait(110);
   await resolve();
   S.busy=false;
-  if(S.moves<=0 && S.score<S.target) sheet("out of moves","Nineteen moves gone and the hush is still here. In the real game this is where the round offers you a way back.");
+  if(S.moves<=0 && S.score<S.target){ S.busy=true; await wait(420); stageLost(); }
 }
 
 function advance(){ S.cur=S.next; S.next=S.then; S.then=piece(); $("cur").classList.remove("pop"); void $("cur").offsetWidth; $("cur").classList.add("pop"); }
@@ -448,7 +534,7 @@ async function resolve(){
     await wait(300);
   }
   if(chain) hideShout();
-  if(S.score>=S.target) sheet("round cleared","Thirty-five points, and the hush thins. The real game hands you a friend about here.");
+  if(S.score>=S.target){ S.busy=true; await wait(420); stageWon(); }
 }
 
 function gravity(){
@@ -457,7 +543,8 @@ function gravity(){
     for(let r=ROWS-1;r>=0;r--){
       if(S.grid[r][c]){
         if(write!==r){ S.grid[write][c]=S.grid[r][c]; S.grid[r][c]=null;
-          S.grid[write][c].el.style.top=rowY(write)+"px"; }
+          S.grid[write][c].el.style.top=rowY(write)+"px";
+          S.grid[write][c].el.style.zIndex=String(ROWS-write); }
         write--;
       }
     }
@@ -468,7 +555,13 @@ function shout(t){ const s=$("shout"); s.textContent=t; s.classList.add("on"); }
 function hideShout(){ $("shout").classList.remove("on"); }
 
 function paint(){
-  $("sc").textContent=S.score; $("tg").textContent=S.target; $("tg2").textContent=S.target;
+  $("sc").textContent=S.score; $("tg").textContent=S.target;
+  /* the ask is a whole sentence the level supplies, so it OWNS this line. It used to be
+     "reach <span id=tg2>35</span> points" with the number written separately - and writing
+     the sentence over it deleted the span, so the next paint threw on a null and the round
+     silently stopped updating. One writer per element. */
+  { const a=document.querySelector("#asktext p");
+    if(a) a.textContent = S.ask || ("reach "+S.target+" points"); }
   $("mv").textContent=Math.max(0,S.moves); $("lvnum").textContent=S.lv;
   $("amber").textContent=S.amber; $("leafn").textContent=S.leaf; $("starn").textContent=S.star;
   $("words").textContent=S.wordsMade+"/"+S.wordsNeed;
@@ -484,6 +577,7 @@ function paint(){
 function sheet(t,b){ $("sh-t").textContent=t; $("sh-b").textContent=b; $("sheet").classList.add("on"); }
 function closeSheet(){ $("sheet").classList.remove("on"); }
 
+$("pets").onclick=e=>{ if(e.target.closest(".seat")) return; $("pets").classList.toggle("boxed"); };
 $("burger").onclick=()=>sheet("the wood","Menu, book of names, settings. Nothing behind it in this prototype - it is here so the panel is a real control rather than a drawing of one.");
 $("pouch").onclick=()=>{ S.amber+=10; paint(); sheet("amber","Ten more. In the game amber buys comfort - a breeze, a wish, a way past a name you cannot spell - and never power."); };
 $("badge").onclick=()=>sheet("this round","Five words to still the hush. The badge counts what you have made, the line beside it says what the round is asking for.");
@@ -529,6 +623,95 @@ $("picker").onclick=e=>{ if(e.target.id==="picker") $("picker").classList.remove
 
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 
+
+/* ══ TEN STAGES ══ the real game's shape at small scale: a country per stretch, a target that
+   climbs sub-linearly, moves that barely move, and a friend arriving one level before the
+   seat that holds them. */
+const LEVELS=[
+  { lv:1,  bio:0, target:20, moves:15, words:3, ask:"reach 20 points" },
+  { lv:2,  bio:0, target:26, moves:16, words:3, ask:"reach 26 points" },
+  { lv:3,  bio:0, target:35, moves:19, words:5, ask:"reach 35 points" },
+  { lv:4,  bio:0, target:42, moves:19, words:5, ask:"reach 42 points", meet:"Calico" },
+  { lv:5,  bio:0, target:50, moves:20, words:5, ask:"reach 50 points" },
+  { lv:6,  bio:1, target:58, moves:20, words:6, ask:"reach 58 points" },
+  { lv:7,  bio:1, target:66, moves:21, words:6, ask:"reach 66 points", meet:"Ember" },
+  { lv:8,  bio:1, target:75, moves:21, words:6, ask:"reach 75 points" },
+  { lv:9,  bio:2, target:85, moves:22, words:7, ask:"reach 85 points" },
+  { lv:10, bio:2, target:96, moves:24, words:7, ask:"reach 96 points", door:true },
+];
+const PORTRAIT={ Calico:"Cartoon_dog_face_calico_202608032352.jpeg",
+                 Ember:"Cartoon_fox_face_portrait_202608032351.jpeg",
+                 Snowpaw:"Cartoon_cat_face_portrait_202608032351.jpeg",
+                 Bramble:"Cartoon_owl_face_expressive_eyes_202608032351.jpeg" };
+let stage=0;
+
+/* ONE CARD SHAPE for the intro, the clear, the meeting and the loss. Four differently shaped
+   cards is how a game starts feeling like four games; what changes is the crown, the numbers
+   and the verb on the button. */
+function card(o){
+  $("crown").textContent=o.crown||"";
+  $("ctry").textContent=o.country||"";
+  $("ctitle").innerHTML=o.title||"";
+  $("csub").innerHTML=o.sub||"";
+  $("cnums").innerHTML=(o.nums||[]).map(n=>"<div><b>"+n[0]+"</b><span>"+n[1]+"</span></div>").join("");
+  $("stars").style.display=o.stars==null?"none":"flex";
+  if(o.stars!=null) [...$("stars").children].forEach((el,i)=>el.classList.toggle("off", i>=o.stars));
+  $("cmeet").style.display=o.face?"block":"none";
+  if(o.face) $("cmeetimg").src="../../alternate_art/"+o.face;
+  $("cbtn").textContent=o.btn||"continue";
+  $("cbtn").onclick=()=>{ hideCard(); if(o.go) o.go(); };
+  $("calt").textContent=o.alt||"";
+  $("calt").style.display=o.alt?"block":"none";
+  $("calt").onclick=()=>{ hideCard(); if(o.altGo) o.altGo(); };
+  $("veil").classList.add("on");
+}
+function hideCard(){ $("veil").classList.remove("on"); }
+
+async function openStage(i){
+  stage=Math.min(Math.max(0,i), LEVELS.length-1);
+  const L=LEVELS[stage];
+  await setCountry(L.bio);
+  S.lv=L.lv; S.target=L.target; S.moves=L.moves; S.score=0; S.wordsMade=0; S.wordsNeed=L.words;
+  S.ask=L.ask; S.busy=true; S.armed=null;
+  document.querySelectorAll("#board .tile").forEach(t=>t.remove());
+  S.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  const seed=[["c","w","s","h","u","l","i"],["r","e","b","e","u","w","t"]];
+  seed.forEach((row,k)=>{ const r=ROWS-1-k;
+    row.forEach((l,c)=>{ const t=makeTile(l,c,r,false); S.grid[r][c]={l,el:t}; }); });
+  S.cur=piece(); S.next=piece(); S.then=piece();
+  paint();
+  card({ crown:L.door?"🗝️":"🌼", country:COUNTRIES[L.bio], title:"Level "+L.lv,
+    sub:L.door?"The last of this country. Clear it and the road opens.":"",
+    nums:[["target",L.target],["moves",L.moves]],
+    btn:"play ▸", go:()=>{ S.busy=false; } });
+}
+function stageWon(){
+  const L=LEVELS[stage];
+  const spare=Math.max(0,S.moves), bonus=spare*2;
+  S.score+=bonus; paint();
+  const st = S.score>=L.target*1.6 ? 3 : S.score>=L.target*1.2 ? 2 : 1;
+  const last = stage>=LEVELS.length-1;
+  card({ country:COUNTRIES[L.bio], title:"Level "+L.lv+" clear", stars:st,
+    nums:[["score",S.score],["words",S.wordsMade],["spare",spare]],
+    sub: bonus ? "<b>+"+bonus+"</b> for "+spare+" moves you did not need" : "",
+    btn: last ? "walk again ↺" : "next level ▸",
+    go:()=>{ const nxt=last?0:stage+1;
+             if(L.meet) meetFriend(L.meet, ()=>openStage(nxt)); else openStage(nxt); } });
+}
+function meetFriend(name, then){
+  card({ face:PORTRAIT[name], country:"a friend", title:name+" heard its name",
+    sub:"They walk with you from here. Their seat is on the shelf above the board.",
+    btn:"welcome them", go:then });
+}
+function stageLost(){
+  const L=LEVELS[stage];
+  card({ crown:"🍃", country:COUNTRIES[L.bio], title:"out of moves",
+    sub:"You reached <b>"+S.score+"</b> of "+L.target+". The hush holds, for now.",
+    nums:[["short",Math.max(0,L.target-S.score)]],
+    btn:"try again", go:()=>openStage(stage),
+    alt:"leave to the wood", altGo:()=>openStage(0) });
+}
+
 /* ── open on a board that already has a floor, the way a round in progress looks ── */
 function start(){
   S.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
@@ -538,9 +721,82 @@ function start(){
   S.cur=piece(); S.next=piece(); S.then=piece();
   paint();
 }
-start();
+/* start() is called at the BOTTOM of this file, not here. It reaches setCountry, which reads
+   COUNTRIES and bio - both declared below as const/let, so calling it from here put them in
+   their temporal dead zone. The throw happened inside an async call nobody awaited, so there
+   was no error in the console and no card on screen: the game simply opened on its defaults
+   and looked like the stage system had not been written. */
+
+/* ══ THE COUNTRY DRESSES THE CHROME ══ the warm build measures each painting and derives its
+   pane ink from it, because glass over fifteen different artworks cannot use one colour. The
+   slate direction is opaque, so it does not NEED that - but it can still use it, and without
+   it every country wears the First Clearing's navy.
+   The painting is averaged, pushed to a common lightness so contrast never moves, and only
+   its HUE is allowed through. That keeps white letters at a fixed, known contrast on every
+   country while the panels still belong to the place they are standing in. */
+const COUNTRIES=["The First Clearing","The Bramblewood","The Mosswood","The Spore Hollow",
+  "The Listening Pond","The Reedmarsh","The Running River","The Thunderfalls","The Undercave",
+  "The Deep Dark","The Glimmer Seams","The Scree Slopes","The Windward Ridge","The Snowline",
+  "The Frozen Crown"];
+let bio=0;
+const rgb2hsl=(r,g,b)=>{ r/=255;g/=255;b/=255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2; let h=0,sa=0;
+  if(mx!==mn){ const d=mx-mn; sa=l>.5? d/(2-mx-mn) : d/(mx+mn);
+    h = mx===r ? (g-b)/d+(g<b?6:0) : mx===g ? (b-r)/d+2 : (r-g)/d+4; h/=6; }
+  return [h*360, sa, l]; };
+async function setCountry(n){
+  bio=(n+15)%15;
+  const url="../../art/bg/bio"+bio+".jpg";
+  const img=new Image(); img.src=url;
+  try{ await img.decode(); }catch(e){}
+  boardEl.style.backgroundImage='url("'+url+'")';
+  try{
+    const c=document.createElement("canvas"); c.width=48; c.height=48;
+    const g=c.getContext("2d"); g.drawImage(img,0,0,48,48);
+    /* ══ THE SKY, NOT THE WHOLE PAINTING ══ averaging the entire image takes the ground with
+       it, and the ground is grass. The First Clearing came out olive when the comp it is
+       copied from is navy - because the comp took its colour from the sky the board hangs
+       against, which is what a player reads as "the weather here". Top third only. */
+    const d=g.getImageData(0,0,48,16).data;
+    let r=0,gr=0,b=0,n2=0;
+    for(let i=0;i<d.length;i+=4){ r+=d[i]; gr+=d[i+1]; b+=d[i+2]; n2++; }
+    const [h,sa]=rgb2hsl(r/n2, gr/n2, b/n2);
+    const S1=Math.min(.42, Math.max(.16, sa));
+    const set=(k,l,s2)=>document.documentElement.style.setProperty(k,"hsl("+h.toFixed(0)+" "+((s2||S1)*100).toFixed(0)+"% "+l+"%)");
+    set("--pane",27); set("--pane2",37); set("--line",42); set("--pouch",33); set("--slot",48);
+    set("--page",92,.30);
+    /* the dock belongs to the country too - it was the one surface still wearing the First
+       Clearing on all fifteen maps, which read as unfinished rather than as constant */
+    set("--dock",78,.22); set("--dockink",32,.30); set("--edge",82,.20);
+    /* ══ THE LETTER TAKES THE COUNTRY'S HUE, NEVER ITS LEGIBILITY ══ a tinted ink is the
+       cheapest way to make the board belong to the place, and the easiest way to quietly
+       lose the game for anyone reading it in sunlight. So the hue is taken and the LIGHTNESS
+       is solved for: darken until the measured contrast on the tile face clears 7:1, the
+       ratio the untinted slate ink already held. Subtle is a look; readable is a floor. */
+    const face=[253,251,247];
+    const lin=v=>{ v/=255; return v<=.03928 ? v/12.92 : Math.pow((v+.055)/1.055,2.4); };
+    const L=c=>.2126*lin(c[0])+.7152*lin(c[1])+.0722*lin(c[2]);
+    const hsl2rgb=(hh,ss,ll)=>{ const a=ss*Math.min(ll,1-ll);
+      const f=n=>{ const k=(n+hh/30)%12; return Math.round(255*(ll-a*Math.max(-1,Math.min(k-3,9-k,1)))); };
+      return [f(0),f(8),f(4)]; };
+    let inkL=.34, tries=0, ink=hsl2rgb(h,.30,inkL);
+    while(tries++<40){
+      const c=(Math.max(L(face),L(ink))+.05)/(Math.min(L(face),L(ink))+.05);
+      if(c>=7) break;
+      inkL-=.01; ink=hsl2rgb(h,.30,inkL);
+    }
+    document.documentElement.style.setProperty("--ink","hsl("+h.toFixed(0)+" 30% "+(inkL*100).toFixed(0)+"%)");
+  }catch(e){}
+  const t=$("country"); if(t) t.textContent=COUNTRIES[bio];
+}
+$("lvl").onclick=()=>{ setCountry(bio+1); S.lv=bio+1; paint();
+  sheet(COUNTRIES[(bio)%15], "Country "+(bio+1)+" of 15. The panels take their hue from this painting and hold a fixed lightness, so the white letters read the same everywhere. Tap the level again to walk on."); };
 
 const fit=()=>{ const s=Math.min(innerWidth/854, innerHeight/1842);
   $("fit").style.transform="translate("+((innerWidth-854*s)/2)+"px,"+((innerHeight-1842*s)/2)+"px) scale("+s+")"; };
 addEventListener("resize", fit); fit();
+
+/* everything is defined by here - now the first stage can safely open */
+start();
+openStage(0);
 </script>
