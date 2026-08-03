@@ -109,8 +109,14 @@ const common = [...new Set([...g10k, ...subs, ...grove])]
    amount of tiering reaches a word the corpora simply do not contain. MIRE and SCREE are
    here for the reason REED and GLEN already were: the game prints them at the player as
    the name of an obstacle and a country, and a game must be able to spell its own world. */
+/* ICK joins them for the same reason: a playtester spelled it, nothing happened, and they
+   filed it as a bug. It is in ENABLE, so it is a word by this game's own source; it was
+   only ever missing because the frequency corpora rank interjections low. Judgement call
+   made without the designer present - remove the token to reverse it.
+   NON is deliberately NOT here. It is absent from ENABLE entirely, so by the game's own
+   dictionary it is not a word, and it reads as a prefix rather than something to spell. */
 const MUST = ("ooze vary ore oar dune fern lark vale dusk moss glen hush mist reed elm ivy pond brook cove "+
-  "quip mire scree")
+  "quip mire scree ick")
   .split(" ").filter(w => enableSet.has(w) && !common.includes(w));
 if (MUST.length) { console.warn("!! missing expected words:", MUST.join(" ")); common.push(...MUST); }
 // ONE STAMP, TWO CONSUMERS. It was computed further down for the service worker only; the
@@ -119,6 +125,29 @@ if (MUST.length) { console.warn("!! missing expected words:", MUST.join(" ")); c
 const stamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
 const dropOut = dropTemplate.split("__COMMON__").join(common.join(" "))
                             .split("__TELEBUILD__").join(stamp);
+/* ══ A BUILD THAT DOES NOT PARSE MUST NOT SHIP ══ the template is one enormous inline
+   script, so a single stray token anywhere in it makes the WHOLE game a blank page - no
+   Game, no P, no error the player would ever see reported. It has happened: an edit put a
+   statement between an `if` and its `else`, the build reported success, wrote every output
+   file, stamped a new service worker, and the result was a title bar and nothing else.
+   The build now parses what it is about to write and refuses if it cannot. */
+{
+  const vm = require("vm");
+  const scripts = dropOut.match(/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g) || [];
+  let checked = 0;
+  for(const block of scripts){
+    const body = block.replace(/^<script[^>]*>/, "").replace(/<\/script>$/, "");
+    if(!body.trim()) continue;
+    try{ new vm.Script(body); checked++; }
+    catch(err){
+      console.error("!! BUILD REFUSED - the game would not parse:");
+      console.error("   " + err.message);
+      console.error("   nothing was written. fix the syntax and build again.");
+      process.exit(1);
+    }
+  }
+  console.log(`Parsed ${checked} inline script${checked===1?"":"s"} - the build runs`);
+}
 fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
 fs.writeFileSync(path.join(__dirname, "index.html"), dropOut); // Word Drop IS the game - it owns the root
 const docs = path.join(__dirname, "..", "docs"); // GitHub Pages serves /docs on main
