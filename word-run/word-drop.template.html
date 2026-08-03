@@ -5231,11 +5231,73 @@ function load(){
     out.pow = Object.assign({}, defaults.pow, out.pow||{});
     out.powProg = out.powProg||{};
     out.grove = out.grove||{};
+    /* ══ IS THIS THE SAVE WE LAST WROTE, OR AN OLDER ONE? ══ save() mirrors its write
+       counter and level into a second key. Two keys cannot plausibly go stale together, so
+       a main blob that comes back BEHIND the mirror is a stale read - the exact failure
+       that would hand a player back a life they had already spent. Recorded rather than
+       repaired: if it fires we will know it is real before deciding what to do about it. */
+    try{
+      const m=localStorage.getItem("worddrop_sv");
+      if(m){ const [msv,mlv]=m.split(":").map(Number);
+        if((out.sv||0) < msv || (out.level||0) < mlv)
+          LOAD_WARN={ sv:out.sv||0, lv:out.level||0, mirrorSv:msv, mirrorLv:mlv,
+                      lost:mlv-(out.level||0) }; }
+    }catch(e){}
     return out;
-  }catch(e){ return defaults; }
+  }catch(e){ LOAD_WARN={ err:String((e&&e.message)||e), fellBackToDefaults:true }; return defaults; }
 }
+let LOAD_WARN=null;
 let P = load();
-function save(){ try{ localStorage.setItem("worddrop_v3",JSON.stringify(P)); }catch(e){} }
+
+/* ══ EVERY WRITE TO P.level, NAMED AND DATED ══
+   A tester cleared the door at adventure 20 and was put back at 15. The win path only ever
+   does P.level++, and the single backwards write in this file is the gate push-back, which
+   is capped at three and fires only on a FAIL - so neither of them can produce what was
+   seen. An older export has a jump of twenty-nine levels, which no mechanic here produces
+   at all. That rules out the code I can find and points at the code I cannot: something
+   writing this field that I have not thought of, or a save that never landed.
+   So this is deliberately NOT a helper that the known writers call. It is an accessor on
+   the field itself, which catches every writer including the one I have not found. The
+   caller is read off the stack, so the event names its own culprit.
+   PENDING exists because load() and the first writes happen long before Tele does; nothing
+   is dropped for being early, it is drained at session_start. */
+const LVL_TRAIL=[];
+function _lvlWho(){
+  try{ return (new Error()).stack.split("\n").slice(2,5)
+    .map(s=>s.trim().replace(/^at\s+/,"").split(/[\s(]/)[0])
+    .filter(s=>s&&s!=="Object.set").join(" < ").slice(0,90); }catch(e){ return ""; }
+}
+{ let _lv = P.level;
+  Object.defineProperty(P, "level", {
+    enumerable:true, configurable:true,        // enumerable so JSON.stringify(P) still saves it
+    get(){ return _lv; },
+    set(v){
+      const from=_lv; _lv=v;
+      if(v===from) return;
+      const rec={ from, to:v, d:v-from, why:_lvlWho() };
+      LVL_TRAIL.push(rec); if(LVL_TRAIL.length>60) LVL_TRAIL.shift();
+      try{ if(typeof Tele!=="undefined" && Tele.log) Tele.log("level_set", rec); }catch(e){}
+    } }); }
+
+/* ══ A SAVE THAT FAILS SILENTLY LOOKS EXACTLY LIKE PROGRESS BEING TAKEN AWAY ══
+   This was try{...}catch(e){} with an empty catch, so a quota error, a private-mode
+   rejection or a serialisation throw all resolved like success. The level would advance in
+   memory, never reach the disk, and the next boot would restore an older number - which is
+   precisely the shape of "I cleared it and got sent back".
+   sv is a write counter mirrored into a SECOND key. If the main blob ever comes back with a
+   lower sv than the mirror, the read is stale and load() says so instead of quietly
+   handing the player an old life. */
+function save(){
+  try{
+    P.sv=(P.sv||0)+1;
+    localStorage.setItem("worddrop_v3", JSON.stringify(P));
+    localStorage.setItem("worddrop_sv", P.sv+":"+P.level);
+  }catch(e){
+    try{ if(typeof Tele!=="undefined") Tele.log("save_failed",
+      { err:String((e&&e.message)||e), lv:P.level, sv:P.sv||0 }); }catch(_){}
+    LVL_TRAIL.push({ from:P.level, to:P.level, d:0, why:"SAVE FAILED: "+String((e&&e.message)||e) });
+  }
+}
 function saveRun(){
   // A FINISHED level has no run to resume - won counts as finished just as much as lost.
   // Only clearing on `over` left the winning board saved, so if the app closed between
@@ -12365,7 +12427,14 @@ const Tele = {
       wave:this.wave, ver:this.ver, run:this.run||1,
       lvl:(typeof P!=="undefined"&&P.level)||1, friends:(typeof P!=="undefined"&&Object.keys(P.grove||{}).length)||0,
       fresh:!(typeof P!=="undefined"&&P.stats&&P.stats.wins) && (typeof P==="undefined"||(P.level||1)<=1),
-      returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who(), host:location.hostname });
+      returning:!!(typeof P!=="undefined"&&P.stats&&P.stats.wins), who:this.who(), host:location.hostname,
+      /* everything that happened to the level BEFORE this line could run: load() and the
+         first writes both beat Tele to the boot by a wide margin, and the writes we most
+         want are exactly the early ones. sv is the save counter, so a session that opens on
+         a lower sv than it closed on is a stale restore rather than a mechanic. */
+      sv:(typeof P!=="undefined"&&P.sv)||0,
+      loadWarn:(typeof LOAD_WARN!=="undefined"&&LOAD_WARN)||null,
+      trail:(typeof LVL_TRAIL!=="undefined"?LVL_TRAIL.slice(-12):[]) });
     document.addEventListener("click", e=>this._tap(e), true);
     window.addEventListener("error", e=>this.log("js_error",{ msg:(e.message||"").slice(0,180),
       src:(e.filename||"").split("/").pop(), line:e.lineno, col:e.colno }));
@@ -12383,7 +12452,13 @@ const Tele = {
     try{ if(S){ lv=S.level; mv=S.movesLeft; guide=S.guide?S.guide.lesson:null; goal=S.goal?S.goal.t:null; } }catch(e){}
     if(!lv && typeof P!=="undefined") lv=P.level||0;
     const ms = this.t0 ? Date.now()-this.t0 : 0;   // rides the context column the sheet already writes
-    return { sc, ov, lv, mv, g:guide, goal, ms };
+    /* THE NUMBER ON THE PLAYER'S SCREEN, NEXT TO THE NUMBER IN THE CODE. The five prologue
+       rounds are P1-P5 and chapter one restarts the count, so internal 21 is "level 16" to
+       whoever is holding the phone. Logging only the internal one meant every level in a
+       bug report was five off from the level being reported, and we each did the arithmetic
+       in a different direction. Both travel together now. */
+    const shown = lv<=PROLOGUE_END ? "P"+lv : String(lv-PROLOGUE_END);
+    return { sc, ov, lv, shown, mv, g:guide, goal, ms };
   },
   /* ══ THE BOARD, AS THE PLAYER IS SEEING IT ══
      A log of actions tells you what somebody DID. It cannot tell you whether the thing
@@ -12547,7 +12622,8 @@ const Tele = {
       const CAP=1200;
       if(this.buf.length > CAP){
         const keep=n=>["session_start","level_start","level_win","level_fail","wake",
-                       "said","error","watchdog","data_loss"].indexOf(n)>=0;
+                       "said","error","watchdog","data_loss",
+                       "level_set","save_failed"].indexOf(n)>=0;   // the progress-loss trail is never shed
         const before=this.buf.length;
         let i=1;
         while(this.buf.length>CAP && i<this.buf.length-1){
