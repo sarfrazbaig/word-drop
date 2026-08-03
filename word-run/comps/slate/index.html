@@ -98,21 +98,43 @@
   #board{ height:852px; touch-action:none; cursor:pointer; margin-top:23px; border-radius:24px; overflow:hidden; position:relative;
     background-image:url("../../art/bg/bio0.jpg"); background-size:cover; background-position:center 62%;
     box-shadow:0 8px 22px rgba(22,44,78,.16); }
-  .tile{ position:absolute; width:84px; height:84px; border-radius:13px; background:#fdfbf7;
+  /* ══ A TILE IS A POSITION AND A FACE ══ the position moves, the face deforms. They are two
+     elements because a squash is a transform and so is a fall, and one element cannot do
+     both without the landing cancelling the arrival. The game splits them for this reason. */
+  .tile{ position:absolute; width:84px; height:84px; }
+  .face{ width:100%; height:100%; border-radius:13px; background:#fdfbf7; position:relative;
     display:grid; place-items:center; font-size:43px; font-weight:900; color:#445872;
     box-shadow:0 3px 0 rgba(28,48,80,.13), 0 5px 11px rgba(20,40,70,.17); }
-  .tile s{ position:absolute; right:9px; bottom:4px; font-size:17px; font-weight:800;
+  .face s{ position:absolute; right:9px; bottom:4px; font-size:17px; font-weight:800;
     color:#8b9bb3; text-decoration:none; }
   .tile.fall{ transition:top .26s cubic-bezier(.35,.85,.4,1); }   /* the collapse after a clear */
-  .tile.ghost{ background:rgba(253,251,247,.30); color:rgba(68,88,114,.55); box-shadow:none;
-    outline:3px dashed rgba(253,251,247,.75); outline-offset:-3px; pointer-events:none; }
-  .tile.ghost s{ display:none; }
-  .tile.carry{ pointer-events:none; z-index:9; transform:scale(1.06);
+  .tile.ghost .face{ background:rgba(253,251,247,.30); color:rgba(68,88,114,.55); box-shadow:none;
+    outline:3px dashed rgba(253,251,247,.75); outline-offset:-3px; }
+  .tile.ghost{ pointer-events:none; } .tile.ghost s{ display:none; }
+  .tile.carry{ pointer-events:none; z-index:9; }
+  .tile.carry .face{ transform:scale(1.06);
     box-shadow:0 10px 0 rgba(28,48,80,.13), 0 16px 26px rgba(20,40,70,.30); }
-  .tile.settle{ animation:settle .22s ease-out; }
-  @keyframes settle{ 0%{ transform:scaleY(.86) translateY(6px);} 60%{ transform:scaleY(1.05);} 100%{ transform:none;} }
-  .tile.win{ background:#ffe6ac; color:#7a5a10; box-shadow:0 0 0 4px #ffb323, 0 5px 11px rgba(20,40,70,.2); }
-  .tile.gone{ transition:transform .22s ease-in, opacity .22s ease-in; transform:scale(.4); opacity:0; }
+
+  /* the landing, lifted from the game: squash on impact, bounce with a tilt, counter-tilt
+     back. The whole thing is 380ms and it is most of why a drop feels like it weighs
+     something rather than like a sprite arriving at a coordinate. */
+  .face.landsquash{ animation:landsquash .38s; }
+  @keyframes landsquash{
+    0%{ transform:scaleY(1); } 28%{ transform:scaleY(.64) scaleX(1.28) translateY(11%); }
+    55%{ transform:translateY(-13%) scaleY(1.08) rotate(-1.8deg); }
+    78%{ transform:translateY(2%) scaleY(.97) rotate(.9deg); } 100%{ transform:none; } }
+  /* and the impact travels DOWN through whatever is already stacked underneath */
+  .face.jostle{ animation:jostle .2s; }
+  @keyframes jostle{ 50%{ transform:scaleY(.88) translateY(7%); } }
+
+  .tile.win .face{ background:#ffe6ac; color:#7a5a10;
+    box-shadow:0 0 0 4px #ffb323, 0 5px 11px rgba(20,40,70,.2); }
+  .tile.gone .face{ transition:transform .22s ease-in, opacity .22s ease-in;
+    transform:scale(.4); opacity:0; }
+  .dust{ position:absolute; width:84px; height:16px; pointer-events:none; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(255,255,255,.85), rgba(255,255,255,0));
+    animation:dust .42s ease-out forwards; }
+  @keyframes dust{ 0%{ transform:scale(.5); opacity:.9; } 100%{ transform:scale(1.9); opacity:0; } }
   #shout{ position:absolute; left:0; right:0; top:26px; text-align:center; pointer-events:none;
     font-size:38px; font-weight:900; color:#fff; text-shadow:0 3px 12px rgba(12,28,54,.7);
     opacity:0; transition:opacity .2s; letter-spacing:.02em; }
@@ -138,7 +160,8 @@
   .slot{ text-align:center; }
   .slot i{ display:block; font-size:21px; font-weight:900; letter-spacing:.13em; color:#4e6b52;
     font-style:normal; margin-bottom:9px; }
-  .slot .tile{ position:static; width:74px; height:74px; font-size:36px; border-radius:12px; }
+  .slot .tile{ position:static; width:74px; height:74px; }
+  .slot .face{ font-size:36px; border-radius:12px; }
   #spacer{ flex:1; }
 
   /* ══ small overlays, so a control that is tapped actually does something ══ */
@@ -198,8 +221,8 @@
       <div class="pill leaf tap" id="leaf">&#127807;<u id="leafn">3</u></div>
       <div id="cur">D<s>2</s></div>
       <div id="queue">
-        <div class="slot"><i>NEXT</i><div class="tile" id="nx">B</div></div>
-        <div class="slot"><i>THEN</i><div class="tile" id="th">?</div></div>
+        <div class="slot"><i>NEXT</i><div class="tile" id="nx"><div class="face">B</div></div></div>
+        <div class="slot"><i>THEN</i><div class="tile" id="th"><div class="face">?</div></div></div>
       </div>
       <div id="spacer"></div>
       <div class="pill star tap" id="star">&#11088;<u id="starn">2</u></div>
@@ -228,14 +251,24 @@ const rowY = r => BOARD_H - PAD - (ROWS-r)*TILE - (ROWS-1-r)*GAPY;
 const pick = () => BAG[Math.floor(Math.random()*BAG.length)];
 const piece = () => ({ l:pick() });
 
+function faceHTML(letter){ return letter.toUpperCase()+'<s>'+(VAL[letter]||1)+'</s>'; }
 function makeTile(letter, col, row, fromTop){
   const d=document.createElement("div");
   d.className="tile fall";
-  d.innerHTML=letter.toUpperCase()+'<s>'+(VAL[letter]||1)+'</s>';
+  const f=document.createElement("div");
+  f.className="face"; f.innerHTML=faceHTML(letter);
+  d.appendChild(f);
   d.style.left=colX(col)+"px";
   d.style.top=(fromTop ? -110 : rowY(row))+"px";
   boardEl.appendChild(d);
+  d._face=f;
   return d;
+}
+function anim(el, cls, ms){ el.classList.add(cls); setTimeout(()=>el.classList.remove(cls), ms); }
+function dustAt(col,row){
+  const d=document.createElement("div"); d.className="dust";
+  d.style.left=colX(col)+"px"; d.style.top=(rowY(row)+TILE-8)+"px";
+  boardEl.appendChild(d); setTimeout(()=>d.remove(), 440);
 }
 
 function firstEmpty(c){ for(let r=ROWS-1;r>=0;r--) if(!S.grid[r][c]) return r; return -1; }
@@ -269,7 +302,7 @@ function showGhost(c){
   const land=firstEmpty(c); if(land<0) return;
   const g=document.createElement("div");
   g.className="tile ghost";
-  g.textContent=S.cur.l.toUpperCase();
+  g.innerHTML='<div class="face">'+S.cur.l.toUpperCase()+'</div>';
   g.style.left=colX(c)+"px"; g.style.top=rowY(land)+"px";
   boardEl.appendChild(g); ghostEl=g;
 }
@@ -277,7 +310,8 @@ function lift(e){
   const p=boardPoint(e);
   carryEl=document.createElement("div");
   carryEl.className="tile carry";
-  carryEl.innerHTML=S.cur.l.toUpperCase()+'<s>'+(VAL[S.cur.l]||1)+'</s>';
+  carryEl.innerHTML='<div class="face">'+faceHTML(S.cur.l)+'</div>';
+  carryEl._face=carryEl.firstChild;
   boardEl.appendChild(carryEl);
   moveCarry(p);
   $("cur").style.visibility="hidden";          // the letter is in your hand, not in the dock
@@ -306,6 +340,12 @@ boardEl.addEventListener("pointercancel", e=>{
   if(!aiming || e.pointerId!==aimId) return;
   aimStop(); handBack();
 });
+/* ══ A LETTER MAY NEVER BE LEFT IN MID-AIR ══ a pointer that goes away without ever
+   reporting up - the window loses focus, the tab is hidden, a devtools drag, a gesture the
+   OS decides to take over - used to strand the carried tile floating over the board with the
+   dock slot still empty. Any of those hand the letter back. */
+["blur","contextmenu"].forEach(ev=>addEventListener(ev, ()=>{ if(aiming){ aimStop(); handBack(); } }));
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && aiming){ aimStop(); handBack(); } });
 boardEl.addEventListener("pointerup", e=>{
   if(!aiming || e.pointerId!==aimId) return;
   const from=carryEl ? parseFloat(carryEl.style.top) : null;
@@ -328,11 +368,19 @@ async function release(c, land, fromY){
   t.style.top=fromY+"px";
   const cells=Math.max(0,(target-fromY)/STEP);
   const fallMs=80+Math.round(cells*42);       // the game's own timing, distance-based
-  t.style.transition="top "+fallMs+"ms cubic-bezier(.35,.85,.4,1), left 90ms ease-out";
+  /* ACCELERATING, not easing out. A falling thing speeds up; the first pass used an
+     ease-out and every drop glided to a halt, which is most of why it read as floaty. */
+  t.style.transition="top "+fallMs+"ms cubic-bezier(.55,0,.85,.55), left 90ms ease-out";
   requestAnimationFrame(()=>{ t.style.top=target+"px"; });
-  await wait(fallMs+30);
+  await wait(fallMs+20);
   t.style.transition="";
-  t.classList.add("settle");
+  anim(t._face, "landsquash", 400);
+  dustAt(c, land);
+  /* the impact carries DOWN through whatever it landed on, one tile at a time */
+  for(let r=land+1, d=0; r<ROWS; r++, d++){
+    const below=S.grid[r][c];
+    if(below) setTimeout(()=>anim(below.el._face, "jostle", 220), 30+d*28);
+  }
   S.grid[land][c]={ l:S.cur.l, el:t };
   S.moves--;
   advance(); $("cur").style.visibility=""; paint();
@@ -425,9 +473,9 @@ function paint(){
   $("amber").textContent=S.amber; $("leafn").textContent=S.leaf; $("starn").textContent=S.star;
   $("words").textContent=S.wordsMade+"/"+S.wordsNeed;
   $("fill").style.transform="scaleX("+Math.min(1, S.score/S.target).toFixed(4)+")";
-  $("cur").innerHTML=S.cur.l.toUpperCase()+'<s>'+(VAL[S.cur.l]||1)+'</s>';
-  $("nx").textContent=S.next.l.toUpperCase();
-  $("th").textContent=S.then.l.toUpperCase();
+  $("cur").innerHTML=faceHTML(S.cur.l);
+  $("nx").firstChild.textContent=S.next.l.toUpperCase();
+  $("th").firstChild.textContent=S.then.l.toUpperCase();
   $("leaf").classList.toggle("out", S.leaf<=0);
   $("star").classList.toggle("out", S.star<=0);
 }
