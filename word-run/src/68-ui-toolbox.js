@@ -88,6 +88,7 @@ Object.assign(UI, {
         + '<button class="charm-btn" id="dbg-finale" onclick="UI.dbgFinale()">🌈 finale</button>'
         + '<button class="charm-btn" id="dbg-tele" onclick="UI.dbgTele()">📡 telemetry</button>'
         + '<button class="charm-btn" id="dbg-selftest" onclick="UI.dbgSelftest()">🧪 selftest</button>'
+        + '<button class="charm-btn" id="dbg-skin" onclick="UI.dbgSkin()">🎨 skin</button>'
         + '</div>'
         + '<div class="dbggroup">danger</div><div id="dbg-rows">'
         + '<button class="charm-btn" id="dbg-wipe" onclick="UI.dbgWipe()">🗑️ wipe save</button>'
@@ -205,6 +206,21 @@ Object.assign(UI, {
     Shop.render();
   },
   dbgTele(){ Tele.flush(); UI.toast(Tele.status().replace(/\n/g,"<br>")); },
+  /* ══ TRY THE OTHER LOOK ══ a skin is a class on #app and a line in localStorage, so the
+     warm original is always one tap away. Two directions you can flip between are
+     comparable; a rewrite is only defensible after the comparison. */
+  skin(name){
+    const app=$("app"); if(!app) return;
+    app.classList.remove("skin-slate");
+    if(name && name!=="classic") app.classList.add("skin-"+name);
+    try{ localStorage.setItem("hush_skin", name||"classic"); }catch(e){}
+  },
+  dbgSkin(){
+    const now=(localStorage.getItem("hush_skin")||"classic")==="slate" ? "classic" : "slate";
+    UI.skin(now);
+    UI.toast(now==="slate" ? "🎨 <b>slate</b> - the designer's direction"
+                           : "🎨 <b>classic</b> - the warm original");
+  },
   /* ══ THE REGRESSION SUITE, ON THE DEVICE ══ every check in it is a bug that was reported,
      diagnosed and closed, so a red line here means a fix has come undone. It drives the game
      to do things - starts rounds, fires powers, moves seats - which is why it refuses to run

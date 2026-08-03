@@ -30,3 +30,10 @@
    and it is the next job, not a surprise. */
 
 /* =================== DICTIONARY =================== */
+
+/* the chosen skin is applied before the first paint, or the warm look flashes for a frame
+   on every boot of the slate one. It is only ever a class - see UI.skin. */
+try{ var _sk=localStorage.getItem("hush_skin");
+  if(_sk && _sk!=="classic") document.addEventListener("DOMContentLoaded",function(){
+    var a=document.getElementById("app"); if(a) a.classList.add("skin-"+_sk); });
+}catch(e){}

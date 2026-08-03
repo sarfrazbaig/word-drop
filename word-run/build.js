@@ -146,7 +146,13 @@ const stitch = (file) => fs.readFileSync(path.join(SRC_DIR, file), "utf8");
    now, so replacing them on the bare template shell silently found nothing and shipped a game
    with no dictionary - 866 KB where 1364 KB was expected. The document is put together, then
    the placeholders are filled, and each substitution is asserted to have actually happened. */
-const assembled = dropTemplate.split("__STYLE__").join(stitch("style.css"))
+/* style.css is the base and must go first; every other src/*.css is a SKIN layered on
+   top of it, gated behind a class on #app so the original look is never lost - a skin you
+   cannot switch off is a rewrite, not an experiment. */
+const SRC_CSS = ["style.css"].concat(
+  fs.readdirSync(SRC_DIR).filter(f => f.endsWith(".css") && f !== "style.css").sort());
+const styleBody = SRC_CSS.map(f => stitch(f)).join("\n");
+const assembled = dropTemplate.split("__STYLE__").join(styleBody)
                               .split("__SCRIPT__").join(scriptBody);
 for (const token of ["__STYLE__", "__SCRIPT__", "__COMMON__", "__TELEBUILD__"]) {
   const present = (token === "__STYLE__" || token === "__SCRIPT__")
