@@ -95,19 +95,20 @@
   .seat.lit .mount{ box-shadow:0 0 0 4px #ffb323, 0 3px 9px rgba(10,26,50,.30); }
 
   /* ══ BOARD ══ the country's own painting, as the game hangs it ══ */
-  #board{ height:852px; margin-top:23px; border-radius:24px; overflow:hidden; position:relative;
+  #board{ height:852px; touch-action:none; cursor:pointer; margin-top:23px; border-radius:24px; overflow:hidden; position:relative;
     background-image:url("../../art/bg/bio0.jpg"); background-size:cover; background-position:center 62%;
     box-shadow:0 8px 22px rgba(22,44,78,.16); }
-  #cols{ position:absolute; inset:0; display:flex; gap:20px; padding:21px; }
-  .colhit{ flex:1; border-radius:14px; cursor:pointer; }
-  .colhit.hover{ background:rgba(255,255,255,.13); }
-  .colhit.no{ cursor:not-allowed; }
   .tile{ position:absolute; width:84px; height:84px; border-radius:13px; background:#fdfbf7;
     display:grid; place-items:center; font-size:43px; font-weight:900; color:#445872;
     box-shadow:0 3px 0 rgba(28,48,80,.13), 0 5px 11px rgba(20,40,70,.17); }
   .tile s{ position:absolute; right:9px; bottom:4px; font-size:17px; font-weight:800;
     color:#8b9bb3; text-decoration:none; }
-  .tile.fall{ transition:top .26s cubic-bezier(.35,.85,.4,1); }
+  .tile.fall{ transition:top .26s cubic-bezier(.35,.85,.4,1); }   /* the collapse after a clear */
+  .tile.ghost{ background:rgba(253,251,247,.30); color:rgba(68,88,114,.55); box-shadow:none;
+    outline:3px dashed rgba(253,251,247,.75); outline-offset:-3px; pointer-events:none; }
+  .tile.ghost s{ display:none; }
+  .tile.carry{ pointer-events:none; z-index:9; transform:scale(1.06);
+    box-shadow:0 10px 0 rgba(28,48,80,.13), 0 16px 26px rgba(20,40,70,.30); }
   .tile.settle{ animation:settle .22s ease-out; }
   @keyframes settle{ 0%{ transform:scaleY(.86) translateY(6px);} 60%{ transform:scaleY(1.05);} 100%{ transform:none;} }
   .tile.win{ background:#ffe6ac; color:#7a5a10; box-shadow:0 0 0 4px #ffb323, 0 5px 11px rgba(20,40,70,.2); }
@@ -190,8 +191,7 @@
     </div>
 
     <div id="board">
-      <div id="cols"></div>
-      <div id="shout"></div>
+          <div id="shout"></div>
     </div>
 
     <div class="panel" id="dock">
@@ -238,35 +238,105 @@ function makeTile(letter, col, row, fromTop){
   return d;
 }
 
-function buildCols(){
-  const wrap=$("cols"); wrap.innerHTML="";
-  for(let c=0;c<COLS;c++){
-    const h=document.createElement("div");
-    h.className="colhit"; h.dataset.c=c;
-    h.onpointerenter=()=>{ if(!S.busy && !S.armed) h.classList.add("hover"); };
-    h.onpointerleave=()=>h.classList.remove("hover");
-    h.onclick=()=>drop(c);
-    wrap.appendChild(h);
-  }
-}
-
 function firstEmpty(c){ for(let r=ROWS-1;r>=0;r--) if(!S.grid[r][c]) return r; return -1; }
 
-async function drop(c){
-  if(S.busy) return;
-  if(S.armed==="pluck") return;
-  const r=firstEmpty(c);
-  if(r<0){ shout("that column is full"); return; }
+/* ══ THE CONTROL THE GAME ACTUALLY HAS ══
+   Not "tap a column and a tile appears there". Press anywhere on the board and the letter
+   LIFTS OUT OF THE DOCK into your fingers; a ghost shows the cell it would land in; sliding
+   across moves both; letting go drops it. Release somewhere it cannot go and the letter is
+   handed back rather than swallowed.
+   And the piece you are holding is the piece that falls - it keeps the position it had at
+   the moment of release, so the fall starts where your finger was rather than from the top
+   of the board. The duration is the distance actually travelled, 80ms plus 42 per cell, so
+   a release high above the stack still falls at the honest speed and a release just above
+   the landing cell takes the 80ms floor instead of dawdling. */
+const STEP = TILE + GAPY;
+let aiming=false, aimId=null, carryEl=null, ghostEl=null, hoverCol=-1;
+
+function colFromEvent(e){
+  const r=boardEl.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*BOARD_W;
+  const c=Math.floor((x-PAD+GAPX/2)/(TILE+GAPX));
+  return (c<0||c>=COLS) ? -1 : c;
+}
+function boardPoint(e){
+  const r=boardEl.getBoundingClientRect();
+  return { x:(e.clientX-r.left)/r.width*BOARD_W, y:(e.clientY-r.top)/r.height*BOARD_H };
+}
+function showGhost(c){
+  if(ghostEl){ ghostEl.remove(); ghostEl=null; }
+  if(c<0 || S.busy || S.armed) return;
+  const land=firstEmpty(c); if(land<0) return;
+  const g=document.createElement("div");
+  g.className="tile ghost";
+  g.textContent=S.cur.l.toUpperCase();
+  g.style.left=colX(c)+"px"; g.style.top=rowY(land)+"px";
+  boardEl.appendChild(g); ghostEl=g;
+}
+function lift(e){
+  const p=boardPoint(e);
+  carryEl=document.createElement("div");
+  carryEl.className="tile carry";
+  carryEl.innerHTML=S.cur.l.toUpperCase()+'<s>'+(VAL[S.cur.l]||1)+'</s>';
+  boardEl.appendChild(carryEl);
+  moveCarry(p);
+  $("cur").style.visibility="hidden";          // the letter is in your hand, not in the dock
+}
+function moveCarry(p){ if(!carryEl) return;
+  carryEl.style.left=(p.x-TILE/2)+"px"; carryEl.style.top=(p.y-TILE/2)+"px"; }
+function handBack(){
+  if(carryEl){ carryEl.remove(); carryEl=null; }
+  $("cur").style.visibility="";
+}
+function aimStop(){ aiming=false; aimId=null; if(ghostEl){ ghostEl.remove(); ghostEl=null; } hoverCol=-1; }
+
+boardEl.addEventListener("pointerdown", e=>{
+  if(S.busy || S.armed) return;
+  aiming=true; aimId=e.pointerId;
+  try{ boardEl.setPointerCapture(e.pointerId); }catch(_){}
+  hoverCol=colFromEvent(e); showGhost(hoverCol); lift(e);
+});
+boardEl.addEventListener("pointermove", e=>{
+  if(!aiming || e.pointerId!==aimId) return;
+  const c=colFromEvent(e);
+  if(c!==hoverCol){ hoverCol=c; showGhost(c); }
+  moveCarry(boardPoint(e));
+});
+boardEl.addEventListener("pointercancel", e=>{
+  if(!aiming || e.pointerId!==aimId) return;
+  aimStop(); handBack();
+});
+boardEl.addEventListener("pointerup", e=>{
+  if(!aiming || e.pointerId!==aimId) return;
+  const from=carryEl ? parseFloat(carryEl.style.top) : null;
+  const c=colFromEvent(e);
+  aimStop();
+  try{ boardEl.releasePointerCapture(e.pointerId); }catch(_){}
+  if(c<0) return handBack();
+  const land=firstEmpty(c);
+  if(land<0){ handBack(); shout("that column is full"); setTimeout(hideShout,900); return; }
+  release(c, land, from);
+});
+
+async function release(c, land, fromY){
   S.busy=true;
-  const t=makeTile(S.cur.l, c, r, true);
-  requestAnimationFrame(()=>{ t.style.top=rowY(r)+"px"; });
-  await wait(270);
+  const target=rowY(land);
+  const t=carryEl; carryEl=null;
+  t.classList.remove("carry");
+  t.style.left=colX(c)+"px";
+  if(fromY==null) fromY=-110;
+  t.style.top=fromY+"px";
+  const cells=Math.max(0,(target-fromY)/STEP);
+  const fallMs=80+Math.round(cells*42);       // the game's own timing, distance-based
+  t.style.transition="top "+fallMs+"ms cubic-bezier(.35,.85,.4,1), left 90ms ease-out";
+  requestAnimationFrame(()=>{ t.style.top=target+"px"; });
+  await wait(fallMs+30);
+  t.style.transition="";
   t.classList.add("settle");
-  S.grid[r][c]={ l:S.cur.l, el:t };
+  S.grid[land][c]={ l:S.cur.l, el:t };
   S.moves--;
-  advance();
-  paint();
-  await wait(120);
+  advance(); $("cur").style.visibility=""; paint();
+  await wait(110);
   await resolve();
   S.busy=false;
   if(S.moves<=0 && S.score<S.target) sheet("out of moves","Nineteen moves gone and the hush is still here. In the real game this is where the round offers you a way back.");
@@ -414,7 +484,6 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 /* ── open on a board that already has a floor, the way a round in progress looks ── */
 function start(){
   S.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
-  buildCols();
   const seed=[["c","w","s","h","u","l","i"],["r","e","b","e","u","w","t"]];
   seed.forEach((row,i)=>{ const r=ROWS-1-i;
     row.forEach((l,c)=>{ const t=makeTile(l,c,r,false); S.grid[r][c]={l,el:t}; }); });
