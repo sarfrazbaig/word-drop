@@ -1565,9 +1565,9 @@ function card(o){
   $("cnums").innerHTML=(o.nums||[]).map(n=>"<div><b>"+n[0]+"</b><span>"+n[1]+"</span></div>").join("");
   $("stars").style.display=o.stars==null?"none":"flex";
   if(o.stars!=null) [...$("stars").children].forEach((el,i)=>el.classList.toggle("off", i>=o.stars));
-  /* the portrait is CREATED when a friend is actually being met. Keeping an empty <img>
-     parked in the markup means shipping a tag whose src is the page itself - a wasted
-     request, and a broken-image box on anything that paints before the card is filled. */
+  /* the portrait is CREATED when a friend is actually being met. An image tag parked in the
+     markup with no source resolves to the page itself - a wasted request, and a broken-image
+     box on anything that paints before the card is filled. */
   const meet=$("cmeet"); meet.innerHTML="";
   meet.style.display=o.face?"block":"none";
   if(o.face){ const im=document.createElement("img"); im.alt=""; im.src="../alternate_art/"+o.face;
