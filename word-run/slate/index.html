@@ -46,26 +46,34 @@
   .tap{ cursor:pointer; transition:transform .09s ease; }
   .tap:active{ transform:scale(.94); }
 
+  /* ══ TYPE IS SIZED FOR THE PHONE, NOT FOR THE ARTBOARD ══ the comp is 854 wide, roughly
+     @2x for a large handset, and it is scaled to fit whatever it is read on. On a 375px
+     phone that is 0.439 - so its 20px label arrived at 8.8px and its 27px readout at 11.9px.
+     iOS treats 11pt as the floor for ANY text and these were under it: the board was the
+     only comfortable thing on screen.
+     Every size below is chosen as a RENDERED target and divided back through the scale:
+       11px floor for labels, 13px for names, 16-17px for readouts, 20px for the level.
+     Geometry is untouched - the tiles measured fine at 21.5px, so this is type alone. */
   /* ══ HUD ══ */
   #hud{ background:var(--pane);  height:307px; padding:22px 26px 0; display:flex; flex-direction:column; }
   #hudtop{ display:flex; align-items:flex-start; gap:18px; }
   #burger{ width:38px; padding-top:14px; display:flex; flex-direction:column; gap:7px; flex:0 0 auto; }
   #burger i{ display:block; height:5px; border-radius:3px; background:#a1c3ec; }
   #lvl{ flex:0 0 auto; padding-top:6px; }
-  #lvl b{ display:block; font-size:20px; font-weight:800; color:#a9bcd8; letter-spacing:.06em; line-height:1.1; }
-  #lvl span{ display:block; font-size:36px; font-weight:900; color:#fff; line-height:1.05; }
+  #lvl b{ display:block; font-size:25px; font-weight:800; color:#a9bcd8; letter-spacing:.06em; line-height:1.1; }
+  #lvl span{ display:block; font-size:46px; font-weight:900; color:#fff; line-height:1.05; }
   #centre{ flex:1; text-align:center; padding-top:8px; }
   #score{ font-size:29px; font-weight:800; color:#fff; }
   #track{ width:100%; height:14px; border-radius:99px; background:var(--line); overflow:hidden; }
   #fill{ height:100%; width:100%; background:#ffb323; border-radius:99px;
     transform:scaleX(0); transform-origin:left center;
     transition:transform .45s cubic-bezier(.2,.7,.3,1); }
-  #moves{ font-size:27px; font-weight:800; color:#fff; padding-top:10px; }
+  #moves{ font-size:39px; font-weight:800; color:#fff; padding-top:10px; }
   #pouch{ flex:0 0 auto; margin-top:8px; display:flex; align-items:center; gap:11px;
     background:var(--pouch); border-radius:99px; padding:13px 22px; }
   #pouch em{ width:24px; height:24px; border-radius:50%; background:#ffb323; display:block; }
-  #pouch b{ font-size:27px; font-weight:800; color:#fff; }
-  #pouch i{ font-size:25px; font-weight:700; color:#c3d6f0; font-style:normal; }
+  #pouch b{ font-size:39px; font-weight:800; color:#fff; }
+  #pouch i{ font-size:34px; font-weight:700; color:#c3d6f0; font-style:normal; }
   #rule{ height:1px; background:var(--line); margin:26px -26px 0; }
   /* ══ THE ROUND ASKS ONCE ══ the comp said it twice - "Score: 0/20" in the panel and
      "reach 20 points" a hairline below it - and put the loudest number on the badge, which
@@ -76,8 +84,8 @@
   #ask{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:11px;
     padding:0 2px; }
   .askline{ display:flex; align-items:center; gap:14px; }
-  #askp{ flex:1; font-size:26px; font-weight:800; color:#fff; text-align:left; }
-  #askcount{ font-size:26px; font-weight:900; color:#fff; letter-spacing:.5px; }
+  #askp{ flex:1; font-size:37px; font-weight:800; color:#fff; text-align:left; }
+  #askcount{ font-size:37px; font-weight:900; color:#fff; letter-spacing:.5px; }
   #ask #track{ width:100%; margin:0; }
   #badge{ width:150px; height:88px; border-radius:99px; flex:0 0 auto;
     border:3px solid #ffb323; background:rgba(255,179,35,.10);
@@ -89,7 +97,7 @@
   .ring::after{ content:""; width:14px; height:14px; border-radius:50%; background:#ffb323; }
   .askline .ring{ width:38px; height:38px; border-width:4px; }
   .askline .ring::after{ width:12px; height:12px; }
-  .askline u{ font-size:25px; font-weight:800; color:#a1c3ec; text-decoration:none; }
+  .askline u{ font-size:30px; font-weight:800; color:#a1c3ec; text-decoration:none; }
 
   /* ══ FRIENDS ══ */
   #pets{ background:var(--pane2);  height:259px; margin-top:23px; padding:34px 30px 0;
@@ -108,8 +116,8 @@
   #pets.boxed .mount img{ border-radius:9px; transform:none; }
   .disc{ width:74px; height:74px; margin:21px auto 0; border-radius:50%; background:var(--slot);
     display:grid; place-items:center; font-size:38px; font-weight:900; color:#c3d6f0; }
-  .seat b{ display:block; margin-top:15px; font-size:22px; font-weight:800; color:#fff; }
-  .seat span{ display:block; margin-top:5px; font-size:20px; font-weight:700; color:#a9bcd8; }
+  .seat b{ display:block; margin-top:15px; font-size:30px; font-weight:800; color:#fff; }
+  .seat span{ display:block; margin-top:5px; font-size:25px; font-weight:700; color:#a9bcd8; }
   .seat.locked b{ margin-top:22px; }
   .seat.lit .mount{ box-shadow:0 0 0 4px #ffb323, 0 3px 9px rgba(10,26,50,.30); }
 
@@ -198,7 +206,7 @@
   @keyframes pop{ 0%{ transform:scale(.8) translateY(-10px);} 100%{ transform:none;} }
   #queue{ display:flex; gap:30px; margin-left:48px; }
   .slot{ text-align:center; }
-  .slot i{ display:block; font-size:21px; font-weight:900; letter-spacing:.13em; color:var(--dockink);
+  .slot i{ display:block; font-size:25px; font-weight:900; letter-spacing:.13em; color:var(--dockink);
     font-style:normal; margin-bottom:9px; }
   .slot .tile{ position:static; width:74px; height:74px; }
   .slot .face{ font-size:36px; border-radius:12px; }
@@ -313,26 +321,26 @@
     transform:translateY(24px) scale(.97); opacity:0; transition:.3s cubic-bezier(.2,.8,.3,1); }
   #veil.on #card{ transform:none; opacity:1; }
   #crown{ font-size:56px; line-height:1; margin-bottom:6px; }
-  #ctry{ font-size:23px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  #ctry{ font-size:26px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
     color:#ffb323; margin-bottom:10px; }
-  #ctitle{ font-size:40px; font-weight:900; color:#fff; line-height:1.15; }
-  #csub{ font-size:24px; font-weight:700; color:#a9bcd8; margin-top:12px; line-height:1.45; }
+  #ctitle{ font-size:46px; font-weight:900; color:#fff; line-height:1.15; }
+  #csub{ font-size:34px; font-weight:700; color:#a9bcd8; margin-top:12px; line-height:1.45; }
   #cnums{ display:flex; justify-content:center; gap:56px; margin:30px 0 6px; }
-  #cnums div b{ display:block; font-size:21px; font-weight:800; letter-spacing:.1em;
+  #cnums div b{ display:block; font-size:25px; font-weight:800; letter-spacing:.1em;
     text-transform:uppercase; color:#a9bcd8; }
-  #cnums div span{ display:block; font-size:48px; font-weight:900; color:#fff; margin-top:4px; }
+  #cnums div span{ display:block; font-size:54px; font-weight:900; color:#fff; margin-top:4px; }
   #stars{ display:flex; justify-content:center; gap:16px; margin-bottom:14px; }
   #stars i{ width:52px; height:52px; border-radius:50%; border:5px solid #ffb323;
     display:grid; place-items:center; font-style:normal; }
   #stars i::after{ content:""; width:18px; height:18px; border-radius:50%; background:#ffb323; }
   #stars i.off{ border-color:var(--slot); }
   #stars i.off::after{ background:var(--slot); }
-  #cbtn{ margin-top:26px; font:inherit; font-size:27px; font-weight:900; color:#2b2011;
+  #cbtn{ margin-top:26px; font:inherit; font-size:39px; font-weight:900; color:#2b2011;
     background:#ffb323; border:0; border-radius:99px; padding:19px 46px; cursor:pointer;
     box-shadow:0 5px 0 #d1900f; }
   #cbtn:active{ transform:translateY(3px); box-shadow:0 2px 0 #d1900f; }
   #calt{ display:block; margin:16px auto 0; background:none; border:0; font:inherit;
-    font-size:22px; font-weight:800; color:#a1c3ec; cursor:pointer; }
+    font-size:30px; font-weight:800; color:#a1c3ec; cursor:pointer; }
   #cmeet{ width:150px; height:150px; margin:0 auto 14px; border-radius:50%; overflow:hidden;
     box-shadow:0 0 0 5px #ffb323, 0 10px 26px rgba(6,14,30,.5); display:none; }
   #cmeet img{ width:100%; height:100%; object-fit:cover; display:block; }
@@ -341,9 +349,9 @@
   #sheet{ position:absolute; left:32px; right:32px; bottom:32px; background:#2a4063; border-radius:24px;
     padding:30px 34px; color:#fff; transform:translateY(140%); transition:transform .3s cubic-bezier(.2,.8,.3,1); }
   #sheet.on{ transform:none; }
-  #sheet h3{ font-size:30px; font-weight:900; margin-bottom:12px; }
-  #sheet p{ font-size:23px; font-weight:700; color:#a9bcd8; line-height:1.45; }
-  #sheet button{ margin-top:22px; font:inherit; font-size:24px; font-weight:800; color:#2a4063;
+  #sheet h3{ font-size:38px; font-weight:900; margin-bottom:12px; }
+  #sheet p{ font-size:32px; font-weight:700; color:#a9bcd8; line-height:1.45; }
+  #sheet button{ margin-top:22px; font:inherit; font-size:34px; font-weight:800; color:#2a4063;
     background:#a1c3ec; border:0; border-radius:99px; padding:14px 34px; cursor:pointer; }
   #picker{ position:absolute; inset:0; background:rgba(20,34,58,.72); display:none;
     align-items:center; justify-content:center; }
