@@ -202,6 +202,21 @@ fs.writeFileSync(path.join(__dirname, "word-drop.html"), dropOut);
       process.exit(1);
     }
     slate = slate.split("__COMMON__").join(common.join(" "));
+    /* ══ ONE GROVE, NOT TWO ══ the fifty friends, their homes, their callings, the doors and
+       the goal tables are injected from src/ rather than copied into the slate file. A copy
+       is a second source of truth, and this project has already paid for several of those:
+       ice in the First Clearing came from an obstacle schedule and a goal schedule that were
+       written separately and never compared. The roster was split at the shop boundary to
+       make this possible - everything above it is pure data and pure rules, everything below
+       reaches for UI and Game. */
+    const SHARED = ["25-grove-homes.js", "30-grove-roster.js"];
+    if (slate.includes("__GROVE__")) {
+      const shared = SHARED.map(f => fs.readFileSync(path.join(SRC_DIR, f), "utf8")).join("\n");
+      slate = slate.split("__GROVE__").join(shared);
+    } else {
+      console.error("!! BUILD REFUSED - slate/app.template.html has no __GROVE__ to fill");
+      process.exit(1);
+    }
     fs.writeFileSync(path.join(__dirname, "slate", "index.html"), slate);
     console.log("Built slate/index.html - " + common.length + " words");
   }

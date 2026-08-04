@@ -430,6 +430,30 @@ const BAG="aaaaaaaeeeeeeeeeiiiiiioooooounnnnnrrrrrtttttllllssssdddgggbcmpfhvwykj
 const COMMON=new Set("__COMMON__".split(" "));
 const WORDS=COMMON;
 
+/* ══ THE GROVE, SHARED NOT COPIED ══ the fifty friends, where each of them lives, what each
+   listens for, the doors, the gates and the goal tables - injected straight from src/ at
+   build time. A copy would be a second source of truth, and this project has already paid
+   for several of those: ice turned up in the First Clearing because the obstacle schedule
+   and the goal schedule were written separately and nothing ever compared them.
+   The roster was split at the shop boundary to make this possible. Everything shared here
+   is pure data and pure rules; the shop, the ads and the daily quest stayed behind because
+   they reach for UI and Game, which this build does not have. */
+const P = { level:1, grove:{}, metGrove:{}, equip:[], amber:260, called:{}, summonQ:[],
+            pow:{swap:0,wild:0}, stats:{}, seenTier:{}, seenSlots:{}, said:{} };
+function advOf(L){ return L; }        // slate counts in player levels already
+const BIOME_LEN=20;
+/* ══ THE HABITAT TABLE IS NOT HERE YET, AND THAT IS DELIBERATE ══ the shared grove reads
+   TROUBLE to decide which goals a country may legally ask for - it is the check that came
+   out of the ice bug, where "melt every ice" was asked 247 levels and 13 countries before
+   ice could exist. This build has no obstacles on the board, so the table is EMPTY rather
+   than copied: a copy is the second source of truth that caused that bug in the first place.
+   Stage two - the twenty-two tile designs - shares the real table by splitting 10-world.js
+   at its own data/view seam, exactly as the roster was split. Until then goalLegalAt has
+   nothing to refuse, which is correct, because there is nothing to refuse it about. */
+const TROUBLE={}, TROUBLE_KEYS=[];
+__GROVE__
+
+
 let S={ lv:3, score:0, target:35, moves:19, amber:260, leaf:3, star:2, wordsMade:0, wordsNeed:5,
         grid:[], cur:null, next:null, then:null, armed:null, busy:false,
         swapSel:null, wishedHand:false, noWishGrant:false, noBreezeGrant:false,

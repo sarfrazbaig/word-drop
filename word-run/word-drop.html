@@ -5064,6 +5064,10 @@ const TIER_MSG={
   2:{t:"Grown again 🌿", b:"They know your hand by heart. Signs that used to take a while come quicker, and the wood is asking more of you to match."},
   3:{t:"Grown into themselves 🌿", b:"Your friends are as awake as the wood can make them. What comes now, you and they meet together."},
 };
+/* @module  shop  -  the trading post, ads and the daily quest.
+   Split out of the roster so the grove above it is pure data and pure rules, and can be
+   shared with the slate build. Everything here reaches for UI, Game and P; nothing above
+   it does. */
 /* ============ 🟠 THE TRADING POST - IAP catalog + adapter ============
    The SHOP is real; the TILL is pluggable. Shop.provider is null until a store
    is wired (Play Billing / StoreKit / Stripe) - one object with purchase(item)
@@ -12719,7 +12723,7 @@ const Tele = {
      the pet rebuild, the party-row redesign, the painted countries and the whole tutorial
      pass, labelling all of them as one version. */
   wave:"v2",
-  ver:"20260803194622",
+  ver:"20260804171629",
   // DEV BUILDS MUST NOT POLLUTE THE PLAYTEST. Only the real deployed site reports -
   // localhost/127.0.0.1/file:// stay silent so testing never lands in the data.
   // (Escape hatch: localStorage.hush_tele_force="1" to send from a local build.)
