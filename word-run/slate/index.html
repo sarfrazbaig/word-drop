@@ -107,14 +107,20 @@
      white card around them is a SECOND frame - and at shelf size that card was eating a fifth
      of the face. The medallion is the mount. #pets.boxed restores the comp's card if the two
      ever need comparing again. */
-  .mount{ width:116px; height:116px; margin:0 auto; border-radius:50%; overflow:hidden;
+  /* ══ THE PORTRAIT IS SIZED AGAINST THE TILE ══ the comp drew a 116px mount beside an 84px
+     letter - the friend reads as 1.38 of a tile, which is what makes the shelf feel like
+     people watching a board rather than icons above it. When the tiles grew to 94 to match
+     the game's clumping, the mount stayed at 116 and quietly fell to 1.23. Raising the type
+     by a third afterwards finished the job: the friends looked shrunken because, relative to
+     everything around them, they were. 94 x 1.381 = 130. */
+  .mount{ width:130px; height:130px; margin:0 auto; border-radius:50%; overflow:hidden;
     background:none; padding:0; box-shadow:0 3px 10px rgba(10,26,50,.32); }
   .mount img{ width:100%; height:100%; object-fit:cover; display:block;
     border-radius:50%; transform:scale(1.03); }
-  #pets.boxed .mount{ width:110px; height:116px; background:#fff; border-radius:14px;
+  #pets.boxed .mount{ width:123px; height:130px; background:#fff; border-radius:14px;
     padding:6px; overflow:visible; }
   #pets.boxed .mount img{ border-radius:9px; transform:none; }
-  .disc{ width:74px; height:74px; margin:21px auto 0; border-radius:50%; background:var(--slot);
+  .disc{ width:83px; height:83px; margin:21px auto 0; border-radius:50%; background:var(--slot);
     display:grid; place-items:center; font-size:38px; font-weight:900; color:#c3d6f0; }
   .seat b{ display:block; margin-top:15px; font-size:30px; font-weight:800; color:#fff; }
   .seat span{ display:block; margin-top:5px; font-size:25px; font-weight:700; color:#a9bcd8; }
