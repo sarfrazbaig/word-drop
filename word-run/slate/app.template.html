@@ -56,18 +56,29 @@
   #lvl span{ display:block; font-size:36px; font-weight:900; color:#fff; line-height:1.05; }
   #centre{ flex:1; text-align:center; padding-top:8px; }
   #score{ font-size:29px; font-weight:800; color:#fff; }
-  #track{ width:245px; height:16px; border-radius:99px; background:var(--line); margin:14px auto 0; overflow:hidden; }
+  #track{ width:100%; height:14px; border-radius:99px; background:var(--line); overflow:hidden; }
   #fill{ height:100%; width:100%; background:#ffb323; border-radius:99px;
     transform:scaleX(0); transform-origin:left center;
     transition:transform .45s cubic-bezier(.2,.7,.3,1); }
-  #moves{ font-size:22px; font-weight:700; color:#a9bcd8; margin-top:13px; }
+  #moves{ font-size:27px; font-weight:800; color:#fff; padding-top:10px; }
   #pouch{ flex:0 0 auto; margin-top:8px; display:flex; align-items:center; gap:11px;
     background:var(--pouch); border-radius:99px; padding:13px 22px; }
   #pouch em{ width:24px; height:24px; border-radius:50%; background:#ffb323; display:block; }
   #pouch b{ font-size:27px; font-weight:800; color:#fff; }
   #pouch i{ font-size:25px; font-weight:700; color:#c3d6f0; font-style:normal; }
   #rule{ height:1px; background:var(--line); margin:26px -26px 0; }
-  #ask{ flex:1; display:flex; align-items:center; gap:18px; }
+  /* ══ THE ROUND ASKS ONCE ══ the comp said it twice - "Score: 0/20" in the panel and
+     "reach 20 points" a hairline below it - and put the loudest number on the badge, which
+     was counting something else entirely. The goal is now written once, in words, carrying
+     its own count and its own fill. Moves keeps the top row, because moves is the thing you
+     are actually spending and it is not the goal.
+     A special round needs no second layout: the same line reads "open every gift 2/5". */
+  #ask{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:11px;
+    padding:0 2px; }
+  .askline{ display:flex; align-items:center; gap:14px; }
+  #askp{ flex:1; font-size:26px; font-weight:800; color:#fff; text-align:left; }
+  #askcount{ font-size:26px; font-weight:900; color:#fff; letter-spacing:.5px; }
+  #ask #track{ width:100%; margin:0; }
   #badge{ width:150px; height:88px; border-radius:99px; flex:0 0 auto;
     border:3px solid #ffb323; background:rgba(255,179,35,.10);
     box-shadow:0 0 22px rgba(255,179,35,.30), inset 0 0 14px rgba(255,179,35,.12);
@@ -76,11 +87,9 @@
   .ring{ width:44px; height:44px; border-radius:50%; flex:0 0 auto;
     border:5px solid #ffb323; display:grid; place-items:center; }
   .ring::after{ content:""; width:14px; height:14px; border-radius:50%; background:#ffb323; }
-  #asktext{ flex:1; display:flex; align-items:center; justify-content:flex-end; gap:14px; padding-right:4px; }
-  #asktext .ring{ width:36px; height:36px; border-width:4px; }
-  #asktext .ring::after{ width:11px; height:11px; }
-  #asktext p{ font-size:26px; font-weight:800; color:#fff; }
-  #asktext u{ font-size:25px; font-weight:800; color:#a1c3ec; text-decoration:none; }
+  .askline .ring{ width:38px; height:38px; border-width:4px; }
+  .askline .ring::after{ width:12px; height:12px; }
+  .askline u{ font-size:25px; font-weight:800; color:#a1c3ec; text-decoration:none; }
 
   /* ══ FRIENDS ══ */
   #pets{ background:var(--pane2);  height:259px; margin-top:23px; padding:34px 30px 0;
@@ -354,16 +363,19 @@
         <div id="burger" class="tap"><i></i><i></i><i></i></div>
         <div id="lvl" class="tap"><b>LEVEL</b><span id="lvnum">3</span></div>
         <div id="centre">
-          <div id="score">Score: <span id="sc">0</span>/<span id="tg">35</span></div>
-          <div id="track"><div id="fill"></div></div>
-          <div id="moves">Moves: <span id="mv">19</span></div>
+          <div id="moves">Moves: <span id="mv">15</span></div>
         </div>
         <div id="pouch" class="tap"><em></em><b id="amber">260</b><i>+</i></div>
       </div>
       <div id="rule"></div>
-      <div id="ask">
-        <div id="badge" class="tap"><span class="ring"></span><b id="words">0/5</b></div>
-        <div id="asktext" class="tap"><span class="ring"></span><p>reach 35 points</p><u>tap &#9656;</u></div>
+      <div id="ask" class="tap">
+        <div class="askline">
+          <span class="ring"></span>
+          <p id="askp">reach 20 points</p>
+          <b id="askcount">0/20</b>
+          <u>tap &#9656;</u>
+        </div>
+        <div id="track"><div id="fill"></div></div>
       </div>
     </div>
 
@@ -394,7 +406,7 @@
     </div>
 
     <div id="veil"><div id="card">
-      <div id="cmeet"><img id="cmeetimg" src="" alt=""></div>
+      <div id="cmeet"></div>
       <div id="crown"></div>
       <div id="ctry"></div>
       <div id="ctitle"></div>
@@ -858,16 +870,17 @@ function shout(t){ const s=$("shout"); s.textContent=t; s.classList.add("on"); }
 function hideShout(){ $("shout").classList.remove("on"); }
 
 function paint(){
-  $("sc").textContent=S.score; $("tg").textContent=S.target;
+  /* one writer for the ask line - the sentence, its count and its fill are the same fact */
+  { const goal = S.ask || ("reach "+S.target+" points");
+    const p=$("askp"), c=$("askcount");
+    if(p) p.textContent=goal;
+    if(c) c.textContent=S.score+"/"+S.target; }
   /* the ask is a whole sentence the level supplies, so it OWNS this line. It used to be
      "reach <span id=tg2>35</span> points" with the number written separately - and writing
      the sentence over it deleted the span, so the next paint threw on a null and the round
      silently stopped updating. One writer per element. */
-  { const a=document.querySelector("#asktext p");
-    if(a) a.textContent = S.ask || ("reach "+S.target+" points"); }
   $("mv").textContent=Math.max(0,S.moves); $("lvnum").textContent=S.lv;
   $("amber").textContent=S.amber; $("leafn").textContent=S.leaf; $("starn").textContent=S.star;
-  $("words").textContent=S.wordsMade+"/"+S.wordsNeed;
   $("fill").style.transform="scaleX("+Math.min(1, S.score/S.target).toFixed(4)+")";
   $("cur").innerHTML=faceHTML(S.cur.l);
   $("nx").firstChild.textContent=S.next.l.toUpperCase();
@@ -883,8 +896,7 @@ function closeSheet(){ $("sheet").classList.remove("on"); }
 $("pets").onclick=e=>{ if(e.target.closest(".seat")) return; $("pets").classList.toggle("boxed"); };
 $("burger").onclick=()=>sheet("the wood","Menu, book of names, settings. Nothing behind it in this prototype - it is here so the panel is a real control rather than a drawing of one.");
 $("pouch").onclick=()=>{ S.amber+=10; paint(); sheet("amber","Ten more. In the game amber buys comfort - a breeze, a wish, a way past a name you cannot spell - and never power."); };
-$("badge").onclick=()=>sheet("this round","Five words to still the hush. The badge counts what you have made, the line beside it says what the round is asking for.");
-$("asktext").onclick=()=>sheet("reach "+S.target+" points","Every word thins the hush. Longer words pay more, and a word made by a cascade pays double.");
+$("ask").onclick=()=>sheet(S.ask||("reach "+S.target+" points"),"Every word thins the hush. Longer words pay more, and a word made by a cascade pays double.");
 $("seat0").onclick=()=>{ const on=$("seat0").classList.toggle("lit");
   $("catstate").textContent = on ? "Watching" : "Active";
   sheet("Calico", on ? "Taken off duty. A friend on the bench keeps its progress but stops acting." : "Back on duty. The cat pats a letter into one that fits when it wakes."); };
@@ -1049,8 +1061,13 @@ function card(o){
   $("cnums").innerHTML=(o.nums||[]).map(n=>"<div><b>"+n[0]+"</b><span>"+n[1]+"</span></div>").join("");
   $("stars").style.display=o.stars==null?"none":"flex";
   if(o.stars!=null) [...$("stars").children].forEach((el,i)=>el.classList.toggle("off", i>=o.stars));
-  $("cmeet").style.display=o.face?"block":"none";
-  if(o.face) $("cmeetimg").src="../alternate_art/"+o.face;
+  /* the portrait is CREATED when a friend is actually being met. Keeping an empty <img>
+     parked in the markup means shipping a tag whose src is the page itself - a wasted
+     request, and a broken-image box on anything that paints before the card is filled. */
+  const meet=$("cmeet"); meet.innerHTML="";
+  meet.style.display=o.face?"block":"none";
+  if(o.face){ const im=document.createElement("img"); im.alt=""; im.src="../alternate_art/"+o.face;
+              meet.appendChild(im); }
   $("cbtn").textContent=o.btn||"continue";
   $("cbtn").onclick=()=>{ hideCard(); if(o.go) o.go(); };
   $("calt").textContent=o.alt||"";
